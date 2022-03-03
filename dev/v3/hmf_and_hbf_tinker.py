@@ -16,6 +16,7 @@ from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM
 import astropy.units as u
 from scipy.integrate import simps
 import hmf
+#IT 02/03/22: Need to use an old version of hmf, like 3.0.2 to accept delta_wrt as argument in the mass function
 from hmf import MassFunction
 from hmf import cosmo
 

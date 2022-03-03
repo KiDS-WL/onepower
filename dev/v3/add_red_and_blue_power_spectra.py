@@ -83,7 +83,8 @@ def add_red_and_blue_power(block, f_red, power_section, z_ext, k_ext):
 		else:
 			for jz in range(nz):
 				pk_tot[jz] = f_red[jz]*pk_red[jz] + (1.-f_red[jz])*pk_blue[jz]
-		warnings.warn('No cross terms between red and blue galaxies implemented.\nThis is only valid for IA in the regime of negligible blue galaxy alignment.')		
+		#warnings.warn('No cross terms between red and blue galaxies implemented.\nThis is only valid for IA in the regime of negligible blue galaxy alignment.')
+        #IT 02/03/22: Commented line 86 to execute the code
 		# extrapolate
 		nz_ext = len(z_ext)
 		pk_tot_ext_z = extrapolate_z(z_ext, z, pk_tot, nk)
