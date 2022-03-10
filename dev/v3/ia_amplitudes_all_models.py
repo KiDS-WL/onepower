@@ -61,7 +61,8 @@ def setup(options):
     #load any data, or do any calculations that are fixed once.
 
     luminosity_dependence = options[option_section, "luminosity_dependence"]
-    if luminosity_dependence not in ["None", "Joachimi2011", "broken_powerlaw", "satellite_luminosity_dependence"]:
+    if luminosity_dependence not in ["None", "Joachimi2011", "double_powerlaw", "satellite_luminosity_dependence"]:
+        #IT (02/03/22): Replaced broken_powerlaw by double_powerlaw in line 64
         raise ValueError('The luminosity dependence can only take one of the following options:\n \
         None\n \
         Joachimi2011\n \
