@@ -7,6 +7,7 @@ from scipy import interp
 from scipy.integrate import quad, simps, trapz
 
 def get_linear_power_spectrum(block, z_vec):
+    # AD: growth factor should be computed from camb/hmf directly, in thin way we can load Plin directly without this functions!
 	k_vec = block["matter_power_lin", "k_h"]
 	z_pl = block["matter_power_lin", "z"]
 	matter_power_lin = block["matter_power_lin", "p_k"]

@@ -142,6 +142,7 @@ def execute(block, config):
         fsigma[jz] = mf.fsigma
         fnu[jz] = fsigma[jz]/nu[jz]
         #matter_power_lin[jz+1] = mf.power
+        # AD: add here the mean_density at z=0 as output, growth factor, etc!
 
     mass = np.logspace(log_mass_min, log_mass_max, nmass)
     f_interp_hmf = interp2d(mf.m, z_vec, dndlnmh)
@@ -153,6 +154,7 @@ def execute(block, config):
     # HALO BIAS
     #--------------------------------------#
 
+    # AD: from ini!
     Delta = 200.
     delta_c = 1.686
 

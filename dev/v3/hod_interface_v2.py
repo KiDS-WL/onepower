@@ -52,6 +52,7 @@ def load_data(file_name):
     z_data, min_magnitude, max_magnitude = np.loadtxt(file_name, usecols = (0,1,2), unpack=True, dtype=np.float)
     if (min_magnitude[0]>max_magnitude[0]):
         raise ErrorValue("Error: in the magnitues_file, the minimum magnitude must be more negative than the maximum magnitude.")
+    # AD: should support stellar masses ...
     return z_data, min_magnitude, max_magnitude
 
 

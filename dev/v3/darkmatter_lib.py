@@ -95,7 +95,7 @@ def scale_radius(rvir, conc):
     #    print (r_s_test[jz]/r_s[jz])
     return r_s
 
-
+# AD: check normalisations! On k->0 the u_dm should be 1!
 # Analytic Fourier transform of the Navarro-Frenk-White density profile
 def norm_fourier(x, c):
     # Note: x = k*r_scale where r_scale= r200/c

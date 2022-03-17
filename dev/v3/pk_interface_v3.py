@@ -141,7 +141,8 @@ def execute(block, config):
 
     # load nonlinear power spectrum (halofi)
     k_nl, p_nl = get_nonlinear_power_spectrum(block, z_vec)
-
+    
+    # AD: avoid this! (Maybe needed for IA part ...)
     # compute the effective power spectrum, mixing the linear and nonlinear one:
     #
     # (1.-t_eff)*plin + t_eff*p_nl
@@ -150,7 +151,7 @@ def execute(block, config):
     pk_eff = compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff)
 
     # initialise the galaxy bias
-    bg = 1.0
+    bg = 1.0 # AD: ???
 
     # If the two_halo_only option is set True, then only the linear regime is computed and the linear bias is used (either computed by the
     # hod module or passed in the value	file (same structure as for the constant bias module)
@@ -177,6 +178,7 @@ def execute(block, config):
         if p_GG:
             # this is not very useful as for the lensing power spectrum it is usually used halofit
             raise ValueError("pGG not implemented for the two-halo only option\n")
+            # AD: Implement proper matter-matter term using the halo model here. We do now want to use halofit.
             # compute_p_mm_new(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor, I_m_term, nz, nk)
         if p_nn:
             pk_nn = compute_p_nn_two_halo(block, k_vec, pk_eff, z_vec, bg)

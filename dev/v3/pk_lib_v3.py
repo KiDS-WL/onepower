@@ -245,6 +245,7 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
         pk_cs_1h[jz] *= one_halo_truncation(k_vec)
         pk_ss_1h[jz] *= one_halo_truncation(k_vec)
     # Total
+    # AD: add Poisson parameter to ph_ss_1h!
     pk_tot = 2. * pk_cs_1h + pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
 
     # in case, save in the datablock
