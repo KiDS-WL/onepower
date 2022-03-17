@@ -46,7 +46,7 @@ def concentration(block, mass, z_vec, model):
         mass_term = 10.14 / ((mass / (2.e+12)) ** 0.081)
         c = mass_term[np.newaxis,:] / ((1. + z_vec[:,np.newaxis]) ** 1.01)
 
-    if model == 'Duffy2008_200':
+    if model == 'Duffy2008_crit':
         mass_term = 5.71 / ((mass / (2.e+12)) ** 0.084)
         for jz in range(0, nz):
             for im in range(0, nmass):

@@ -62,7 +62,7 @@ def execute(block, config):
     rho_halo = 200. * rho_m # array 1d (size of rhom)
     #print ('rho_halo.size = ', rho_halo.shape)
     eta = 0.
-    conc = (1.+eta)*concentration(block, mass, z, 'Duffy2008_mean')
+    conc = (1.+eta)*concentration(block, mass, z, 'Duffy2008_mean') # AD: change eta to be more general normalisation!
     rvir = radvir_from_mass(mass, rho_halo)
     r_s = scale_radius(rvir, conc)
 

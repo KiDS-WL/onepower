@@ -34,6 +34,7 @@ def tinker_bias(nu, Delta=200., delta_c=1.686):
     bias = 1.-A*(nu**a)/(nu**a+delta_c**a) + B*nu**b + C*nu**c
     return bias
 
+#AD: this normalisation is wrong, needs to be removed! Implement Mead et al 2020 additive correction (Cacciato Im integrals are fine, except for Ig part)!
 def normalise_hbf_nu(b_nu, f_nu, nu):
     norm = simps(b_nu*f_nu,nu)
     print (norm)
@@ -68,6 +69,7 @@ def setup(options):
     this_cosmo = cosmo.Cosmology()
     print( this_cosmo.cosmo.Om0)
 
+    # AD remove!
     # create the class mf. Use a large range in masses to properly normalise the halo bias function
     dlog10m_mf = (16.-2.)/500.
     #transfer_params = {'lnk_min': -13, 'lnk_max': 16.994, 'dlnk': 0.0059988000000002276}
@@ -76,9 +78,11 @@ def setup(options):
 
     initialise_cosmo_run=Flatw0waCDM(
         H0=70., Ob0=0.044, Om0=0.3, Tcmb0=2.725, w0=-1., wa=0.)
+    
 
     mf = MassFunction(z=0., cosmo_model=initialise_cosmo_run, Mmin=2., Mmax=16., dlog10m=dlog10m_mf, sigma_8=0.8, n=0.96,
-					  hmf_model='Tinker10', delta_wrt='mean')
+					  hmf_model='Tinker10', mdef_model='SOmean', mdef_params={'overdensity':200})
+    # This mf parameters that are fixed here now need to be read from the ini files! Need to make sure camb is not called when initialising the mf!
     print( mf.cosmo)
 
     return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, halo_bias_option, this_cosmo, mf

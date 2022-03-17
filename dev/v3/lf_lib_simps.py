@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.integrate import simps
 
+# AD: make these general for stellar mass, add different options for flexibility (single power law, ...)
+
 # Conversion functions
 
 def convert_to_luminosity(abs_mag, abs_mag_sun):

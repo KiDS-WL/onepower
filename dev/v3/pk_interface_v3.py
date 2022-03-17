@@ -130,7 +130,7 @@ def execute(block, config):
 
     #FlatLambdaCDM(H0=block[cosmo, "hubble"], Om0=block[cosmo, "omega_m"], Ob0=block[cosmo, "omega_b"], Tcmb0=2.725)
 
-
+    # AD: these quantities shoule be returned by the mh_and_bias block, so there is no need to recompute them all the time!
     rho_crit0 = this_cosmo.critical_density0.to(u.M_sun * u.Mpc ** (-3.)) / (this_cosmo.h ** 2.)
     mean_density0 = rho_crit0.value * this_cosmo.Om0
     #print ('mean_density0', mean_density0)

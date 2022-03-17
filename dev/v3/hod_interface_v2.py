@@ -15,6 +15,8 @@
 #
 # where j=cen,sat.
 
+# AD: make this more general for stellar mass function, re-thing the liminusity limits, functional forms for HOD relations!
+
 from cosmosis.datablock import names, option_section
 import sys
 import numpy as np
