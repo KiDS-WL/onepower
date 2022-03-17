@@ -20,10 +20,11 @@ from load_utilities import get_linear_power_spectrum, get_halo_functions, \
     get_satellite_alignment, load_growth_factor, load_hods, load_galaxy_fractions
 from pk_lib_v3 import compute_p_mm_new, compute_u_dm_grid, \
     prepare_matter_factor_grid, prepare_Im_term, prepare_central_factor_grid, \
-    prepare_satellite_factor_grid, prepare_Ic_term, prepare_Is_term, compute_p_nn, \
-    prepare_satellite_alignment_factor_grid, compute_p_xgG, compute_p_gI, compute_p_xGI, compute_p_II, \
+    prepare_satellite_factor_grid, prepare_Ic_term, prepare_Is_term, compute_p_nn, compute_p_nn_mead, \
+    prepare_satellite_alignment_factor_grid, compute_p_xgG, compute_p_xgG_mead, compute_p_gI, compute_p_xGI, compute_p_II, \
     compute_p_nn_two_halo, compute_p_xgG_two_halo, compute_p_xGI_two_halo, compute_p_gI_two_halo, \
-    compute_p_II_two_halo, compute_two_halo_alignment
+    compute_p_II_two_halo, compute_two_halo_alignment, prepare_I_NL_ss, prepare_I_NL_cs, prepare_I_NL_cc, \
+    prepare_I_NL_cm, prepare_I_NL_sm
 
 import time
 #IT commented next line because it's not available in Python 2.7
@@ -31,6 +32,7 @@ import time
 # from guppy import hpy
 
 import os, errno
+import dill as pickle
 
 cosmo = names.cosmological_parameters
 
@@ -53,12 +55,16 @@ def setup(options):
     nz = options[option_section, "nz"]
     z_vec = np.linspace(zmin, zmax, nz)
 
+    nk = options[option_section, "nk"]
+
     pipeline = options[option_section, "pipeline"]
 
     # pk_obs = options[option_section, "pk_to_compute"]
     p_GG = options[option_section, "p_GG"]
     p_nn = options[option_section, "p_nn"]
+    p_nn_mead = options[option_section, "p_nn_mead"]
     p_xgG = options[option_section, "p_xgG"]
+    p_xgG_mead = options[option_section, "p_xgG_mead"]
     p_gI = options[option_section, "p_gI"]
     p_xGI = options[option_section, "p_xGI"]
     p_II = options[option_section, "p_II"]
@@ -68,18 +74,27 @@ def setup(options):
     ia_lum_dep_satellites = False
     gravitational = False
     galaxy = False
+    mead = False
     alignment = False
     hod_section_name = ''
     two_halo_only = options[option_section, "two_halo_only"]
     f_red_cen_option = False
 
+    if (p_nn == True) and (p_nn_mead == True):
+        print('Select either p_nn = True or p_nn_mead = True, both compute the galaxy power spectrum. p_nn_mead includes non-linear halo bias in the galaxy power spectrum, p_nn does not.')
+        sys.exit()
+
     if (two_halo_only == True) and (p_GG == True):
         gravitational = True
-    elif (two_halo_only == False) and ((p_GG == True) or (p_xgG == True) or (p_xGI == True)):
+    elif (two_halo_only == False) and ((p_GG == True) or (p_xgG == True) or (p_xGI == True) or (p_xgG_mead == True)):
         gravitational = True
-    if (p_nn == True) or (p_xgG == True) or (p_gI == True) or (p_xGI == True) or (p_II == True) :
+    if (p_nn == True) or (p_xgG == True) or (p_gI == True) or (p_xGI == True) or (p_II == True) or (p_nn_mead == True) or (p_xgG_mead == True):
         galaxy = True
         hod_section_name = options[option_section, "hod_section_name"]
+    if (p_nn_mead == True):
+        mead = True
+    if (p_xgG_mead == True):
+        mead_xgG = True
     if (p_gI == True) or (p_xGI == True) or (p_II == True):
         alignment = True
         #IT commented. No longer used
@@ -108,7 +123,7 @@ def setup(options):
     #print(f_red_cen)
     # ============================================================================== #
 
-    return mass, nmass, z_vec, nz, p_GG, p_nn, p_xgG, p_gI, p_xGI, p_II, gravitational, galaxy, alignment, \
+    return mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_mead, p_xgG, p_xgG_mead, p_gI, p_xGI, p_II, gravitational, galaxy, mead, mead_xgG, alignment, \
            ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix
 
 
@@ -118,7 +133,7 @@ def execute(block, config):
     # It is the main workhorse of the code. The block contains the parameters and results of any
     # earlier modules, and the config is what we loaded earlier.
 
-    mass, nmass, z_vec, nz, p_GG, p_nn, p_xgG, p_gI, p_xGI, p_II, gravitational, galaxy, alignment, \
+    mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_mead, p_xgG, p_xgG_mead, p_gI, p_xGI, p_II, gravitational, galaxy, mead, mead_xgG, alignment, \
     ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix = config
 
     start_time = time.time()
@@ -137,7 +152,11 @@ def execute(block, config):
 
     # load linear power spectrum
     k_vec, plin, growth_factor = get_linear_power_spectrum(block, z_vec)
-    nk = len(k_vec)
+    #nk = len(k_vec)
+
+    k_interp = interp1d(k_vec, plin, axis=1)
+    k_vec = np.logspace(np.log10(k_vec.min()), np.log10(k_vec.max()-1), nk)
+    plin = k_interp(k_vec)
 
     # load nonlinear power spectrum (halofi)
     k_nl, p_nl = get_nonlinear_power_spectrum(block, z_vec)
@@ -218,6 +237,19 @@ def execute(block, config):
                 # preparing the 2h term
                 I_c_term = prepare_Ic_term(mass, c_factor, b_dm, dn_dlnm, nz, nk)
                 I_s_term = prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)
+                if mead == True:
+                    # preparing NL terms 
+                    with open('/unix/atlas4/akorn/LSST/cosmosis/cosmosis/modules/non_lin_halo_bias/interpolator_BNL.npy', 'rb') as dill_file:
+                        beta_interp = pickle.load(dill_file)
+                    I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
+                    I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
+                    I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
+                if mead_xgG == True:
+                    # preparing NL terms 
+                    with open('/unix/atlas4/akorn/LSST/cosmosis/cosmosis/modules/non_lin_halo_bias/interpolator_BNL.npy', 'rb') as dill_file:
+                        beta_interp = pickle.load(dill_file)
+                    I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
+                    I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
             if alignment == True:
 		#IT commenting ia_lum_dep_centrals
                 alignment_amplitude_2h, alignment_amplitude_2h_II = compute_two_halo_alignment(block, suffix, nz, nk,
@@ -260,6 +292,15 @@ def execute(block, config):
             block.put_grid("galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn)
             #block.put_grid("galaxy_linear_bias" + suffix, "z", z_vec, "k_h", k_vec, "galaxybiastotal", bg_halo_model)
 
+        if p_nn_mead == True:
+            print('MEAD non-linear halo bias selected')
+            pk_nn_1h_mead, pk_nn_2h_mead, pk_nn_mead, bg_halo_model_mead = compute_p_nn_mead(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor,
+                                                                    s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss)
+            block.put_grid("galaxy_power_1h" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_1h_mead)
+            block.put_grid("galaxy_power_2h" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_2h_mead)
+            block.put_grid("galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_mead)
+            #block.put_grid("galaxy_linear_bias" + suffix, "z", z_vec, "k_h", k_vec, "galaxybiastotal", bg_halo_model)
+
         if p_xgG == True:
             print("computing p_xgG...")
 	    #IT Replacing pk_eff by plin
@@ -269,6 +310,17 @@ def execute(block, config):
             #block.put_grid("matter_galaxy_power_2h", "z", z_vec, "k_h", k_vec, "p_k", pk_2h)
 	    #IT Adding suffix to matter_galaxy_power
             block.put_grid("matter_galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_tot)
+        
+        if p_xgG_mead == True:
+            print("computing p_xgG with mead non-linear bias...")
+	    #IT Replacing pk_eff by plin
+            pk_1h_mead, pk_2h_mead, pk_tot_mead = compute_p_xgG_mead(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, m_factor, I_c_term, I_s_term,
+                          I_m_term, I_NL_cm, I_NL_sm)
+            #block.put_grid("matter_galaxy_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_1h)
+            #block.put_grid("matter_galaxy_power_2h", "z", z_vec, "k_h", k_vec, "p_k", pk_2h)
+	    #IT Adding suffix to matter_galaxy_power
+            block.put_grid("matter_galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_tot_mead)
+
         if p_II == True:
             pk_II_1h, pk_II_2h, pk_II = compute_p_II(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, s_align_factor,
                                                      alignment_amplitude_2h_II, nz, nk, f_cen)
@@ -302,6 +354,5 @@ def cleanup(config):
     # Usually python modules do not need to do anything here.
     # We just leave it in out of pedantic completeness.
     pass
-
 
 
