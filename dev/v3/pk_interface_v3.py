@@ -55,7 +55,7 @@ def setup(options):
     nz = options[option_section, "nz"]
     z_vec = np.linspace(zmin, zmax, nz)
 
-    nk = options[option_section, "nk"]
+    #nk = options[option_section, "nk"]
 
     pipeline = options[option_section, "pipeline"]
 
@@ -75,6 +75,7 @@ def setup(options):
     gravitational = False
     galaxy = False
     mead = False
+    mead_xgG = False
     alignment = False
     hod_section_name = ''
     two_halo_only = options[option_section, "two_halo_only"]
@@ -123,7 +124,7 @@ def setup(options):
     #print(f_red_cen)
     # ============================================================================== #
 
-    return mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_mead, p_xgG, p_xgG_mead, p_gI, p_xGI, p_II, gravitational, galaxy, mead, mead_xgG, alignment, \
+    return mass, nmass, z_vec, nz, p_GG, p_nn, p_nn_mead, p_xgG, p_xgG_mead, p_gI, p_xGI, p_II, gravitational, galaxy, mead, mead_xgG, alignment, \
            ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix
 
 
@@ -133,7 +134,7 @@ def execute(block, config):
     # It is the main workhorse of the code. The block contains the parameters and results of any
     # earlier modules, and the config is what we loaded earlier.
 
-    mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_mead, p_xgG, p_xgG_mead, p_gI, p_xGI, p_II, gravitational, galaxy, mead, mead_xgG, alignment, \
+    mass, nmass, z_vec, nz, p_GG, p_nn, p_nn_mead, p_xgG, p_xgG_mead, p_gI, p_xGI, p_II, gravitational, galaxy, mead, mead_xgG, alignment, \
     ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix = config
 
     start_time = time.time()
@@ -152,11 +153,11 @@ def execute(block, config):
 
     # load linear power spectrum
     k_vec, plin, growth_factor = get_linear_power_spectrum(block, z_vec)
-    #nk = len(k_vec)
+    nk = len(k_vec)
 
-    k_interp = interp1d(k_vec, plin, axis=1)
-    k_vec = np.logspace(np.log10(k_vec.min()), np.log10(k_vec.max()-1), nk)
-    plin = k_interp(k_vec)
+    #k_interp = interp1d(k_vec, plin, axis=1)
+    #k_vec = np.logspace(np.log10(k_vec.min()), np.log10(k_vec.max()-1), nk)
+    #plin = k_interp(k_vec)
 
     # load nonlinear power spectrum (halofi)
     k_nl, p_nl = get_nonlinear_power_spectrum(block, z_vec)
