@@ -13,6 +13,7 @@ from itertools import count
 import time
 #import timing
 from darkmatter_lib import compute_u_dm, radvir_from_mass
+import dill as pickle
 
 
 def one_halo_truncation(k_vec):
@@ -159,6 +160,43 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
     I_g = simps(integrand, mass)
     return I_g
 
+#def compute_I_NL_term(B_NL, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2):
+#    integrand = B_NL * factor_1 * b_1 * dn_dlnm_z_1 / mass_1
+#    integral = simps(integrand, mass_1)
+#    integrand_2 = integral * factor_2 * b_2 * dn_dlnm_z_2 / mass_2
+#    I_NL = simps(integrand_2, mass_2)
+#    return I_NL
+
+def compute_I_NL_term(k_i, z_j, B_NL_interp, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2):
+    print('k, z: ', k_i, z_j)
+
+    #print('mass_1: ', mass_1)
+    B_NL_k_z = np.zeros((mass_1.size, mass_2.size))
+    indices = np.vstack(np.meshgrid(np.arange(mass_1.size),np.arange(mass_2.size))).reshape(2,-1).T
+    values = np.vstack(np.meshgrid(np.log10(mass_1), np.log10(mass_2))).reshape(2,-1).T
+    #print('values: ', values)
+
+    if (k_i<0.08) or (k_i>0.74): #1.48): #2.0): #0.74):
+        I_NL = 0.0
+    else:
+        for i,val in enumerate(values):
+            #print('insert z at start: ', np.insert(val,0,z_j))
+            #print('insert z at start and k at end: ', np.insert(np.insert(val,0,z_j),3,k_i))
+            B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_interp(np.insert(np.insert(val,0,z_j),3,k_i)) - 1.0
+
+        #print('B_NL_k_z.shape: ', B_NL_k_z.shape)
+
+        #integrand = B_NL * factor_1 * b_1 * dn_dlnm_z_1 / mass_1
+        integrand = B_NL_k_z * factor_1 * b_1 * dn_dlnm_z_1 / mass_1
+        #print('integrand 1: ', integrand.shape)
+        integral = simps(integrand, mass_1) #, axis=1)
+        #print('integral_1: ', integral.shape)
+        integrand_2 = integral * factor_2 * b_2 * dn_dlnm_z_2 / mass_2
+        #print('integrand_2: ', integrand_2.shape)
+        I_NL = simps(integrand_2, mass_2) #, axis=0)
+    print('I_NL: ', I_NL)
+    return I_NL
+
 # Compute the grid in z and M (and eventually k) of the quantities described above
 
 def prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
@@ -177,6 +215,35 @@ def prepare_Ic_term(mass, c_factor, b_m, dn_dlnm, nz, nk):
         I_c_term[jz] = compute_Ig_term(c_factor[jz], mass, dn_dlnm[jz], b_m[jz])
     return I_c_term
 
+def prepare_I_NL_cs(mass, c_factor, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp): #B_NL):
+    print('preparing I_NL_cs')
+    #I_NL_cs = np.array([[compute_I_NL_term(B_NL, c_factor[jz], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
+    I_NL_cs = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], beta_interp, c_factor[jz], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
+    print('nz: ', nz)
+    print('I_NL_cs: ', I_NL_cs[0])
+    return I_NL_cs
+
+def prepare_I_NL_cc(mass, c_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp):
+    print('preparing I_NL_cc')
+    I_NL_cc = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], beta_interp, c_factor[jz], c_factor[jz], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
+    print('I_NL_cc: ', I_NL_cc[0])
+    return I_NL_cc
+
+def prepare_I_NL_ss(mass, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp):
+    print('preparing I_NL_ss')
+    I_NL_ss = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], beta_interp, s_factor[jz, ik], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
+    print('I_NL_ss: ', I_NL_ss[0])
+    return I_NL_ss
+
+def prepare_I_NL_cm(mass, c_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp): #B_NL):
+    print('preparing I_NL_cm')
+    I_NL_cm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], beta_interp, c_factor[jz], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
+    return I_NL_cm
+
+def prepare_I_NL_sm(mass, s_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp):
+    print('preparing I_NL_sm')
+    I_NL_sm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], beta_interp, s_factor[jz, ik], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
+    return I_NL_sm
 
 def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_density0):
     '''
@@ -256,6 +323,39 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     #print('p_nn succesfully computed')
     return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
 
+def compute_p_nn_mead(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss):
+    #
+    # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
+    #
+    # 2-halo term:
+    pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term) * two_halo_truncation(k_vec)[np.newaxis,:] + pk_lin*I_NL_cs
+    pk_cc_2h = compute_2h_term(pk_lin, I_c_term, I_c_term) * two_halo_truncation(k_vec)[np.newaxis,:] + pk_lin*I_NL_cc
+    pk_ss_2h = compute_2h_term(pk_lin, I_s_term, I_s_term) * two_halo_truncation(k_vec)[np.newaxis,:] + pk_lin*I_NL_ss
+
+    # 1-halo term:
+    pk_cs_1h = np.empty([nz, nk])
+    pk_ss_1h = np.empty([nz, nk])
+    for jz in range(0, nz):
+        for ik in range(0, nk):
+            pk_cs_1h[jz, ik] = compute_1h_term(c_factor[jz], s_factor[jz, ik], mass, dn_dln_m[jz])
+            pk_ss_1h[jz, ik] = compute_1h_term(s_factor[jz, ik], s_factor[jz, ik], mass, dn_dln_m[jz])
+        #mask_large_scales = k_vec < 0.01
+        #pk_cs_1h[jz][mask_large_scales] = 0.0
+        #pk_ss_1h[jz][mask_large_scales] = 0.0
+        pk_cs_1h[jz] *= one_halo_truncation(k_vec)
+        pk_ss_1h[jz] *= one_halo_truncation(k_vec)
+    # Total
+    pk_tot = 2. * pk_cs_1h + pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
+
+    # in case, save in the datablock
+    #block.put_grid("galaxy_cs_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
+    #block.put_grid("galaxy_ss_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_ss_1h)
+
+    # galaxy linear bias
+    galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
+    #print('p_nn succesfully computed')
+    return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
+
 
 # galaxy-matter power spectrum
 def compute_p_xgG(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term):
@@ -272,6 +372,19 @@ def compute_p_xgG(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_facto
     #print('p_xgG succesfully computed')
     return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
 
+def compute_p_xgG_mead(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm):
+    #
+    # p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
+    #
+    # 2-halo term:
+    pk_cm_2h = compute_2h_term(pk_lin, I_c_term, I_m_term) * two_halo_truncation(k_vec)[np.newaxis,:] + pk_lin*I_NL_cm
+    pk_sm_2h = compute_2h_term(pk_lin, I_s_term, I_m_term) * two_halo_truncation(k_vec)[np.newaxis,:] + pk_lin*I_NL_sm
+    # 1-halo term
+    pk_cm_1h = compute_1h_term(c_factor[:,np.newaxis], m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
+    pk_sm_1h = compute_1h_term(s_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
+    pk_tot = pk_cm_1h + pk_sm_1h + pk_cm_2h + pk_sm_2h
+    #print('p_xgG succesfully computed')
+    return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
 
 #################################################
 #                                                                                                #
