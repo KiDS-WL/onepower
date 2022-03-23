@@ -15,12 +15,11 @@ from scipy.interpolate import interp1d, interp2d
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM
 import astropy.units as u
 from scipy.integrate import simps
-import hmf
-#IT 02/03/22: Need to use an old version of hmf, like 3.0.2 to accept delta_wrt as argument in the mass function
 from hmf import MassFunction
-from hmf import cosmo
+from halomod import bias as bias_func
 
 def tinker_bias(nu, Delta=200., delta_c=1.686):
+    nu = nu**0.5
     # Table 2, Tinker+2010
     y = np.log10(Delta)
     expvar = np.exp(-(4./y)**4.)
@@ -34,11 +33,6 @@ def tinker_bias(nu, Delta=200., delta_c=1.686):
     bias = 1.-A*(nu**a)/(nu**a+delta_c**a) + B*nu**b + C*nu**c
     return bias
 
-#AD: this normalisation is wrong, needs to be removed! Implement Mead et al 2020 additive correction (Cacciato Im integrals are fine, except for Ig part)!
-def normalise_hbf_nu(b_nu, f_nu, nu):
-    norm = simps(b_nu*f_nu,nu)
-    print (norm)
-    return b_nu/norm
 
 # We have a collection of commonly used pre-defined block section names.
 # If none of the names here is relevant for your calculation you can use any
@@ -65,27 +59,19 @@ def setup(options):
     #hmf_model = options[option_section, "hmf_model"]
     halo_bias_option = options[option_section, "do_halo_bias"]
 
-    # create the class cosmology
-    this_cosmo = cosmo.Cosmology()
-    print( this_cosmo.cosmo.Om0)
 
-    # AD remove!
-    # create the class mf. Use a large range in masses to properly normalise the halo bias function
-    dlog10m_mf = (16.-2.)/500.
-    #transfer_params = {'lnk_min': -13, 'lnk_max': 16.994, 'dlnk': 0.0059988000000002276}
-    #mf = MassFunction(z=0., Mmin=2., Mmax=16., dlog10m=dlog10m_mf, sigma_8=0.8, n=0.96, hmf_model='Tinker10', delta_wrt='mean',
-    #				  transfer_model='EH', **transfer_params)
-
-    initialise_cosmo_run=Flatw0waCDM(
+    initialise_cosmo=Flatw0waCDM(
         H0=70., Ob0=0.044, Om0=0.3, Tcmb0=2.725, w0=-1., wa=0.)
     
 
-    mf = MassFunction(z=0., cosmo_model=initialise_cosmo_run, Mmin=2., Mmax=16., dlog10m=dlog10m_mf, sigma_8=0.8, n=0.96,
-					  hmf_model='Tinker10', mdef_model='SOMean', mdef_params={'overdensity':200}, transfer_model='EH')
+    mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
+					  hmf_model=options[option_section, "hmf"], mdef_model=options[option_section, "mdef_model"], mdef_params={'overdensity':options[option_section, "overdensity"]}, transfer_model='EH', delta_c=options[option_section, "delta_c"])
     # This mf parameters that are fixed here now need to be read from the ini files! Need to make sure camb is not called when initialising the mf!
     print( mf.cosmo)
+    
+    mass = mf.m
 
-    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, halo_bias_option, this_cosmo, mf
+    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, halo_bias_option, mass, mf, options[option_section, "overdensity"], options[option_section, "delta_c"], options[option_section, "hmf"]
 
 
 def execute(block, config):
@@ -93,18 +79,13 @@ def execute(block, config):
     #It is the main workhorse of the code. The block contains the parameters and results of any 
     #earlier modules, and the config is what we loaded earlier.
 
-    log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, halo_bias_option, this_cosmo, mf = config
+    log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, halo_bias_option, mass, mf, overdensity, delta_c, bias_model = config
 
     # Update the cosmological parameters
     #this_cosmo.update(cosmo_params={"H0":block[cosmo_names, "hubble"], "Om0":block[cosmo_names, "omega_m"], "Ob0":block[cosmo_names, "omega_b"]})
     this_cosmo_run=Flatw0waCDM(
         H0=block[cosmo_names, "hubble"], Ob0=block[cosmo_names, "omega_b"], Om0=block[cosmo_names, "omega_m"], Tcmb0=2.725,
 		w0=block[cosmo_names, "w"], wa=block[cosmo_names, "wa"])
-
-    #this_cosmo_run = {"H0":block[cosmo_names, "hubble"], "Ob0":block[cosmo_names, "omega_b"], "Om0":block[cosmo_names, "omega_m"]} #,
-    #	#"n":block[cosmo_names, "n_s"], "w0":block[cosmo_names, "w"]} #, "wa":block[cosmo_names, "wa"]}
-
-        #{"H0":block[cosmo_names, "hubble"], "Om0":block[cosmo_names, "omega_m"], "Ob0":block[cosmo_names, "omega_b"]}
     ns = block[cosmo_names, "n_s"]
 
     #--------------------------------------#
@@ -114,70 +95,44 @@ def execute(block, config):
     # Note that CAMB does not return the sigma_8 at z=0, as it might seem from the documentation, but sigma_8(z),
     # so the user should always start from z=0
     sigma_8 = block[cosmo_names, 'sigma_8']
-    print ('sigma_8 = ', sigma_8)
+    #print ('sigma_8 = ', sigma_8)
 
     nmass_hmf = len(mf.m)
 
     dndlnmh = np.empty([nz, nmass_hmf])
     nu = np.empty([nz,nmass_hmf])
-    # Note that fsigma, as function of sigma, is a one dim array -> the dependence in z is absorbed in sigma
-    fsigma = np.empty([nz, nmass_hmf])
-    fnu = np.empty([nz, nmass_hmf])
-
-    #mf = MassFunction(z=z_vec[0], Mmin=2., Mmax=16., dlog10m=dlog10m, cosmo_hmf=this_cosmo, sigma_8=sigma_8, n=ns, hmf_model='Tinker10')
-    #matter_power_lin = np.empty([nz+1,5000])
-    #zlin = np.append(0,z_vec)
-    mf.update(z=0, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns)
-    #matter_power_lin[0] = mf.power
+   
+    # AD: remove this loop?
     for jz in range(0,nz):
-        #mf.update(z=z_vec[jz], cosmo_params=this_cosmo_run)
-
         mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns)
 
         print ( 'mf.mean_density0 = ', mf.mean_density0 )
 
         # Tinker assumes a different definition of nu:
-        nu[jz] = mf.nu**0.5
+        nu[jz] = mf.nu #sqrt not needed, done internally in bias function!
         dndlnmh[jz] = mf.dndlnm
-        fsigma[jz] = mf.fsigma
-        fnu[jz] = fsigma[jz]/nu[jz]
         #matter_power_lin[jz+1] = mf.power
         # AD: add here the mean_density at z=0 as output, growth factor, etc!
 
-    mass = np.logspace(log_mass_min, log_mass_max, nmass)
-    f_interp_hmf = interp2d(mf.m, z_vec, dndlnmh)
-    hmf_interp = f_interp_hmf(mass, z_vec)
-    block.put_grid("hmf", "z", z_vec, "m_h", mass, "dndlnmh", hmf_interp)
+    block.put_grid("hmf", "z", z_vec, "m_h", mass, "dndlnmh", dndlnmh)
 
 
     #--------------------------------------#
     # HALO BIAS
     #--------------------------------------#
-
-    # AD: from ini!
-    Delta = 200.
-    delta_c = 1.686
+    
 
     if halo_bias_option:
-        #b_nu = np.empty([nz,len(mf.m)])
-        hb_normalised = np.empty([nz,len(mf.m)])
+        b_nu = np.empty([nz,len(mf.m)])
 
+        # AD: remove this loop?
         for jz in range(0,nz):
-            b_nu = tinker_bias(nu[jz], Delta, delta_c)
-            hb_normalised[jz] = normalise_hbf_nu(b_nu, fnu[jz], nu[jz])
-        f_interp_hb = interp2d(mf.m, z_vec, hb_normalised)
+            bias = getattr(bias_func, bias_model)(nu[jz], delta_c=delta_c, delta_halo=overdensity, sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
+            b_nu[jz] = bias.bias()
+        f_interp_hb = interp2d(mf.m, z_vec, b_nu)
         hb_interp = f_interp_hb(mass, z_vec)
         block.put_grid("halobias", "z", z_vec, "m_h", mass, "b_hb", hb_interp)
 
-    #block.put_grid("matter_power_lin", "z", zlin, "k_h", mf.k, "p_k", matter_power_lin)
-
-    #if save_all:
-    #   # Note that those are instead function of the mf mass!
-    #	block.put_grid("hmf", "z", z_vec, "mf_mass", mf.m, "nu", nu)
-    #	block.put_grid("hmf", "z", z_vec, "mf_mass", mf.m, "fsigma", fsigma)
-    #	block.put_grid("hmf", "z", z_vec, "mf_mass", mf.m, "fnu", fnu)
-
-    del nu, fsigma, fnu
 
     return 0
 
