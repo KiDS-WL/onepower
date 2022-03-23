@@ -81,7 +81,7 @@ def setup(options):
     
 
     mf = MassFunction(z=0., cosmo_model=initialise_cosmo_run, Mmin=2., Mmax=16., dlog10m=dlog10m_mf, sigma_8=0.8, n=0.96,
-					  hmf_model='Tinker10', mdef_model='SOmean', mdef_params={'overdensity':200})
+					  hmf_model='Tinker10', mdef_model='SOMean', mdef_params={'overdensity':200}, transfer_model='EH')
     # This mf parameters that are fixed here now need to be read from the ini files! Need to make sure camb is not called when initialising the mf!
     print( mf.cosmo)
 
