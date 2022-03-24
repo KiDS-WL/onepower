@@ -86,7 +86,7 @@ def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
 
 # matter
 def prepare_matter_factor_grid(mass, mean_density0, u_dm):
-    m_factor = compute_matter_factor(mass[np.newaxis, np.newaxis, :], mean_density0, u_dm)
+    m_factor = compute_matter_factor(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm)
     return m_factor
 
 # clustering - satellites
@@ -146,6 +146,7 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
 # Return: scalar
 
 def compute_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
+    # AD: check what happens if u_dm is removed. For considered k-ranges removing it should be fine.
     integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
     integrand_m2 = b_dm * dn_dlnm * u_dm * (1. / mean_density0)
     I_m1 = 1. - simps(integrand_m1, mass)
@@ -161,7 +162,7 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
 # Compute the grid in z and M (and eventually k) of the quantities described above
 
 def prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
-    I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0)
+    I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0[jz])
                           for ik in range(0,nk)] for jz in range(0,nz)])
     return I_m_term
 
@@ -199,10 +200,10 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     alignment_amplitude_2h = np.empty([nz, nk])
     alignment_amplitude_2h_II = np.empty([nz, nk])
     for jz in range(0, nz):
-        alignment_amplitude_2h[jz] = -alignment_gi[jz] * (C1 * mean_density0 / growth_factor[jz])
+        alignment_amplitude_2h[jz] = -alignment_gi[jz] * (C1 * mean_density0[jz] / growth_factor[jz])
         # since the luminosity dependence is squared outside, the II amplitude is just GI squared
-        alignment_amplitude_2h_II[jz] = (alignment_gi[jz] * C1 * mean_density0 / growth_factor[jz]) ** 2.
-        #alignment_amplitude_2h_II[jz] = alignment_ii[jz] * (C1 * mean_density0 / growth_factor[jz]) ** 2.
+        alignment_amplitude_2h_II[jz] = (alignment_gi[jz] * C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
+        #alignment_amplitude_2h_II[jz] = alignment_ii[jz] * (C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
     print (alignment_amplitude_2h, alignment_amplitude_2h_II)
     return alignment_amplitude_2h, alignment_amplitude_2h_II
 
@@ -228,7 +229,7 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     #
     # 2-halo term:
-    pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term)  * two_halo_truncation(k_vec)[np.newaxis,:]
+    pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term) * two_halo_truncation(k_vec)[np.newaxis,:]
     pk_cc_2h = compute_2h_term(pk_lin, I_c_term, I_c_term) * two_halo_truncation(k_vec)[np.newaxis,:]
     pk_ss_2h = compute_2h_term(pk_lin, I_s_term, I_s_term) * two_halo_truncation(k_vec)[np.newaxis,:]
     # 1-halo term:

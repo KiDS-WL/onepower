@@ -18,6 +18,7 @@ from scipy.integrate import simps
 from hmf import MassFunction
 from halomod import bias as bias_func
 
+# AD: Leaving in for now...
 def tinker_bias(nu, Delta=200., delta_c=1.686):
     nu = nu**0.5
     # Table 2, Tinker+2010

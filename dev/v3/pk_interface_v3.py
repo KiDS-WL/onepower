@@ -124,17 +124,8 @@ def execute(block, config):
 
     start_time = time.time()
 
-    # ---- Comology ----#
-    # Load cosmological parameters
-    this_cosmo = Flatw0waCDM(H0=block[cosmo, "hubble"], Ob0=block[cosmo, "omega_b"], Om0=block[cosmo, "omega_m"], Tcmb0=2.725,
-                             m_nu=0.06*u.eV, Neff=3.046, w0=block[cosmo, "w"], wa=block[cosmo, "wa"])
-
-    #FlatLambdaCDM(H0=block[cosmo, "hubble"], Om0=block[cosmo, "omega_m"], Ob0=block[cosmo, "omega_b"], Tcmb0=2.725)
-
-    # AD: these quantities shoule be returned by the mh_and_bias block, so there is no need to recompute them all the time!
-    rho_crit0 = this_cosmo.critical_density0.to(u.M_sun * u.Mpc ** (-3.)) / (this_cosmo.h ** 2.)
-    mean_density0 = rho_crit0.value * this_cosmo.Om0
-    #print ('mean_density0', mean_density0)
+    mean_density0 = block["density", "mean_density0"]
+    
 
     # load linear power spectrum
     k_vec, plin, growth_factor = get_linear_power_spectrum(block, z_vec)

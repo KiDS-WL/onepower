@@ -97,9 +97,11 @@ def execute(block, config):
 
     ell_max = 6
     # uell[l,z,m,k]
+    # AD: THIS FUNCTION IS THE SLOWEST PART!
     uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max)
     print (uell.shape)
     # interpolate
+    # Do we need this interpolation???
     uell_interpolated = np.empty([int(ell_max/2+1), nz, nmass_setup, nk_setup])
     for il in range(0,int(ell_max/2+1)):
         for jz in range(0,nz):
