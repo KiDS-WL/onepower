@@ -88,7 +88,8 @@ def setup(options):
     nmass = options[option_section, "nmass"]
 
     #---- log-spaced mass sample ----#
-    mass = np.logspace(log_mass_min, log_mass_max, nmass) # units of M_sun/h
+    dlog10m = (log_mass_max-log_mass_min)/nmass
+    mass = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
     hod_option = options[option_section, "do_hod"]
     number_density_option = options[option_section, "do_number_density"]

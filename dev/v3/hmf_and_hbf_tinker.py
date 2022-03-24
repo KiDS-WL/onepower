@@ -101,8 +101,9 @@ def execute(block, config):
 
     dndlnmh = np.empty([nz, nmass_hmf])
     nu = np.empty([nz,nmass_hmf])
+    mean_density0 = np.empty([nz])
+    mean_density_z = np.empty([nz])
    
-    # AD: remove this loop?
     for jz in range(0,nz):
         mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns)
 
@@ -111,10 +112,15 @@ def execute(block, config):
         # Tinker assumes a different definition of nu:
         nu[jz] = mf.nu #sqrt not needed, done internally in bias function!
         dndlnmh[jz] = mf.dndlnm
+        mean_density0[jz] = mf.mean_density0
+        mean_density_z[jz] = mf.mean_density
         #matter_power_lin[jz+1] = mf.power
         # AD: add here the mean_density at z=0 as output, growth factor, etc!
 
     block.put_grid("hmf", "z", z_vec, "m_h", mass, "dndlnmh", dndlnmh)
+    block.put_double_array_1d("density", "mean_density0", mean_density0)
+    block.put_double_array_1d("density", "mean_density_z", mean_density_z)
+    block.put_double_array_1d("density", "rho_crit", mean_density0/this_cosmo_run.Om0)
 
 
     #--------------------------------------#
@@ -129,9 +135,7 @@ def execute(block, config):
         for jz in range(0,nz):
             bias = getattr(bias_func, bias_model)(nu[jz], delta_c=delta_c, delta_halo=overdensity, sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
             b_nu[jz] = bias.bias()
-        f_interp_hb = interp2d(mf.m, z_vec, b_nu)
-        hb_interp = f_interp_hb(mass, z_vec)
-        block.put_grid("halobias", "z", z_vec, "m_h", mass, "b_hb", hb_interp)
+        block.put_grid("halobias", "z", z_vec, "m_h", mass, "b_hb", b_nu)
 
 
     return 0

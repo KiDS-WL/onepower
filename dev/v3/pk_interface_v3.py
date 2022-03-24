@@ -46,7 +46,8 @@ def setup(options):
     log_mass_max = options[option_section, "log_mass_max"]
     nmass = options[option_section, "nmass"]
     # log-spaced mass in units of M_sun/h
-    mass = np.logspace(log_mass_min, log_mass_max, nmass)
+    dlog10m = (log_mass_max-log_mass_min)/nmass
+    mass = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
     zmin = options[option_section, "zmin"]
     zmax = options[option_section, "zmax"]

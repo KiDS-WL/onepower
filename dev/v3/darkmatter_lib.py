@@ -9,18 +9,20 @@ import hankel
 from scipy.integrate import quad, simps, trapz
 from scipy.special import legendre, sici, binom
 import math
-from halomod import concentration as halomod_c
+from halomod.concentration import make_colossus_cm
+import hmf.halos.mass_definitions as md
 
 # Concentration-mass relations
 
-def concentration(block, mass, z_vec, model):
+def concentration(block, mass, z_vec, model, mdef, overdensity):
     nz = len(z_vec)
     nmass = len(mass)
     c = np.empty([nz, nmass])
     
-    func = getattr(halomod_c, model)()
-    c = func.cm(mass[np.newaxis,:], z_vec[:,np.newaxis])
-    # VALIDATE!, use correct mass definition, cosmology from hmf?
+    conc_func = make_colossus_cm(model=model)()
+    conc_func.mdef = getattr(md, mdef)()
+    conc_func.overdensity = overdensity
+    c = conc_func.cm(mass[np.newaxis,:], z_vec[:,np.newaxis])
     
     return c
 
@@ -35,8 +37,8 @@ def radvir_from_mass(mass, rho_halo):
     # rho_halo : array1d or scalar. The matter density of the halo. It can either be Delta x rho_m(z) or
     #            Delta x rho_m(z=0) - where rho_m is the mean matter density of the Universe (evaluated at z or 0,
     #            depending on the convention used in the model) - or be Delta x rho_c, or even the Delta_vir
-    #rvir = np.array([scalar_rvir(mass,rhalo) for rhalo in rho_halo])
-    rvir = scalar_rvir(mass[np.newaxis,:],rho_halo[:,np.newaxis]) # AD: Need to check if this still works for different rho_halo dimensions!
+    
+    rvir = scalar_rvir(mass[np.newaxis,:],rho_halo[:,np.newaxis])
     return rvir
 
 
@@ -68,16 +70,13 @@ def compute_u_dm(k_vec, rs, conc):
     # rs : array-2d [nz,nmass]. The scale radius.
     # c_dm : array-2d [nz,nmass]. The concentration of the halo as a function of redshift and mass.
     # return: array-3d
+    
     nz = np.size(conc, axis=0)
-    #nmass = np.size(conc, axis=1)
     nk = np.size(k_vec)
-    u_dm = np.array([[norm_fourier(k * rs[jz], conc[jz]) for k in k_vec] for jz in range(0,nz)])
-    '''
-    u_dm = np.empty([nz, nk, nmass])
-    for jz in range(nz):
-        for  ik in range(0,nk):
-                u_dm[jz, ik, :] = norm_fourier(k[ik] * rs[jz], conc[jz]) # array-1d [nmass]
-    '''
+    
+    u_dm = norm_fourier(k_vec[:,np.newaxis] * rs[:,np.newaxis,:], conc[:,np.newaxis,:])
+    u_dm = u_dm/np.expand_dims(u_dm[:,0,:], 1) # Force normalisation to 1!
+    
     return u_dm
 
 #######
