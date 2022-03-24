@@ -77,7 +77,7 @@ def execute(block, config):
     #block.put_grid("virial_radius", "z", z, "m_h", mass, "rvir", rvir)
     #print(rvir[0].shape)
     block.put_double_array_1d("virial_radius", "m_h", mass)
-    block.put_double_array_1d("virial_radius", "rvir_cen", rvir_cen[0])
+    block.put_double_array_1d("virial_radius", "rvir_dm", rvir_cen[0])
     block.put_double_array_1d("virial_radius", "rvir_sat", rvir_sat[0])
 
 
@@ -86,7 +86,7 @@ def execute(block, config):
     block.put_double_array_1d("fourier_nfw_profile", "k_h", k)
     block.put_double_array_nd("fourier_nfw_profile", "ukm", u_dm_cen)
     block.put_double_array_nd("fourier_nfw_profile", "uksat", u_dm_sat)
-    quit()
+    
     return 0
 
 

@@ -81,11 +81,11 @@ def execute(block, config):
     # This already contains the luminosity dependence if there
     gamma_1h_amplitude = block["ia_small_scale_alignment" + suffix, "alignment_1h"]
 
-    mass_halo = block["concentration", "m_h"]
-    z_halo = block["concentration", "z"]
-    c = block["concentration", "c"]
-    r_s = block["nfw_scale_radius", "rs"]
-    rvir = block["virial_radius", "rvir"]
+    mass_halo = block["concentration_dm", "m_h"]
+    z_halo = block["concentration_dm", "z"]
+    c = block["concentration_dm", "c"]
+    r_s = block["nfw_scale_radius_dm", "rs"]
+    rvir = block["virial_radius", "rvir_dm"]
     mass = mass_halo
 
 

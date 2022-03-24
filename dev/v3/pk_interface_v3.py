@@ -163,7 +163,7 @@ def execute(block, config):
             # load the halo mass and bias functions from the datablock
             dn_dlnm, b_dm = get_halo_functions(block, pipeline, mass, z_vec)
             # prepare a grid for the navarro-frenk-white profile
-            u_dm = compute_u_dm_grid(block, k_vec, mass, z_vec)
+            u_dm, u_sat = compute_u_dm_grid(block, k_vec, mass, z_vec)
             I_m_term = prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
             m_factor = prepare_matter_factor_grid(mass, mean_density0, u_dm)
         if galaxy == True:
@@ -202,7 +202,7 @@ def execute(block, config):
     else:
         # load the halo mass and bias functions from the datablock and prepare a grid for the navarro-frenk-white profile
         dn_dlnm, b_dm = get_halo_functions(block, pipeline, mass, z_vec)
-        u_dm = compute_u_dm_grid(block, k_vec, mass, z_vec)
+        u_dm, u_sat = compute_u_dm_grid(block, k_vec, mass, z_vec)
 
         # prepare the integrals
         if gravitational == True:
@@ -217,7 +217,7 @@ def execute(block, config):
             if galaxy == True:
                 # preparing the 1h term
                 c_factor = prepare_central_factor_grid(Ncen, numdencen, f_cen)
-                s_factor = prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_dm, nz, nk, nmass)
+                s_factor = prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_sat, nz, nk, nmass)
                 # preparing the 2h term
                 I_c_term = prepare_Ic_term(mass, c_factor, b_dm, dn_dlnm, nz, nk)
                 I_s_term = prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)

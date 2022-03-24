@@ -12,7 +12,6 @@ from scipy.special import erf
 from itertools import count
 import time
 #import timing
-from darkmatter_lib import compute_u_dm, radvir_from_mass
 
 
 def one_halo_truncation(k_vec):
@@ -424,11 +423,14 @@ def compute_u_dm_grid(block, k_vec, mass, z_vec):
     mass_udm = block["fourier_nfw_profile", "m_h"]
     k_udm = block["fourier_nfw_profile", "k_h"]
     u_udm = block["fourier_nfw_profile", "ukm"]
+    u_usat = block["fourier_nfw_profile", "uksat"]
     u_udm = np.reshape(u_udm, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
+    u_usat = np.reshape(u_usat, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
     # interpolate
     nz = np.size(z_vec)
     nk = np.size(k_vec)
     nmass = np.size(mass)
     u_dm = np.array([interp_udm(mass_udm, k_udm, udm_z, mass, k_vec) for udm_z in u_udm])
+    u_sat = np.array([interp_udm(mass_udm, k_udm, usat_z, mass, k_vec) for usat_z in u_usat])
     print("--- u_dm: %s seconds ---" % (time.time() - start_time_udm))
-    return np.abs(u_dm)
+    return np.abs(u_dm), np.abs(u_sat)
