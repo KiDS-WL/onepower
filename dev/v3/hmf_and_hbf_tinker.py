@@ -56,23 +56,19 @@ def setup(options):
     print(z_vec)
 
     dlog10m = (log_mass_max-log_mass_min)/nmass
-
-    #hmf_model = options[option_section, "hmf_model"]
-    halo_bias_option = options[option_section, "do_halo_bias"]
-
-
+    
     initialise_cosmo=Flatw0waCDM(
         H0=70., Ob0=0.044, Om0=0.3, Tcmb0=2.725, w0=-1., wa=0.)
     
 
     mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
-					  hmf_model=options[option_section, "hmf"], mdef_model=options[option_section, "mdef_model"], mdef_params={'overdensity':options[option_section, "overdensity"]}, transfer_model='EH', delta_c=options[option_section, "delta_c"])
+					  hmf_model=options[option_section, "hmf_model"], mdef_model=options[option_section, "mdef_model"], mdef_params={'overdensity':options[option_section, "overdensity"]}, transfer_model='EH', delta_c=options[option_section, "delta_c"])
     # This mf parameters that are fixed here now need to be read from the ini files! Need to make sure camb is not called when initialising the mf!
     print( mf.cosmo)
     
     mass = mf.m
 
-    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, halo_bias_option, mass, mf, options[option_section, "overdensity"], options[option_section, "delta_c"], options[option_section, "hmf"]
+    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, options[option_section, "overdensity"], options[option_section, "delta_c"], options[option_section, "bias_model"]
 
 
 def execute(block, config):
@@ -80,7 +76,7 @@ def execute(block, config):
     #It is the main workhorse of the code. The block contains the parameters and results of any 
     #earlier modules, and the config is what we loaded earlier.
 
-    log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, halo_bias_option, mass, mf, overdensity, delta_c, bias_model = config
+    log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, overdensity, delta_c, bias_model = config
 
     # Update the cosmological parameters
     #this_cosmo.update(cosmo_params={"H0":block[cosmo_names, "hubble"], "Om0":block[cosmo_names, "omega_m"], "Ob0":block[cosmo_names, "omega_b"]})
@@ -102,6 +98,7 @@ def execute(block, config):
 
     dndlnmh = np.empty([nz, nmass_hmf])
     nu = np.empty([nz,nmass_hmf])
+    b_nu = np.empty([nz,nmass_hmf])
     mean_density0 = np.empty([nz])
     mean_density_z = np.empty([nz])
    
@@ -115,6 +112,8 @@ def execute(block, config):
         dndlnmh[jz] = mf.dndlnm
         mean_density0[jz] = mf.mean_density0
         mean_density_z[jz] = mf.mean_density
+        bias = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c, delta_halo=overdensity, sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
+        b_nu[jz] = bias.bias()
         #matter_power_lin[jz+1] = mf.power
         # AD: add here the mean_density at z=0 as output, growth factor, etc!
 
@@ -122,21 +121,7 @@ def execute(block, config):
     block.put_double_array_1d("density", "mean_density0", mean_density0)
     block.put_double_array_1d("density", "mean_density_z", mean_density_z)
     block.put_double_array_1d("density", "rho_crit", mean_density0/this_cosmo_run.Om0)
-
-
-    #--------------------------------------#
-    # HALO BIAS
-    #--------------------------------------#
-    
-
-    if halo_bias_option:
-        b_nu = np.empty([nz,len(mf.m)])
-
-        # AD: remove this loop?
-        for jz in range(0,nz):
-            bias = getattr(bias_func, bias_model)(nu[jz], delta_c=delta_c, delta_halo=overdensity, sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
-            b_nu[jz] = bias.bias()
-        block.put_grid("halobias", "z", z_vec, "m_h", mass, "b_hb", b_nu)
+    block.put_grid("halobias", "z", z_vec, "m_h", mass, "b_hb", b_nu)
 
 
     return 0
