@@ -20,7 +20,11 @@ def convert_to_magnitudes(L, abs_mag_sun):
 # 				HOD library					#
 #-------------------------------------------#
 def mor(mass, hod, norm) :
-    # halo mass - observable relation (observable can be galaxy luminosity or stellar mass)
+    # mor = mass - observable relation
+    # (observable can be galaxy luminosity or stellar mass)
+    # returns the observable given halo mass. Assumed to be a double power law with characteristic
+    # scale ml_1, normalisation ml_0 and slopes g_1 and g_2
+    # We should generalise this (see GGL pipeline for ideas)
     mor = norm * (hod.ml_0*(mass/hod.ml_1)**hod.g_1)/(1.+(mass/hod.ml_1))**(hod.g_1-hod.g_2)
     return mor
 

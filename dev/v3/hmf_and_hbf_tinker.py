@@ -57,6 +57,8 @@ def setup(options):
 
     dlog10m = (log_mass_max-log_mass_min)/nmass
     
+    # most general astropy cosmology initialisation, gets updated as sampler runs with camb provided cosmology parameters.
+    # setting some values to generate instance
     initialise_cosmo=Flatw0waCDM(
         H0=70., Ob0=0.044, Om0=0.3, Tcmb0=2.725, w0=-1., wa=0.)
     
@@ -64,7 +66,7 @@ def setup(options):
     mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
 					  hmf_model=options[option_section, "hmf_model"], mdef_model=options[option_section, "mdef_model"], mdef_params={'overdensity':options[option_section, "overdensity"]}, transfer_model='EH', delta_c=options[option_section, "delta_c"])
     # This mf parameters that are fixed here now need to be read from the ini files! Need to make sure camb is not called when initialising the mf!
-    print( mf.cosmo)
+    #print( mf.cosmo)
     
     mass = mf.m
 
@@ -105,7 +107,7 @@ def execute(block, config):
     for jz in range(0,nz):
         mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns)
 
-        print ( 'mf.mean_density0 = ', mf.mean_density0 )
+        #print ( 'mf.mean_density0 = ', mf.mean_density0 )
 
         # Tinker assumes a different definition of nu:
         nu[jz] = mf.nu #sqrt not needed, done internally in bias function!
