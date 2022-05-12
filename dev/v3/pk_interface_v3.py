@@ -8,6 +8,7 @@ import numpy as np
 from scipy.interpolate import interp1d, interp2d
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM
 import astropy.units as u
+from dark_emulator import darkemu
 
 # import hankel
 from scipy.integrate import quad, simps, trapz
@@ -240,15 +241,20 @@ def execute(block, config):
                 I_s_term = prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)
                 if mead == True:
                     # preparing NL terms 
-                    with open('/unix/atlas4/akorn/LSST/cosmosis/cosmosis/modules/non_lin_halo_bias/interpolator_BNL.npy', 'rb') as dill_file:
-                        beta_interp = pickle.load(dill_file)
-                    I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
-                    I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
-                    I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
+                    with open('/cosmosis/modules/halo_model_development/halomodel_for_cosmosis/dev/example_ini_files/interpolator_BNL_DQ.npy', 'rb') as dill_file:
+                        beta_interp = 1.0 #pickle.load(dill_file)
+                    
+                    emulator = darkemu.base_class()
+                    cparam = np.array([0.02225,0.1198,0.6844,3.094,0.9645,-1.])
+                    emulator.set_cosmology(cparam)
+                    print('emulator cosmology:', emulator.get_cosmology())
+                    I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp, emulator)
+                    I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp, emulator)
+                    I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp, emulator)
                 if mead_xgG == True:
                     # preparing NL terms 
-                    with open('/unix/atlas4/akorn/LSST/cosmosis/cosmosis/modules/non_lin_halo_bias/interpolator_BNL.npy', 'rb') as dill_file:
-                        beta_interp = pickle.load(dill_file)
+                    with open('/cosmosis/modules/halo_model_development/halomodel_for_cosmosis/dev/example_ini_files/interpolator_BNL_DQ.npy', 'rb') as dill_file:
+                        beta_interp = 1.0 #pickle.load(dill_file)
                     I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
                     I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
             if alignment == True:

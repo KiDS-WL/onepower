@@ -14,6 +14,7 @@ import time
 #import timing
 from darkmatter_lib import compute_u_dm, radvir_from_mass
 import dill as pickle
+from dark_emulator import darkemu
 
 
 def one_halo_truncation(k_vec):
@@ -167,7 +168,7 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
 #    I_NL = simps(integrand_2, mass_2)
 #    return I_NL
 
-def compute_I_NL_term(k_i, z_j, B_NL_interp, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2):
+def compute_I_NL_term(k_i, z_j, B_NL_interp, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, emulator):
     print('k, z: ', k_i, z_j)
 
     #print('mass_1: ', mass_1)
@@ -180,9 +181,11 @@ def compute_I_NL_term(k_i, z_j, B_NL_interp, factor_1, factor_2, b_1, b_2, mass_
         I_NL = 0.0
     else:
         for i,val in enumerate(values):
+            #print('val: ', val)
             #print('insert z at start: ', np.insert(val,0,z_j))
             #print('insert z at start and k at end: ', np.insert(np.insert(val,0,z_j),3,k_i))
-            B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_interp(np.insert(np.insert(val,0,z_j),3,k_i)) - 1.0
+            #B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_interp(np.insert(np.insert(val,0,z_j),3,k_i)) - 1.0
+            B_NL_k_z[indices[i,0], indices[i,1]] = compute_bnl_darkquest(z_j, val[0], val[1], k_i, emulator)
 
         #print('B_NL_k_z.shape: ', B_NL_k_z.shape)
 
@@ -197,7 +200,18 @@ def compute_I_NL_term(k_i, z_j, B_NL_interp, factor_1, factor_2, b_1, b_2, mass_
     print('I_NL: ', I_NL)
     return I_NL
 
-# Compute the grid in z and M (and eventually k) of the quantities described above
+def compute_bnl_darkquest(z, M1, M2, k, emulator):
+    P_hh = emulator.get_phh_mass(k, M1, M2, z)
+    Pk_lin = emulator.get_pklin_from_z(np.array([k]), z)
+    
+    klin = 0.02 #large k to calculate bias
+    Pk_klin = emulator.get_pklin_from_z(np.array([klin]), z)
+    bM1 = np.sqrt(emulator.get_phh_mass(klin, M1, M1, z)/Pk_klin)
+    bM2 = np.sqrt(emulator.get_phh_mass(klin, M2, M2, z)/Pk_klin) 
+
+    Bnl = P_hh/(bM1*bM2*Pk_lin) - 1.0
+    return Bnl
+
 
 def prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
     I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0)
@@ -215,21 +229,21 @@ def prepare_Ic_term(mass, c_factor, b_m, dn_dlnm, nz, nk):
         I_c_term[jz] = compute_Ig_term(c_factor[jz], mass, dn_dlnm[jz], b_m[jz])
     return I_c_term
 
-def prepare_I_NL_cs(mass, c_factor, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp): #B_NL):
+def prepare_I_NL_cs(mass, c_factor, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp, emulator): #B_NL):
     print('preparing I_NL_cs')
     #I_NL_cs = np.array([[compute_I_NL_term(B_NL, c_factor[jz], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
-    I_NL_cs = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], beta_interp, c_factor[jz], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
+    I_NL_cs = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], beta_interp, c_factor[jz], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], emulator) for ik in range(0,nk)] for jz in range(0,nz)])
     print('nz: ', nz)
     print('I_NL_cs: ', I_NL_cs[0])
     return I_NL_cs
 
-def prepare_I_NL_cc(mass, c_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp):
+def prepare_I_NL_cc(mass, c_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp, emulator):
     print('preparing I_NL_cc')
     I_NL_cc = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], beta_interp, c_factor[jz], c_factor[jz], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
     print('I_NL_cc: ', I_NL_cc[0])
     return I_NL_cc
 
-def prepare_I_NL_ss(mass, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp):
+def prepare_I_NL_ss(mass, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp, emulator):
     print('preparing I_NL_ss')
     I_NL_ss = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], beta_interp, s_factor[jz, ik], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
     print('I_NL_ss: ', I_NL_ss[0])
