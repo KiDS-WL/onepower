@@ -68,14 +68,14 @@ def setup(options):
     if observables_z:
         file_name = options[option_section, "observables_file"] # in units of L_sun/h2
         z_bins, obs_min, obs_max = load_data(file_name)
-        nl = options[option_section, "nobs"]
+        nobs = options[option_section, "nobs"]
         nz = len(z_bins)
         log_obs_min = np.log10(obs_min)
         log_obs_max = np.log10(obs_max)
     else:
         obs_min = options[option_section, "obs_min"]
         obs_max = options[option_section, "obs_max"]
-        nl = options[option_section, "nobs"]
+        nobs = options[option_section, "nobs"]
         nz = options[option_section, "nz"]
         log_obs_min = np.repeat(obs_min,nz)
         log_obs_max = np.repeat(obs_max,nz)
@@ -83,7 +83,7 @@ def setup(options):
         zmax = options[option_section, "zmax"]
         z_bins = np.linspace(zmin, zmax, nz)
 
-    #nl = 200
+    #nobs = 200
 
     log_mass_min = options[option_section, "log_mass_min"]
     log_mass_max = options[option_section, "log_mass_max"]
@@ -124,14 +124,14 @@ def setup(options):
     # employed in the log-simpson integration.
 
     print('z\t log L_min(z)\t log L_max(z)\n')
-    obs_simps = np.empty([nz,nl])
+    obs_simps = np.empty([nz,nobs])
     for jz in range(0,nz):
         obs_minz = log_obs_min[jz]
         obs_maxz = log_obs_max[jz]
-        obs_simps[jz] = np.logspace(obs_minz, obs_maxz, nl)
+        obs_simps[jz] = np.logspace(obs_minz, obs_maxz, nobs)
         print ('%f %f %f' %(z_bins[jz], obs_minz, obs_maxz))
 
-    return obs_simps, nz, nl, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, \
+    return obs_simps, nz, nobs, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, \
     number_density_option, galaxy_bias_option, observable_option, cf_quantities, observable_mode, suffix
 
 
@@ -142,7 +142,7 @@ def execute(block, config):
     #It is the main workhorse of the code. The block contains the parameters and results of any 
     #earlier modules, and the config is what we loaded earlier.
 
-    obs_simps, nz, nl, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, \
+    obs_simps, nz, nobs, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, \
     number_density_option, galaxy_bias_option, observable_option, cf_quantities, observable_mode, suffix = config
 
     start_time = time.time()
@@ -176,14 +176,25 @@ def execute(block, config):
     f_int_dndlnM = interp2d(mass_dn, z_dn, dndlnM_grid)
     dndlnM = f_int_dndlnM(mass, z_bins)
 
-    phi_c = np.empty([nz, nmass, nl])
-    phi_s = np.empty([nz, nmass, nl])
+    phi_c = np.empty([nz, nmass, nobs])
+    phi_s = np.empty([nz, nmass, nobs])
 
+    #print(phi_c.shape)
+    #to = time.time()
     # AD: remove loops!
-    for jz in range(0, nz):
-        for im in range(0,nmass):
-            phi_c[jz,im] = cf.cf_cen(obs_simps[jz], mass[im], hod)
-            phi_s[jz,im] = cf.cf_sat(obs_simps[jz], mass[im], hod)
+    #for jz in range(0, nz):
+    #    for im in range(0,nmass):
+    #        phi_c[jz,im] = cf.cf_cen(obs_simps[jz], mass[im], hod)
+    #        phi_s[jz,im] = cf.cf_sat(obs_simps[jz], mass[im], hod)
+    #print(time.time()-to)
+    #phi_tmp = phi_c
+    #to = time.time()
+    phi_c = cf.cf_cen(obs_simps[:,np.newaxis], mass[:,np.newaxis], hod)
+    phi_s = cf.cf_sat(obs_simps[:,np.newaxis], mass[:,np.newaxis], hod)
+    #print(time.time()-to)
+    #print(phi_c.shape)
+    #print(np.allclose(phi_tmp,phi_c))
+    #quit()
 
     phi = phi_c + phi_s
 
@@ -210,9 +221,11 @@ def execute(block, config):
             numdens_cen = np.empty(nz)
             numdens_sat = np.empty(nz)
 
-            for jz in range(0,nz):
-                numdens_cen[jz] = cf.compute_number_density(mass, n_cen[jz], dndlnM[jz]) #this is already normalised
-                numdens_sat[jz] = cf.compute_number_density(mass, n_sat[jz], dndlnM[jz]) #this is already normalised
+            #for jz in range(0,nz):
+            #    numdens_cen[jz] = cf.compute_number_density(mass, n_cen[jz], dndlnM[jz]) #this is already normalised
+            #    numdens_sat[jz] = cf.compute_number_density(mass, n_sat[jz], dndlnM[jz]) #this is already normalised
+            numdens_cen = cf.compute_number_density(mass, n_cen, dndlnM)
+            numdens_sat = cf.compute_number_density(mass, n_sat, dndlnM)
 
             numdens_tot = numdens_cen + numdens_sat
             fraction_cen = numdens_cen/numdens_tot
@@ -241,10 +254,13 @@ def execute(block, config):
                 galaxybias_sat = np.empty(nz)
                 galaxybias_tot = np.empty(nz)
 
-                for jz in range(0,nz):
-                    galaxybias_cen[jz] = cf.compute_galaxy_linear_bias(mass, n_cen[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
-                    galaxybias_sat[jz] = cf.compute_galaxy_linear_bias(mass, n_sat[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
-                    galaxybias_tot[jz] = cf.compute_galaxy_linear_bias(mass, n_tot[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
+                #for jz in range(0,nz):
+                #    galaxybias_cen[jz] = cf.compute_galaxy_linear_bias(mass, n_cen[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
+                #    galaxybias_sat[jz] = cf.compute_galaxy_linear_bias(mass, n_sat[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
+                #    galaxybias_tot[jz] = cf.compute_galaxy_linear_bias(mass, n_tot[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
+                galaxybias_cen = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_cen, hbias, dndlnM)/numdens_tot
+                galaxybias_sat = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_sat, hbias, dndlnM)/numdens_tot
+                galaxybias_tot = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
 
                 block.put_double_array_1d("galaxy_bias" + suffix, "galaxy_bias_centrals", galaxybias_cen)
                 block.put_double_array_1d("galaxy_bias" + suffix, "galaxy_bias_satellites", galaxybias_sat)
@@ -261,11 +277,12 @@ def execute(block, config):
             nl_obs = 100
             obs_range_h = np.logspace(6.5,12.5, nl_obs)
             obs_func_h = np.empty([nz,nl_obs])
-            obs_func_tmp = np.empty([nz,nl])
-
-            for jz in range(0,nz):
-                for il in range(0,nl):
-                    obs_func_tmp[jz,il] = cf.obs_func(mass, phi[jz,:,il], dndlnM[jz])
+            obs_func_tmp = np.empty([nz,nobs])
+            
+            #for jz in range(0,nz):
+            #    for il in range(0,nobs):
+            #        obs_func_tmp[jz,il] = cf.obs_func(mass, phi[jz,:,il], dndlnM[jz])
+            obs_func_tmp = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dndlnM[:,:,np.newaxis], axis=-2)
 
             # interpolate in L_obs to have a consistent grid
             for jz in range(0,nz):
@@ -296,19 +313,20 @@ def execute(block, config):
             log_lum_min = np.log10(obs_simps.min())
             log_lum_max = np.log10(obs_simps.max())
 
-            obs_range = np.logspace(log_lum_min, log_lum_max, nl)
+            obs_range = np.logspace(log_lum_min, log_lum_max, nobs)
 
-            phi_c_lf = np.empty([nl, nmass])
-            phi_s_lf = np.empty([nl, nmass])
-            phi_lf = np.empty([nl, nmass])
+            phi_c_lf = np.empty([nobs, nmass])
+            phi_s_lf = np.empty([nobs, nmass])
+            phi_lf = np.empty([nobs, nmass])
 
-            for j in range(0, nl):
+            for j in range(0, nobs):
                 phi_c_lf[j] = cf.clf_cen(obs_range[j], mass, hod)
                 phi_s_lf[j] = cf.clf_sat(obs_range[j], mass, hod)
-                phi_lf[j] = phi_c_lf[j]+phi_s_lf[j]
+                #phi_lf[j] = phi_c_lf[j]+phi_s_lf[j]
+            phi_lf = phi_c_lf+phi_s_lf
 
-            obs_func = np.empty(nl)
-            for i in range(0,nl):
+            obs_func = np.empty(nobs)
+            for i in range(0,nobs):
                 obs_func[i] = cf.obs_func(mass, phi_lf[i], dn_dlnM_zmedian)
 
             # AD: CHECK THE h HERE!
@@ -345,13 +363,13 @@ def execute(block, config):
     '''
     #For testing purposes it is useful to save some hod-derived quantities
     if clf_quantities:
-        lf_cen = np.empty(nl)
-        lf_sat = np.empty(nl)
-        central_fraction_L = np.empty(nl)
-        satellite_fraction_L = np.empty(nl)
+        lf_cen = np.empty(nobs)
+        lf_sat = np.empty(nobs)
+        central_fraction_L = np.empty(nobs)
+        satellite_fraction_L = np.empty(nobs)
 
         phi_star_sat = cf.phi_star(mass, hod)
-        for i in range(0,nl):
+        for i in range(0,nobs):
             lf_sat[i] = cf.LF(mass, phi_s_lf[i], dn_dlnM_zmedian)
             lf_cen[i] = cf.LF(mass, phi_c_lf[i], dn_dlnM_zmedian)
             satellite_fraction_L[i] = lf_sat[i]/Lf_func[i]

@@ -49,9 +49,9 @@ def cf_sat(obs, mass, hod):
     return cf_s
 
 
-def obs_func(mass, phi_clf, dn_dlnM_normalised):
+def obs_func(mass, phi_clf, dn_dlnM_normalised, axis=-1):
     lf_integrand = phi_clf*dn_dlnM_normalised/mass
-    lf_integral = simps(lf_integrand, mass)
+    lf_integral = simps(lf_integrand, mass, axis=axis)
     return lf_integral
 
 
