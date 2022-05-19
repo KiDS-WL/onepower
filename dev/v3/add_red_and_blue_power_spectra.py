@@ -89,9 +89,9 @@ def add_red_and_blue_power(block, f_red, power_section, z_ext, k_ext):
 		nz_ext = len(z_ext)
 		pk_tot_ext_z = extrapolate_z(z_ext, z, pk_tot, nk)
 		pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext)
-		for i in range(0,nz_ext):
-			plt.loglog(k_ext, np.abs(pk_tot_ext[i]))
-		plt.show()
+		#for i in range(0,nz_ext):
+		#	plt.loglog(k_ext, np.abs(pk_tot_ext[i]))
+		#plt.show()
 		block.put_grid(power_section, "z", z_ext, "k_h", k_ext, "p_k", pk_tot_ext)
 		
 #--------------------------------------------------------------------------------#	

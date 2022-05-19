@@ -92,16 +92,18 @@ def prepare_matter_factor_grid(mass, mean_density0, u_dm):
 # clustering - satellites
 def prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_gal, nz, nk, nmass):
     s_factor = np.empty([nz, nk, nmass])
-    for jz in range(0, nz):
-        for ik in range(0, nk):
-            s_factor[jz, ik, :] = compute_satellite_galaxy_factor(Nsat[jz, :], numdensat[jz], f_sat[jz],
-                                                                  u_gal[jz, ik, :])
+    #for jz in range(0, nz):
+    #    for ik in range(0, nk):
+    #        s_factor[jz, ik, :] = compute_satellite_galaxy_factor(Nsat[jz, :], numdensat[jz], f_sat[jz],
+    #                                                              u_gal[jz, ik, :])
+    s_factor = compute_satellite_galaxy_factor(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], u_gal)
     return s_factor
 
 # clustering - centrals
 def prepare_central_factor_grid(Ncen, numdencen, f_cen):
-    c_factor = np.array([compute_central_galaxy_factor(Ncen_z, numdencen_z, f_cen_z) for Ncen_z, numdencen_z, f_cen_z in
-                         zip(Ncen, numdencen, f_cen)])
+    #c_factor = np.array([compute_central_galaxy_factor(Ncen_z, numdencen_z, f_cen_z) for Ncen_z, numdencen_z, f_cen_z in
+    #                     zip(Ncen, numdencen, f_cen)])
+    c_factor = compute_central_galaxy_factor(Ncen, numdencen[:,np.newaxis], f_cen[:,np.newaxis])
     return c_factor
 
 # alignment - satellites
@@ -122,9 +124,10 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
     :param nmass:
     :return:
     '''
-    s_align_factor = np.array([[compute_satellite_galaxy_alignment_factor(Nsat[jz, :], numdensat[jz],
-                                                                          f_sat[jz], wkm[jz, :, ik])
-                                for ik in range(0,nk)] for jz in range(0,nz)])
+    #s_align_factor = np.array([[compute_satellite_galaxy_alignment_factor(Nsat[jz, :], numdensat[jz],
+    #                                                                      f_sat[jz], wkm[jz, :, ik])
+    #                            for ik in range(0,nk)] for jz in range(0,nz)])
+    s_align_factor = compute_satellite_galaxy_alignment_factor(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1))
     #s_align_factor *= gamma_1h[:, np.newaxis, np.newaxis]
     '''
     s_align_factor = np.empty([nz, nk, nmass])
@@ -162,19 +165,22 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
 # Compute the grid in z and M (and eventually k) of the quantities described above
 
 def prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
-    I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0[jz])
-                          for ik in range(0,nk)] for jz in range(0,nz)])
+    #I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0[jz])
+    #                      for ik in range(0,nk)] for jz in range(0,nz)])
+    I_m_term = compute_Im_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
     return I_m_term
 
 def prepare_Is_term(mass, s_factor, b_m, dn_dlnm, nz, nk):
-    I_s_term = np.array([[compute_Ig_term(s_factor[jz, ik], mass, dn_dlnm[jz], b_m[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
+    #I_s_term = np.array([[compute_Ig_term(s_factor[jz, ik], mass, dn_dlnm[jz], b_m[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
+    I_s_term = compute_Ig_term(s_factor, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
     return I_s_term
 
 def prepare_Ic_term(mass, c_factor, b_m, dn_dlnm, nz, nk):
     #I_c_term = compute_Ig_term(c_factor, mass[np.newaxis,:], dn_dlnm, b_m)
-    I_c_term = np.empty([nz, nk])
-    for jz in range(0, nz):
-        I_c_term[jz] = compute_Ig_term(c_factor[jz], mass, dn_dlnm[jz], b_m[jz])
+    #I_c_term = np.empty([nz, nk])
+    #for jz in range(0, nz):
+    #    I_c_term[jz] = compute_Ig_term(c_factor[jz], mass, dn_dlnm[jz], b_m[jz])
+    I_c_term = np.tile(np.array([compute_Ig_term(c_factor, mass[np.newaxis,:], dn_dlnm, b_m)]).T, [1,nk])
     return I_c_term
 
 
@@ -204,7 +210,7 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
         # since the luminosity dependence is squared outside, the II amplitude is just GI squared
         alignment_amplitude_2h_II[jz] = (alignment_gi[jz] * C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
         #alignment_amplitude_2h_II[jz] = alignment_ii[jz] * (C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
-    print (alignment_amplitude_2h, alignment_amplitude_2h_II)
+    
     return alignment_amplitude_2h, alignment_amplitude_2h_II
 
 
@@ -235,6 +241,7 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     # 1-halo term:
     pk_cs_1h = np.empty([nz, nk])
     pk_ss_1h = np.empty([nz, nk])
+    """
     for jz in range(0, nz):
         for ik in range(0, nk):
             pk_cs_1h[jz, ik] = compute_1h_term(c_factor[jz], s_factor[jz, ik], mass, dn_dln_m[jz])
@@ -244,8 +251,13 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
         #pk_ss_1h[jz][mask_large_scales] = 0.0
         pk_cs_1h[jz] *= one_halo_truncation(k_vec)
         pk_ss_1h[jz] *= one_halo_truncation(k_vec)
+    """
+    pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis,:], s_factor, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
+    pk_ss_1h = compute_1h_term(s_factor, s_factor, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
+
+    
     # Total
-    # AD: add Poisson parameter to ph_ss_1h!
+    # AD: adding Poisson parameter to ph_ss_1h!
     poisson = block["pk_parameters", "poisson"]
     pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
 

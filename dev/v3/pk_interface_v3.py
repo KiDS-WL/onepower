@@ -131,7 +131,7 @@ def execute(block, config):
     k_vec, plin, growth_factor = get_linear_power_spectrum(block, z_vec)
     nk = len(k_vec)
 
-    # load nonlinear power spectrum (halofi)
+    # load nonlinear power spectrum (halofit)
     k_nl, p_nl = get_nonlinear_power_spectrum(block, z_vec)
     
     # AD: avoid this! (Maybe needed for IA part ...)
