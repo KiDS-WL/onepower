@@ -46,7 +46,8 @@ def setup(options):
     log_mass_max = options[option_section, "log_mass_max"]
     nmass = options[option_section, "nmass"]
     # log-spaced mass in units of M_sun/h
-    mass = np.logspace(log_mass_min, log_mass_max, nmass)
+    dlog10m = (log_mass_max-log_mass_min)/nmass
+    mass = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
     zmin = options[option_section, "zmin"]
     zmax = options[option_section, "zmax"]
@@ -123,17 +124,8 @@ def execute(block, config):
 
     start_time = time.time()
 
-    # ---- Comology ----#
-    # Load cosmological parameters
-    this_cosmo = Flatw0waCDM(H0=block[cosmo, "hubble"], Ob0=block[cosmo, "omega_b"], Om0=block[cosmo, "omega_m"], Tcmb0=2.725,
-                             m_nu=0.06*u.eV, Neff=3.046, w0=block[cosmo, "w"], wa=block[cosmo, "wa"])
-
-    #FlatLambdaCDM(H0=block[cosmo, "hubble"], Om0=block[cosmo, "omega_m"], Ob0=block[cosmo, "omega_b"], Tcmb0=2.725)
-
-
-    rho_crit0 = this_cosmo.critical_density0.to(u.M_sun * u.Mpc ** (-3.)) / (this_cosmo.h ** 2.)
-    mean_density0 = rho_crit0.value * this_cosmo.Om0
-    #print ('mean_density0', mean_density0)
+    mean_density0 = block["density", "mean_density0"]
+    
 
     # load linear power spectrum
     k_vec, plin, growth_factor = get_linear_power_spectrum(block, z_vec)
@@ -141,7 +133,8 @@ def execute(block, config):
 
     # load nonlinear power spectrum (halofi)
     k_nl, p_nl = get_nonlinear_power_spectrum(block, z_vec)
-
+    
+    # AD: avoid this! (Maybe needed for IA part ...)
     # compute the effective power spectrum, mixing the linear and nonlinear one:
     #
     # (1.-t_eff)*plin + t_eff*p_nl
@@ -150,7 +143,7 @@ def execute(block, config):
     pk_eff = compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff)
 
     # initialise the galaxy bias
-    bg = 1.0
+    bg = 1.0 # AD: ???
 
     # If the two_halo_only option is set True, then only the linear regime is computed and the linear bias is used (either computed by the
     # hod module or passed in the value	file (same structure as for the constant bias module)
@@ -161,7 +154,7 @@ def execute(block, config):
             # load the halo mass and bias functions from the datablock
             dn_dlnm, b_dm = get_halo_functions(block, pipeline, mass, z_vec)
             # prepare a grid for the navarro-frenk-white profile
-            u_dm = compute_u_dm_grid(block, k_vec, mass, z_vec)
+            u_dm, u_sat = compute_u_dm_grid(block, k_vec, mass, z_vec)
             I_m_term = prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
             m_factor = prepare_matter_factor_grid(mass, mean_density0, u_dm)
         if galaxy == True:
@@ -177,6 +170,7 @@ def execute(block, config):
         if p_GG:
             # this is not very useful as for the lensing power spectrum it is usually used halofit
             raise ValueError("pGG not implemented for the two-halo only option\n")
+            # AD: Implement proper matter-matter term using the halo model here. We do now want to use halofit.
             # compute_p_mm_new(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor, I_m_term, nz, nk)
         if p_nn:
             pk_nn = compute_p_nn_two_halo(block, k_vec, pk_eff, z_vec, bg)
@@ -199,7 +193,7 @@ def execute(block, config):
     else:
         # load the halo mass and bias functions from the datablock and prepare a grid for the navarro-frenk-white profile
         dn_dlnm, b_dm = get_halo_functions(block, pipeline, mass, z_vec)
-        u_dm = compute_u_dm_grid(block, k_vec, mass, z_vec)
+        u_dm, u_sat = compute_u_dm_grid(block, k_vec, mass, z_vec)
 
         # prepare the integrals
         if gravitational == True:
@@ -214,7 +208,7 @@ def execute(block, config):
             if galaxy == True:
                 # preparing the 1h term
                 c_factor = prepare_central_factor_grid(Ncen, numdencen, f_cen)
-                s_factor = prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_dm, nz, nk, nmass)
+                s_factor = prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_sat, nz, nk, nmass)
                 # preparing the 2h term
                 I_c_term = prepare_Ic_term(mass, c_factor, b_dm, dn_dlnm, nz, nk)
                 I_s_term = prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)

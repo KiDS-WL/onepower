@@ -35,7 +35,8 @@ def setup(options):
     log_mass_max = options[option_section, "log_mass_max"]
     nmass = options[option_section, "nmass"]
     #log-spaced mass in units of M_sun/h
-    mass = np.logspace(log_mass_min, log_mass_max, nmass)
+    dlog10m = (log_mass_max-log_mass_min)/nmass
+    mass = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
     zmin = options[option_section, "zmin"]
     zmax = options[option_section, "zmax"]
@@ -80,11 +81,11 @@ def execute(block, config):
     # This already contains the luminosity dependence if there
     gamma_1h_amplitude = block["ia_small_scale_alignment" + suffix, "alignment_1h"]
 
-    mass_halo = block["concentration", "m_h"]
-    z_halo = block["concentration", "z"]
-    c = block["concentration", "c"]
-    r_s = block["nfw_scale_radius", "rs"]
-    rvir = block["virial_radius", "rvir"]
+    mass_halo = block["concentration_dm", "m_h"]
+    z_halo = block["concentration_dm", "z"]
+    c = block["concentration_dm", "c"]
+    r_s = block["nfw_scale_radius_dm", "rs"]
+    rvir = block["virial_radius", "rvir_dm"]
     mass = mass_halo
 
 
@@ -96,9 +97,11 @@ def execute(block, config):
 
     ell_max = 6
     # uell[l,z,m,k]
+    # AD: THIS FUNCTION IS THE SLOWEST PART!
     uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max)
     print (uell.shape)
     # interpolate
+    # Do we need this interpolation???
     uell_interpolated = np.empty([int(ell_max/2+1), nz, nmass_setup, nk_setup])
     for il in range(0,int(ell_max/2+1)):
         for jz in range(0,nz):

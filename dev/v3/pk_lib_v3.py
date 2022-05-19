@@ -12,7 +12,6 @@ from scipy.special import erf
 from itertools import count
 import time
 #import timing
-from darkmatter_lib import compute_u_dm, radvir_from_mass
 
 
 def one_halo_truncation(k_vec):
@@ -87,7 +86,7 @@ def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
 
 # matter
 def prepare_matter_factor_grid(mass, mean_density0, u_dm):
-    m_factor = compute_matter_factor(mass[np.newaxis, np.newaxis, :], mean_density0, u_dm)
+    m_factor = compute_matter_factor(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm)
     return m_factor
 
 # clustering - satellites
@@ -147,6 +146,7 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
 # Return: scalar
 
 def compute_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
+    # AD: check what happens if u_dm is removed. For considered k-ranges removing it should be fine.
     integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
     integrand_m2 = b_dm * dn_dlnm * u_dm * (1. / mean_density0)
     I_m1 = 1. - simps(integrand_m1, mass)
@@ -162,7 +162,7 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
 # Compute the grid in z and M (and eventually k) of the quantities described above
 
 def prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
-    I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0)
+    I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0[jz])
                           for ik in range(0,nk)] for jz in range(0,nz)])
     return I_m_term
 
@@ -200,10 +200,10 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     alignment_amplitude_2h = np.empty([nz, nk])
     alignment_amplitude_2h_II = np.empty([nz, nk])
     for jz in range(0, nz):
-        alignment_amplitude_2h[jz] = -alignment_gi[jz] * (C1 * mean_density0 / growth_factor[jz])
+        alignment_amplitude_2h[jz] = -alignment_gi[jz] * (C1 * mean_density0[jz] / growth_factor[jz])
         # since the luminosity dependence is squared outside, the II amplitude is just GI squared
-        alignment_amplitude_2h_II[jz] = (alignment_gi[jz] * C1 * mean_density0 / growth_factor[jz]) ** 2.
-        #alignment_amplitude_2h_II[jz] = alignment_ii[jz] * (C1 * mean_density0 / growth_factor[jz]) ** 2.
+        alignment_amplitude_2h_II[jz] = (alignment_gi[jz] * C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
+        #alignment_amplitude_2h_II[jz] = alignment_ii[jz] * (C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
     print (alignment_amplitude_2h, alignment_amplitude_2h_II)
     return alignment_amplitude_2h, alignment_amplitude_2h_II
 
@@ -229,7 +229,7 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     #
     # 2-halo term:
-    pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term)  * two_halo_truncation(k_vec)[np.newaxis,:]
+    pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term) * two_halo_truncation(k_vec)[np.newaxis,:]
     pk_cc_2h = compute_2h_term(pk_lin, I_c_term, I_c_term) * two_halo_truncation(k_vec)[np.newaxis,:]
     pk_ss_2h = compute_2h_term(pk_lin, I_s_term, I_s_term) * two_halo_truncation(k_vec)[np.newaxis,:]
     # 1-halo term:
@@ -245,7 +245,9 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
         pk_cs_1h[jz] *= one_halo_truncation(k_vec)
         pk_ss_1h[jz] *= one_halo_truncation(k_vec)
     # Total
-    pk_tot = 2. * pk_cs_1h + pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
+    # AD: add Poisson parameter to ph_ss_1h!
+    poisson = block["pk_parameters", "poisson"]
+    pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
 
     # in case, save in the datablock
     #block.put_grid("galaxy_cs_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
@@ -423,11 +425,14 @@ def compute_u_dm_grid(block, k_vec, mass, z_vec):
     mass_udm = block["fourier_nfw_profile", "m_h"]
     k_udm = block["fourier_nfw_profile", "k_h"]
     u_udm = block["fourier_nfw_profile", "ukm"]
+    u_usat = block["fourier_nfw_profile", "uksat"]
     u_udm = np.reshape(u_udm, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
+    u_usat = np.reshape(u_usat, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
     # interpolate
     nz = np.size(z_vec)
     nk = np.size(k_vec)
     nmass = np.size(mass)
     u_dm = np.array([interp_udm(mass_udm, k_udm, udm_z, mass, k_vec) for udm_z in u_udm])
+    u_sat = np.array([interp_udm(mass_udm, k_udm, usat_z, mass, k_vec) for usat_z in u_usat])
     print("--- u_dm: %s seconds ---" % (time.time() - start_time_udm))
-    return np.abs(u_dm)
+    return np.abs(u_dm), np.abs(u_sat)

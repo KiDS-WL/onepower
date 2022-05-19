@@ -26,15 +26,19 @@ def setup(options):
     log_mass_max = options[option_section, "log_mass_max"]
     nmass = options[option_section, "nmass"]
     # log-spaced mass in units of M_sun/h
-    mass = np.logspace(log_mass_min, log_mass_max, nmass)
+    dlog10m = (log_mass_max-log_mass_min)/nmass
+    mass = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m) #To be consistent with hmf!
 
     zmin = options[option_section, "zmin"]
     zmax = options[option_section, "zmax"]
     nz = options[option_section, "nz"]
     z_vec = np.linspace(zmin, zmax, nz)
     print(z_vec)
+    model_cm = options[option_section, "model"]
+    mdef = options[option_section, "mdef_model"]
+    overdensity = options[option_section, "overdensity"]
 
-    return z_vec, nz, mass, nmass
+    return z_vec, nz, mass, nmass, model_cm, mdef, overdensity
 
 
 def execute(block, config):
@@ -42,47 +46,47 @@ def execute(block, config):
     # It is the main workhorse of the code. The block contains the parameters and results of any
     # earlier modules, and the config is what we loaded earlier.
 
-    z, nz, mass, nmass = config
+    z, nz, mass, nmass, model_cm, mdef, overdensity = config
     start_time = time.time()
 
-    # ---- Comology ----#
-    # Load cosmological parameters
-    from astropy.cosmology import FlatLambdaCDM
-    import astropy.units as u
-
-    this_cosmo = FlatLambdaCDM(H0=block[cosmo, "hubble"], Om0=block[cosmo, "omega_m"], Ob0=block[cosmo, "omega_b"],
-                               Tcmb0=2.725)
-    rho_crit0 = this_cosmo.critical_density0.to(u.M_sun * u.Mpc ** (-3.)) / (this_cosmo.h ** 2.)
-    mean_density0 = rho_crit0.value * this_cosmo.Om0
-    rho_m = np.array([mean_density0]) #* np.ones(nz)  #(1.+z)** 3.  # mean_density0 * (1.+np.zeros(nz))**3. # array 1d [nz]
+    rho_m = block["density", "mean_density0"]
     print('rho_m = ', rho_m)
-    print('mean_density0 = ', mean_density0)
 
     # compute the virial radius and the scale radius associated with a halo of mass M
-    rho_halo = 200. * rho_m # array 1d (size of rhom)
-    #print ('rho_halo.size = ', rho_halo.shape)
-    eta = 0.
-    conc = (1.+eta)*concentration(block, mass, z, 'Duffy2008_mean')
-    rvir = radvir_from_mass(mass, rho_halo)
-    r_s = scale_radius(rvir, conc)
+    rho_halo = overdensity * rho_m # array 1d (size of rhom)
+
+    norm_cen = block["nfw_halo", "norm_cen"]
+    norm_sat = block["nfw_halo", "norm_sat"]
+
+    conc_cen = norm_cen * concentration(block, mass, z, model_cm, mdef, overdensity)
+    conc_sat = norm_sat * concentration(block, mass, z, model_cm, mdef, overdensity)
+    rvir_cen = radvir_from_mass(mass, rho_halo)
+    rvir_sat = radvir_from_mass(mass, rho_halo)
+    r_s_cen = scale_radius(rvir_cen, conc_cen)
+    r_s_sat = scale_radius(rvir_sat, conc_sat)
 
     # compute the Fourier-transform of the NFW profile (normalised to the mass of the halo)
-    k = np.logspace(-2,6,200)
-    u_dm = compute_u_dm(k, r_s, conc)
+    k = np.logspace(-2,6,200) # AD: inherit the range from Plin? That would avoid intepolations ...
+    u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen)
+    u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat)
 
-    block.put_grid("concentration", "z", z, "m_h", mass, "c", conc)
-    block.put_grid("nfw_scale_radius", "z", z, "m_h", mass, "rs", r_s)
+    block.put_grid("concentration_dm", "z", z, "m_h", mass, "c", conc_cen)
+    block.put_grid("concentration_sat", "z", z, "m_h", mass, "c", conc_sat)
+    block.put_grid("nfw_scale_radius_dm", "z", z, "m_h", mass, "rs", r_s_cen)
+    block.put_grid("nfw_scale_radius_sat", "z", z, "m_h", mass, "rs", r_s_sat)
     #block.put_grid("virial_radius", "z", z, "m_h", mass, "rvir", rvir)
     #print(rvir[0].shape)
     block.put_double_array_1d("virial_radius", "m_h", mass)
-    block.put_double_array_1d("virial_radius", "rvir", rvir[0])
+    block.put_double_array_1d("virial_radius", "rvir_dm", rvir_cen[0])
+    block.put_double_array_1d("virial_radius", "rvir_sat", rvir_sat[0])
 
 
     block.put_double_array_1d("fourier_nfw_profile", "z", z)
     block.put_double_array_1d("fourier_nfw_profile", "m_h", mass)
     block.put_double_array_1d("fourier_nfw_profile", "k_h", k)
-    block.put_double_array_nd("fourier_nfw_profile", "ukm", u_dm)
-
+    block.put_double_array_nd("fourier_nfw_profile", "ukm", u_dm_cen)
+    block.put_double_array_nd("fourier_nfw_profile", "uksat", u_dm_sat)
+    
     return 0
 
 
