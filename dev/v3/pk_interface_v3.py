@@ -8,7 +8,8 @@ import numpy as np
 from scipy.interpolate import interp1d, interp2d
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM
 import astropy.units as u
-from dark_emulator import darkemu
+from dark_emulator import darkemu 
+from scipy.interpolate import RegularGridInterpolator
 
 # import hankel
 from scipy.integrate import quad, simps, trapz
@@ -25,7 +26,7 @@ from pk_lib_v3 import compute_p_mm_new, compute_u_dm_grid, \
     prepare_satellite_alignment_factor_grid, compute_p_xgG, compute_p_xgG_mead, compute_p_gI, compute_p_xGI, compute_p_II, \
     compute_p_nn_two_halo, compute_p_xgG_two_halo, compute_p_xGI_two_halo, compute_p_gI_two_halo, \
     compute_p_II_two_halo, compute_two_halo_alignment, prepare_I_NL_ss, prepare_I_NL_cs, prepare_I_NL_cc, \
-    prepare_I_NL_cm, prepare_I_NL_sm
+    prepare_I_NL_cm, prepare_I_NL_sm, create_bnl_interpolation_function
 
 import time
 #IT commented next line because it's not available in Python 2.7
@@ -69,6 +70,7 @@ def setup(options):
     p_gI = options[option_section, "p_gI"]
     p_xGI = options[option_section, "p_xGI"]
     p_II = options[option_section, "p_II"]
+    interpolate_bnl = options[option_section, "interpolate_bnl"]
 
     # initiate pipeline parameters
     ia_lum_dep_centrals = False
@@ -126,7 +128,7 @@ def setup(options):
     # ============================================================================== #
 
     return mass, nmass, z_vec, nz, p_GG, p_nn, p_nn_mead, p_xgG, p_xgG_mead, p_gI, p_xGI, p_II, gravitational, galaxy, mead, mead_xgG, alignment, \
-           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix
+           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl
 
 
 # @profile
@@ -136,7 +138,7 @@ def execute(block, config):
     # earlier modules, and the config is what we loaded earlier.
 
     mass, nmass, z_vec, nz, p_GG, p_nn, p_nn_mead, p_xgG, p_xgG_mead, p_gI, p_xGI, p_II, gravitational, galaxy, mead, mead_xgG, alignment, \
-    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix = config
+    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl = config
 
     start_time = time.time()
 
@@ -240,23 +242,26 @@ def execute(block, config):
                 I_c_term = prepare_Ic_term(mass, c_factor, b_dm, dn_dlnm, nz, nk)
                 I_s_term = prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)
                 if mead == True:
-                    # preparing NL terms 
-                    with open('/cosmosis/modules/halo_model_development/halomodel_for_cosmosis/dev/example_ini_files/interpolator_BNL_DQ.npy', 'rb') as dill_file:
-                        beta_interp = 1.0 #pickle.load(dill_file)
-                    
+                    #initialise emulator
                     emulator = darkemu.base_class()
                     cparam = np.array([0.02225,0.1198,0.6844,3.094,0.9645,-1.])
                     emulator.set_cosmology(cparam)
                     print('emulator cosmology:', emulator.get_cosmology())
-                    I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp, emulator)
-                    I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp, emulator)
-                    I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp, emulator)
+
+                    if interpolate_bnl==True:
+                        beta_interp = create_bnl_interpolation_function(emulator)
+                    print('created b_nl interpolator')
+
+                    I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                    I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                    I_NL_cc = prepare_I_NL_cc(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+
                 if mead_xgG == True:
                     # preparing NL terms 
                     with open('/cosmosis/modules/halo_model_development/halomodel_for_cosmosis/dev/example_ini_files/interpolator_BNL_DQ.npy', 'rb') as dill_file:
                         beta_interp = 1.0 #pickle.load(dill_file)
-                    I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
-                    I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, beta_interp)
+                    I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                    I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
             if alignment == True:
 		#IT commenting ia_lum_dep_centrals
                 alignment_amplitude_2h, alignment_amplitude_2h_II = compute_two_halo_alignment(block, suffix, nz, nk,
