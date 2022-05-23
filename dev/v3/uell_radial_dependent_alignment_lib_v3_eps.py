@@ -107,14 +107,11 @@ from scipy.integrate import quad, simps, trapz
 from scipy.interpolate import interp1d
 from scipy.special import legendre, sici, binom
 import math
+import hankl
 
 from wkm_angular_part_eps import *
 
-#import matplotlib.pyplot as plt
-
-
-NewtonGravConst = 4.2994E-9
-rho_crit0= (3.*10**4)/(8.*math.pi*NewtonGravConst) 		#critical density at redshift 0
+import matplotlib.pyplot as plt
 
 
 #-----------------------------------------------------------------------#
@@ -130,17 +127,9 @@ def nfw_profile(r, rs):
     rho_nfw = 1./f_x
     return rho_nfw
 
+
 def mass_nfw(r_s, c):
     mnfw =  4.*np.pi*(r_s**3.)*(np.log(1.+c)-c/(1.+c))
-    return mnfw
-
-# I've checked the above implementation is equivalent!
-def mass_nfw_test(r_s, c, zsize, msize):
-    mnfw_test =  4.*np.pi*(r_s**3.)*(np.log(1.+c)-c/(1.+c))
-    mnfw = np.zeros([zsize, msize])
-    for jz in range(0,zsize):
-        mnfw[jz] = 4.*np.pi*(r_s[jz]**3.)*(np.log(1.+c[jz])-c[jz]/(1.+c[jz]))
-        print (mnfw_test[jz]/mnfw[jz])
     return mnfw
 
 
@@ -150,21 +139,23 @@ def nfw_profile_trunc(r, rs, rvir):
     nfw[mask_above_rvir] = 0.0
     return nfw
 
-def gamma_r_nfw_profile(r, rs, rvir, A, b):
-    rcore = 0.06 #Mpc/h
+
+def gamma_r_nfw_profile(r, rs, rvir, A, b, rcore=0.06):
     mask_small_r = r<rcore
     gamma = A*(r/rvir)**b
     # note that in the case of non-radial dependent alignment, this cut is not recommendable since it introduces ringing
     gamma[mask_small_r] = A*(rcore/rvir)**b
-    mask_gamma = gamma > 0.3
-    gamma[mask_gamma] = 0.3
+    #mask_gamma = gamma > 0.3
+    gamma[gamma > 0.3] = 0.3
     gamma_weighted = gamma * nfw_profile_trunc(r,rs,rvir)
     return gamma_weighted
+
 
 # not used
 def gamma_r_nfw_profile_notrunc(r, rs, rvir, b):
     gamma_nfw = (r/rvir)**b * nfw_profile(r,rs)
     return gamma_nfw
+
 
 # not used
 def vector_step_function(x, threshold):
@@ -172,19 +163,6 @@ def vector_step_function(x, threshold):
     y = np.zeros(x.shape)
     y[mask_x] = 1.
     return y
-
-
-#Navarro-Frenk-White density profile
-# only for comparison -> note that the normalisation is different, due to the shear!
-def norm_fourier(x, c):
-    # Note: x = k*r_scale where r_scale= r200/c
-    si, ci = sici((1+c)*x)
-    si2, ci2 = sici(x)
-    sinterm = np.sin(x)*( si-si2 ) -np.sin(c*x)/((1+c)*x)
-    costerm = np.cos(x)*( ci-ci2 )
-    f_c = np.log(1+c)-c/(1+c)
-    u_fourier = ( sinterm + costerm )/f_c
-    return u_fourier
 
 
 # virial radius 	
@@ -205,25 +183,49 @@ def do_transform(h_transf, k, rs_z_m, rvir_m, mnfw_z_m, gamma_1h_amplitude, gamm
     uk_l_z_m_k = h_transf.integrate(nfw_f)[0] / (k ** 3. * mnfw_z_m)
     #print (np.size(uk_l_z_m_k))
     return uk_l_z_m_k
+    
+
+def nfw_f_test(x, k, r_s, rvir, gamma_1h_amplitude, gamma_b):
+
+    func = gamma_r_nfw_profile(x/k, r_s, rvir, gamma_1h_amplitude, gamma_b)*(x**2.)*np.sqrt(np.pi/(2.*x))
+
+    return func
 
 def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z, r_s, rvir, c, mass, ell):
+    to = time.time()
     msize = np.size(mass)
     zsize = np.size(z)
     mnfw = mass_nfw(r_s, c)
 
     h_transf = hankel.hankel.HankelTransform(ell+0.5,300,0.01)
-    #h_transf = hankel.hankel.HankelTransform(ell+0.5,1000,0.00005)
-
-    #uk_l = np.array([[[do_transform(h_transf, k_vec[ik], r_s[jz,im], rvir[im], mnfw[jz,im], gamma_1h_amplitude, gamma_b) for ik in range(0,k_vec.size)] for im in range(0,msize)] for jz in range(0,z.size)])
-    #print (uk_l.shape)
-
-
+    
     uk_l = np.zeros([z.size, msize, k_vec.size])
+    #print(uk_l.shape)
+    #print(k_vec.shape, r_s.shape, rvir.shape, gamma_1h_amplitude.shape)
     for jz in range(z.size):
         for im in range(msize):
             for kk in range(k_vec.size):
                 nfw_f = lambda x: gamma_r_nfw_profile(x/k_vec[kk], r_s[jz,im], rvir[im], gamma_1h_amplitude[jz], gamma_b)*(x**2.)*np.sqrt(np.pi/(2.*x))
                 uk_l[jz, im, kk] = h_transf.integrate(nfw_f)[0]/(k_vec[kk]**3. * mnfw[jz,im])
+    print(time.time()-to)
+    ukll = uk_l.copy()
+    to = time.time()
+    x = np.logspace(-15, 15, 80)
+    for jz in range(z.size):
+        for im in range(msize):
+            #for kk in range(k_vec.size):
+            uk_l[jz, im, :] = hankl.FFTLog(x, nfw_f_test(x, k_vec, r_s[jz,im], rvir[im], gamma_1h_amplitude[jz], gamma_b), q=1.0, mu=ell+0.5)[1] / (k_vec**3. * mnfw[jz,im])
+    print('uell transform: ', time.time()-to)
+    #print(uk_l/ukll)
+    print(np.allclose(ukll, uk_l))
+    plt.plot(ukll[0,0,:])
+    plt.plot(uk_l[0,0,:])
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.show()
+    
+    quit()
+    #uk_l = h_transf.integrate(nfw_f)[0]/(k_vec**3. * mnfw)
     return uk_l
 
 #------------------------------ uell -----------------------------------#
@@ -231,7 +233,9 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
 # create a 4dim array containing u_ell as a function of l,z,m and k
 # uell[l,z,m,k]
 def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass, ell_max):
+    to = time.time()
     uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il) for il in range(0,ell_max+1,2)]
+    print('uell array: ', time.time()-to)
     '''
     msize = np.size(c, axis=1) #c.shape[1]
     print ('msize IAuell = ', msize)
@@ -249,6 +253,7 @@ def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass
 #assuming theta_e=theta, phi_e=phi (perfect radial alignment)
 
 def wkm_my_fell(uell, theta_k, phi_k, ell_max, gamma_b):
+    to = time.time()
     #nl = np.size(uell, axis=0)
     nz = np.size(uell, axis=1)
     nm = np.size(uell, axis=2)
@@ -265,4 +270,5 @@ def wkm_my_fell(uell, theta_k, phi_k, ell_max, gamma_b):
                 a_ = np.real(radial)
                 b_ = np.imag(radial)
                 sum_ell[jz,im] = sum_ell[jz,im] + (a_*c_ - b_*d_)  + 1j*(a_*d_ + b_*c_)
+    print('wkm: ', time.time()-to)
     return np.sqrt(np.real(sum_ell)**2.+np.imag(sum_ell)**2.)

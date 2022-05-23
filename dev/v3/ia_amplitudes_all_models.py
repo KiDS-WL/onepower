@@ -150,11 +150,11 @@ def execute(block, config):
             beta_l = block["intrinsic_alignment_parameters" + suffix, "beta_l"] 
             gamma_2h = block["intrinsic_alignment_parameters" + suffix, "gamma_2h_amplitude"] 
             print ('gamma_2h = ', gamma_2h)          
-            mean_lscaling = np.empty(nz)
-            mean_lscaling_beta2 = np.empty(nz)
-            for i in range(0,nz):
-                mean_lscaling[i] = mean_L_L0_to_beta(lum[i], lum_pdf_z[i], l0, beta_l)
-                print (mean_lscaling[i])
+            #mean_lscaling = np.empty(nz)
+            #mean_lscaling_beta2 = np.empty(nz)
+            #for i in range(0,nz):
+            #    mean_lscaling[i] = mean_L_L0_to_beta(lum[i], lum_pdf_z[i], l0, beta_l)
+            mean_lscaling = mean_L_L0_to_beta(lum, lum_pdf_z, l0, beta_l)
             block.put_double_array_1d("ia_large_scale_alignment" + suffix, "alignment_gi", gamma_2h * mean_lscaling)
         if luminosity_dependence == 'double_powerlaw':        
             l0 = block["intrinsic_alignment_parameters" + suffix, "l_0"]
@@ -174,9 +174,10 @@ def execute(block, config):
             l0 = block["intrinsic_alignment_parameters" + suffix, "l_0"]
             zeta_l = block["intrinsic_alignment_parameters" + suffix, "zeta_l"]  
             gamma_1h = block["intrinsic_alignment_parameters" + suffix, "gamma_1h_amplitude"]             
-            mean_lscaling = np.empty(nz)
-            for i in range(0,nz):
-                mean_lscaling[i] = mean_L_L0_to_beta(lum[i], lum_pdf_z[i], l0, zeta_l)
+            #mean_lscaling = np.empty(nz)
+            #for i in range(0,nz):
+            #    mean_lscaling[i] = mean_L_L0_to_beta(lum[i], lum_pdf_z[i], l0, zeta_l)
+            mean_lscaling = mean_L_L0_to_beta(lum, lum_pdf_z, l0, zeta_l)
             block.put_double_array_1d("ia_small_scale_alignment" + suffix, "alignment_1h", gamma_1h * mean_lscaling)
 
     return 0

@@ -46,53 +46,60 @@ def	extrapolate_z(z_ext, z_vec, pk, nk):
 	nz_ext = len(z_ext)
 	pk_extz = np.empty([nz_ext, nk])
 	for ik in range(0,nk):
-		pk_kfixed = pk[:,ik]
-		pk_extz[:,ik] = interp(z_ext, z_vec, pk_kfixed)
+		#pk_kfixed = pk[:,ik]
+		pk_extz[:,ik] = interp(z_ext, z_vec, pk[:,ik])
 	return pk_extz
 
 def	extrapolate_k(k_ext, k, pk, nz):
 	nk_ext = len(k_ext)
 	pk_extk = np.empty([nz, nk_ext])
 	for jz in range(0,nz):
-		pk_zfixed = pk[jz,:]
-		pk_extk[jz,:] = interp(k_ext, k, pk_zfixed)
+		#pk_zfixed = pk[jz,:]
+		pk_extk[jz,:] = interp(k_ext, k, pk[jz,:])
 	return pk_extk
 
 def add_red_and_blue_power(block, f_red, power_section, z_ext, k_ext):
-		# Note that we have first interpolated the f_red to the halo model pipeline z range
-		k = block[power_section+"_red", "k_h"]
-		z = block[power_section+"_red", "z"]
-		nz = len(z)
-		nk = len(k)
-		pk_tot = np.zeros([nz,nk])
-		pk_red = block[power_section+"_red", "p_k"]
-		pk_blue = block[power_section+"_blue", "p_k"]
+        # Note that we have first interpolated the f_red to the halo model pipeline z range
+        k = block[power_section+"_red", "k_h"]
+        z = block[power_section+"_red", "z"]
+        nz = len(z)
+        nk = len(k)
+        pk_tot = np.zeros([nz,nk])
+        pk_red = block[power_section+"_red", "p_k"]
+        pk_blue = block[power_section+"_blue", "p_k"]
 		
-		# TODO: Add the cross terms
-		# This is not optimised, but it is good to first choose what do we want to implement
-		# in terms of cross terms.
-		if (power_section == 'intrinsic_power'):
-			for jz in range(nz):
-				pk_tot[jz] = f_red[jz]**2.*pk_red[jz] + (1.-f_red[jz])**2.*pk_blue[jz]
-		if (power_section == 'galaxy_power'):
-			for jz in range(nz):
-				pk_tot[jz] = f_red[jz]**2.*pk_red[jz] + (1.-f_red[jz])**2.*pk_blue[jz]				
-		if (power_section == 'galaxy_intrinsic_power'):
-			for jz in range(nz):
-				pk_tot[jz] = f_red[jz]**2.*pk_red[jz] + (1.-f_red[jz])**2.*pk_blue[jz]
-		else:
-			for jz in range(nz):
-				pk_tot[jz] = f_red[jz]*pk_red[jz] + (1.-f_red[jz])*pk_blue[jz]
-		#warnings.warn('No cross terms between red and blue galaxies implemented.\nThis is only valid for IA in the regime of negligible blue galaxy alignment.')
+        # TODO: Add the cross terms
+        # This is not optimised, but it is good to first choose what do we want to implement
+        # in terms of cross terms.
+        """
+        if (power_section == 'intrinsic_power'):
+            for jz in range(nz):
+                pk_tot[jz] = f_red[jz]**2.*pk_red[jz] + (1.-f_red[jz])**2.*pk_blue[jz]
+        if (power_section == 'galaxy_power'):
+            for jz in range(nz):
+                pk_tot[jz] = f_red[jz]**2.*pk_red[jz] + (1.-f_red[jz])**2.*pk_blue[jz]
+        if (power_section == 'galaxy_intrinsic_power'):
+            for jz in range(nz):
+                pk_tot[jz] = f_red[jz]**2.*pk_red[jz] + (1.-f_red[jz])**2.*pk_blue[jz]
+        else:
+            #for jz in range(nz):
+            #    pk_tot[jz] = f_red[jz]*pk_red[jz] + (1.-f_red[jz])*pk_blue[jz]
+        """
+        if power_section in ['intrinsic_power', 'galaxy_power', 'galaxy_intrinsic_power']:
+            pk_tot = f_red[:,np.newaxis]**2.*pk_red + (1.-f_red[:,np.newaxis])**2.*pk_blue
+        else:
+            pk_tot = f_red[:,np.newaxis]*pk_red + (1.-f_red[:,np.newaxis])*pk_blue
+        
+        #warnings.warn('No cross terms between red and blue galaxies implemented.\nThis is only valid for IA in the regime of negligible blue galaxy alignment.')
         #IT 02/03/22: Commented line 86 to execute the code
-		# extrapolate
-		nz_ext = len(z_ext)
-		pk_tot_ext_z = extrapolate_z(z_ext, z, pk_tot, nk)
-		pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext)
-		#for i in range(0,nz_ext):
-		#	plt.loglog(k_ext, np.abs(pk_tot_ext[i]))
-		#plt.show()
-		block.put_grid(power_section, "z", z_ext, "k_h", k_ext, "p_k", pk_tot_ext)
+        # extrapolate
+        nz_ext = len(z_ext)
+        pk_tot_ext_z = extrapolate_z(z_ext, z, pk_tot, nk)
+        pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext)
+        #for i in range(0,nz_ext):
+        #	plt.loglog(k_ext, np.abs(pk_tot_ext[i]))
+        #plt.show()
+        block.put_grid(power_section, "z", z_ext, "k_h", k_ext, "p_k", pk_tot_ext)
 		
 #--------------------------------------------------------------------------------#	
 

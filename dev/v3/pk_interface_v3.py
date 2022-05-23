@@ -159,7 +159,7 @@ def execute(block, config):
             m_factor = prepare_matter_factor_grid(mass, mean_density0, u_dm)
         if galaxy == True:
             # load linear bias:
-            bg = block["galaxy_bias", "b"]
+            bg = block["galaxy_bias" + suffix, "b"]
             if np.isscalar(bg): bg *= np.ones(nz)
         if alignment == True:
 	    #IT commented ia_lum_dep_centrals

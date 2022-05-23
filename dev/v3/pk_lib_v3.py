@@ -371,6 +371,8 @@ def compute_p_gI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_align_f
 
 ############### TWO HALO ONLY ###################
 
+# AD: Not fixing this, as it seems to be not used at all.
+
 # galaxy-galaxy power spectrum
 def compute_p_nn_two_halo(block, k_vec, plin, z_vec, bg):
     #
