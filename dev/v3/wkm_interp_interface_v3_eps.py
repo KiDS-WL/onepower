@@ -16,6 +16,7 @@ import math
 
 
 from uell_radial_dependent_alignment_lib_v3_eps import radvir, IA_uell_gamma_r_hankel, wkm_my_fell
+from hankel import HankelTransform
 
 # We have a collection of commonly used pre-defined block section names.
 # If none of the names here is relevant for your calculation you can use any
@@ -53,15 +54,19 @@ def setup(options):
         suffix = "_" + name
     else:
         suffix = ""
+    ell_max = 6
+    # initialise Hankel transform
+    h_transform = [HankelTransform(ell+0.5,300,0.01) for ell in range(0,ell_max+1,2)]
+    #print(h_transform)
 
-    return z_vec, nz, mass, nmass, k_vec, nk, suffix
+    return z_vec, nz, mass, nmass, k_vec, nk, suffix, h_transform, ell_max
 
 def execute(block, config):
     #This function is called every time you have a new sample of cosmological and other parameters.
     #It is the main workhorse of the code. The block contains the parameters and results of any 
     #earlier modules, and the config is what we loaded earlier.
     
-    z_setup, nz_setup, mass_setup, nmass_setup, k_setup, nk_setup, suffix = config
+    z_setup, nz_setup, mass_setup, nmass_setup, k_setup, nk_setup, suffix, h_transform, ell_max = config
     start_time = time.time()
 
     # create intermediate variables to speed up the calculation
@@ -89,17 +94,17 @@ def execute(block, config):
     mass = mass_halo
 
 
-    print('r_s.shape = ', r_s.shape)
-    print('rvir.shape = ', rvir.shape)
-    print('c.shape = ', c.shape)
-    print('mass.shape = ', mass.shape)
+    #print('r_s.shape = ', r_s.shape)
+    #print('rvir.shape = ', rvir.shape)
+    #print('c.shape = ', c.shape)
+    #print('mass.shape = ', mass.shape)
 
 
-    ell_max = 6
+    #ell_max = 6
     # uell[l,z,m,k]
     # AD: THIS FUNCTION IS THE SLOWEST PART!
-    uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max)
-    print (uell.shape)
+    uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max, h_transform)
+    #print (uell.shape)
     # interpolate
     # Do we need this interpolation???
     uell_interpolated = np.empty([int(ell_max/2+1), nz, nmass_setup, nk_setup])
@@ -107,7 +112,7 @@ def execute(block, config):
         for jz in range(0,nz):
             f_interp = interp2d(k, mass, uell[il, jz], kind='linear', bounds_error=False) #, fill_value=0)
             uell_interpolated[il,jz] = f_interp(k_setup, mass_setup)
-    print ('interp ok')
+    #print ('interp ok')
     '''
     uell_interpolated = np.empty([ell_max+1, nz, nmass_setup, nk_setup])
     for il in range(0,ell_max+1):
@@ -124,7 +129,7 @@ def execute(block, config):
         block.put_grid( "wkm_z%d"%jz+suffix, "mass", mass_setup, "k_h", k_setup, "w_km", wkm[jz,:,:])
     block.put_double_array_1d("wkm"+suffix, "z", z)
 
-    print("--- wkm: %s seconds ---" % (time.time() - start_time))
+    #print("--- wkm: %s seconds ---" % (time.time() - start_time))
 
 
     return 0

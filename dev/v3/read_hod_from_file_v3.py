@@ -91,14 +91,14 @@ def execute(block, config):
 	mass, z_vec, nz, mass_bins, z_bins, ncen_mice, nsat_mice, numdens_tot_mice, numdens_cen_mice, numdens_sat_mice, number_density_option, galaxy_bias_option, suffix = config
 
 	# interpolate to the same mass and redshifts used in the rest of the pipeline
-	print ('mass.shape = ', mass.shape)
-	print ('z_bins.shape = ', z_bins.shape)
-	print ('ncen_mice.shape = ', ncen_mice.shape)
+	#print ('mass.shape = ', mass.shape)
+	#print ('z_bins.shape = ', z_bins.shape)
+	#print ('ncen_mice.shape = ', ncen_mice.shape)
 	find_ncen = interp2d(mass_bins, z_bins, ncen_mice, kind='linear', bounds_error=False)
-	print('ok')
+	#print('ok')
 	n_cen = find_ncen(mass, z_vec)
-	print('ok')
-	print ('n_cen.shape = ', n_cen.shape)
+	#print('ok')
+	#print ('n_cen.shape = ', n_cen.shape)
 	find_nsat = interp2d(mass_bins, z_bins, nsat_mice, kind='linear', bounds_error=False)
 	n_sat = find_nsat(mass, z_vec)		
 	n_tot = n_cen + n_sat	
@@ -151,7 +151,7 @@ def execute(block, config):
 		fraction_cen = numdens_cen/numdens_tot
 		fraction_sat = numdens_sat/numdens_tot
 		
-		print('f_cen+f_sat = ', fraction_cen + fraction_sat)
+		#print('f_cen+f_sat = ', fraction_cen + fraction_sat)
 		
 		if number_density_option == True:
 			# save on datablock
@@ -165,12 +165,12 @@ def execute(block, config):
 
 				
 			if galaxy_bias_option == True:
-				print("entering galaxy bias")
+				#print("entering galaxy bias")
 				#---- loading the halo bias function ----#
 				mass_hbf = block["halobias", "m_h"]
 				z_hbf = block["halobias", "z"]
 				halobias_hbf = block["halobias", "b_hb"]
-				print("problem loading the halobias?")
+				#print("problem loading the halobias?")
 				f_interp_halobias = interp2d(mass_hbf, z_hbf, halobias_hbf)
 				hbias = f_interp_halobias(mass,z_vec)	
 			

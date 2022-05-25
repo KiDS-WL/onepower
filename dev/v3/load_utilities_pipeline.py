@@ -72,7 +72,7 @@ def load_growth_factor(block, z_vec):
 
 def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
 	# here I am assuming that the redshifts used in wkm_module and the pk_module match!
-	print( "entering get_satellite_alignment..")
+	#print( "entering get_satellite_alignment..")
 	wkm = np.empty([z_vec.size, mass.size, k_vec.size])
 	for jz in range(0,z_vec.size):
 		wkm_tmp = block["wkm_z%d"%jz + suffix,"w_km"]
@@ -82,7 +82,7 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
 		wkm_interpolated = w_interp2d(k_vec, mass)
 		#print "wkm_interp.shape = ", wkm_interpolated.shape
 		wkm[jz] = wkm_interpolated		
-	print( "wkm.shape = ", wkm.shape)
+	#print( "wkm.shape = ", wkm.shape)
 	return wkm
 
 

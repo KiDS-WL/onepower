@@ -103,7 +103,7 @@ def execute(block, config):
     return 0
 
 def rename_section(block, oldname, newname):
-    print ("Renaming section %s (calling it %s)"%(oldname, newname))
+    #print ("Renaming section %s (calling it %s)"%(oldname, newname))
     for key in block.keys(oldname):
         block[newname, key[1] ] = block[oldname, key[1]]
     return block

@@ -137,7 +137,7 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
                                                                                   wkm[jz, :, ik])
         s_align_factor[jz] *= gamma_1h[jz]
     '''
-    print('s_align_factor successfully computed!')
+    #print('s_align_factor successfully computed!')
     return s_align_factor
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -363,7 +363,7 @@ def compute_p_gI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_align_f
     #block.put_grid("galaxy_cs_intrinsic_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
     #IT Removed next line to save the pk in the interface. This function now returns the spectra
     #block.put_grid("galaxy_intrinsic_power", "z", z_vec, "k_h", k_vec, "p_k", pk_tot)
-    print('p_gI succesfully computed')
+    #print('p_gI succesfully computed')
     return pk_cs_1h, pk_cc_2h, pk_tot
 
 
@@ -448,5 +448,5 @@ def compute_u_dm_grid(block, k_vec, mass, z_vec):
     nmass = np.size(mass)
     u_dm = np.array([interp_udm(mass_udm, k_udm, udm_z, mass, k_vec) for udm_z in u_udm])
     u_sat = np.array([interp_udm(mass_udm, k_udm, usat_z, mass, k_vec) for usat_z in u_usat])
-    print("--- u_dm: %s seconds ---" % (time.time() - start_time_udm))
+    #print("--- u_dm: %s seconds ---" % (time.time() - start_time_udm))
     return np.abs(u_dm), np.abs(u_sat)

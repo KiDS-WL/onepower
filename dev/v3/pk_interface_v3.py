@@ -87,7 +87,7 @@ def setup(options):
         #ia_lum_dep_centrals = options[option_section, "ia_luminosity_dependence_centrals"]
         #ia_lum_dep_satellites = options[option_section, "ia_luminosity_dependence_satellites"]
         #f_red_cen_option = options[option_section, "f_red_cen"] # TODO: consider to remove it (not particularly relevant anymore.. )
-        print('alignment is true')
+        #print('alignment is true')
 
     name = options.get_string(option_section, "name", default="").lower()
     if name:
@@ -179,14 +179,14 @@ def execute(block, config):
             pk_xgG = compute_p_xgG_two_halo(block, k_vec, pk_eff, z_vec, bg)
             block.put_grid("matter_galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_xgG)
         if p_xGI:
-            print('pGI...')
+            #print('pGI...')
             pk_xGI = compute_p_xGI_two_halo(block, k_vec, pk_eff, z_vec, nz, f_red_cen, alignment_amplitude_2h)
             block.put_grid("matter_intrinsic_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_xGI)
         if p_gI:
             pk_gI = compute_p_gI_two_halo(block, k_vec, pk_eff, z_vec, nz, f_red_cen, alignment_amplitude_2h, bg)
             block.put_grid("galaxy_intrinsic_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_gI)
         if p_II:
-            print('pII...')
+            #print('pII...')
             pk_II = compute_p_II_two_halo(block, k_vec, pk_eff, z_vec, nz, f_red_cen, alignment_amplitude_2h_II)
             block.put_grid("intrinsic_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_II)
 
@@ -203,7 +203,7 @@ def execute(block, config):
         if (galaxy == True) or (alignment == True):
             # here we assume satellites perfectly follow nfw profile (i.e. they also have the same concentration):
             # u_sat(k*rs,c_gal) = u_dm(k*rs,c_dm)
-            print(hod_section_name)
+            #print(hod_section_name)
             Ncen, Nsat, numdencen, numdensat, f_cen, f_sat = load_hods(block, hod_section_name, pipeline, z_vec, mass)
             if galaxy == True:
                 # preparing the 1h term
@@ -255,7 +255,7 @@ def execute(block, config):
             #block.put_grid("galaxy_linear_bias" + suffix, "z", z_vec, "k_h", k_vec, "galaxybiastotal", bg_halo_model)
 
         if p_xgG == True:
-            print("computing p_xgG...")
+            #print("computing p_xgG...")
 	    #IT Replacing pk_eff by plin
             pk_1h, pk_2h, pk_tot = compute_p_xgG(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, m_factor, I_c_term, I_s_term,
                           I_m_term)
@@ -270,12 +270,12 @@ def execute(block, config):
             #block.put_grid("intrinsic_power_2h" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_II_2h)
             block.put_grid("intrinsic_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_II)
         if p_gI == True:
-            print("computing p_gI...")
+            #print("computing p_gI...")
             pk_gI_1h, pk_gI_2h, pk_gI = compute_p_gI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, c_factor, s_align_factor, I_c_term, alignment_amplitude_2h, nz, nk)
 	    #IT Added galaxy_intrinsic_power to datablock
             block.put_grid("galaxy_intrinsic_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_gI)
         if p_xGI == True:
-            print("computing p_xGI...")
+            #print("computing p_xGI...")
             # compute_p_xGI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor, s_align_factor, alignment_amplitude_2h, nz, nk, f_red_cen)
             pk_xGI_1h, pk_xGI_2h, pk_xGI = compute_p_xGI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor,
                                                          s_align_factor, alignment_amplitude_2h, nz, nk, f_cen)
@@ -287,7 +287,7 @@ def execute(block, config):
     # leftover= after - before
     # print leftover
 
-    print("--- pk: %s seconds ---" % (time.time() - start_time))
+    #print("--- pk: %s seconds ---" % (time.time() - start_time))
 
     return 0
 

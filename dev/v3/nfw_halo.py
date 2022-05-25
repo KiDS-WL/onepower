@@ -50,7 +50,7 @@ def execute(block, config):
     start_time = time.time()
 
     rho_m = block["density", "mean_density0"]
-    print('rho_m = ', rho_m)
+    #print('rho_m = ', rho_m)
 
     # compute the virial radius and the scale radius associated with a halo of mass M
     rho_halo = overdensity * rho_m # array 1d (size of rhom)

@@ -103,7 +103,6 @@ def execute(block, config):
     b_nu = np.empty([nz,nmass_hmf])
     mean_density0 = np.empty([nz])
     mean_density_z = np.empty([nz])
-   
     for jz in range(0,nz):
         mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns)
 
