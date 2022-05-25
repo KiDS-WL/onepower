@@ -246,9 +246,16 @@ def execute(block, config):
                 if mead == True:
                     #initialise emulator
                     emulator = darkemu.base_class()
-                    cparam = np.array([0.02225,0.1198,0.6844,3.094,0.9645,-1.])
+
+                    ombh2 = block["cosmological_parameters", "ombh2"]
+                    omch2 = block["cosmological_parameters", "omch2"]
+                    omega_lambda = block["cosmological_parameters","omega_lambda"] 
+                    A_s = block["cosmological_parameters","A_s"]  
+                    n_s = block["cosmological_parameters","n_s"] 
+                    w = block["cosmological_parameters","w"] 
+
+                    cparam = np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w])
                     emulator.set_cosmology(cparam)
-                    print('emulator cosmology:', emulator.get_cosmology())
 
                     if interpolate_bnl==True:
                         beta_interp = create_bnl_interpolation_function(emulator)
