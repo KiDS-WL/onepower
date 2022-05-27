@@ -57,6 +57,7 @@ def setup(options):
     ell_max = 6
     # initialise Hankel transform
     h_transform = [HankelTransform(ell+0.5,300,0.01) for ell in range(0,ell_max+1,2)]
+    # integration step size and number of r-bins to be reviewed! We might want to have more precise evaluation!
     #print(h_transform)
 
     return z_vec, nz, mass, nmass, k_vec, nk, suffix, h_transform, ell_max
@@ -99,7 +100,6 @@ def execute(block, config):
     #print('c.shape = ', c.shape)
     #print('mass.shape = ', mass.shape)
 
-
     #ell_max = 6
     # uell[l,z,m,k]
     # AD: THIS FUNCTION IS THE SLOWEST PART!
@@ -113,13 +113,8 @@ def execute(block, config):
             f_interp = interp2d(k, mass, uell[il, jz], kind='linear', bounds_error=False) #, fill_value=0)
             uell_interpolated[il,jz] = f_interp(k_setup, mass_setup)
     #print ('interp ok')
-    '''
-    uell_interpolated = np.empty([ell_max+1, nz, nmass_setup, nk_setup])
-    for il in range(0,ell_max+1):
-        for jz in range(0,nz):
-            f_interp = interp2d(k, mass, uell[il, jz], bounds_error=False, fill_value=0)
-            uell_interpolated[il,jz] = f_interp(k_setup, mass_setup)
-    '''
+    
+    
     # wkm[nz,nmass,nk]
     theta_k = np.pi/2.
     phi_k = 0.

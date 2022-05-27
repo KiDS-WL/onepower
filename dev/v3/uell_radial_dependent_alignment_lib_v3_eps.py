@@ -96,6 +96,7 @@ satellite.
 
 import numpy as np
 #from hankel import HankelTransform
+import hankel
 import math
 
 import time
@@ -151,8 +152,8 @@ def gamma_r_nfw_profile(r, rs, rvir, A, b, rcore=0.06):
 
 
 # not used
-def gamma_r_nfw_profile_notrunc(r, rs, rvir, b):
-    gamma_nfw = (r/rvir)**b * nfw_profile(r,rs)
+def gamma_r_nfw_profile_notrunc(r, rs, rvir, A, b):
+    gamma_nfw = A*(r/rvir)**b * nfw_profile(r,rs)
     return gamma_nfw
 
 
@@ -192,11 +193,12 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
     #print(time.time()-to)
     #ukll = uk_l.copy()
     #to = time.time()
-    #h_transf = hankel.hankel.HankelTransform(ell+0.5,80,0.01)
     for jz in range(z.size):
         for im in range(msize):
             nfw_f = lambda x: gamma_r_nfw_profile(x, r_s[jz,im], rvir[im], gamma_1h_amplitude[jz], gamma_b) * np.sqrt((x*np.pi)/2.0)
             uk_l[jz, im, :] = h_transf.transform(nfw_f, k_vec)[0] / (k_vec**0.5 * mnfw[jz,im])
+            #best_h, result, best_N = hankel.get_h(nfw_f, ell+0.5, k_vec)
+            #print(f"best_h = {best_h}, best_N={best_N}")
     #print('uell transform: ', time.time()-to)
     #print(uk_l/ukll)
     #print(np.allclose(ukll, uk_l))
