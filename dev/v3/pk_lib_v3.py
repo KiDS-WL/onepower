@@ -174,15 +174,21 @@ def compute_I_NL_term(k_i, z_j, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn
     B_NL_k_z = np.zeros((mass_1.size, mass_2.size))
     indices = np.vstack(np.meshgrid(np.arange(mass_1.size),np.arange(mass_2.size))).reshape(2,-1).T
     values = np.vstack(np.meshgrid(np.log10(mass_1), np.log10(mass_2))).reshape(2,-1).T
-
+    
     if interpolation==True:
-        print('using b_nl interpolator')
+        #print('using b_nl interpolator')
         for i,val in enumerate(values):
-            B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_interp(np.insert(np.insert(val,0,z_j),3,k_i)) - 1.0
+            if val[0]<val[1]: #do not duplicate masses
+                B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_k_z[indices[i,1], indices[i,0]]
+            else:
+                B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_interp(np.insert(np.insert(val,0,z_j),3,k_i)) - 1.0
     else:
         if (k_i>0.08) or (k_i<0.74): #B_NL_k_z left as zero if outside range, may want to add extrapolation at some point
             for i,val in enumerate(values):
-                B_NL_k_z[indices[i,0], indices[i,1]] = compute_bnl_darkquest(z_j, val[0], val[1], k_i, emulator)
+                if val[0]<val[1]:
+                    B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_k_z[indices[i,1], indices[i,0]]
+                else:
+                    B_NL_k_z[indices[i,0], indices[i,1]] = compute_bnl_darkquest(z_j, val[0], val[1], k_i, emulator)
 
     integrand = B_NL_k_z * factor_1 * b_1 * dn_dlnm_z_1 / mass_1
     integral = simps(integrand, mass_1)
