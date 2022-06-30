@@ -243,7 +243,7 @@ def execute(block, config):
                 # preparing the 2h term
                 I_c_term = prepare_Ic_term(mass, c_factor, b_dm, dn_dlnm, nz, nk)
                 I_s_term = prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)
-                if mead == True:
+                if (mead == True) or (mead_xgG == True):
                     #initialise emulator
                     emulator = darkemu.base_class()
 
@@ -260,17 +260,16 @@ def execute(block, config):
                     if interpolate_bnl==True:
                         beta_interp = create_bnl_interpolation_function(emulator)
                         print('created b_nl interpolator')
+                    
+                    if mead == True:
+                        I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
+                        I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
+                        I_NL_cc = prepare_I_NL_cc(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
 
-                    I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
-                    I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
-                    I_NL_cc = prepare_I_NL_cc(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
+                    if mead_xgG == True:
+                        I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
+                        I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
 
-                if mead_xgG == True:
-                    # preparing NL terms 
-                    with open('/cosmosis/modules/halo_model_development/halomodel_for_cosmosis/dev/example_ini_files/interpolator_BNL_DQ.npy', 'rb') as dill_file:
-                        beta_interp = 1.0 #pickle.load(dill_file)
-                    I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
-                    I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
             if alignment == True:
 		#IT commenting ia_lum_dep_centrals
                 alignment_amplitude_2h, alignment_amplitude_2h_II = compute_two_halo_alignment(block, suffix, nz, nk,
