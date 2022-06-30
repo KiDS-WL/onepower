@@ -356,7 +356,7 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     #print('p_nn succesfully computed')
     return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
 
-def compute_p_nn_mead(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss):
+def compute_p_nn_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss):
     #
     # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     #
@@ -405,7 +405,7 @@ def compute_p_xgG(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_facto
     #print('p_xgG succesfully computed')
     return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
 
-def compute_p_xgG_mead(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm):
+def compute_p_xgG_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm):
     #
     # p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
     #

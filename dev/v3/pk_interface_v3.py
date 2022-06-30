@@ -22,8 +22,8 @@ from load_utilities import get_linear_power_spectrum, get_halo_functions, \
     get_satellite_alignment, load_growth_factor, load_hods, load_galaxy_fractions
 from pk_lib_v3 import compute_p_mm_new, compute_u_dm_grid, \
     prepare_matter_factor_grid, prepare_Im_term, prepare_central_factor_grid, \
-    prepare_satellite_factor_grid, prepare_Ic_term, prepare_Is_term, compute_p_nn, compute_p_nn_mead, \
-    prepare_satellite_alignment_factor_grid, compute_p_xgG, compute_p_xgG_mead, compute_p_gI, compute_p_xGI, compute_p_II, \
+    prepare_satellite_factor_grid, prepare_Ic_term, prepare_Is_term, compute_p_nn, compute_p_nn_bnl, \
+    prepare_satellite_alignment_factor_grid, compute_p_xgG, compute_p_xgG_bnl, compute_p_gI, compute_p_xGI, compute_p_II, \
     compute_p_nn_two_halo, compute_p_xgG_two_halo, compute_p_xGI_two_halo, compute_p_gI_two_halo, \
     compute_p_II_two_halo, compute_two_halo_alignment, prepare_I_NL_ss, prepare_I_NL_cs, prepare_I_NL_cc, \
     prepare_I_NL_cm, prepare_I_NL_sm, create_bnl_interpolation_function
@@ -64,9 +64,9 @@ def setup(options):
     # pk_obs = options[option_section, "pk_to_compute"]
     p_GG = options[option_section, "p_GG"]
     p_nn = options[option_section, "p_nn"]
-    p_nn_mead = options[option_section, "p_nn_mead"]
+    p_nn_bnl = options[option_section, "p_nn_bnl"]
     p_xgG = options[option_section, "p_xgG"]
-    p_xgG_mead = options[option_section, "p_xgG_mead"]
+    p_xgG_bnl = options[option_section, "p_xgG_bnl"]
     p_gI = options[option_section, "p_gI"]
     p_xGI = options[option_section, "p_xGI"]
     p_II = options[option_section, "p_II"]
@@ -77,28 +77,28 @@ def setup(options):
     ia_lum_dep_satellites = False
     gravitational = False
     galaxy = False
-    mead = False
-    mead_xgG = False
+    bnl = False
+    bnl_xgG = False
     alignment = False
     hod_section_name = ''
     two_halo_only = options[option_section, "two_halo_only"]
     f_red_cen_option = False
 
-    if (p_nn == True) and (p_nn_mead == True):
-        print('Select either p_nn = True or p_nn_mead = True, both compute the galaxy power spectrum. p_nn_mead includes non-linear halo bias in the galaxy power spectrum, p_nn does not.')
+    if (p_nn == True) and (p_nn_bnl == True):
+        print('Select either p_nn = True or p_nn_bnl = True, both compute the galaxy power spectrum. p_nn_bnl includes non-linear halo bias in the galaxy power spectrum, p_nn does not.')
         sys.exit()
 
     if (two_halo_only == True) and (p_GG == True):
         gravitational = True
-    elif (two_halo_only == False) and ((p_GG == True) or (p_xgG == True) or (p_xGI == True) or (p_xgG_mead == True)):
+    elif (two_halo_only == False) and ((p_GG == True) or (p_xgG == True) or (p_xGI == True) or (p_xgG_bnl == True)):
         gravitational = True
-    if (p_nn == True) or (p_xgG == True) or (p_gI == True) or (p_xGI == True) or (p_II == True) or (p_nn_mead == True) or (p_xgG_mead == True):
+    if (p_nn == True) or (p_xgG == True) or (p_gI == True) or (p_xGI == True) or (p_II == True) or (p_nn_bnl == True) or (p_xgG_bnl == True):
         galaxy = True
         hod_section_name = options[option_section, "hod_section_name"]
-    if (p_nn_mead == True):
-        mead = True
-    if (p_xgG_mead == True):
-        mead_xgG = True
+    if (p_nn_bnl == True):
+        bnl = True
+    if (p_xgG_bnl == True):
+        bnl_xgG = True
     if (p_gI == True) or (p_xGI == True) or (p_II == True):
         alignment = True
         #IT commented. No longer used
@@ -127,7 +127,7 @@ def setup(options):
     #print(f_red_cen)
     # ============================================================================== #
 
-    return mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_mead, p_xgG, p_xgG_mead, p_gI, p_xGI, p_II, gravitational, galaxy, mead, mead_xgG, alignment, \
+    return mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, alignment, \
            ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl
 
 
@@ -137,7 +137,7 @@ def execute(block, config):
     # It is the main workhorse of the code. The block contains the parameters and results of any
     # earlier modules, and the config is what we loaded earlier.
 
-    mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_mead, p_xgG, p_xgG_mead, p_gI, p_xGI, p_II, gravitational, galaxy, mead, mead_xgG, alignment, \
+    mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, alignment, \
     ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl = config
 
     start_time = time.time()
@@ -243,7 +243,7 @@ def execute(block, config):
                 # preparing the 2h term
                 I_c_term = prepare_Ic_term(mass, c_factor, b_dm, dn_dlnm, nz, nk)
                 I_s_term = prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)
-                if (mead == True) or (mead_xgG == True):
+                if (bnl == True) or (bnl_xgG == True):
                     #initialise emulator
                     emulator = darkemu.base_class()
 
@@ -261,12 +261,12 @@ def execute(block, config):
                         beta_interp = create_bnl_interpolation_function(emulator)
                         print('created b_nl interpolator')
                     
-                    if mead == True:
+                    if bnl == True:
                         I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
                         I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
                         I_NL_cc = prepare_I_NL_cc(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
 
-                    if mead_xgG == True:
+                    if bnl_xgG == True:
                         I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
                         I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
 
@@ -312,13 +312,13 @@ def execute(block, config):
             block.put_grid("galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn)
             #block.put_grid("galaxy_linear_bias" + suffix, "z", z_vec, "k_h", k_vec, "galaxybiastotal", bg_halo_model)
 
-        if p_nn_mead == True:
-            print('MEAD non-linear halo bias selected')
-            pk_nn_1h_mead, pk_nn_2h_mead, pk_nn_mead, bg_halo_model_mead = compute_p_nn_mead(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor,
+        if p_nn_bnl == True:
+            print('non-linear halo bias selected')
+            pk_nn_1h_bnl, pk_nn_2h_bnl, pk_nn_bnl, bg_halo_model_bnl = compute_p_nn_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor,
                                                                     s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss)
-            block.put_grid("galaxy_power_1h" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_1h_mead)
-            block.put_grid("galaxy_power_2h" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_2h_mead)
-            block.put_grid("galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_mead)
+            block.put_grid("galaxy_power_1h" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_1h_bnl)
+            block.put_grid("galaxy_power_2h" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_2h_bnl)
+            block.put_grid("galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_bnl)
             #block.put_grid("galaxy_linear_bias" + suffix, "z", z_vec, "k_h", k_vec, "galaxybiastotal", bg_halo_model)
 
         if p_xgG == True:
@@ -331,15 +331,15 @@ def execute(block, config):
 	    #IT Adding suffix to matter_galaxy_power
             block.put_grid("matter_galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_tot)
         
-        if p_xgG_mead == True:
-            print("computing p_xgG with mead non-linear bias...")
+        if p_xgG_bnl == True:
+            print("computing p_xgG with non-linear bias...")
 	    #IT Replacing pk_eff by plin
-            pk_1h_mead, pk_2h_mead, pk_tot_mead = compute_p_xgG_mead(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, m_factor, I_c_term, I_s_term,
+            pk_1h_bnl, pk_2h_bnl, pk_tot_bnl = compute_p_xgG_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, m_factor, I_c_term, I_s_term,
                           I_m_term, I_NL_cm, I_NL_sm)
             #block.put_grid("matter_galaxy_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_1h)
             #block.put_grid("matter_galaxy_power_2h", "z", z_vec, "k_h", k_vec, "p_k", pk_2h)
 	    #IT Adding suffix to matter_galaxy_power
-            block.put_grid("matter_galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_tot_mead)
+            block.put_grid("matter_galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_tot_bnl)
 
         if p_II == True:
             pk_II_1h, pk_II_2h, pk_II = compute_p_II(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, s_align_factor,
