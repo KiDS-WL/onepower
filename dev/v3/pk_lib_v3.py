@@ -161,22 +161,13 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
     I_g = simps(integrand, mass)
     return I_g
 
-#def compute_I_NL_term(B_NL, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2):
-#    integrand = B_NL * factor_1 * b_1 * dn_dlnm_z_1 / mass_1
-#    integral = simps(integrand, mass_1)
-#    integrand_2 = integral * factor_2 * b_2 * dn_dlnm_z_2 / mass_2
-#    I_NL = simps(integrand_2, mass_2)
-#    return I_NL
-
 def compute_I_NL_term(k_i, z_j, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, interpolation, B_NL_interp, emulator):
-    #print('compute_I_NL_term -> k, z: ', k_i, z_j)
 
     B_NL_k_z = np.zeros((mass_1.size, mass_2.size))
     indices = np.vstack(np.meshgrid(np.arange(mass_1.size),np.arange(mass_2.size))).reshape(2,-1).T
     values = np.vstack(np.meshgrid(np.log10(mass_1), np.log10(mass_2))).reshape(2,-1).T
     
     if interpolation==True:
-        #print('using b_nl interpolator')
         for i,val in enumerate(values):
             if val[0]<val[1]: #do not duplicate masses
                 B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_k_z[indices[i,1], indices[i,0]]
@@ -185,7 +176,7 @@ def compute_I_NL_term(k_i, z_j, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn
     else:
         if (k_i>0.08) or (k_i<0.74): #B_NL_k_z left as zero if outside range, may want to add extrapolation at some point
             for i,val in enumerate(values):
-                if val[0]<val[1]:
+                if val[0]<val[1]: #do not duplicate masses
                     B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_k_z[indices[i,1], indices[i,0]]
                 else:
                     B_NL_k_z[indices[i,0], indices[i,1]] = compute_bnl_darkquest(z_j, val[0], val[1], k_i, emulator)
@@ -361,9 +352,9 @@ def compute_p_nn_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
     # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     #
     # 2-halo term:
-    pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term) * two_halo_truncation(k_vec)[np.newaxis,:] + pk_lin*I_NL_cs
-    pk_cc_2h = compute_2h_term(pk_lin, I_c_term, I_c_term) * two_halo_truncation(k_vec)[np.newaxis,:] + pk_lin*I_NL_cc
-    pk_ss_2h = compute_2h_term(pk_lin, I_s_term, I_s_term) * two_halo_truncation(k_vec)[np.newaxis,:] + pk_lin*I_NL_ss
+    pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term) + pk_lin*I_NL_cs
+    pk_cc_2h = compute_2h_term(pk_lin, I_c_term, I_c_term) + pk_lin*I_NL_cc
+    pk_ss_2h = compute_2h_term(pk_lin, I_s_term, I_s_term) + pk_lin*I_NL_ss
 
     # 1-halo term:
     pk_cs_1h = np.empty([nz, nk])
@@ -410,8 +401,8 @@ def compute_p_xgG_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_f
     # p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
     #
     # 2-halo term:
-    pk_cm_2h = compute_2h_term(pk_lin, I_c_term, I_m_term) * two_halo_truncation(k_vec)[np.newaxis,:] + pk_lin*I_NL_cm
-    pk_sm_2h = compute_2h_term(pk_lin, I_s_term, I_m_term) * two_halo_truncation(k_vec)[np.newaxis,:] + pk_lin*I_NL_sm
+    pk_cm_2h = compute_2h_term(pk_lin, I_c_term, I_m_term) + pk_lin*I_NL_cm
+    pk_sm_2h = compute_2h_term(pk_lin, I_s_term, I_m_term) + pk_lin*I_NL_sm
     # 1-halo term
     pk_cm_1h = compute_1h_term(c_factor[:,np.newaxis], m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     pk_sm_1h = compute_1h_term(s_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
