@@ -88,6 +88,10 @@ def setup(options):
         print('Select either p_nn = True or p_nn_bnl = True, both compute the galaxy power spectrum. p_nn_bnl includes non-linear halo bias in the galaxy power spectrum, p_nn does not.')
         sys.exit()
 
+    if (p_xgG == True) and (p_xgG_bnl == True):
+        print('Select either p_xgG = True or p_xgG_bnl = True, both compute the galaxy power spectrum. p_xgG_bnl includes non-linear halo bias in the galaxy power spectrum, p_xgG does not.')
+        sys.exit()
+
     if (two_halo_only == True) and (p_GG == True):
         gravitational = True
     elif (two_halo_only == False) and ((p_GG == True) or (p_xgG == True) or (p_xGI == True) or (p_xgG_bnl == True)):
