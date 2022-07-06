@@ -266,13 +266,13 @@ def execute(block, config):
                         print('created b_nl interpolator')
                     
                     if bnl == True:
-                        I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
-                        I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
-                        I_NL_cc = prepare_I_NL_cc(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
+                        I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                        I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                        I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
 
                     if bnl_xgG == True:
-                        I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
-                        I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp=None)
+                        I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                        I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
 
             if alignment == True:
 		#IT commenting ia_lum_dep_centrals

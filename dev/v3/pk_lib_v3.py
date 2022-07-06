@@ -189,9 +189,11 @@ def compute_I_NL_term(k_i, z_j, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn
     return I_NL
 
 def compute_bnl_darkquest(z, M1, M2, k, emulator):
+    #print('k compute bnl darkquest: ', k)
     P_hh = emulator.get_phh_mass(k, M1, M2, z)
     #print('compute_bnl_darkquest inputs: ', z, M1, M2, k)
-    Pk_lin = emulator.get_pklin_from_z(np.array([k]), z)
+   # Pk_lin = emulator.get_pklin_from_z(np.array([k]), z)
+    Pk_lin = emulator.get_pklin_from_z(k, z)
     
     klin = 0.02 #large k to calculate bias
     Pk_klin = emulator.get_pklin_from_z(np.array([klin]), z)
@@ -207,19 +209,22 @@ def create_bnl_interpolation_function(emulator):
     z = np.linspace(0.01, 0.5, 5)
     
     beta_func = np.zeros((len(z), len(M), len(M), len(k)))
-    indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)), np.arange(len(k)))).reshape(4,-1).T
-    values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M), np.log10(k))).reshape(4, -1).T
+    #indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)), np.arange(len(k)))).reshape(4,-1).T
+    #values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M), np.log10(k))).reshape(4, -1).T
+    indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)))).reshape(3,-1).T
+    values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M))).reshape(3, -1).T
   
-    #print('input values: ', values[0][0], values[0][1], values[0][2], values[0][3])
-    #test = compute_bnl_darkquest(values[0][0], values[0][1], values[0][2], values[0][3], emulator)
-    #print('test compute bnl: ', test)
-    #print('check test: ', compute_bnl_darkquest(0.0, 12.0, 12.0, -2.0, emulator))
-    #print('check indices: ', indices[0,0], indices[0,1], indices[0,2], indices[0,3])
+    #for i, val in enumerate(values):
+    #    beta_func[indices[i,0], indices[i,1], indices[i,2], indices[i,3]] = compute_bnl_darkquest(val[0], val[1], val[2], val[3], emulator)
 
     for i, val in enumerate(values):
         #print('values: ', val)
         #print('indices: ', indices[i,:])
-        beta_func[indices[i,0], indices[i,1], indices[i,2], indices[i,3]] = compute_bnl_darkquest(val[0], val[1], val[2], val[3], emulator)
+        #print('k: ', indices[i,3])
+        beta_func[indices[i,0], indices[i,1], indices[i,2], :] = compute_bnl_darkquest(val[0], val[1], val[2], k, emulator)
+
+    print('beta_func shape: ', beta_func.shape)
+    print('beta_func: ', beta_func)
 
     beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
     return beta_nl_interp    
