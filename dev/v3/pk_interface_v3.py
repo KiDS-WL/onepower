@@ -57,7 +57,7 @@ def setup(options):
     nz = options[option_section, "nz"]
     z_vec = np.linspace(zmin, zmax, nz)
 
-    nk = options[option_section, "nk"]
+    #nk = options[option_section, "nk"]
 
     pipeline = options[option_section, "pipeline"]
 
@@ -131,7 +131,7 @@ def setup(options):
     #print(f_red_cen)
     # ============================================================================== #
 
-    return mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, alignment, \
+    return mass, nmass, z_vec, nz, p_GG, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, alignment, \
            ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl
 
 
@@ -141,7 +141,7 @@ def execute(block, config):
     # It is the main workhorse of the code. The block contains the parameters and results of any
     # earlier modules, and the config is what we loaded earlier.
 
-    mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, alignment, \
+    mass, nmass, z_vec, nz, p_GG, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, alignment, \
     ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl = config
 
     start_time = time.time()
@@ -161,8 +161,8 @@ def execute(block, config):
     # load linear power spectrum
     k_vec, plin, growth_factor = get_linear_power_spectrum(block, z_vec)
     nk = len(k_vec)
-    #print('nk: ', nk)
-    nk=200
+    print('nk: ', nk)
+    #nk=200
 
     #k_interp = interp1d(k_vec, plin, axis=1)
     #k_vec = np.logspace(np.log10(k_vec.min()), np.log10(k_vec.max()-1), nk)
@@ -318,6 +318,7 @@ def execute(block, config):
 
         if p_nn_bnl == True:
             print('beyond-linear halo bias selected')
+            print('plin_shape: ', plin.shape)
             pk_nn_1h_bnl, pk_nn_2h_bnl, pk_nn_bnl, bg_halo_model_bnl = compute_p_nn_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor,
                                                                     s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss)
             block.put_grid("galaxy_power_1h" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_1h_bnl)

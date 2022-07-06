@@ -223,8 +223,8 @@ def create_bnl_interpolation_function(emulator):
         #print('k: ', indices[i,3])
         beta_func[indices[i,0], indices[i,1], indices[i,2], :] = compute_bnl_darkquest(val[0], val[1], val[2], k, emulator)
 
-    print('beta_func shape: ', beta_func.shape)
-    print('beta_func: ', beta_func)
+    #print('beta_func shape: ', beta_func.shape)
+    #print('beta_func: ', beta_func)
 
     beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
     return beta_nl_interp    
