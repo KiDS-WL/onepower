@@ -85,11 +85,11 @@ def setup(options):
     f_red_cen_option = False
 
     if (p_nn == True) and (p_nn_bnl == True):
-        print('Select either p_nn = True or p_nn_bnl = True, both compute the galaxy power spectrum. p_nn_bnl includes non-linear halo bias in the galaxy power spectrum, p_nn does not.')
+        print('Select either p_nn = True or p_nn_bnl = True, both compute the galaxy power spectrum. p_nn_bnl includes beyond-linear halo bias in the galaxy power spectrum, p_nn does not.')
         sys.exit()
 
     if (p_xgG == True) and (p_xgG_bnl == True):
-        print('Select either p_xgG = True or p_xgG_bnl = True, both compute the galaxy power spectrum. p_xgG_bnl includes non-linear halo bias in the galaxy power spectrum, p_xgG does not.')
+        print('Select either p_xgG = True or p_xgG_bnl = True, both compute the galaxy power spectrum. p_xgG_bnl includes beyond-linear halo bias in the galaxy power spectrum, p_xgG does not.')
         sys.exit()
 
     if (two_halo_only == True) and (p_GG == True):
@@ -317,7 +317,7 @@ def execute(block, config):
             #block.put_grid("galaxy_linear_bias" + suffix, "z", z_vec, "k_h", k_vec, "galaxybiastotal", bg_halo_model)
 
         if p_nn_bnl == True:
-            print('non-linear halo bias selected')
+            print('beyond-linear halo bias selected')
             pk_nn_1h_bnl, pk_nn_2h_bnl, pk_nn_bnl, bg_halo_model_bnl = compute_p_nn_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor,
                                                                     s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss)
             block.put_grid("galaxy_power_1h" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_nn_1h_bnl)
@@ -336,7 +336,7 @@ def execute(block, config):
             block.put_grid("matter_galaxy_power" + suffix, "z", z_vec, "k_h", k_vec, "p_k", pk_tot)
         
         if p_xgG_bnl == True:
-            print("computing p_xgG with non-linear bias...")
+            print("computing p_xgG with beyond-linear bias...")
 	    #IT Replacing pk_eff by plin
             pk_1h_bnl, pk_2h_bnl, pk_tot_bnl = compute_p_xgG_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, m_factor, I_c_term, I_s_term,
                           I_m_term, I_NL_cm, I_NL_sm)
