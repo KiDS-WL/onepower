@@ -162,11 +162,11 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
     return I_g
 
 def compute_I_NL_term(k_i, z_j, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, interpolation, B_NL_interp, emulator):
-
+    
     B_NL_k_z = np.zeros((mass_1.size, mass_2.size))
     indices = np.vstack(np.meshgrid(np.arange(mass_1.size),np.arange(mass_2.size))).reshape(2,-1).T
     values = np.vstack(np.meshgrid(np.log10(mass_1), np.log10(mass_2))).reshape(2,-1).T
-    
+
     if interpolation==True:
         for i,val in enumerate(values):
             if val[0]<val[1]: #do not duplicate masses
@@ -192,7 +192,6 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
     M1 = 10.0**log10M1
     M2 = 10.0**log10M2
     P_hh = emulator.get_phh_mass(k, M1, M2, z)
-    print('P_hh:', P_hh)
     Pk_lin = emulator.get_pklin_from_z(k, z)
     
     klin = 0.02 #large k to calculate bias
@@ -356,6 +355,8 @@ def compute_p_nn_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
     #
     # 2-halo term:
     pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term) + pk_lin*I_NL_cs
+    print('pk_cs_2h 1st term: ', compute_2h_term(pk_lin, I_c_term, I_s_term))
+    print('pk_cs_2h 2nd term: ', pk_lin*I_NL_cs)
     pk_cc_2h = compute_2h_term(pk_lin, I_c_term, I_c_term) + pk_lin*I_NL_cc
     pk_ss_2h = compute_2h_term(pk_lin, I_s_term, I_s_term) + pk_lin*I_NL_ss
 

@@ -10,6 +10,7 @@ from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM
 import astropy.units as u
 from dark_emulator import darkemu 
 from scipy.interpolate import RegularGridInterpolator
+import timeit
 
 # import hankel
 from scipy.integrate import quad, simps, trapz
@@ -52,12 +53,15 @@ def setup(options):
     # log-spaced mass in units of M_sun/h
     mass = np.logspace(log_mass_min, log_mass_max, nmass)
 
+    #nmass_bnl = options[option_section, "nmass_bnl"] 
+    #mass_bnl = np.logspace(log_mass_min, log_mass_max, nmass_bnl) 
+
     zmin = options[option_section, "zmin"]
     zmax = options[option_section, "zmax"]
     nz = options[option_section, "nz"]
     z_vec = np.linspace(zmin, zmax, nz)
 
-    #nk = options[option_section, "nk"]
+    nk = options[option_section, "nk"]
 
     pipeline = options[option_section, "pipeline"]
 
@@ -131,7 +135,7 @@ def setup(options):
     #print(f_red_cen)
     # ============================================================================== #
 
-    return mass, nmass, z_vec, nz, p_GG, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, alignment, \
+    return mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, alignment, \
            ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl
 
 
@@ -141,7 +145,7 @@ def execute(block, config):
     # It is the main workhorse of the code. The block contains the parameters and results of any
     # earlier modules, and the config is what we loaded earlier.
 
-    mass, nmass, z_vec, nz, p_GG, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, alignment, \
+    mass, nmass, z_vec, nz, nk, p_GG, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, alignment, \
     ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl = config
 
     start_time = time.time()
@@ -159,10 +163,17 @@ def execute(block, config):
     #print ('mean_density0', mean_density0)
 
     # load linear power spectrum
-    k_vec, plin, growth_factor = get_linear_power_spectrum(block, z_vec)
-    nk = len(k_vec)
-    print('nk: ', nk)
-    #nk=200
+    k_vec_original, plin_original, growth_factor = get_linear_power_spectrum(block, z_vec)
+    k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
+    plin_k_interp = interp1d(k_vec_original, plin_original, axis=1)
+    plin = plin_k_interp(k_vec)
+    np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/plin.txt', plin)
+    np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/k_vec.txt', k_vec)
+    
+    np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/k_vec_original.txt', k_vec_original)
+    np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/plin_original.txt', plin_original)
+
+    
 
     #k_interp = interp1d(k_vec, plin, axis=1)
     #k_vec = np.logspace(np.log10(k_vec.min()), np.log10(k_vec.max()-1), nk)
@@ -259,6 +270,7 @@ def execute(block, config):
                     w = block["cosmological_parameters","w"] 
 
                     cparam = np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w])
+                    print('cparam: ', cparam)
                     emulator.set_cosmology(cparam)
 
                     if interpolate_bnl==True:
@@ -266,7 +278,10 @@ def execute(block, config):
                         print('created b_nl interpolator')
                     
                     if bnl == True:
+                        start = time.time()
                         I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                        end = time.time()
+                        print('time I_NL_cs: ', end - start)
                         I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
                         I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
 
