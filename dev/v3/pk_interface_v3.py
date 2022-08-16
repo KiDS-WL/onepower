@@ -167,11 +167,11 @@ def execute(block, config):
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
     plin_k_interp = interp1d(k_vec_original, plin_original, axis=1)
     plin = plin_k_interp(k_vec)
-    np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/plin.txt', plin)
-    np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/k_vec.txt', k_vec)
+    #np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/plin.txt', plin)
+    #np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/k_vec.txt', k_vec)
     
-    np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/k_vec_original.txt', k_vec_original)
-    np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/plin_original.txt', plin_original)
+    #np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/k_vec_original.txt', k_vec_original)
+    #np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/plin_original.txt', plin_original)
 
     
 

@@ -172,7 +172,7 @@ def compute_I_NL_term(k_i, z_j, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn
             if val[0]<val[1]: #do not duplicate masses
                 B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_k_z[indices[i,1], indices[i,0]]
             else:
-                B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_interp(np.insert(np.insert(val,0,z_j),3,k_i)) - 1.0
+                B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_interp(np.insert(np.insert(val,0,z_j),3,k_i))
     else:
         if (k_i>0.08) or (k_i<0.74): #B_NL_k_z left as zero if outside range, may want to add extrapolation at some point
             for i,val in enumerate(values):
@@ -205,7 +205,7 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
 def create_bnl_interpolation_function(emulator):
     M = np.logspace(12.0, 14.0, 5)
     k = np.logspace(-2.0, 1.5, 5) #50)
-    z = np.linspace(0.01, 0.5, 5)
+    z = np.linspace(0.0, 0.5, 5)
     
     beta_func = np.zeros((len(z), len(M), len(M), len(k)))
     #indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)), np.arange(len(k)))).reshape(4,-1).T
