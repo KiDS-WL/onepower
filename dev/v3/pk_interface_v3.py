@@ -276,6 +276,7 @@ def execute(block, config):
                     if interpolate_bnl==True:
                         beta_interp = create_bnl_interpolation_function(emulator)
                         print('created b_nl interpolator')
+
                     
                     if bnl == True:
                         start = time.time()
@@ -284,6 +285,8 @@ def execute(block, config):
                         print('time I_NL_cs: ', end - start)
                         I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
                         I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+
+                        
 
                     if bnl_xgG == True:
                         I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)

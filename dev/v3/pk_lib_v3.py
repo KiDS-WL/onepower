@@ -204,7 +204,7 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
 
 def create_bnl_interpolation_function(emulator):
     M = np.logspace(12.0, 14.0, 5)
-    k = np.logspace(-2.0, 1.5, 5) #50)
+    k = np.logspace(-2.0, 1.5, 50) #50)
     z = np.linspace(0.0, 0.5, 5)
     
     beta_func = np.zeros((len(z), len(M), len(M), len(k)))
