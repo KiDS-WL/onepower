@@ -418,7 +418,7 @@ def compute_p_gI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_ampli
     return pk_tot
 
 
-# galaxy-intrinsic power spectrum
+# intrinsic-intrinsic power spectrum
 def compute_p_II_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h_II):
     pk_tot = np.zeros([len(z_vec), len(k_vec)])
     for jz in range(0, nz):
