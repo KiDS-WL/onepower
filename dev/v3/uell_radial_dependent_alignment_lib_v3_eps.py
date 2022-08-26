@@ -240,11 +240,10 @@ def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass
 #assuming theta_e=theta, phi_e=phi (perfect radial alignment)
 
 def wkm_my_fell(uell, theta_k, phi_k, ell_max, gamma_b):
-    #nl = np.size(uell, axis=0)
-    nz = np.size(uell, axis=1)
-    nm = np.size(uell, axis=2)
-    nk = np.size(uell, axis=3)
-    #print 'nl, nz, nm, nk = ', nl, nz, nm, nk
+    #nl = uell.shape[0]
+    nz = uell.shape[1]
+    nm = uell.shape[2]
+    nk = uell.shape[3]
     """
     to = time.time()
     sum_ell = np.zeros([nz,nm,nk])
