@@ -68,6 +68,7 @@ def setup(options):
 
     # pk_obs = options[option_section, "pk_to_compute"]
     p_GG = options[option_section, "p_GG"]
+    p_GG_bnl = options[option_section, "p_GG_bnl"]
     p_nn = options[option_section, "p_nn"]
     p_nn_bnl = options[option_section, "p_nn_bnl"]
     p_xgG = options[option_section, "p_xgG"]
@@ -84,6 +85,7 @@ def setup(options):
     galaxy = False
     bnl = False
     bnl_xgG = False
+    bnl_GG = False
     alignment = False
     hod_section_name = ''
     two_halo_only = options[option_section, "two_halo_only"]
@@ -161,10 +163,13 @@ def execute(block, config):
     
 
     # load linear power spectrum
-    k_vec_original, plin_original, growth_factor = get_linear_power_spectrum(block, z_vec)
+    k_vec_original, plin_original, growth_factor_original = get_linear_power_spectrum(block, z_vec)
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
     plin_k_interp = interp1d(k_vec_original, plin_original, axis=1)
     plin = plin_k_interp(k_vec)
+    growth_factor_interp = interp1d(k_vec_original, growth_factor_original, axis=1)
+    growth_factor = growth_factor_interp(k_vec)
+
     #np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/plin.txt', plin)
     #np.savetxt('/cosmosis/modules/halo_model_development/runs/bnl_testing/plin_from_pk_interface/k_vec.txt', k_vec)
     
@@ -321,7 +326,7 @@ def execute(block, config):
 
         # compute the power spectra
         if p_GG == True:
-            pk_mm_1h, pk_mm_2h, pk_mm_tot = compute_p_mm(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor,
+            pk_mm_1h, pk_mm_2h, pk_mm_tot = compute_p_mm(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor,
                                                              I_m_term, nz, nk)
             # save in the datablock
             #block.put_grid("matter_1h_power", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_1h)
@@ -331,7 +336,7 @@ def execute(block, config):
             block.replace_grid("matter_power_nl", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_tot)
             
         if p_GG_bnl == True:
-            pk_mm_1h, pk_mm_2h, pk_mm_tot = compute_p_mm_bnl(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor,
+            pk_mm_1h, pk_mm_2h, pk_mm_tot = compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor,
                                                              I_m_term, nz, nk, I_NL_m)
             # save in the datablock
             #block.put_grid("matter_1h_power", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_1h)
