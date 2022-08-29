@@ -96,9 +96,9 @@ def add_red_and_blue_power(block, f_red, power_section, z_ext, k_ext):
         nz_ext = len(z_ext)
         pk_tot_ext_z = extrapolate_z(z_ext, z, pk_tot, nk)
         pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext)
-        for i in range(0,nz_ext):
-        	plt.loglog(k_ext, np.abs(pk_tot_ext[i]))
-        plt.show()
+        #for i in range(0,nz_ext):
+        #	plt.loglog(k_ext, np.abs(pk_tot_ext[i]))
+        #plt.show()
         block.put_grid(power_section, "z", z_ext, "k_h", k_ext, "p_k", pk_tot_ext)
 		
 #--------------------------------------------------------------------------------#	
@@ -138,12 +138,13 @@ def execute(block, config):
     z_nl = block["matter_power_nl", "z"]
     k_nl = block["matter_power_nl", "k_h"]
 
+    """
     if p_GG_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block["matter_power_nl", "z"]
         f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value="extrapolate")
         add_red_and_blue_power(block, f_red(z_hm), "matter_power", z_nl, k_nl)
-
+    """
     if p_nn_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block["galaxy_power_red", "z"]
