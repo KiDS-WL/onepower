@@ -13,8 +13,6 @@ from itertools import count
 import time
 #import timing
 from darkmatter_lib import compute_u_dm, radvir_from_mass
-import dill as pickle
-from dark_emulator import darkemu
 
 
 def one_halo_truncation(k_vec):
@@ -89,24 +87,22 @@ def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
 
 # matter
 def prepare_matter_factor_grid(mass, mean_density0, u_dm):
-    m_factor = compute_matter_factor(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm)
+    m_factor = compute_matter_factor(mass[np.newaxis, np.newaxis, :], mean_density0, u_dm)
     return m_factor
 
 # clustering - satellites
 def prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_gal, nz, nk, nmass):
     s_factor = np.empty([nz, nk, nmass])
-    #for jz in range(0, nz):
-    #    for ik in range(0, nk):
-    #        s_factor[jz, ik, :] = compute_satellite_galaxy_factor(Nsat[jz, :], numdensat[jz], f_sat[jz],
-    #                                                              u_gal[jz, ik, :])
-    s_factor = compute_satellite_galaxy_factor(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], u_gal)
+    for jz in range(0, nz):
+        for ik in range(0, nk):
+            s_factor[jz, ik, :] = compute_satellite_galaxy_factor(Nsat[jz, :], numdensat[jz], f_sat[jz],
+                                                                  u_gal[jz, ik, :])
     return s_factor
 
 # clustering - centrals
 def prepare_central_factor_grid(Ncen, numdencen, f_cen):
-    #c_factor = np.array([compute_central_galaxy_factor(Ncen_z, numdencen_z, f_cen_z) for Ncen_z, numdencen_z, f_cen_z in
-    #                     zip(Ncen, numdencen, f_cen)])
-    c_factor = compute_central_galaxy_factor(Ncen, numdencen[:,np.newaxis], f_cen[:,np.newaxis])
+    c_factor = np.array([compute_central_galaxy_factor(Ncen_z, numdencen_z, f_cen_z) for Ncen_z, numdencen_z, f_cen_z in
+                         zip(Ncen, numdencen, f_cen)])
     return c_factor
 
 # alignment - satellites
@@ -127,10 +123,9 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
     :param nmass:
     :return:
     '''
-    #s_align_factor = np.array([[compute_satellite_galaxy_alignment_factor(Nsat[jz, :], numdensat[jz],
-    #                                                                      f_sat[jz], wkm[jz, :, ik])
-    #                            for ik in range(0,nk)] for jz in range(0,nz)])
-    s_align_factor = compute_satellite_galaxy_alignment_factor(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1))
+    s_align_factor = np.array([[compute_satellite_galaxy_alignment_factor(Nsat[jz, :], numdensat[jz],
+                                                                          f_sat[jz], wkm[jz, :, ik])
+                                for ik in range(0,nk)] for jz in range(0,nz)])
     #s_align_factor *= gamma_1h[:, np.newaxis, np.newaxis]
     '''
     s_align_factor = np.empty([nz, nk, nmass])
@@ -140,7 +135,7 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
                                                                                   wkm[jz, :, ik])
         s_align_factor[jz] *= gamma_1h[jz]
     '''
-    #print('s_align_factor successfully computed!')
+    print('s_align_factor successfully computed!')
     return s_align_factor
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -152,7 +147,6 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
 # Return: scalar
 
 def compute_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
-    # AD: check what happens if u_dm is removed. For considered k-ranges removing it should be fine.
     integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
     integrand_m2 = b_dm * dn_dlnm * u_dm * (1. / mean_density0)
     I_m1 = 1. - simps(integrand_m1, mass)
@@ -165,118 +159,24 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
     I_g = simps(integrand, mass)
     return I_g
 
-def compute_I_NL_term(k_i, z_j, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, interpolation, B_NL_interp, emulator):
-    
-    B_NL_k_z = np.zeros((mass_1.size, mass_2.size))
-    indices = np.vstack(np.meshgrid(np.arange(mass_1.size),np.arange(mass_2.size))).reshape(2,-1).T
-    values = np.vstack(np.meshgrid(np.log10(mass_1), np.log10(mass_2))).reshape(2,-1).T
-
-    if interpolation==True:
-        for i,val in enumerate(values):
-            if val[0]<val[1]: #do not duplicate masses
-                B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_k_z[indices[i,1], indices[i,0]]
-            else:
-                B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_interp(np.insert(np.insert(val,0,z_j),3,k_i))
-    else:
-        if (k_i>0.08) or (k_i<0.74): #B_NL_k_z left as zero if outside range, may want to add extrapolation at some point
-            for i,val in enumerate(values):
-                if val[0]<val[1]: #do not duplicate masses
-                    B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_k_z[indices[i,1], indices[i,0]]
-                else:
-                    B_NL_k_z[indices[i,0], indices[i,1]] = compute_bnl_darkquest(z_j, val[0], val[1], k_i, emulator)
-
-    integrand = B_NL_k_z * factor_1 * b_1 * dn_dlnm_z_1 / mass_1
-    integral = simps(integrand, mass_1)
-    integrand_2 = integral * factor_2 * b_2 * dn_dlnm_z_2 / mass_2
-    I_NL = simps(integrand_2, mass_2)
-
-    return I_NL
-
-def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
-    M1 = 10.0**log10M1
-    M2 = 10.0**log10M2
-    P_hh = emulator.get_phh_mass(k, M1, M2, z)
-    Pk_lin = emulator.get_pklin_from_z(k, z)
-    
-    klin = 0.02 #large k to calculate bias
-    Pk_klin = emulator.get_pklin_from_z(np.array([klin]), z)
-    bM1 = np.sqrt(emulator.get_phh_mass(klin, M1, M1, z)/Pk_klin)
-    bM2 = np.sqrt(emulator.get_phh_mass(klin, M2, M2, z)/Pk_klin) 
-
-    Bnl = P_hh/(bM1*bM2*Pk_lin) - 1.0
-    return Bnl
-
-def create_bnl_interpolation_function(emulator):
-    M = np.logspace(12.0, 14.0, 5)
-    k = np.logspace(-2.0, 1.5, 50) #50)
-    z = np.linspace(0.0, 0.5, 5)
-    
-    beta_func = np.zeros((len(z), len(M), len(M), len(k)))
-    #indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)), np.arange(len(k)))).reshape(4,-1).T
-    #values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M), np.log10(k))).reshape(4, -1).T
-    indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)))).reshape(3,-1).T
-    values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M))).reshape(3, -1).T
-  
-    #for i, val in enumerate(values):
-    #    beta_func[indices[i,0], indices[i,1], indices[i,2], indices[i,3]] = compute_bnl_darkquest(val[0], val[1], val[2], val[3], emulator)
-
-    for i, val in enumerate(values):
-        #print('values: ', val)
-        #print('indices: ', indices[i,:])
-        #print('k: ', indices[i,3])
-        beta_func[indices[i,0], indices[i,1], indices[i,2], :] = compute_bnl_darkquest(val[0], val[1], val[2], k, emulator)
-
-
-    beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
-    return beta_nl_interp    
+# Compute the grid in z and M (and eventually k) of the quantities described above
 
 def prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
-    #I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0[jz])
-    #                      for ik in range(0,nk)] for jz in range(0,nz)])
-    I_m_term = compute_Im_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
+    I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0)
+                          for ik in range(0,nk)] for jz in range(0,nz)])
     return I_m_term
 
 def prepare_Is_term(mass, s_factor, b_m, dn_dlnm, nz, nk):
-    #I_s_term = np.array([[compute_Ig_term(s_factor[jz, ik], mass, dn_dlnm[jz], b_m[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
-    I_s_term = compute_Ig_term(s_factor, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
+    I_s_term = np.array([[compute_Ig_term(s_factor[jz, ik], mass, dn_dlnm[jz], b_m[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
     return I_s_term
 
 def prepare_Ic_term(mass, c_factor, b_m, dn_dlnm, nz, nk):
     #I_c_term = compute_Ig_term(c_factor, mass[np.newaxis,:], dn_dlnm, b_m)
-    #I_c_term = np.empty([nz, nk])
-    #for jz in range(0, nz):
-    #    I_c_term[jz] = compute_Ig_term(c_factor[jz], mass, dn_dlnm[jz], b_m[jz])
-    I_c_term = np.tile(np.array([compute_Ig_term(c_factor, mass[np.newaxis,:], dn_dlnm, b_m)]).T, [1,nk])
+    I_c_term = np.empty([nz, nk])
+    for jz in range(0, nz):
+        I_c_term[jz] = compute_Ig_term(c_factor[jz], mass, dn_dlnm[jz], b_m[jz])
     return I_c_term
 
-def prepare_I_NL_cs(mass, c_factor, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None): #B_NL):
-    print('preparing I_NL_cs')
-    I_NL_cs = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
-    print('nz: ', nz)
-    print('I_NL_cs: ', I_NL_cs[0])
-    return I_NL_cs
-
-def prepare_I_NL_cc(mass, c_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
-    print('preparing I_NL_cc')
-    I_NL_cc = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], c_factor[jz], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
-    print('I_NL_cc: ', I_NL_cc[0])
-    return I_NL_cc
-
-def prepare_I_NL_ss(mass, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
-    print('preparing I_NL_ss')
-    I_NL_ss = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], s_factor[jz, ik], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
-    print('I_NL_ss: ', I_NL_ss[0])
-    return I_NL_ss
-
-def prepare_I_NL_cm(mass, c_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
-    print('preparing I_NL_cm')
-    I_NL_cm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
-    return I_NL_cm 
-
-def prepare_I_NL_sm(mass, s_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
-    print('preparing I_NL_sm')
-    I_NL_sm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], s_factor[jz, ik], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
-    return I_NL_sm
 
 def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_density0):
     '''
@@ -300,11 +200,11 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     alignment_amplitude_2h = np.empty([nz, nk])
     alignment_amplitude_2h_II = np.empty([nz, nk])
     for jz in range(0, nz):
-        alignment_amplitude_2h[jz] = -alignment_gi[jz] * (C1 * mean_density0[jz] / growth_factor[jz])
+        alignment_amplitude_2h[jz] = -alignment_gi[jz] * (C1 * mean_density0 / growth_factor[jz])
         # since the luminosity dependence is squared outside, the II amplitude is just GI squared
-        alignment_amplitude_2h_II[jz] = (alignment_gi[jz] * C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
-        #alignment_amplitude_2h_II[jz] = alignment_ii[jz] * (C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
-    
+        alignment_amplitude_2h_II[jz] = (alignment_gi[jz] * C1 * mean_density0 / growth_factor[jz]) ** 2.
+        #alignment_amplitude_2h_II[jz] = alignment_ii[jz] * (C1 * mean_density0 / growth_factor[jz]) ** 2.
+    print (alignment_amplitude_2h, alignment_amplitude_2h_II)
     return alignment_amplitude_2h, alignment_amplitude_2h_II
 
 
@@ -329,52 +229,9 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     #
     # 2-halo term:
-    pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term) * two_halo_truncation(k_vec)[np.newaxis,:]
+    pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term)  * two_halo_truncation(k_vec)[np.newaxis,:]
     pk_cc_2h = compute_2h_term(pk_lin, I_c_term, I_c_term) * two_halo_truncation(k_vec)[np.newaxis,:]
     pk_ss_2h = compute_2h_term(pk_lin, I_s_term, I_s_term) * two_halo_truncation(k_vec)[np.newaxis,:]
-    # 1-halo term:
-    pk_cs_1h = np.empty([nz, nk])
-    pk_ss_1h = np.empty([nz, nk])
-    """
-    for jz in range(0, nz):
-        for ik in range(0, nk):
-            pk_cs_1h[jz, ik] = compute_1h_term(c_factor[jz], s_factor[jz, ik], mass, dn_dln_m[jz])
-            pk_ss_1h[jz, ik] = compute_1h_term(s_factor[jz, ik], s_factor[jz, ik], mass, dn_dln_m[jz])
-        #mask_large_scales = k_vec < 0.01
-        #pk_cs_1h[jz][mask_large_scales] = 0.0
-        #pk_ss_1h[jz][mask_large_scales] = 0.0
-        pk_cs_1h[jz] *= one_halo_truncation(k_vec)
-        pk_ss_1h[jz] *= one_halo_truncation(k_vec)
-    """
-    pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis,:], s_factor, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
-    pk_ss_1h = compute_1h_term(s_factor, s_factor, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
-
-    
-    # Total
-    # AD: adding Poisson parameter to ph_ss_1h!
-    poisson = block["pk_parameters", "poisson"]
-    pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
-
-    # in case, save in the datablock
-    #block.put_grid("galaxy_cs_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
-    #block.put_grid("galaxy_ss_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_ss_1h)
-
-    # galaxy linear bias
-    galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
-    #print('p_nn succesfully computed')
-    return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
-
-def compute_p_nn_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss):
-    #
-    # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
-    #
-    # 2-halo term:
-    pk_cs_2h = compute_2h_term(pk_lin, I_c_term, I_s_term) + pk_lin*I_NL_cs
-    print('pk_cs_2h 1st term: ', compute_2h_term(pk_lin, I_c_term, I_s_term))
-    print('pk_cs_2h 2nd term: ', pk_lin*I_NL_cs)
-    pk_cc_2h = compute_2h_term(pk_lin, I_c_term, I_c_term) + pk_lin*I_NL_cc
-    pk_ss_2h = compute_2h_term(pk_lin, I_s_term, I_s_term) + pk_lin*I_NL_ss
-
     # 1-halo term:
     pk_cs_1h = np.empty([nz, nk])
     pk_ss_1h = np.empty([nz, nk])
@@ -415,19 +272,6 @@ def compute_p_xgG(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_facto
     #print('p_xgG succesfully computed')
     return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
 
-def compute_p_xgG_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm):
-    #
-    # p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
-    #
-    # 2-halo term:
-    pk_cm_2h = compute_2h_term(pk_lin, I_c_term, I_m_term) + pk_lin*I_NL_cm
-    pk_sm_2h = compute_2h_term(pk_lin, I_s_term, I_m_term) + pk_lin*I_NL_sm
-    # 1-halo term
-    pk_cm_1h = compute_1h_term(c_factor[:,np.newaxis], m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
-    pk_sm_1h = compute_1h_term(s_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
-    pk_tot = pk_cm_1h + pk_sm_1h + pk_cm_2h + pk_sm_2h
-    #print('p_xgG succesfully computed')
-    return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
 
 #################################################
 #                                                                                                #
@@ -505,15 +349,13 @@ def compute_p_gI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_align_f
     #block.put_grid("galaxy_cs_intrinsic_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
     #IT Removed next line to save the pk in the interface. This function now returns the spectra
     #block.put_grid("galaxy_intrinsic_power", "z", z_vec, "k_h", k_vec, "p_k", pk_tot)
-    #print('p_gI succesfully computed')
+    print('p_gI succesfully computed')
     return pk_cs_1h, pk_cc_2h, pk_tot
 
 
 
 
 ############### TWO HALO ONLY ###################
-
-# AD: Not fixing this, as it seems to be not used at all.
 
 # galaxy-galaxy power spectrum
 def compute_p_nn_two_halo(block, k_vec, plin, z_vec, bg):
@@ -560,7 +402,7 @@ def compute_p_gI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_ampli
     return pk_tot
 
 
-# intrinsic-intrinsic power spectrum
+# galaxy-intrinsic power spectrum
 def compute_p_II_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h_II):
     pk_tot = np.zeros([len(z_vec), len(k_vec)])
     for jz in range(0, nz):
@@ -581,14 +423,11 @@ def compute_u_dm_grid(block, k_vec, mass, z_vec):
     mass_udm = block["fourier_nfw_profile", "m_h"]
     k_udm = block["fourier_nfw_profile", "k_h"]
     u_udm = block["fourier_nfw_profile", "ukm"]
-    u_usat = block["fourier_nfw_profile", "uksat"]
     u_udm = np.reshape(u_udm, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
-    u_usat = np.reshape(u_usat, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
     # interpolate
     nz = np.size(z_vec)
     nk = np.size(k_vec)
     nmass = np.size(mass)
     u_dm = np.array([interp_udm(mass_udm, k_udm, udm_z, mass, k_vec) for udm_z in u_udm])
-    u_sat = np.array([interp_udm(mass_udm, k_udm, usat_z, mass, k_vec) for usat_z in u_usat])
-    #print("--- u_dm: %s seconds ---" % (time.time() - start_time_udm))
-    return np.abs(u_dm), np.abs(u_sat)
+    print("--- u_dm: %s seconds ---" % (time.time() - start_time_udm))
+    return np.abs(u_dm)
