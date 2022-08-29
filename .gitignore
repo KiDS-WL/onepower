@@ -1,0 +1,10 @@
+*~
+*.save
+*.save.[0-9]
+*.pyc
+._*
+*DS_Store*
+.ipynb_checkpoints
+/.project
+.spyproject
+*.fits
