@@ -249,10 +249,11 @@ def prepare_Ic_term(mass, c_factor, b_m, dn_dlnm, nz, nk):
     I_c_term = np.tile(np.array([compute_Ig_term(c_factor, mass[np.newaxis,:], dn_dlnm, b_m)]).T, [1,nk])
     return I_c_term
     
+    
 def prepare_I_NL_mm(mass, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
     # For Constance, do check this!
     print('preparing I_NL_mm')
-    I_NL_mm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], m_factor[jz], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    I_NL_mm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], m_factor[jz, ik], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
     return I_NL_mm
 
 def prepare_I_NL_cs(mass, c_factor, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None): #B_NL):

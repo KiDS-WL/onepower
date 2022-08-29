@@ -103,7 +103,7 @@ def setup(options):
         print('Select either p_GG = True or p_GG_bnl = True, both compute the galaxy power spectrum. p_GG_bnl includes beyond-linear halo bias in the matter power spectrum, p_GG does not.')
         sys.exit()
 
-    if (two_halo_only == True) and (p_GG == True):
+    if (two_halo_only == True) and (p_GG == True) or (p_GG_bnl == True):
         gravitational = True
     elif (two_halo_only == False) and ((p_GG == True) or (p_xgG == True) or (p_xGI == True) or (p_xgG_bnl == True)):
         gravitational = True
@@ -246,14 +246,36 @@ def execute(block, config):
         dn_dlnm, b_dm = get_halo_functions(block, pipeline, mass, z_vec)
         u_dm, u_sat = compute_u_dm_grid(block, k_vec, mass, z_vec)
 
+        if (bnl == True) or (bnl_xgG == True) or (bnl_GG == True):
+            #initialise emulator
+            emulator = darkemu.base_class()
+
+            ombh2 = block["cosmological_parameters", "ombh2"]
+            omch2 = block["cosmological_parameters", "omch2"]
+            omega_lambda = block["cosmological_parameters","omega_lambda"]
+            A_s = block["cosmological_parameters","A_s"]
+            n_s = block["cosmological_parameters","n_s"]
+            w = block["cosmological_parameters","w"]
+
+            cparam = np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w])
+            print('cparam: ', cparam)
+            emulator.set_cosmology(cparam)
+
+            if interpolate_bnl==True:
+                beta_interp = create_bnl_interpolation_function(emulator)
+                print('created b_nl interpolator')
+
+
         # prepare the integrals
         if gravitational == True:
             # the matter integral and factor
             I_m_term = prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
             m_factor = prepare_matter_factor_grid(mass, mean_density0, u_dm)
+            if bnl_GG == True:
+                I_NL_mm= prepare_I_NL_mm(mass, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                
+                
         if (galaxy == True) or (alignment == True):
-            # here we assume satellites perfectly follow nfw profile (i.e. they also have the same concentration):
-            # u_sat(k*rs,c_gal) = u_dm(k*rs,c_dm)
             #print(hod_section_name)
             Ncen, Nsat, numdencen, numdensat, f_cen, f_sat = load_hods(block, hod_section_name, pipeline, z_vec, mass)
             if galaxy == True:
@@ -263,43 +285,23 @@ def execute(block, config):
                 # preparing the 2h term
                 I_c_term = prepare_Ic_term(mass, c_factor, b_dm, dn_dlnm, nz, nk)
                 I_s_term = prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)
-                if (bnl == True) or (bnl_xgG == True) or (bnl_GG == True):
-                    #initialise emulator
-                    emulator = darkemu.base_class()
-
-                    ombh2 = block["cosmological_parameters", "ombh2"]
-                    omch2 = block["cosmological_parameters", "omch2"]
-                    omega_lambda = block["cosmological_parameters","omega_lambda"] 
-                    A_s = block["cosmological_parameters","A_s"]  
-                    n_s = block["cosmological_parameters","n_s"] 
-                    w = block["cosmological_parameters","w"] 
-
-                    cparam = np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w])
-                    print('cparam: ', cparam)
-                    emulator.set_cosmology(cparam)
-
-                    if interpolate_bnl==True:
-                        beta_interp = create_bnl_interpolation_function(emulator)
-                        print('created b_nl interpolator')
+                
 
                     
-                    if bnl == True:
-                        start = time.time()
-                        I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
-                        end = time.time()
-                        print('time I_NL_cs: ', end - start)
-                        I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
-                        I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                if bnl == True:
+                    start = time.time()
+                    I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                    end = time.time()
+                    print('time I_NL_cs: ', end - start)
+                    I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                    I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
 
                         
 
-                    if bnl_xgG == True:
-                        I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
-                        I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                if bnl_xgG == True:
+                    I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                    I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
                         
-                    if bnl_GG == True:
-                        I_NL_mm= prepare_I_NL_mm(mass, m_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
-        
 
             if alignment == True:
 		#IT commenting ia_lum_dep_centrals
@@ -337,7 +339,7 @@ def execute(block, config):
             
         if p_GG_bnl == True:
             pk_mm_1h, pk_mm_2h, pk_mm_tot = compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor,
-                                                             I_m_term, nz, nk, I_NL_m)
+                                                             I_m_term, nz, nk, I_NL_mm)
             # save in the datablock
             #block.put_grid("matter_1h_power", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_1h)
             #block.put_grid("matter_2h_power", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_2h)
