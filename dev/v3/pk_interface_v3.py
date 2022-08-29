@@ -21,13 +21,13 @@ import math
 from load_utilities import get_linear_power_spectrum, get_halo_functions, \
     get_nonlinear_power_spectrum, compute_effective_power_spectrum, \
     get_satellite_alignment, load_growth_factor, load_hods, load_galaxy_fractions
-from pk_lib_v3 import compute_p_mm_new, compute_u_dm_grid, \
+from pk_lib_v3 import compute_p_mm, compute_p_mm_bnl, compute_u_dm_grid, \
     prepare_matter_factor_grid, prepare_Im_term, prepare_central_factor_grid, \
     prepare_satellite_factor_grid, prepare_Ic_term, prepare_Is_term, compute_p_nn, compute_p_nn_bnl, \
     prepare_satellite_alignment_factor_grid, compute_p_xgG, compute_p_xgG_bnl, compute_p_gI, compute_p_xGI, compute_p_II, \
     compute_p_nn_two_halo, compute_p_xgG_two_halo, compute_p_xGI_two_halo, compute_p_gI_two_halo, \
     compute_p_II_two_halo, compute_two_halo_alignment, prepare_I_NL_ss, prepare_I_NL_cs, prepare_I_NL_cc, \
-    prepare_I_NL_cm, prepare_I_NL_sm, create_bnl_interpolation_function
+    prepare_I_NL_cm, prepare_I_NL_sm, prepare_I_NL_mm, create_bnl_interpolation_function
 
 import time
 #IT commented next line because it's not available in Python 2.7
