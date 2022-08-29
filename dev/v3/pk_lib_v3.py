@@ -248,6 +248,12 @@ def prepare_Ic_term(mass, c_factor, b_m, dn_dlnm, nz, nk):
     #    I_c_term[jz] = compute_Ig_term(c_factor[jz], mass, dn_dlnm[jz], b_m[jz])
     I_c_term = np.tile(np.array([compute_Ig_term(c_factor, mass[np.newaxis,:], dn_dlnm, b_m)]).T, [1,nk])
     return I_c_term
+    
+def prepare_I_NL_mm(mass, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+    # For Constance, do check this!
+    print('preparing I_NL_mm')
+    I_NL_mm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], m_factor[jz], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    return I_NL_mm
 
 def prepare_I_NL_cs(mass, c_factor, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None): #B_NL):
     print('preparing I_NL_cs')
@@ -312,9 +318,19 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
 # ---- POWER SPECTRA ----#
 
 # matter-matter
-def compute_p_mm_new(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, nz, nk):
+def compute_p_mm(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, nz, nk):
     # 2-halo term:
     pk_mm_2h = compute_2h_term(plin, I_m_term, I_m_term) * two_halo_truncation(k_vec)[np.newaxis,:]
+    # 1-halo term
+    pk_mm_1h = compute_1h_term(m_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
+    # Total
+    pk_mm_tot= pk_mm_1h + pk_mm_2h
+    #print('p_mm succesfully computed')
+    return pk_mm_1h, pk_mm_2h, pk_mm_tot
+    
+def compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, nz, nk, I_NL_mm):
+    # 2-halo term:
+    pk_mm_2h = compute_2h_term(plin, I_m_term, I_m_term) + pk_lin*I_NL_mm
     # 1-halo term
     pk_mm_1h = compute_1h_term(m_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     # Total
@@ -378,6 +394,7 @@ def compute_p_nn_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
     # 1-halo term:
     pk_cs_1h = np.empty([nz, nk])
     pk_ss_1h = np.empty([nz, nk])
+    """
     for jz in range(0, nz):
         for ik in range(0, nk):
             pk_cs_1h[jz, ik] = compute_1h_term(c_factor[jz], s_factor[jz, ik], mass, dn_dln_m[jz])
@@ -387,8 +404,15 @@ def compute_p_nn_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
         #pk_ss_1h[jz][mask_large_scales] = 0.0
         pk_cs_1h[jz] *= one_halo_truncation(k_vec)
         pk_ss_1h[jz] *= one_halo_truncation(k_vec)
+    """
+    pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis,:], s_factor, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
+    pk_ss_1h = compute_1h_term(s_factor, s_factor, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
+
+    
     # Total
-    pk_tot = 2. * pk_cs_1h + pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
+    # AD: adding Poisson parameter to ph_ss_1h!
+    poisson = block["pk_parameters", "poisson"]
+    pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
 
     # in case, save in the datablock
     #block.put_grid("galaxy_cs_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
@@ -422,7 +446,7 @@ def compute_p_xgG_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_f
     # 2-halo term:
     pk_cm_2h = compute_2h_term(pk_lin, I_c_term, I_m_term) + pk_lin*I_NL_cm
     pk_sm_2h = compute_2h_term(pk_lin, I_s_term, I_m_term) + pk_lin*I_NL_sm
-    # 1-halo term
+        # 1-halo term
     pk_cm_1h = compute_1h_term(c_factor[:,np.newaxis], m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     pk_sm_1h = compute_1h_term(s_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     pk_tot = pk_cm_1h + pk_sm_1h + pk_cm_2h + pk_sm_2h
