@@ -183,18 +183,28 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
 
     if interpolation==True:
         B_NL_k_z[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = B_NL_interp(values)
-    #else:
-    #    if (k>0.08) or (k<0.74): #B_NL_k_z left as zero if outside range, may want to add extrapolation at some point
-    #        for i,val in enumerate(values):
-    #            if val[0]<val[1]: #do not duplicate masses
-    #                B_NL_k_z[indices[:,0], indices[:,1]] = B_NL_k_z[indices[:,1], indices[:,0]]
-    #            else:
-    #                B_NL_k_z[indices[:,0], indices[:,1]] = compute_bnl_darkquest(z, val[0], val[1], k, emulator)
+    else:
+        idx_k = np.where((values[:,3] > 0.08) & (values[:,3] < 0.74))
+        B_NL_k_z[indices[idx_k,0], indices[idx_k,1], indices[idx_k,2], indices[idx_k,3]] = compute_bnl_darkquest(values[idx_k,0], values[idx_k,1], values[idx_k,2], values[idx_k,3], emulator)
     
     integrand = B_NL_k_z * factor_1[:,:,np.newaxis,:] * b_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] / mass_1[np.newaxis,:,np.newaxis,np.newaxis]
     integral = simps(integrand, mass_1, axis=1)
     integrand_2 = integral * factor_2 * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis:,np.newaxis]
     I_NL = simps(integrand_2, mass_2, axis=1)
+    
+    # Add the correct integration additive corrections! See below for what needs to be added
+    """
+    A = 1.0 - trapz((Mh * dndm * bias), Mh) / rho_mean
+    beta11 = A**2.0 * population_1[0,:] * population_2[0,:] * rho_mean**2.0 / (norm_1*norm_2*Mh[0]**2.0)
+    
+    intg12 = beta_i[0,:,:] * population_2 * expand_dims(dndm * bias, -1)
+    beta12 = A * population_1[0,:] * rho_mean * trapz(intg12, Mh, axis=0) / (norm_1*norm_2*Mh[0])
+    
+    intg21 = beta_i[:,0,:] * population_1 * expand_dims(dndm * bias, -1)
+    beta21 = A * population_2[0,:] * rho_mean * trapz(intg21, Mh, axis=0) / (norm_1*norm_2*Mh[0])
+    
+    I_NL = beta11 + beta12 + beta21 + beta22
+    """
 
     return I_NL
 
@@ -203,13 +213,13 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
     M2 = 10.0**log10M2
     P_hh = emulator.get_phh_mass(k, M1, M2, z)
     Pk_lin = emulator.get_pklin_from_z(k, z)
-    
     klin = 0.02 #large k to calculate bias
     Pk_klin = emulator.get_pklin_from_z(np.array([klin]), z)
     bM1 = np.sqrt(emulator.get_phh_mass(klin, M1, M1, z)/Pk_klin)
-    bM2 = np.sqrt(emulator.get_phh_mass(klin, M2, M2, z)/Pk_klin) 
+    bM2 = np.sqrt(emulator.get_phh_mass(klin, M2, M2, z)/Pk_klin)
 
     Bnl = P_hh/(bM1*bM2*Pk_lin) - 1.0
+    
     return Bnl
 
 def create_bnl_interpolation_function(emulator):
@@ -218,21 +228,18 @@ def create_bnl_interpolation_function(emulator):
     z = np.linspace(0.0, 0.5, 5)
     
     beta_func = np.zeros((len(z), len(M), len(M), len(k)))
-    #indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)), np.arange(len(k)))).reshape(4,-1).T
-    #values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M), np.log10(k))).reshape(4, -1).T
+    
     indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)))).reshape(3,-1).T
     values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M))).reshape(3, -1).T
   
     #for i, val in enumerate(values):
     #    beta_func[indices[i,0], indices[i,1], indices[i,2], indices[i,3]] = compute_bnl_darkquest(val[0], val[1], val[2], val[3], emulator)
-
     for i, val in enumerate(values):
         #print('values: ', val)
         #print('indices: ', indices[i,:])
         #print('k: ', indices[i,3])
         beta_func[indices[i,0], indices[i,1], indices[i,2], :] = compute_bnl_darkquest(val[0], val[1], val[2], k, emulator)
-
-
+    
     beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
     return beta_nl_interp    
 
