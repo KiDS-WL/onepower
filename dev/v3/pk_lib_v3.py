@@ -354,7 +354,7 @@ def compute_p_mm(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, 
     
 def compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, nz, nk, I_NL_mm):
     # 2-halo term:
-    pk_mm_2h = compute_2h_term(plin, I_m_term, I_m_term) + pk_lin*I_NL_mm
+    pk_mm_2h = compute_2h_term(plin, I_m_term, I_m_term) + plin*I_NL_mm
     # 1-halo term
     pk_mm_1h = compute_1h_term(m_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     # Total

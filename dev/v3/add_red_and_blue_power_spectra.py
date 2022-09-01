@@ -32,7 +32,7 @@ import numpy as np
 from cosmosis.datablock import names, option_section
 from scipy import interp
 from scipy.interpolate import interp1d
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 import time
 
@@ -137,6 +137,13 @@ def execute(block, config):
     # load matter_power_nl k and z:
     z_nl = block["matter_power_nl", "z"]
     k_nl = block["matter_power_nl", "k_h"]
+    
+    #for i in range(0,len(z_nl)):
+    #    plt.plot(k_nl, block["matter_power_nl", "p_k"][i]/block["matter_power_nl_bnl", "p_k"][i])
+    #plt.plot(k_nl, block["matter_power_nl", "p_k"][0]/block["matter_power_lin", "p_k"][0])
+    #plt.xscale('log')
+    #plt.loglog(k_nl, block["matter_power_nl_bnl", "p_k"][0])
+    #plt.show()
 
     """
     if p_GG_option:

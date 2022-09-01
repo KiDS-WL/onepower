@@ -191,6 +191,7 @@ def execute(block, config):
     # (1.-t_eff)*plin + t_eff*p_nl
     #
     t_eff = block["pk_parameters", "trans_1hto2h"]
+    print(t_eff)
     pk_eff = compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff)
 
     # initialise the galaxy bias
@@ -346,6 +347,7 @@ def execute(block, config):
             #block.put_grid("matter_power", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_tot)
             # If you want to use this power spectrum to do cosmic shear, replace the lines above with the following:
             block.replace_grid("matter_power_nl", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_tot)
+            #block.put_grid("matter_power_nl_bnl", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_tot)
 
         if p_nn == True:
             pk_nn_1h, pk_nn_2h, pk_nn, bg_halo_model = compute_p_nn(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor,
