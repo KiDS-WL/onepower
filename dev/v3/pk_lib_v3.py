@@ -151,21 +151,26 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
 # Args : scalars
 # Return: scalar
 
+def compute_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
+    integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
+    A = 1. - simps(integrand_m1, mass)
+    return A
+
 def compute_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
     # AD: check what happens if u_dm is removed. For considered k-ranges removing it should be fine.
-    integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
+    #integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
     integrand_m2 = b_dm * dn_dlnm * u_dm * (1. / mean_density0)
-    I_m1 = 1. - simps(integrand_m1, mass)
+    #I_m1 = 1. - simps(integrand_m1, mass)
     I_m2 = simps(integrand_m2, mass)
-    I_m = I_m1 + I_m2
-    return I_m
+    #I_m = I_m1 + I_m2
+    return I_m2
 
 def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
     integrand = factor_1 * b_m * dn_dlnm_z / mass
     I_g = simps(integrand, mass)
     return I_g
 
-def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, interpolation, B_NL_interp, emulator):
+def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_mean, interpolation, B_NL_interp, emulator):
     
     B_NL_k_z = np.zeros((z.size, mass_1.size, mass_2.size, k.size))
     indices = np.vstack(np.meshgrid(np.arange(z.size),np.arange(mass_1.size),np.arange(mass_2.size),np.arange(k.size))).reshape(4,-1).T
@@ -180,7 +185,6 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     factor_1 = np.transpose(factor_1, [0,2,1])
     factor_2 = np.transpose(factor_2, [0,2,1])
     
-
     if interpolation==True:
         B_NL_k_z[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = B_NL_interp(values)
     else:
@@ -190,22 +194,23 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     integrand = B_NL_k_z * factor_1[:,:,np.newaxis,:] * b_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] / mass_1[np.newaxis,:,np.newaxis,np.newaxis]
     integral = simps(integrand, mass_1, axis=1)
     integrand_2 = integral * factor_2 * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis:,np.newaxis]
-    I_NL = simps(integrand_2, mass_2, axis=1)
+    beta_22 = simps(integrand_2, mass_2, axis=1)
     
-    # Add the correct integration additive corrections! See below for what needs to be added
-    """
-    A = 1.0 - trapz((Mh * dndm * bias), Mh) / rho_mean
-    beta11 = A**2.0 * population_1[0,:] * population_2[0,:] * rho_mean**2.0 / (norm_1*norm_2*Mh[0]**2.0)
+    beta_11 = A**2.0 * factor_1[:,0,:] * factor_2[:,0,:] * rho_mean[:,np.newaxis]**2.0 / (mass_1[0] * mass_2[0])
+    print(beta_11)
     
-    intg12 = beta_i[0,:,:] * population_2 * expand_dims(dndm * bias, -1)
-    beta12 = A * population_1[0,:] * rho_mean * trapz(intg12, Mh, axis=0) / (norm_1*norm_2*Mh[0])
+    integrand_12 = B_NL_k_z[:,0,:,:] * factor_2[:,:,:] * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis]
+    integral_12 = simps(integrand_12, mass_2, axis=1)
+    beta_12 = A * factor_1[:,0,:] * integral_12 * rho_mean[:,np.newaxis] / mass_1[0]
+    print(beta_12)
     
-    intg21 = beta_i[:,0,:] * population_1 * expand_dims(dndm * bias, -1)
-    beta21 = A * population_2[0,:] * rho_mean * trapz(intg21, Mh, axis=0) / (norm_1*norm_2*Mh[0])
+    integrand_21 = B_NL_k_z[:,:,0,:] * factor_1[:,:,:] * b_1[:,:,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis]
+    integral_21 = simps(integrand_21, mass_1, axis=1)
+    beta_21 = A * factor_2[:,0,:] * integral_21 * rho_mean[:,np.newaxis] / mass_2[0]
+    print(beta_21)
+    print(mass_1.shape, A.shape)
     
-    I_NL = beta11 + beta12 + beta21 + beta22
-    """
-
+    I_NL = beta_11 + beta_12 + beta_21# + beta_22
     return I_NL
 
 def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
@@ -243,11 +248,17 @@ def create_bnl_interpolation_function(emulator):
     beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
     return beta_nl_interp    
 
-def prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
+def prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
+    #I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0[jz])
+    #                      for ik in range(0,nk)] for jz in range(0,nz)])
+    A_term = compute_A_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
+    return A_term
+
+def prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk, A_term):
     #I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0[jz])
     #                      for ik in range(0,nk)] for jz in range(0,nz)])
     I_m_term = compute_Im_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
-    return I_m_term
+    return I_m_term + A_term
 
 def prepare_Is_term(mass, s_factor, b_m, dn_dlnm, nz, nk):
     #I_s_term = np.array([[compute_Ig_term(s_factor[jz, ik], mass, dn_dlnm[jz], b_m[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
@@ -263,49 +274,49 @@ def prepare_Ic_term(mass, c_factor, b_m, dn_dlnm, nz, nk):
     return I_c_term
     
     
-def prepare_I_NL_mm(mass, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+def prepare_I_NL_mm(mass, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     # For Constance, do check this!
     print('preparing I_NL_mm')
-    I_NL_mm = compute_I_NL_term(k_vec, z_vec, m_factor, m_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, interpolation, beta_interp, emulator)
+    I_NL_mm = compute_I_NL_term(k_vec, z_vec, m_factor, m_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     return I_NL_mm
 
-def prepare_I_NL_cs(mass, c_factor, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None): #B_NL):
+def prepare_I_NL_cs(mass, c_factor, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None): #B_NL):
     print('preparing I_NL_cs')
     #I_NL_cs = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
     #print('nz: ', nz)
     #print('I_NL_cs: ', I_NL_cs[0])
-    I_NL_cs = compute_I_NL_term(k_vec, z_vec, c_factor, s_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, interpolation, beta_interp, emulator)
+    I_NL_cs = compute_I_NL_term(k_vec, z_vec, c_factor, s_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     print('nz: ', nz)
     print('I_NL_cs: ', I_NL_cs[0])
     return I_NL_cs
 
-def prepare_I_NL_cc(mass, c_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+def prepare_I_NL_cc(mass, c_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     print('preparing I_NL_cc')
     #I_NL_cc = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], c_factor[jz], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
     #print('I_NL_cc: ', I_NL_cc[0])
-    I_NL_cc = compute_I_NL_term(k_vec, z_vec, c_factor, c_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, interpolation, beta_interp, emulator)
+    I_NL_cc = compute_I_NL_term(k_vec, z_vec, c_factor, c_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     print('I_NL_cc: ', I_NL_cc[0])
     return I_NL_cc
 
-def prepare_I_NL_ss(mass, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+def prepare_I_NL_ss(mass, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     print('preparing I_NL_ss')
     #I_NL_ss = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], s_factor[jz, ik], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
     #print('I_NL_ss: ', I_NL_ss[0])
-    I_NL_ss = compute_I_NL_term(k_vec, z_vec, s_factor, s_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, interpolation, beta_interp, emulator)
+    I_NL_ss = compute_I_NL_term(k_vec, z_vec, s_factor, s_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     print('I_NL_ss: ', I_NL_ss[0])
     return I_NL_ss
 
-def prepare_I_NL_cm(mass, c_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+def prepare_I_NL_cm(mass, c_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     print('preparing I_NL_cm')
     #I_NL_cm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
-    I_NL_cm = compute_I_NL_term(k_vec, z_vec, c_factor, m_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, interpolation, beta_interp, emulator)
+    I_NL_cm = compute_I_NL_term(k_vec, z_vec, c_factor, m_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     return I_NL_cm 
 
-def prepare_I_NL_sm(mass, s_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+def prepare_I_NL_sm(mass, s_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     print('preparing I_NL_sm')
     
     #I_NL_sm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], s_factor[jz, ik], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
-    I_NL_sm = compute_I_NL_term(k_vec, z_vec, s_factor, m_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, interpolation, beta_interp, emulator)
+    I_NL_sm = compute_I_NL_term(k_vec, z_vec, s_factor, m_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     return I_NL_sm
 
 def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_density0):

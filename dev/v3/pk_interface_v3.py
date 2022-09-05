@@ -22,7 +22,7 @@ from load_utilities import get_linear_power_spectrum, get_halo_functions, \
     get_nonlinear_power_spectrum, compute_effective_power_spectrum, \
     get_satellite_alignment, load_growth_factor, load_hods, load_galaxy_fractions
 from pk_lib_v3 import compute_p_mm, compute_p_mm_bnl, compute_u_dm_grid, \
-    prepare_matter_factor_grid, prepare_Im_term, prepare_central_factor_grid, \
+    prepare_matter_factor_grid, prepare_A_term, prepare_Im_term, prepare_central_factor_grid, \
     prepare_satellite_factor_grid, prepare_Ic_term, prepare_Is_term, compute_p_nn, compute_p_nn_bnl, \
     prepare_satellite_alignment_factor_grid, compute_p_xgG, compute_p_xgG_bnl, compute_p_gI, compute_p_xGI, compute_p_II, \
     compute_p_nn_two_halo, compute_p_xgG_two_halo, compute_p_xGI_two_halo, compute_p_gI_two_halo, \
@@ -99,9 +99,9 @@ def setup(options):
         print('Select either p_xgG = True or p_xgG_bnl = True, both compute the galaxy power spectrum. p_xgG_bnl includes beyond-linear halo bias in the galaxy power spectrum, p_xgG does not.')
         sys.exit()
         
-    if (p_GG == True) and (p_GG_bnl == True):
-        print('Select either p_GG = True or p_GG_bnl = True, both compute the galaxy power spectrum. p_GG_bnl includes beyond-linear halo bias in the matter power spectrum, p_GG does not.')
-        sys.exit()
+    #if (p_GG == True) and (p_GG_bnl == True):
+    #    print('Select either p_GG = True or p_GG_bnl = True, both compute the galaxy power spectrum. p_GG_bnl includes beyond-linear halo bias in the matter power spectrum, p_GG does not.')
+    #    sys.exit()
 
     if (two_halo_only == True) and (p_GG == True) or (p_GG_bnl == True):
         gravitational = True
@@ -161,7 +161,6 @@ def execute(block, config):
 
     mean_density0 = block["density", "mean_density0"]
     
-
     # load linear power spectrum
     k_vec_original, plin_original, growth_factor_original = get_linear_power_spectrum(block, z_vec)
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
@@ -246,6 +245,7 @@ def execute(block, config):
         # load the halo mass and bias functions from the datablock and prepare a grid for the navarro-frenk-white profile
         dn_dlnm, b_dm = get_halo_functions(block, pipeline, mass, z_vec)
         u_dm, u_sat = compute_u_dm_grid(block, k_vec, mass, z_vec)
+        A_term = prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
 
         if (bnl == True) or (bnl_xgG == True) or (bnl_GG == True):
             #initialise emulator
@@ -270,10 +270,10 @@ def execute(block, config):
         # prepare the integrals
         if gravitational == True:
             # the matter integral and factor
-            I_m_term = prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
+            I_m_term = prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk, A_term)
             m_factor = prepare_matter_factor_grid(mass, mean_density0, u_dm)
             if bnl_GG == True:
-                I_NL_mm= prepare_I_NL_mm(mass, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                I_NL_mm= prepare_I_NL_mm(mass, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                 
                 
         if (galaxy == True) or (alignment == True):
@@ -291,17 +291,17 @@ def execute(block, config):
                     
                 if bnl == True:
                     start = time.time()
-                    I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                    I_NL_cs = prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                     end = time.time()
                     print('time I_NL_cs: ', end - start)
-                    I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
-                    I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                    I_NL_ss = prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_cc = prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
 
                         
 
                 if bnl_xgG == True:
-                    I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
-                    I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolate_bnl, beta_interp)
+                    I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                         
 
             if alignment == True:
@@ -346,8 +346,8 @@ def execute(block, config):
             #block.put_grid("matter_2h_power", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_2h)
             #block.put_grid("matter_power", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_tot)
             # If you want to use this power spectrum to do cosmic shear, replace the lines above with the following:
-            block.replace_grid("matter_power_nl", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_tot)
-            #block.put_grid("matter_power_nl_bnl", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_tot)
+            #block.replace_grid("matter_power_nl", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_tot)
+            block.put_grid("matter_power_nl_bnl", "z", z_vec, "k_h", k_vec, "p_k", pk_mm_tot)
 
         if p_nn == True:
             pk_nn_1h, pk_nn_2h, pk_nn, bg_halo_model = compute_p_nn(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor,
