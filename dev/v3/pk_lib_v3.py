@@ -176,7 +176,7 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     indices = np.vstack(np.meshgrid(np.arange(z.size),np.arange(mass_1.size),np.arange(mass_2.size),np.arange(k.size))).reshape(4,-1).T
     values = np.vstack(np.meshgrid(z,np.log10(mass_1), np.log10(mass_2),k)).reshape(4,-1).T
     
-    print(factor_1.shape, factor_2.shape)
+    #print(factor_1.shape, factor_2.shape)
     if len(factor_1.shape) < 3:
         factor_1 = factor_1[:,np.newaxis,:]
     if len(factor_2.shape) < 3:
@@ -193,24 +193,20 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     
     integrand = B_NL_k_z * factor_1[:,:,np.newaxis,:] * b_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] / mass_1[np.newaxis,:,np.newaxis,np.newaxis]
     integral = simps(integrand, mass_1, axis=1)
-    integrand_2 = integral * factor_2 * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis:,np.newaxis]
+    integrand_2 = integral * factor_2 * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
     beta_22 = simps(integrand_2, mass_2, axis=1)
     
     beta_11 = A**2.0 * factor_1[:,0,:] * factor_2[:,0,:] * rho_mean[:,np.newaxis]**2.0 / (mass_1[0] * mass_2[0])
-    print(beta_11)
     
-    integrand_12 = B_NL_k_z[:,0,:,:] * factor_2[:,:,:] * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis]
+    integrand_12 = B_NL_k_z[:,:,0,:] * factor_2[:,:,:] * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
     integral_12 = simps(integrand_12, mass_2, axis=1)
     beta_12 = A * factor_1[:,0,:] * integral_12 * rho_mean[:,np.newaxis] / mass_1[0]
-    print(beta_12)
     
-    integrand_21 = B_NL_k_z[:,:,0,:] * factor_1[:,:,:] * b_1[:,:,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis]
+    integrand_21 = B_NL_k_z[:,0,:,:] * factor_1[:,:,:] * b_1[:,:,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
     integral_21 = simps(integrand_21, mass_1, axis=1)
     beta_21 = A * factor_2[:,0,:] * integral_21 * rho_mean[:,np.newaxis] / mass_2[0]
-    print(beta_21)
-    print(mass_1.shape, A.shape)
     
-    I_NL = beta_11 + beta_12 + beta_21# + beta_22
+    I_NL = beta_11 + beta_12 + beta_21 + beta_22
     return I_NL
 
 def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
