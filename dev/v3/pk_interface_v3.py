@@ -99,9 +99,9 @@ def setup(options):
         print('Select either p_xgG = True or p_xgG_bnl = True, both compute the galaxy power spectrum. p_xgG_bnl includes beyond-linear halo bias in the galaxy power spectrum, p_xgG does not.')
         sys.exit()
         
-    #if (p_GG == True) and (p_GG_bnl == True):
-    #    print('Select either p_GG = True or p_GG_bnl = True, both compute the galaxy power spectrum. p_GG_bnl includes beyond-linear halo bias in the matter power spectrum, p_GG does not.')
-    #    sys.exit()
+    if (p_GG == True) and (p_GG_bnl == True):
+        print('Select either p_GG = True or p_GG_bnl = True, both compute the galaxy power spectrum. p_GG_bnl includes beyond-linear halo bias in the matter power spectrum, p_GG does not.')
+        sys.exit()
 
     if (two_halo_only == True) and (p_GG == True) or (p_GG_bnl == True):
         gravitational = True

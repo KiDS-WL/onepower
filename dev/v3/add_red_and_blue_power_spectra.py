@@ -99,6 +99,9 @@ def add_red_and_blue_power(block, f_red, power_section, z_ext, k_ext):
         #for i in range(0,nz_ext):
         #	plt.loglog(k_ext, np.abs(pk_tot_ext[i]))
         #plt.show()
+        #for i in range(0,nz):
+        #    plt.loglog(k, np.abs(pk_tot[i]))
+        #plt.show()
         block.put_grid(power_section, "z", z_ext, "k_h", k_ext, "p_k", pk_tot_ext)
 		
 #--------------------------------------------------------------------------------#	
@@ -140,11 +143,11 @@ def execute(block, config):
     
     #for i in range(0,len(z_nl)):
     #    plt.plot(k_nl, block["matter_power_nl", "p_k"][i]/block["matter_power_nl_bnl", "p_k"][i])
-    plt.loglog(k_nl, block["matter_power_nl", "p_k"][0])
-    plt.loglog(k_nl, block["matter_power_nl_bnl", "p_k"][0])
+    #plt.loglog(k_nl, block["matter_power_nl", "p_k"][0])
+    #plt.loglog(k_nl, block["matter_power_nl_bnl", "p_k"][0])
     #plt.xscale('log')
     #plt.loglog(k_nl, block["matter_power_nl_bnl", "p_k"][0])
-    plt.show()
+    #plt.show()
 
     """
     if p_GG_option:
