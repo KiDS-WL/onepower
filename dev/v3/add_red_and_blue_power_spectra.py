@@ -99,9 +99,9 @@ def add_red_and_blue_power(block, f_red, power_section, z_ext, k_ext):
         #for i in range(0,nz_ext):
         #	plt.loglog(k_ext, np.abs(pk_tot_ext[i]))
         #plt.show()
-        #for i in range(0,nz):
-        #    plt.loglog(k, np.abs(pk_tot[i]))
-        #plt.show()
+        for i in range(0,nz):
+            plt.loglog(k, np.abs(pk_tot[i]))
+        plt.show()
         block.put_grid(power_section, "z", z_ext, "k_h", k_ext, "p_k", pk_tot_ext)
 		
 #--------------------------------------------------------------------------------#	

@@ -129,6 +129,13 @@ def setup(options):
         suffix = "_" + name
     else:
         suffix = ""
+        
+        
+    if (bnl == True) or (bnl_xgG == True) or (bnl_GG == True):
+        #initialise emulator
+        emulator = darkemu.base_class()
+    else:
+        emulator = None
 
     # ============================================================================== #
     # this only makes sense in the context of the two halo only
@@ -145,7 +152,7 @@ def setup(options):
     # ============================================================================== #
 
     return mass, nmass, z_vec, nz, nk, p_GG, p_GG_bnl, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, bnl_GG, alignment, \
-           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl
+           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl, emulator
 
 
 # @profile
@@ -155,7 +162,7 @@ def execute(block, config):
     # earlier modules, and the config is what we loaded earlier.
 
     mass, nmass, z_vec, nz, nk, p_GG, p_GG_bnl, p_nn, p_nn_bnl, p_xgG, p_xgG_bnl, p_gI, p_xGI, p_II, gravitational, galaxy, bnl, bnl_xgG, bnl_GG, alignment, \
-    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl = config
+    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl, emulator = config
 
     start_time = time.time()
 
@@ -248,32 +255,29 @@ def execute(block, config):
         A_term = prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
 
         if (bnl == True) or (bnl_xgG == True) or (bnl_GG == True):
-            #initialise emulator
-            emulator = darkemu.base_class()
-
+            
             ombh2 = block["cosmological_parameters", "ombh2"]
             omch2 = block["cosmological_parameters", "omch2"]
             omega_lambda = block["cosmological_parameters","omega_lambda"]
             A_s = block["cosmological_parameters","A_s"]
             n_s = block["cosmological_parameters","n_s"]
             w = block["cosmological_parameters","w"]
-
+            
             cparam = np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w])
             print('cparam: ', cparam)
             emulator.set_cosmology(cparam)
 
-            if interpolate_bnl==True:
-                beta_interp = create_bnl_interpolation_function(emulator)
-                print('created b_nl interpolator')
-
-
+            
+            beta_interp = create_bnl_interpolation_function(emulator, interpolate_bnl)
+            print('created b_nl interpolator')
+        
         # prepare the integrals
         if gravitational == True:
             # the matter integral and factor
             I_m_term = prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk, A_term)
             m_factor = prepare_matter_factor_grid(mass, mean_density0, u_dm)
             if bnl_GG == True:
-                I_NL_mm= prepare_I_NL_mm(mass, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                I_NL_mm = prepare_I_NL_mm(mass, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                 
                 
         if (galaxy == True) or (alignment == True):
@@ -300,8 +304,8 @@ def execute(block, config):
                         
 
                 if bnl_xgG == True:
-                    I_NL_cm= prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
-                    I_NL_sm= prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_cm = prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_sm = prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                         
 
             if alignment == True:

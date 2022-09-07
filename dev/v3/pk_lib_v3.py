@@ -170,11 +170,12 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
     I_g = simps(integrand, mass)
     return I_g
 
+
 def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_mean, interpolation, B_NL_interp, emulator):
     
     B_NL_k_z = np.zeros((z.size, mass_1.size, mass_2.size, k.size))
     indices = np.vstack(np.meshgrid(np.arange(z.size),np.arange(mass_1.size),np.arange(mass_2.size),np.arange(k.size))).reshape(4,-1).T
-    values = np.vstack(np.meshgrid(z,np.log10(mass_1), np.log10(mass_2),k)).reshape(4,-1).T
+    values = np.vstack(np.meshgrid(z, np.log10(mass_1), np.log10(mass_2), k)).reshape(4,-1).T
     
     #print(factor_1.shape, factor_2.shape)
     if len(factor_1.shape) < 3:
@@ -185,11 +186,11 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     factor_1 = np.transpose(factor_1, [0,2,1])
     factor_2 = np.transpose(factor_2, [0,2,1])
     
-    if interpolation==True:
-        B_NL_k_z[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = B_NL_interp(values)
-    else:
-        idx_k = np.where((values[:,3] > 0.08) & (values[:,3] < 0.74))
-        B_NL_k_z[indices[idx_k,0], indices[idx_k,1], indices[idx_k,2], indices[idx_k,3]] = compute_bnl_darkquest(values[idx_k,0], values[idx_k,1], values[idx_k,2], values[idx_k,3], emulator)
+    to = time.time()
+    # AD: This is slow because there is millions of values to evaluate B_NL_interp on. Could we reduce this to be less calls to the interpolating function?
+    B_NL_k_z[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = B_NL_interp(values)
+    
+    print(time.time()-to)
     
     integrand = B_NL_k_z * factor_1[:,:,np.newaxis,:] * b_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] / mass_1[np.newaxis,:,np.newaxis,np.newaxis]
     integral = simps(integrand, mass_1, axis=1)
@@ -209,6 +210,7 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     I_NL = beta_11 + beta_12 + beta_21 + beta_22
     return I_NL
 
+
 def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
     M1 = 10.0**log10M1
     M2 = 10.0**log10M2
@@ -222,27 +224,71 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
     Bnl = P_hh/(bM1*bM2*Pk_lin) - 1.0
     
     return Bnl
+    
 
-def create_bnl_interpolation_function(emulator):
+def compute_bnl_darkquest_2(z, log10M1, log10M2, k, emulator):
+    # Much faster than above func, mostly because it uses symmetry.
+    M1 = 10.0**log10M1
+    M2 = 10.0**log10M2
+    # Parameters
+    klin = np.array([0.02])  # Large 'linear' scale for linear halo bias [h/Mpc]
+    
+    # Calculate beta_NL by looping over mass arrays
+    beta_func = np.zeros((len(z), len(M1), len(M2), len(k)))
+    b01 = np.zeros(len(M1))
+    b02 = np.zeros(len(M2))
+    for iz1, z1 in enumerate(z):
+        # Linear power
+        Pk_lin = emulator.get_pklin_from_z(k, z1)
+        Pk_klin = emulator.get_pklin_from_z(klin, z1)
+        for iM, M0 in enumerate(M1):
+            b01[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z1)/Pk_klin)
+        #for iM, M0 in enumerate(M2):
+        #    b02[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z1)/Pk_klin)
+        for iM1, M01 in enumerate(M1):
+            for iM2, M02 in enumerate(M2):
+                if iM2 < iM1:
+                    # Use symmetry to not double calculate
+                    beta_func[iz1, iM1, iM2, :] = beta_func[iz1, iM2, iM1, :]
+                else:
+                    # Halo-halo power spectrum
+                    Pk_hh = emulator.get_phh_mass(k, M01, M02, z1)
+            
+                    # Linear halo bias
+                    b1 = b01[iM1]
+                    b2 = b01[iM2]
+                    
+                    # Create beta_NL
+                    beta_func[iz1, iM1, iM2, :] = Pk_hh/(b1*b2*Pk_lin) - 1.0
+    
+    return beta_func
+    
+
+def create_bnl_interpolation_function(emulator, interpolation):
     M = np.logspace(12.0, 14.0, 5)
     k = np.logspace(-2.0, 1.5, 50) #50)
     z = np.linspace(0.0, 0.5, 5)
     
     beta_func = np.zeros((len(z), len(M), len(M), len(k)))
     
-    indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)))).reshape(3,-1).T
-    values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M))).reshape(3, -1).T
-  
+    #indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)))).reshape(3,-1).T
+    #values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M))).reshape(3, -1).T
+    #to = time.time()
     #for i, val in enumerate(values):
-    #    beta_func[indices[i,0], indices[i,1], indices[i,2], indices[i,3]] = compute_bnl_darkquest(val[0], val[1], val[2], val[3], emulator)
-    for i, val in enumerate(values):
         #print('values: ', val)
         #print('indices: ', indices[i,:])
         #print('k: ', indices[i,3])
-        beta_func[indices[i,0], indices[i,1], indices[i,2], :] = compute_bnl_darkquest(val[0], val[1], val[2], k, emulator)
-    
-    beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
+        #beta_func[indices[i,0], indices[i,1], indices[i,2], :] = compute_bnl_darkquest(val[0], val[1], val[2], k, emulator)
+    #print(time.time()-to)
+    to = time.time()
+    beta_func = compute_bnl_darkquest_2(z, np.log10(M), np.log10(M), k, emulator)
+    print(time.time()-to)
+    if interpolation == True:
+        beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
+    else:
+        beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=0.0, bounds_error=False)
     return beta_nl_interp    
+
 
 def prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
     #I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0[jz])
