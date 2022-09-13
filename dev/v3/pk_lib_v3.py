@@ -171,11 +171,11 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
     return I_g
 
 
-def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_mean, interpolation, B_NL_interp, emulator):
+def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_mean, interpolation, B_NL_k_z, emulator):
     
-    B_NL_k_z = np.zeros((z.size, mass_1.size, mass_2.size, k.size))
-    indices = np.vstack(np.meshgrid(np.arange(z.size),np.arange(mass_1.size),np.arange(mass_2.size),np.arange(k.size))).reshape(4,-1).T
-    values = np.vstack(np.meshgrid(z, np.log10(mass_1), np.log10(mass_2), k)).reshape(4,-1).T
+    #B_NL_k_z = np.zeros((z.size, mass_1.size, mass_2.size, k.size))
+    #indices = np.vstack(np.meshgrid(np.arange(z.size),np.arange(mass_1.size),np.arange(mass_2.size),np.arange(k.size))).reshape(4,-1).T
+    #values = np.vstack(np.meshgrid(z, np.log10(mass_1), np.log10(mass_2), k)).reshape(4,-1).T
     
     #print(factor_1.shape, factor_2.shape)
     if len(factor_1.shape) < 3:
@@ -188,9 +188,9 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     
     to = time.time()
     # AD: This is slow because there is millions of values to evaluate B_NL_interp on. Could we reduce this to be less calls to the interpolating function?
-    B_NL_k_z[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = B_NL_interp(values)
+    #B_NL_k_z[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = B_NL_interp(values)
     
-    print(time.time()-to)
+    #print(time.time()-to)
     
     integrand = B_NL_k_z * factor_1[:,:,np.newaxis,:] * b_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] / mass_1[np.newaxis,:,np.newaxis,np.newaxis]
     integral = simps(integrand, mass_1, axis=1)
@@ -208,6 +208,7 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     beta_21 = A * factor_2[:,0,:] * integral_21 * rho_mean[:,np.newaxis] / mass_2[0]
     
     I_NL = beta_11 + beta_12 + beta_21 + beta_22
+    print(time.time()-to)
     return I_NL
 
 
@@ -378,8 +379,8 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     C1 = 5.e-14
     # load the 2h (effective) amplitude of the alignment signal from the data block. 
     # This already includes the luminosity dependence if set. Double array [nz].
-    alignment_gi = block["ia_large_scale_alignment" + suffix, "alignment_gi"]
-    #alignment_ii = block["ia_large_scale_alignment" + suffix, "alignment_ii"]
+    alignment_gi = block['ia_large_scale_alignment' + suffix, 'alignment_gi']
+    #alignment_ii = block['ia_large_scale_alignment' + suffix, 'alignment_ii']
     alignment_amplitude_2h = np.empty([nz, nk])
     alignment_amplitude_2h_II = np.empty([nz, nk])
     for jz in range(0, nz):
@@ -445,12 +446,12 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     
     # Total
     # AD: adding Poisson parameter to ph_ss_1h!
-    poisson = block["pk_parameters", "poisson"]
+    poisson = block['pk_parameters', 'poisson']
     pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
 
     # in case, save in the datablock
-    #block.put_grid("galaxy_cs_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
-    #block.put_grid("galaxy_ss_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_ss_1h)
+    #block.put_grid('galaxy_cs_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cs_1h)
+    #block.put_grid('galaxy_ss_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_ss_1h)
 
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
@@ -488,12 +489,12 @@ def compute_p_nn_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
     
     # Total
     # AD: adding Poisson parameter to ph_ss_1h!
-    poisson = block["pk_parameters", "poisson"]
+    poisson = block['pk_parameters', 'poisson']
     pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
 
     # in case, save in the datablock
-    #block.put_grid("galaxy_cs_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
-    #block.put_grid("galaxy_ss_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_ss_1h)
+    #block.put_grid('galaxy_cs_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cs_1h)
+    #block.put_grid('galaxy_ss_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_ss_1h)
 
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
@@ -550,9 +551,9 @@ def compute_p_xGI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_
     # prepare the 1h term
     pk_tot = pk_sm_1h + pk_cm_2h
     # save in the datablock
-    # block.put_grid("matter_intrinsic_2h", "z", z_vec, "k_h", k_vec, "p_k", pk_cm_2h)
-    # block.put_grid("matter_intrinsic_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_sm_1h)
-    # block.put_grid("matter_intrinsic_power", "z", z_vec, "k_h", k_vec, "p_k", pk_tot)
+    # block.put_grid('matter_intrinsic_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cm_2h)
+    # block.put_grid('matter_intrinsic_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_sm_1h)
+    # block.put_grid('matter_intrinsic_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
     #print('p_xGI succesfully computed')
     return pk_sm_1h, pk_cm_2h, pk_tot
 
@@ -602,10 +603,10 @@ def compute_p_gI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_align_f
     '''
     pk_tot = pk_cs_1h + pk_cc_2h
     # save in the datablock
-    #block.put_grid("galaxy_cc_intrinsic_2h", "z", z_vec, "k_h", k_vec, "p_k", pk_cc_2h)
-    #block.put_grid("galaxy_cs_intrinsic_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
+    #block.put_grid('galaxy_cc_intrinsic_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cc_2h)
+    #block.put_grid('galaxy_cs_intrinsic_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cs_1h)
     #IT Removed next line to save the pk in the interface. This function now returns the spectra
-    #block.put_grid("galaxy_intrinsic_power", "z", z_vec, "k_h", k_vec, "p_k", pk_tot)
+    #block.put_grid('galaxy_intrinsic_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
     #print('p_gI succesfully computed')
     return pk_cs_1h, pk_cc_2h, pk_tot
 
@@ -678,11 +679,11 @@ def interp_udm(mass_udm, k_udm, udm_z, mass, k_vec):
 
 def compute_u_dm_grid(block, k_vec, mass, z_vec):
     start_time_udm = time.time()
-    z_udm = block["fourier_nfw_profile", "z"]
-    mass_udm = block["fourier_nfw_profile", "m_h"]
-    k_udm = block["fourier_nfw_profile", "k_h"]
-    u_udm = block["fourier_nfw_profile", "ukm"]
-    u_usat = block["fourier_nfw_profile", "uksat"]
+    z_udm = block['fourier_nfw_profile', 'z']
+    mass_udm = block['fourier_nfw_profile', 'm_h']
+    k_udm = block['fourier_nfw_profile', 'k_h']
+    u_udm = block['fourier_nfw_profile', 'ukm']
+    u_usat = block['fourier_nfw_profile', 'uksat']
     u_udm = np.reshape(u_udm, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
     u_usat = np.reshape(u_usat, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
     # interpolate
@@ -691,5 +692,5 @@ def compute_u_dm_grid(block, k_vec, mass, z_vec):
     nmass = np.size(mass)
     u_dm = np.array([interp_udm(mass_udm, k_udm, udm_z, mass, k_vec) for udm_z in u_udm])
     u_sat = np.array([interp_udm(mass_udm, k_udm, usat_z, mass, k_vec) for usat_z in u_usat])
-    #print("--- u_dm: %s seconds ---" % (time.time() - start_time_udm))
+    #print('--- u_dm: %s seconds ---' % (time.time() - start_time_udm))
     return np.abs(u_dm), np.abs(u_sat)

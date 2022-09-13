@@ -38,20 +38,20 @@ def tinker_bias(nu, Delta=200., delta_c=1.686):
 # We have a collection of commonly used pre-defined block section names.
 # If none of the names here is relevant for your calculation you can use any
 # string you want instead.
-cosmo_names = "cosmological_parameters"
+cosmo_names = 'cosmological_parameters'
 
 def setup(options):
     #This function is called once per processor per chain.
     #It is a chance to read any fixed options from the configuration file,
     #load any data, or do any calculations that are fixed once.
 
-    log_mass_min = options[option_section, "log_mass_min"]
-    log_mass_max = options[option_section, "log_mass_max"]
-    nmass = options[option_section, "nmass"]
+    log_mass_min = options[option_section, 'log_mass_min']
+    log_mass_max = options[option_section, 'log_mass_max']
+    nmass = options[option_section, 'nmass']
 
-    zmin = options[option_section, "zmin"]
-    zmax = options[option_section, "zmax"]
-    nz = options[option_section, "nz"]
+    zmin = options[option_section, 'zmin']
+    zmax = options[option_section, 'zmax']
+    nz = options[option_section, 'nz']
     z_vec = np.linspace(zmin, zmax, nz)
     print(z_vec)
 
@@ -64,13 +64,13 @@ def setup(options):
     
 
     mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
-					  hmf_model=options[option_section, "hmf_model"], mdef_model=options[option_section, "mdef_model"], mdef_params={'overdensity':options[option_section, "overdensity"]}, transfer_model='EH', delta_c=options[option_section, "delta_c"])
+					  hmf_model=options[option_section, 'hmf_model'], mdef_model=options[option_section, 'mdef_model'], mdef_params={'overdensity':options[option_section, 'overdensity']}, transfer_model='EH', delta_c=options[option_section, 'delta_c'])
     # This mf parameters that are fixed here now need to be read from the ini files! Need to make sure camb is not called when initialising the mf!
     #print( mf.cosmo)
     
     mass = mf.m
 
-    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, options[option_section, "overdensity"], options[option_section, "delta_c"], options[option_section, "bias_model"]
+    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, options[option_section, 'overdensity'], options[option_section, 'delta_c'], options[option_section, 'bias_model']
 
 
 def execute(block, config):
@@ -81,11 +81,11 @@ def execute(block, config):
     log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, overdensity, delta_c, bias_model = config
 
     # Update the cosmological parameters
-    #this_cosmo.update(cosmo_params={"H0":block[cosmo_names, "hubble"], "Om0":block[cosmo_names, "omega_m"], "Ob0":block[cosmo_names, "omega_b"]})
+    #this_cosmo.update(cosmo_params={'H0':block[cosmo_names, 'hubble'], 'Om0':block[cosmo_names, 'omega_m'], 'Ob0':block[cosmo_names, 'omega_b']})
     this_cosmo_run=Flatw0waCDM(
-        H0=block[cosmo_names, "hubble"], Ob0=block[cosmo_names, "omega_b"], Om0=block[cosmo_names, "omega_m"], Tcmb0=2.725,
-		w0=block[cosmo_names, "w"], wa=block[cosmo_names, "wa"])
-    ns = block[cosmo_names, "n_s"]
+        H0=block[cosmo_names, 'hubble'], Ob0=block[cosmo_names, 'omega_b'], Om0=block[cosmo_names, 'omega_m'], Tcmb0=2.725,
+		w0=block[cosmo_names, 'w'], wa=block[cosmo_names, 'wa'])
+    ns = block[cosmo_names, 'n_s']
 
     #--------------------------------------#
     # read sigma_8 for the given cosmology
@@ -118,11 +118,11 @@ def execute(block, config):
         #matter_power_lin[jz+1] = mf.power
         # AD: add here the mean_density at z=0 as output, growth factor, etc!
 
-    block.put_grid("hmf", "z", z_vec, "m_h", mass, "dndlnmh", dndlnmh)
-    block.put_double_array_1d("density", "mean_density0", mean_density0)
-    block.put_double_array_1d("density", "mean_density_z", mean_density_z)
-    block.put_double_array_1d("density", "rho_crit", mean_density0/this_cosmo_run.Om0)
-    block.put_grid("halobias", "z", z_vec, "m_h", mass, "b_hb", b_nu)
+    block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnmh)
+    block.put_double_array_1d('density', 'mean_density0', mean_density0)
+    block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
+    block.put_double_array_1d('density', 'rho_crit', mean_density0/this_cosmo_run.Om0)
+    block.put_grid('halobias', 'z', z_vec, 'm_h', mass, 'b_hb', b_nu)
 
 
     return 0
