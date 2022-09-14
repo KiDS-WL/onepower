@@ -532,9 +532,9 @@ def compute_p_xgG_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_f
     return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
 
 #################################################
-#                                                                                                #
-#                INTRINSIC ALIGNMENT POWER SPECTRA                #
-#                                                                                                #
+#                                               #
+#      INTRINSIC ALIGNMENT POWER SPECTRA        #
+#                                               #
 #################################################
 
 
