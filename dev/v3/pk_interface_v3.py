@@ -207,7 +207,7 @@ def execute(block, config):
 
     # initialise the galaxy bias
     bg = 1.0 # AD: ???
-
+    
     # If the two_halo_only option is set True, then only the linear regime is computed and the linear bias is used (either computed by the
     # hod module or passed in the value	file (same structure as for the constant bias module)
     # Otherwise, compute the full power spectra (including the small scales)

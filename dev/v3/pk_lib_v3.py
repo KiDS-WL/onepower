@@ -381,6 +381,7 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     # This already includes the luminosity dependence if set. Double array [nz].
     alignment_gi = block['ia_large_scale_alignment' + suffix, 'alignment_gi']
     #alignment_ii = block['ia_large_scale_alignment' + suffix, 'alignment_ii']
+    """
     alignment_amplitude_2h = np.empty([nz, nk])
     alignment_amplitude_2h_II = np.empty([nz, nk])
     for jz in range(0, nz):
@@ -388,6 +389,10 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
         # since the luminosity dependence is squared outside, the II amplitude is just GI squared
         alignment_amplitude_2h_II[jz] = (alignment_gi[jz] * C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
         #alignment_amplitude_2h_II[jz] = alignment_ii[jz] * (C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
+    """
+    # Removing the loops!
+    alignment_amplitude_2h = -alignment_gi[:,np.newaxis] * (C1 * mean_density0[:,np.newaxis] / growth_factor)
+    alignment_amplitude_2h_II = (alignment_gi[:,np.newaxis] * C1 * mean_density0[:,np.newaxis] / growth_factor) ** 2.
     
     return alignment_amplitude_2h, alignment_amplitude_2h_II
 
@@ -547,7 +552,7 @@ def compute_p_xGI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_
     # 2-halo term:
     pk_cm_2h = compute_p_xGI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     # 1-halo term
-    pk_sm_1h = - compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     # prepare the 1h term
     pk_tot = pk_sm_1h + pk_cm_2h
     # save in the datablock
@@ -584,23 +589,7 @@ def compute_p_gI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_align_f
     pk_cc_2h = compute_2h_term(p_eff, I_c_term, alignment_amplitude_2h[:,]) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     # 1-halo term
     pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    '''
-    # prepare the 1h term
-    pk_cs_1h = np.empty([nz, nk])
-    for jz in range(0, nz):
-        for ik in range(0, nk):
-            pk_cs_1h[jz, ik] = compute_1h_term(c_factor[jz], s_align_factor[jz, ik, :], mass, dn_dlnm[jz])
-    # this is simply the Linear Alignment Model
-    # NOTE: that here we are assuming the linear bias to be caused by the central galaxies only
-    # if we want to use the bias of the entire sample, we can obtain it as:
-    # bias = np.sqrt(Ic**2 + Is**2 + (2.*Ic*Is) [see the notes on the spiral notebook]
-    align_2h = np.empty(I_c_term.shape)
-    for jz in range(0, nz):
-        align_2h[jz] = alignment_amplitude_2h[jz]
-    # b_g = np.sqrt(I_c_term**2.+I_s_term**2.+2.*I_s_term*I_c_term)
-    # pk_tot_2h =  b_g*(p_eff*align_2h)
-    pk_cc_2h = compute_2h_term(p_eff, I_c_term, align_2h)
-    '''
+    
     pk_tot = pk_cs_1h + pk_cc_2h
     # save in the datablock
     #block.put_grid('galaxy_cc_intrinsic_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cc_2h)
@@ -622,9 +611,10 @@ def compute_p_nn_two_halo(block, k_vec, plin, z_vec, bg):
     #
     # p_tot = b_g**2 * p_lin
     #
-    pk_tot = np.zeros([len(z_vec), len(k_vec)])
-    for jz in range(len(z_vec)):
-        pk_tot[jz] = bg[jz] ** 2. * plin[jz]
+    #pk_tot = np.zeros([len(z_vec), len(k_vec)])
+    #for jz in range(len(z_vec)):
+    #    pk_tot[jz] = bg[jz] ** 2. * plin[jz]
+    pk_tot = bg[:,np.newaxis] ** 2. * plin
     return pk_tot
 
 
@@ -633,9 +623,10 @@ def compute_p_xgG_two_halo(block, k_vec, plin, z_vec, bg):
     #
     # p_tot = bg * plin
     #
-    pk_tot = np.zeros([len(z_vec), len(k_vec)])
-    for jz in range(len(z_vec)):
-        pk_tot[jz] = bg[jz] * plin[jz]
+    #pk_tot = np.zeros([len(z_vec), len(k_vec)])
+    #for jz in range(len(z_vec)):
+    #    pk_tot[jz] = bg[jz] * plin[jz]
+    pk_tot = bg[:,np.newaxis] * plin
     return pk_tot
 
 
@@ -645,9 +636,12 @@ def compute_p_xGI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_ampl
     # p_tot = p_NLA
     #
     # this is simply the Linear (or Nonlinear) Alignment Model, weighted by the central galaxy fraction
-    pk_tot = np.zeros([len(z_vec), len(k_vec)])
-    for jz in range(0, nz):
-        pk_tot[jz] = f_gal[jz] * alignment_amplitude_2h[jz] * p_eff[jz]
+    #pk_tot = np.zeros([len(z_vec), len(k_vec)])
+    #print('Test')
+    #print(f_gal.shape, p_eff.shape, alignment_amplitude_2h.shape)
+    #for jz in range(0, nz):
+    #    pk_tot[jz] = f_gal[jz] * alignment_amplitude_2h[jz] * p_eff[jz]
+    pk_tot = f_gal[:,np.newaxis] * p_eff * alignment_amplitude_2h
     return pk_tot
 
 
@@ -656,17 +650,25 @@ def compute_p_gI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_ampli
     #
     # p_tot = bg * p_NLA
     #
-    pk_tot = np.zeros([len(z_vec), len(k_vec)])
-    for jz in range(0, nz):
-        pk_tot[jz] = f_gal[jz] * bg[jz] * alignment_amplitude_2h[jz] * p_eff[jz]
+    #pk_tot = np.zeros([len(z_vec), len(k_vec)])
+    #print('Test')
+    #print(f_gal.shape, bg.shape, alignment_amplitude_2h.shape, p_eff.shape)
+    #for jz in range(0, nz):
+    #    pk_tot[jz] = f_gal[jz] * bg[jz] * alignment_amplitude_2h[jz] * p_eff[jz]
+    pk_tot = f_gal[:,np.newaxis] * bg[:,np.newaxis] * alignment_amplitude_2h * p_eff
     return pk_tot
 
 
 # intrinsic-intrinsic power spectrum
 def compute_p_II_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h_II):
-    pk_tot = np.zeros([len(z_vec), len(k_vec)])
-    for jz in range(0, nz):
-        pk_tot[jz] = (f_gal[jz] ** 2.) * p_eff[jz] * alignment_amplitude_2h_II[jz]
+    #pk_tot = np.zeros([len(z_vec), len(k_vec)])
+    #print('Test')
+    #print(f_gal.shape, p_eff.shape, alignment_amplitude_2h_II.shape)
+    #for jz in range(0, nz):
+    #    pk_tot[jz] = (f_gal[jz] ** 2.) * p_eff[jz] * alignment_amplitude_2h_II[jz]
+    #pk_tot_tmp = pk_tot.copy()
+    pk_tot = (f_gal[:,np.newaxis] ** 2.) * p_eff * alignment_amplitude_2h_II
+    #print(np.allclose(pk_tot, pk_tot_tmp))
     return pk_tot
 
 #################################################
