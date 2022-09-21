@@ -25,6 +25,7 @@ from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
 from itertools import count
 
 import time
+import matplotlib.pyplot as pl
 
 
 # We have a collection of commonly used pre-defined block section names.
@@ -285,12 +286,16 @@ def execute(block, config):
             obs_func_tmp = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dndlnM[:,:,np.newaxis], axis=-2)
 
             # interpolate in L_obs to have a consistent grid
+            print(nz)
             for jz in range(0,nz):
                 interp = interp1d(obs_simps[jz], obs_func_tmp[jz], kind='linear', bounds_error=False, fill_value=(0,0))
                 obs_func_h[jz] = interp(obs_range_h)
-
+                #pl.loglog(obs_simps[jz], np.log(10.0)*obs_simps[jz]*obs_func_tmp[jz])
+            #pl.show()
+            #quit()
+                
             #save on datablock
-            block.put_grid('observable_function' + suffix,'z', z_bins, 'observable',obs_range_h, 'obs_func', obs_func_h)
+            block.put_grid('observable_function' + suffix,'z', z_bins, 'observable',obs_range_h, 'obs_func', np.log(10.0)*obs_func_h*obs_range_h)
 
 
         #########################
@@ -320,8 +325,8 @@ def execute(block, config):
             phi_lf = np.empty([nobs, nmass])
 
             for j in range(0, nobs):
-                phi_c_lf[j] = cf.clf_cen(obs_range[j], mass, hod)
-                phi_s_lf[j] = cf.clf_sat(obs_range[j], mass, hod)
+                phi_c_lf[j] = cf.cf_cen(obs_range[j], mass, hod)
+                phi_s_lf[j] = cf.cf_sat(obs_range[j], mass, hod)
                 #phi_lf[j] = phi_c_lf[j]+phi_s_lf[j]
             phi_lf = phi_c_lf+phi_s_lf
 
@@ -330,6 +335,9 @@ def execute(block, config):
                 obs_func[i] = cf.obs_func(mass, phi_lf[i], dn_dlnM_zmedian)
 
             # AD: CHECK THE h HERE!
+            # AD: Should be without as the h is carried through in the first place!
+            # AD: ln(10) factor added to the output and multiplication with M/L to get to the usual units data are in 99% reported in!
+            
             #If required, convert everything to the h from the cosmological parameter section, otherwise keep h=1
             h=1.
             #if rescale_to_h == True:
@@ -337,16 +345,21 @@ def execute(block, config):
             #	print h
 
             # go back to the observed magnitudes
-            obs_h = obs_range/(h**2.) #note that the _h subscript avoids mixing h conventions while computing the clf_quantities
-            obs_func_h = obs_func*(h**5.)
+            obs_h = obs_range#/(h**2.) #note that the _h subscript avoids mixing h conventions while computing the clf_quantities
+            obs_func_h = obs_func#*(h**5.)
+            #pl.loglog(obs_h, np.log(10.)*obs_func_h*obs_h)
+            #pl.show()
+            #quit()
 
             mr_obs = cf.convert_to_magnitudes(obs_range, abs_mag_sun)
 
             #save on datablock
             block.put_double_array_1d('observable_function' + suffix,'lum_med',obs_h)
-            block.put_double_array_1d('observable_function' + suffix,'obs_func_med',obs_func_h)
+            #block.put_double_array_1d('observable_function' + suffix,'obs_func_med',obs_func_h)
+            block.put_double_array_1d('observable_function' + suffix,'obs_func_med',np.log(10.)*obs_func_h*obs_h)
 
             #Back to magnitudes
+            # It doesn't mean anything if the observable is stellar mass!
             Lf_in_mags = 0.4*np.log(10.)*obs_h*obs_func_h
 
             block.put_double_array_1d('observable_function' + suffix,'mr_med', mr_obs)
