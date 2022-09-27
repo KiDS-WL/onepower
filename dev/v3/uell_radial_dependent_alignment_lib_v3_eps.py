@@ -1,4 +1,4 @@
-'''
+"""
 This module computes the radial dependent part of the satellite alignment term.
 The satellite alignment is modelled following the revised version of Schneider&Bridle 2010
 (SB10) by Fortuna et al. 2020. We compute the Fourier transform of the alignment, 
@@ -90,7 +90,7 @@ is constant with amplitude equal to the value of the shear at r= 0.06 Mpc/h. We 
 require the shear to not exceed the maximum value of 0.3, corresponding to a perfectly aligned
 satellite.
 
-'''
+"""
 
 
 
@@ -198,7 +198,7 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
             nfw_f = lambda x: gamma_r_nfw_profile(x, r_s[jz,im], rvir[im], gamma_1h_amplitude[jz], gamma_b) * np.sqrt((x*np.pi)/2.0)
             uk_l[jz, im, :] = h_transf.transform(nfw_f, k_vec)[0] / (k_vec**0.5 * mnfw[jz,im])
             #best_h, result, best_N = hankel.get_h(nfw_f, ell+0.5, k_vec)
-            #print(f"best_h = {best_h}, best_N={best_N}")
+            #print(f'best_h = {best_h}, best_N={best_N}')
     #print('uell transform: ', time.time()-to)
     #print(uk_l/ukll)
     #print(np.allclose(ukll, uk_l))
@@ -223,13 +223,13 @@ def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass
     #to = time.time()
     uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il, h_transf[i]) for i,il in enumerate(range(0,ell_max+1,2))]
     #print('uell array: ', time.time()-to)
-    '''
+    """
     msize = np.size(c, axis=1) #c.shape[1]
     print ('msize IAuell = ', msize)
     uell_ia = np.zeros((ell_max+1, z.size, msize, k.size)) 
     for i in range(0,int(ell_max/2+1)):
             uell_ia[2*i] = uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, 2*i)
-    '''
+    """
     return np.array(uell_ia)
 
 #-----------------------------------------------------------------------#

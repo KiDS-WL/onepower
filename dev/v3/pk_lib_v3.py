@@ -151,90 +151,157 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
 # Args : scalars
 # Return: scalar
 
+def compute_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
+    integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
+    A = 1. - simps(integrand_m1, mass)
+    return A
+
 def compute_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
     # AD: check what happens if u_dm is removed. For considered k-ranges removing it should be fine.
-    integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
+    #integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
     integrand_m2 = b_dm * dn_dlnm * u_dm * (1. / mean_density0)
-    I_m1 = 1. - simps(integrand_m1, mass)
+    #I_m1 = 1. - simps(integrand_m1, mass)
     I_m2 = simps(integrand_m2, mass)
-    I_m = I_m1 + I_m2
-    return I_m
+    #I_m = I_m1 + I_m2
+    return I_m2
 
 def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
     integrand = factor_1 * b_m * dn_dlnm_z / mass
     I_g = simps(integrand, mass)
     return I_g
 
-def compute_I_NL_term(k_i, z_j, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, interpolation, B_NL_interp, emulator):
+
+def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_mean, interpolation, B_NL_k_z, emulator):
     
-    B_NL_k_z = np.zeros((mass_1.size, mass_2.size))
-    indices = np.vstack(np.meshgrid(np.arange(mass_1.size),np.arange(mass_2.size))).reshape(2,-1).T
-    values = np.vstack(np.meshgrid(np.log10(mass_1), np.log10(mass_2))).reshape(2,-1).T
-
-    if interpolation==True:
-        for i,val in enumerate(values):
-            if val[0]<val[1]: #do not duplicate masses
-                B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_k_z[indices[i,1], indices[i,0]]
-            else:
-                B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_interp(np.insert(np.insert(val,0,z_j),3,k_i))
-    else:
-        if (k_i>0.08) or (k_i<0.74): #B_NL_k_z left as zero if outside range, may want to add extrapolation at some point
-            for i,val in enumerate(values):
-                if val[0]<val[1]: #do not duplicate masses
-                    B_NL_k_z[indices[i,0], indices[i,1]] = B_NL_k_z[indices[i,1], indices[i,0]]
-                else:
-                    B_NL_k_z[indices[i,0], indices[i,1]] = compute_bnl_darkquest(z_j, val[0], val[1], k_i, emulator)
-
-    integrand = B_NL_k_z * factor_1 * b_1 * dn_dlnm_z_1 / mass_1
-    integral = simps(integrand, mass_1)
-    integrand_2 = integral * factor_2 * b_2 * dn_dlnm_z_2 / mass_2
-    I_NL = simps(integrand_2, mass_2)
-
+    #B_NL_k_z = np.zeros((z.size, mass_1.size, mass_2.size, k.size))
+    #indices = np.vstack(np.meshgrid(np.arange(z.size),np.arange(mass_1.size),np.arange(mass_2.size),np.arange(k.size))).reshape(4,-1).T
+    #values = np.vstack(np.meshgrid(z, np.log10(mass_1), np.log10(mass_2), k)).reshape(4,-1).T
+    
+    #print(factor_1.shape, factor_2.shape)
+    if len(factor_1.shape) < 3:
+        factor_1 = factor_1[:,np.newaxis,:]
+    if len(factor_2.shape) < 3:
+        factor_2 = factor_2[:,np.newaxis,:]
+    
+    factor_1 = np.transpose(factor_1, [0,2,1])
+    factor_2 = np.transpose(factor_2, [0,2,1])
+    
+    to = time.time()
+    # AD: This is slow because there is millions of values to evaluate B_NL_interp on. Could we reduce this to be less calls to the interpolating function?
+    #B_NL_k_z[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = B_NL_interp(values)
+    
+    #print(time.time()-to)
+    
+    integrand = B_NL_k_z * factor_1[:,:,np.newaxis,:] * b_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] / mass_1[np.newaxis,:,np.newaxis,np.newaxis]
+    integral = simps(integrand, mass_1, axis=1)
+    integrand_2 = integral * factor_2 * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
+    beta_22 = simps(integrand_2, mass_2, axis=1)
+    
+    beta_11 = A**2.0 * factor_1[:,0,:] * factor_2[:,0,:] * rho_mean[:,np.newaxis]**2.0 / (mass_1[0] * mass_2[0])
+    
+    integrand_12 = B_NL_k_z[:,:,0,:] * factor_2[:,:,:] * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
+    integral_12 = simps(integrand_12, mass_2, axis=1)
+    beta_12 = A * factor_1[:,0,:] * integral_12 * rho_mean[:,np.newaxis] / mass_1[0]
+    
+    integrand_21 = B_NL_k_z[:,0,:,:] * factor_1[:,:,:] * b_1[:,:,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
+    integral_21 = simps(integrand_21, mass_1, axis=1)
+    beta_21 = A * factor_2[:,0,:] * integral_21 * rho_mean[:,np.newaxis] / mass_2[0]
+    
+    I_NL = beta_11 + beta_12 + beta_21 + beta_22
+    print(time.time()-to)
     return I_NL
+
 
 def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
     M1 = 10.0**log10M1
     M2 = 10.0**log10M2
     P_hh = emulator.get_phh_mass(k, M1, M2, z)
     Pk_lin = emulator.get_pklin_from_z(k, z)
-    
     klin = 0.02 #large k to calculate bias
     Pk_klin = emulator.get_pklin_from_z(np.array([klin]), z)
     bM1 = np.sqrt(emulator.get_phh_mass(klin, M1, M1, z)/Pk_klin)
-    bM2 = np.sqrt(emulator.get_phh_mass(klin, M2, M2, z)/Pk_klin) 
+    bM2 = np.sqrt(emulator.get_phh_mass(klin, M2, M2, z)/Pk_klin)
 
     Bnl = P_hh/(bM1*bM2*Pk_lin) - 1.0
+    
     return Bnl
+    
 
-def create_bnl_interpolation_function(emulator):
+def compute_bnl_darkquest_2(z, log10M1, log10M2, k, emulator):
+    # Much faster than above func, mostly because it uses symmetry.
+    M1 = 10.0**log10M1
+    M2 = 10.0**log10M2
+    # Parameters
+    klin = np.array([0.02])  # Large 'linear' scale for linear halo bias [h/Mpc]
+    
+    # Calculate beta_NL by looping over mass arrays
+    beta_func = np.zeros((len(z), len(M1), len(M2), len(k)))
+    b01 = np.zeros(len(M1))
+    b02 = np.zeros(len(M2))
+    for iz1, z1 in enumerate(z):
+        # Linear power
+        Pk_lin = emulator.get_pklin_from_z(k, z1)
+        Pk_klin = emulator.get_pklin_from_z(klin, z1)
+        for iM, M0 in enumerate(M1):
+            b01[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z1)/Pk_klin)
+        #for iM, M0 in enumerate(M2):
+        #    b02[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z1)/Pk_klin)
+        for iM1, M01 in enumerate(M1):
+            for iM2, M02 in enumerate(M2):
+                if iM2 < iM1:
+                    # Use symmetry to not double calculate
+                    beta_func[iz1, iM1, iM2, :] = beta_func[iz1, iM2, iM1, :]
+                else:
+                    # Halo-halo power spectrum
+                    Pk_hh = emulator.get_phh_mass(k, M01, M02, z1)
+            
+                    # Linear halo bias
+                    b1 = b01[iM1]
+                    b2 = b01[iM2]
+                    
+                    # Create beta_NL
+                    beta_func[iz1, iM1, iM2, :] = Pk_hh/(b1*b2*Pk_lin) - 1.0
+    
+    return beta_func
+    
+
+def create_bnl_interpolation_function(emulator, interpolation):
     M = np.logspace(12.0, 14.0, 5)
     k = np.logspace(-2.0, 1.5, 50) #50)
     z = np.linspace(0.0, 0.5, 5)
     
     beta_func = np.zeros((len(z), len(M), len(M), len(k)))
-    #indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)), np.arange(len(k)))).reshape(4,-1).T
-    #values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M), np.log10(k))).reshape(4, -1).T
-    indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)))).reshape(3,-1).T
-    values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M))).reshape(3, -1).T
-  
+    
+    #indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)))).reshape(3,-1).T
+    #values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M))).reshape(3, -1).T
+    #to = time.time()
     #for i, val in enumerate(values):
-    #    beta_func[indices[i,0], indices[i,1], indices[i,2], indices[i,3]] = compute_bnl_darkquest(val[0], val[1], val[2], val[3], emulator)
-
-    for i, val in enumerate(values):
         #print('values: ', val)
         #print('indices: ', indices[i,:])
         #print('k: ', indices[i,3])
-        beta_func[indices[i,0], indices[i,1], indices[i,2], :] = compute_bnl_darkquest(val[0], val[1], val[2], k, emulator)
-
-
-    beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
+        #beta_func[indices[i,0], indices[i,1], indices[i,2], :] = compute_bnl_darkquest(val[0], val[1], val[2], k, emulator)
+    #print(time.time()-to)
+    to = time.time()
+    beta_func = compute_bnl_darkquest_2(z, np.log10(M), np.log10(M), k, emulator)
+    print(time.time()-to)
+    if interpolation == True:
+        beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
+    else:
+        beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=0.0, bounds_error=False)
     return beta_nl_interp    
 
-def prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
+
+def prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
+    #I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0[jz])
+    #                      for ik in range(0,nk)] for jz in range(0,nz)])
+    A_term = compute_A_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
+    return A_term
+
+def prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk, A_term):
     #I_m_term = np.array([[compute_Im_term(mass, u_dm[jz, ik, :], b_dm[jz], dn_dlnm[jz], mean_density0[jz])
     #                      for ik in range(0,nk)] for jz in range(0,nz)])
     I_m_term = compute_Im_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
-    return I_m_term
+    return I_m_term + A_term
 
 def prepare_Is_term(mass, s_factor, b_m, dn_dlnm, nz, nk):
     #I_s_term = np.array([[compute_Ig_term(s_factor[jz, ik], mass, dn_dlnm[jz], b_m[jz]) for ik in range(0,nk)] for jz in range(0,nz)])
@@ -250,39 +317,49 @@ def prepare_Ic_term(mass, c_factor, b_m, dn_dlnm, nz, nk):
     return I_c_term
     
     
-def prepare_I_NL_mm(mass, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+def prepare_I_NL_mm(mass, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     # For Constance, do check this!
     print('preparing I_NL_mm')
-    I_NL_mm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], m_factor[jz, ik], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    I_NL_mm = compute_I_NL_term(k_vec, z_vec, m_factor, m_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     return I_NL_mm
 
-def prepare_I_NL_cs(mass, c_factor, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None): #B_NL):
+def prepare_I_NL_cs(mass, c_factor, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None): #B_NL):
     print('preparing I_NL_cs')
-    I_NL_cs = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    #I_NL_cs = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    #print('nz: ', nz)
+    #print('I_NL_cs: ', I_NL_cs[0])
+    I_NL_cs = compute_I_NL_term(k_vec, z_vec, c_factor, s_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     print('nz: ', nz)
     print('I_NL_cs: ', I_NL_cs[0])
     return I_NL_cs
 
-def prepare_I_NL_cc(mass, c_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+def prepare_I_NL_cc(mass, c_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     print('preparing I_NL_cc')
-    I_NL_cc = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], c_factor[jz], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    #I_NL_cc = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], c_factor[jz], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    #print('I_NL_cc: ', I_NL_cc[0])
+    I_NL_cc = compute_I_NL_term(k_vec, z_vec, c_factor, c_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     print('I_NL_cc: ', I_NL_cc[0])
     return I_NL_cc
 
-def prepare_I_NL_ss(mass, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+def prepare_I_NL_ss(mass, s_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     print('preparing I_NL_ss')
-    I_NL_ss = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], s_factor[jz, ik], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    #I_NL_ss = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], s_factor[jz, ik], s_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    #print('I_NL_ss: ', I_NL_ss[0])
+    I_NL_ss = compute_I_NL_term(k_vec, z_vec, s_factor, s_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     print('I_NL_ss: ', I_NL_ss[0])
     return I_NL_ss
 
-def prepare_I_NL_cm(mass, c_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+def prepare_I_NL_cm(mass, c_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     print('preparing I_NL_cm')
-    I_NL_cm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    #I_NL_cm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], c_factor[jz], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    I_NL_cm = compute_I_NL_term(k_vec, z_vec, c_factor, m_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     return I_NL_cm 
 
-def prepare_I_NL_sm(mass, s_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, emulator, interpolation, beta_interp=None):
+def prepare_I_NL_sm(mass, s_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     print('preparing I_NL_sm')
-    I_NL_sm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], s_factor[jz, ik], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    
+    #I_NL_sm = np.array([[compute_I_NL_term(k_vec[ik], z_vec[jz], s_factor[jz, ik], m_factor[jz, ik], b_m[jz], b_m[jz], mass, mass, dn_dlnm[jz], dn_dlnm[jz], interpolation, beta_interp, emulator) for ik in range(0,nk)] for jz in range(0,nz)])
+    I_NL_sm = compute_I_NL_term(k_vec, z_vec, s_factor, m_factor, b_m, b_m, mass, mass, dn_dlnm, dn_dlnm, A, rho_mean, interpolation, beta_interp, emulator)
     return I_NL_sm
 
 def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_density0):
@@ -302,8 +379,9 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     C1 = 5.e-14
     # load the 2h (effective) amplitude of the alignment signal from the data block. 
     # This already includes the luminosity dependence if set. Double array [nz].
-    alignment_gi = block["ia_large_scale_alignment" + suffix, "alignment_gi"]
-    #alignment_ii = block["ia_large_scale_alignment" + suffix, "alignment_ii"]
+    alignment_gi = block['ia_large_scale_alignment' + suffix, 'alignment_gi']
+    #alignment_ii = block['ia_large_scale_alignment' + suffix, 'alignment_ii']
+    """
     alignment_amplitude_2h = np.empty([nz, nk])
     alignment_amplitude_2h_II = np.empty([nz, nk])
     for jz in range(0, nz):
@@ -311,6 +389,10 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
         # since the luminosity dependence is squared outside, the II amplitude is just GI squared
         alignment_amplitude_2h_II[jz] = (alignment_gi[jz] * C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
         #alignment_amplitude_2h_II[jz] = alignment_ii[jz] * (C1 * mean_density0[jz] / growth_factor[jz]) ** 2.
+    """
+    # Removing the loops!
+    alignment_amplitude_2h = -alignment_gi[:,np.newaxis] * (C1 * mean_density0[:,np.newaxis] / growth_factor)
+    alignment_amplitude_2h_II = (alignment_gi[:,np.newaxis] * C1 * mean_density0[:,np.newaxis] / growth_factor) ** 2.
     
     return alignment_amplitude_2h, alignment_amplitude_2h_II
 
@@ -331,7 +413,7 @@ def compute_p_mm(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, 
     
 def compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, nz, nk, I_NL_mm):
     # 2-halo term:
-    pk_mm_2h = compute_2h_term(plin, I_m_term, I_m_term) + pk_lin*I_NL_mm
+    pk_mm_2h = compute_2h_term(plin, I_m_term, I_m_term) + plin*I_NL_mm
     # 1-halo term
     pk_mm_1h = compute_1h_term(m_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     # Total
@@ -369,12 +451,12 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     
     # Total
     # AD: adding Poisson parameter to ph_ss_1h!
-    poisson = block["pk_parameters", "poisson"]
+    poisson = block['pk_parameters', 'poisson']
     pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
 
     # in case, save in the datablock
-    #block.put_grid("galaxy_cs_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
-    #block.put_grid("galaxy_ss_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_ss_1h)
+    #block.put_grid('galaxy_cs_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cs_1h)
+    #block.put_grid('galaxy_ss_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_ss_1h)
 
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
@@ -412,12 +494,12 @@ def compute_p_nn_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
     
     # Total
     # AD: adding Poisson parameter to ph_ss_1h!
-    poisson = block["pk_parameters", "poisson"]
+    poisson = block['pk_parameters', 'poisson']
     pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
 
     # in case, save in the datablock
-    #block.put_grid("galaxy_cs_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
-    #block.put_grid("galaxy_ss_power_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_ss_1h)
+    #block.put_grid('galaxy_cs_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cs_1h)
+    #block.put_grid('galaxy_ss_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_ss_1h)
 
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
@@ -455,9 +537,9 @@ def compute_p_xgG_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_f
     return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
 
 #################################################
-#                                                                                                #
-#                INTRINSIC ALIGNMENT POWER SPECTRA                #
-#                                                                                                #
+#                                               #
+#      INTRINSIC ALIGNMENT POWER SPECTRA        #
+#                                               #
 #################################################
 
 
@@ -470,13 +552,13 @@ def compute_p_xGI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_
     # 2-halo term:
     pk_cm_2h = compute_p_xGI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     # 1-halo term
-    pk_sm_1h = - compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     # prepare the 1h term
     pk_tot = pk_sm_1h + pk_cm_2h
     # save in the datablock
-    # block.put_grid("matter_intrinsic_2h", "z", z_vec, "k_h", k_vec, "p_k", pk_cm_2h)
-    # block.put_grid("matter_intrinsic_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_sm_1h)
-    # block.put_grid("matter_intrinsic_power", "z", z_vec, "k_h", k_vec, "p_k", pk_tot)
+    # block.put_grid('matter_intrinsic_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cm_2h)
+    # block.put_grid('matter_intrinsic_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_sm_1h)
+    # block.put_grid('matter_intrinsic_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
     #print('p_xGI succesfully computed')
     return pk_sm_1h, pk_cm_2h, pk_tot
 
@@ -507,29 +589,13 @@ def compute_p_gI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_align_f
     pk_cc_2h = compute_2h_term(p_eff, I_c_term, alignment_amplitude_2h[:,]) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     # 1-halo term
     pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    '''
-    # prepare the 1h term
-    pk_cs_1h = np.empty([nz, nk])
-    for jz in range(0, nz):
-        for ik in range(0, nk):
-            pk_cs_1h[jz, ik] = compute_1h_term(c_factor[jz], s_align_factor[jz, ik, :], mass, dn_dlnm[jz])
-    # this is simply the Linear Alignment Model
-    # NOTE: that here we are assuming the linear bias to be caused by the central galaxies only
-    # if we want to use the bias of the entire sample, we can obtain it as:
-    # bias = np.sqrt(Ic**2 + Is**2 + (2.*Ic*Is) [see the notes on the spiral notebook]
-    align_2h = np.empty(I_c_term.shape)
-    for jz in range(0, nz):
-        align_2h[jz] = alignment_amplitude_2h[jz]
-    # b_g = np.sqrt(I_c_term**2.+I_s_term**2.+2.*I_s_term*I_c_term)
-    # pk_tot_2h =  b_g*(p_eff*align_2h)
-    pk_cc_2h = compute_2h_term(p_eff, I_c_term, align_2h)
-    '''
+    
     pk_tot = pk_cs_1h + pk_cc_2h
     # save in the datablock
-    #block.put_grid("galaxy_cc_intrinsic_2h", "z", z_vec, "k_h", k_vec, "p_k", pk_cc_2h)
-    #block.put_grid("galaxy_cs_intrinsic_1h", "z", z_vec, "k_h", k_vec, "p_k", pk_cs_1h)
+    #block.put_grid('galaxy_cc_intrinsic_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cc_2h)
+    #block.put_grid('galaxy_cs_intrinsic_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cs_1h)
     #IT Removed next line to save the pk in the interface. This function now returns the spectra
-    #block.put_grid("galaxy_intrinsic_power", "z", z_vec, "k_h", k_vec, "p_k", pk_tot)
+    #block.put_grid('galaxy_intrinsic_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
     #print('p_gI succesfully computed')
     return pk_cs_1h, pk_cc_2h, pk_tot
 
@@ -545,9 +611,10 @@ def compute_p_nn_two_halo(block, k_vec, plin, z_vec, bg):
     #
     # p_tot = b_g**2 * p_lin
     #
-    pk_tot = np.zeros([len(z_vec), len(k_vec)])
-    for jz in range(len(z_vec)):
-        pk_tot[jz] = bg[jz] ** 2. * plin[jz]
+    #pk_tot = np.zeros([len(z_vec), len(k_vec)])
+    #for jz in range(len(z_vec)):
+    #    pk_tot[jz] = bg[jz] ** 2. * plin[jz]
+    pk_tot = bg[:,np.newaxis] ** 2. * plin
     return pk_tot
 
 
@@ -556,9 +623,10 @@ def compute_p_xgG_two_halo(block, k_vec, plin, z_vec, bg):
     #
     # p_tot = bg * plin
     #
-    pk_tot = np.zeros([len(z_vec), len(k_vec)])
-    for jz in range(len(z_vec)):
-        pk_tot[jz] = bg[jz] * plin[jz]
+    #pk_tot = np.zeros([len(z_vec), len(k_vec)])
+    #for jz in range(len(z_vec)):
+    #    pk_tot[jz] = bg[jz] * plin[jz]
+    pk_tot = bg[:,np.newaxis] * plin
     return pk_tot
 
 
@@ -568,9 +636,12 @@ def compute_p_xGI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_ampl
     # p_tot = p_NLA
     #
     # this is simply the Linear (or Nonlinear) Alignment Model, weighted by the central galaxy fraction
-    pk_tot = np.zeros([len(z_vec), len(k_vec)])
-    for jz in range(0, nz):
-        pk_tot[jz] = f_gal[jz] * alignment_amplitude_2h[jz] * p_eff[jz]
+    #pk_tot = np.zeros([len(z_vec), len(k_vec)])
+    #print('Test')
+    #print(f_gal.shape, p_eff.shape, alignment_amplitude_2h.shape)
+    #for jz in range(0, nz):
+    #    pk_tot[jz] = f_gal[jz] * alignment_amplitude_2h[jz] * p_eff[jz]
+    pk_tot = f_gal[:,np.newaxis] * p_eff * alignment_amplitude_2h
     return pk_tot
 
 
@@ -579,17 +650,25 @@ def compute_p_gI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_ampli
     #
     # p_tot = bg * p_NLA
     #
-    pk_tot = np.zeros([len(z_vec), len(k_vec)])
-    for jz in range(0, nz):
-        pk_tot[jz] = f_gal[jz] * bg[jz] * alignment_amplitude_2h[jz] * p_eff[jz]
+    #pk_tot = np.zeros([len(z_vec), len(k_vec)])
+    #print('Test')
+    #print(f_gal.shape, bg.shape, alignment_amplitude_2h.shape, p_eff.shape)
+    #for jz in range(0, nz):
+    #    pk_tot[jz] = f_gal[jz] * bg[jz] * alignment_amplitude_2h[jz] * p_eff[jz]
+    pk_tot = f_gal[:,np.newaxis] * bg[:,np.newaxis] * alignment_amplitude_2h * p_eff
     return pk_tot
 
 
 # intrinsic-intrinsic power spectrum
 def compute_p_II_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h_II):
-    pk_tot = np.zeros([len(z_vec), len(k_vec)])
-    for jz in range(0, nz):
-        pk_tot[jz] = (f_gal[jz] ** 2.) * p_eff[jz] * alignment_amplitude_2h_II[jz]
+    #pk_tot = np.zeros([len(z_vec), len(k_vec)])
+    #print('Test')
+    #print(f_gal.shape, p_eff.shape, alignment_amplitude_2h_II.shape)
+    #for jz in range(0, nz):
+    #    pk_tot[jz] = (f_gal[jz] ** 2.) * p_eff[jz] * alignment_amplitude_2h_II[jz]
+    #pk_tot_tmp = pk_tot.copy()
+    pk_tot = (f_gal[:,np.newaxis] ** 2.) * p_eff * alignment_amplitude_2h_II
+    #print(np.allclose(pk_tot, pk_tot_tmp))
     return pk_tot
 
 #################################################
@@ -602,11 +681,11 @@ def interp_udm(mass_udm, k_udm, udm_z, mass, k_vec):
 
 def compute_u_dm_grid(block, k_vec, mass, z_vec):
     start_time_udm = time.time()
-    z_udm = block["fourier_nfw_profile", "z"]
-    mass_udm = block["fourier_nfw_profile", "m_h"]
-    k_udm = block["fourier_nfw_profile", "k_h"]
-    u_udm = block["fourier_nfw_profile", "ukm"]
-    u_usat = block["fourier_nfw_profile", "uksat"]
+    z_udm = block['fourier_nfw_profile', 'z']
+    mass_udm = block['fourier_nfw_profile', 'm_h']
+    k_udm = block['fourier_nfw_profile', 'k_h']
+    u_udm = block['fourier_nfw_profile', 'ukm']
+    u_usat = block['fourier_nfw_profile', 'uksat']
     u_udm = np.reshape(u_udm, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
     u_usat = np.reshape(u_usat, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
     # interpolate
@@ -615,5 +694,5 @@ def compute_u_dm_grid(block, k_vec, mass, z_vec):
     nmass = np.size(mass)
     u_dm = np.array([interp_udm(mass_udm, k_udm, udm_z, mass, k_vec) for udm_z in u_udm])
     u_sat = np.array([interp_udm(mass_udm, k_udm, usat_z, mass, k_vec) for usat_z in u_usat])
-    #print("--- u_dm: %s seconds ---" % (time.time() - start_time_udm))
+    #print('--- u_dm: %s seconds ---' % (time.time() - start_time_udm))
     return np.abs(u_dm), np.abs(u_sat)

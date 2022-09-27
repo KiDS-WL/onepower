@@ -23,20 +23,20 @@ def atoi(text):
     return int(text) if text.isdigit() else text
 
 def natural_keys(text):
-    '''
+    """
     alist.sort(key=natural_keys) sorts in human order
     http://nedbatchelder.com/blog/200712/human_sorting.html
     (See Toothy's implementation in the comments)
-    '''
+    """
     return [ atoi(c) for c in re.split('(\d+)', text) ]
     
 def load_data(file_name): #, red_fraction):
-	logmass_bins = np.loadtxt(file_name+"/logmass.txt")
+	logmass_bins = np.loadtxt(file_name+'/logmass.txt')
 	mass_bins = 10.**logmass_bins
-	#mass_bins = np.loadtxt(file_name+"/mass.txt")
-	ncen = np.loadtxt(file_name+"/ncen.txt")
-	nsat = np.loadtxt(file_name+"/nsat.txt")
-	z_bins = np.loadtxt(file_name+"/z.txt")
+	#mass_bins = np.loadtxt(file_name+'/mass.txt')
+	ncen = np.loadtxt(file_name+'/ncen.txt')
+	nsat = np.loadtxt(file_name+'/nsat.txt')
+	z_bins = np.loadtxt(file_name+'/z.txt')
 	nz_file = len(z_bins)
 	numdens_cen = np.ones(nz_file)
 	numdens_sat = np.ones(nz_file)
@@ -56,29 +56,29 @@ def setup(options):
     #It is a chance to read any fixed options from the configuration file,
     #load any data, or do any calculations that are fixed once.
 		
-	log_mass_min = options[option_section, "log_mass_min"]
-	log_mass_max = options[option_section, "log_mass_max"]
-	nmass = options[option_section, "nmass"]
+	log_mass_min = options[option_section, 'log_mass_min']
+	log_mass_max = options[option_section, 'log_mass_max']
+	nmass = options[option_section, 'nmass']
 	#log-spaced mass in units of M_sun/h
     dlog10m = (log_mass_max-log_mass_min)/nmass
     mass = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 	
-	zmin = options[option_section, "zmin"]
-	zmax = options[option_section, "zmax"]
-	nz = options[option_section, "nz"]
+	zmin = options[option_section, 'zmin']
+	zmax = options[option_section, 'zmax']
+	nz = options[option_section, 'nz']
 	z_vec = np.linspace(zmin, zmax, nz)	
 
-	number_density_option = options[option_section, "number_density"] 	
-	galaxy_bias_option = options[option_section, "galaxy_linear_bias"]
+	number_density_option = options[option_section, 'number_density']
+	galaxy_bias_option = options[option_section, 'galaxy_linear_bias']
 		
-	filename = options[option_section, "folder_path"]	
+	filename = options[option_section, 'folder_path']
 	mass_bins, z_bins, ncen_mice, nsat_mice, numdens_tot, numdens_cen, numdens_sat = load_data(filename) #, red_fraction_option)
 		
-	name = options.get_string(option_section, "name", default="").lower()
+	name = options.get_string(option_section, 'name', default='').lower()
 	if name:
-		suffix = "_" + name
+		suffix = '_' + name
 	else:
-		suffix = ""	
+		suffix = ''
 									
 	return mass, z_vec, nz, mass_bins, z_bins, ncen_mice, nsat_mice, numdens_tot, numdens_cen, numdens_sat, number_density_option, galaxy_bias_option, suffix
 	
@@ -121,7 +121,7 @@ def execute(block, config):
 	plt.legend()
 	plt.show()
 	'''
-	print("mass_min = ", mass.min())
+	print('mass_min = ', mass.min())
 
 
 	if (number_density_option == True) or (galaxy_bias_option == True):	
@@ -134,9 +134,9 @@ def execute(block, config):
 		
 		#---- loading the halo mass function ----#
 		
-		dndlnM_grid = block["hmf",'dndlnmh']
-		mass_dn = block["hmf",'m_h']
-		z_dn = block["hmf",'z']	
+		dndlnM_grid = block['hmf','dndlnmh']
+		mass_dn = block['hmf','m_h']
+		z_dn = block['hmf','z']
 		f_int_dndlnM = interp2d(mass_dn, z_dn, dndlnM_grid)
 		dndlnM = f_int_dndlnM(mass, z_vec)
 		
@@ -155,22 +155,22 @@ def execute(block, config):
 		
 		if number_density_option == True:
 			# save on datablock
-			block.put_grid("hod" + suffix, "z", z_vec, "mass", mass, "n_sat", n_sat)
-			block.put_grid("hod" + suffix, "z", z_vec, "mass", mass, "n_cen", n_cen)
-			block.put_double_array_1d("hod" + suffix, "redshifts", z_vec)
-			block.put_double_array_1d("hod" + suffix, "number_density_cen", numdens_cen)
-			block.put_double_array_1d("hod" + suffix, "number_density_sat", numdens_sat)
-			block.put_double_array_1d("hod" + suffix, "central_fraction", fraction_cen)
-			block.put_double_array_1d("hod" + suffix, "satellite_fraction", fraction_sat)
+			block.put_grid('hod' + suffix, 'z', z_vec, 'mass', mass, 'n_sat', n_sat)
+			block.put_grid('hod' + suffix, 'z', z_vec, 'mass', mass, 'n_cen', n_cen)
+			block.put_double_array_1d('hod' + suffix, 'redshifts', z_vec)
+			block.put_double_array_1d('hod' + suffix, 'number_density_cen', numdens_cen)
+			block.put_double_array_1d('hod' + suffix, 'number_density_sat', numdens_sat)
+			block.put_double_array_1d('hod' + suffix, 'central_fraction', fraction_cen)
+			block.put_double_array_1d('hod' + suffix, 'satellite_fraction', fraction_sat)
 
 				
 			if galaxy_bias_option == True:
-				#print("entering galaxy bias")
+				#print('entering galaxy bias')
 				#---- loading the halo bias function ----#
-				mass_hbf = block["halobias", "m_h"]
-				z_hbf = block["halobias", "z"]
-				halobias_hbf = block["halobias", "b_hb"]
-				#print("problem loading the halobias?")
+				mass_hbf = block['halobias', 'm_h']
+				z_hbf = block['halobias', 'z']
+				halobias_hbf = block['halobias', 'b_hb']
+				#print('problem loading the halobias?')
 				f_interp_halobias = interp2d(mass_hbf, z_hbf, halobias_hbf)
 				hbias = f_interp_halobias(mass,z_vec)	
 			
@@ -183,12 +183,12 @@ def execute(block, config):
 					galaxybias_sat[jz] = lf.compute_galaxy_linear_bias(mass, n_sat[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
 					galaxybias_tot[jz] = lf.compute_galaxy_linear_bias(mass, n_tot[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
 
-				print("ok")
+				print('ok')
 
-				block.put_double_array_1d("hod" + suffix, "galaxy_bias_centrals", galaxybias_cen)
-				block.put_double_array_1d("hod" + suffix, "galaxy_bias_satellites", galaxybias_sat)
-				block.put_double_array_1d("hod" + suffix, "galaxy_bias_total", galaxybias_tot)
-				block.put_double_array_1d("galaxy_bias" + suffix, "b", galaxybias_tot)
+				block.put_double_array_1d('hod' + suffix, 'galaxy_bias_centrals', galaxybias_cen)
+				block.put_double_array_1d('hod' + suffix, 'galaxy_bias_satellites', galaxybias_sat)
+				block.put_double_array_1d('hod' + suffix, 'galaxy_bias_total', galaxybias_tot)
+				block.put_double_array_1d('galaxy_bias' + suffix, 'b', galaxybias_tot)
 
 	return 0
 

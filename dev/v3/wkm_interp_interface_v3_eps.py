@@ -32,28 +32,28 @@ def setup(options):
     #It is a chance to read any fixed options from the configuration file,
     #load any data, or do any calculations that are fixed once.
 
-    log_mass_min = options[option_section, "log_mass_min"]
-    log_mass_max = options[option_section, "log_mass_max"]
-    nmass = options[option_section, "nmass"]
+    log_mass_min = options[option_section, 'log_mass_min']
+    log_mass_max = options[option_section, 'log_mass_max']
+    nmass = options[option_section, 'nmass']
     #log-spaced mass in units of M_sun/h
     dlog10m = (log_mass_max-log_mass_min)/nmass
     mass = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
-    zmin = options[option_section, "zmin"]
-    zmax = options[option_section, "zmax"]
-    nz = options[option_section, "nz"]
+    zmin = options[option_section, 'zmin']
+    zmax = options[option_section, 'zmax']
+    nz = options[option_section, 'nz']
     z_vec = np.linspace(zmin, zmax, nz)
 
-    kmin = options[option_section, "kmin"]
-    kmax = options[option_section, "kmax"]
-    nk = options[option_section, "nk"]
+    kmin = options[option_section, 'kmin']
+    kmax = options[option_section, 'kmax']
+    nk = options[option_section, 'nk']
     k_vec = np.logspace(np.log10(kmin), np.log10(kmax), nk)
 
-    name = options.get_string(option_section, "name", default="").lower()
+    name = options.get_string(option_section, 'name', default='').lower()
     if name:
-        suffix = "_" + name
+        suffix = '_' + name
     else:
-        suffix = ""
+        suffix = ''
     ell_max = 6
     # initialise Hankel transform
     h_transform = [HankelTransform(ell+0.5,300,0.01) for ell in range(0,ell_max+1,2)]
@@ -83,15 +83,15 @@ def execute(block, config):
     #k = np.logspace(-2., np.log10(k_setup.max()), nk)
 
     # Load slope of the power law that describes the satellite alignment
-    gamma_1h_slope = block["intrinsic_alignment_parameters" + suffix, "gamma_1h_radial_slope"]
+    gamma_1h_slope = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_radial_slope']
     # This already contains the luminosity dependence if there
-    gamma_1h_amplitude = block["ia_small_scale_alignment" + suffix, "alignment_1h"]
+    gamma_1h_amplitude = block['ia_small_scale_alignment' + suffix, 'alignment_1h']
 
-    mass_halo = block["concentration_dm", "m_h"]
-    z_halo = block["concentration_dm", "z"]
-    c = block["concentration_dm", "c"]
-    r_s = block["nfw_scale_radius_dm", "rs"]
-    rvir = block["virial_radius", "rvir_dm"]
+    mass_halo = block['concentration_dm', 'm_h']
+    z_halo = block['concentration_dm', 'z']
+    c = block['concentration_dm', 'c']
+    r_s = block['nfw_scale_radius_dm', 'rs']
+    rvir = block['virial_radius', 'rvir_dm']
     mass = mass_halo
 
 
@@ -119,12 +119,12 @@ def execute(block, config):
     theta_k = np.pi/2.
     phi_k = 0.
     wkm = wkm_my_fell(uell_interpolated, theta_k, phi_k, ell_max, gamma_1h_slope)
-    #print("wkm.shape = ", wkm.shape)
+    #print('wkm.shape = ', wkm.shape)
     for jz in range(0,nz):
-        block.put_grid( "wkm_z%d"%jz+suffix, "mass", mass_setup, "k_h", k_setup, "w_km", wkm[jz,:,:])
-    block.put_double_array_1d("wkm"+suffix, "z", z)
+        block.put_grid( 'wkm_z%d'%jz+suffix, 'mass', mass_setup, 'k_h', k_setup, 'w_km', wkm[jz,:,:])
+    block.put_double_array_1d('wkm'+suffix, 'z', z)
 
-    #print("--- wkm: %s seconds ---" % (time.time() - start_time))
+    #print('--- wkm: %s seconds ---' % (time.time() - start_time))
 
 
     return 0

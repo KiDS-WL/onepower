@@ -8,12 +8,12 @@ from scipy.integrate import quad, simps, trapz
 
 def get_linear_power_spectrum(block, z_vec):
     # AD: growth factor should be computed from camb/hmf directly, in thin way we can load Plin directly without this functions!
-	k_vec = block["matter_power_lin", "k_h"]
-	z_pl = block["matter_power_lin", "z"]
-	matter_power_lin = block["matter_power_lin", "p_k"]
+	k_vec = block['matter_power_lin', 'k_h']
+	z_pl = block['matter_power_lin', 'z']
+	matter_power_lin = block['matter_power_lin', 'p_k']
 	# compute growth factor
 	if z_pl[0]>0.:
-		raise ValueError("Error: to compute the growth factor, the linear matter power must be evaluated at z=0.")
+		raise ValueError('Error: to compute the growth factor, the linear matter power must be evaluated at z=0.')
 	growth_factor_zlin = np.sqrt(matter_power_lin[:]/matter_power_lin[0])
 	gf_interp = interp1d(z_pl, growth_factor_zlin, axis=0)
 	growth_factor = gf_interp(z_vec)
@@ -22,9 +22,9 @@ def get_linear_power_spectrum(block, z_vec):
 	return k_vec, plin, growth_factor
 	
 def get_nonlinear_power_spectrum(block, z_vec):
-	k_nl = block["matter_power_nl", "k_h"]
-	z_nl = block["matter_power_nl", "z"]
-	matter_power_nl = block["matter_power_nl", "p_k"]
+	k_nl = block['matter_power_nl', 'k_h']
+	z_nl = block['matter_power_nl', 'z']
+	matter_power_nl = block['matter_power_nl', 'p_k']
 	# this seems redundant
 	p_nl = interpolate1d_matter_power_lin(matter_power_nl, z_nl, z_vec)
 	return k_nl, p_nl
@@ -39,18 +39,18 @@ def compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff):
 def get_halo_functions(block, pipeline, mass, z_vec):
 	if pipeline == True:
 		# load the halo mass function
-		dn_dlnm = block["hmf", "dndlnmh"]
+		dn_dlnm = block['hmf', 'dndlnmh']
 		# load the halobias
-		b_dm = block["halobias", "b_hb"]
+		b_dm = block['halobias', 'b_hb']
 	else:		
 		# load the halo mass function
-		mass_hmf = block["hmf", "m_h"]
-		z_hmf = block["hmf", "z"]
-		dndlnmh_hmf = block["hmf", "dndlnmh"]
+		mass_hmf = block['hmf', 'm_h']
+		z_hmf = block['hmf', 'z']
+		dndlnmh_hmf = block['hmf', 'dndlnmh']
 		# load the halobias
-		mass_hbf = block["halobias", "m_h"]
-		z_hbf = block["halobias", "z"]
-		halobias_hbf = block["halobias", "b_hb"]		
+		mass_hbf = block['halobias', 'm_h']
+		z_hbf = block['halobias', 'z']
+		halobias_hbf = block['halobias', 'b_hb']
 		# interpolate all the quantities that enter in the integrals
 		dn_dlnm = interpolate2d_dndlnm(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec)
 		b_dm = interpolate2d_halobias(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
@@ -61,25 +61,25 @@ def get_halo_functions(block, pipeline, mass, z_vec):
 # --------------------- #	
 
 def load_growth_factor(block, z_vec):
-	z_gwf = block["growth_parameters", "z"]
-	D_gwf = block["growth_parameters", "d_z"]
+	z_gwf = block['growth_parameters', 'z']
+	D_gwf = block['growth_parameters', 'd_z']
 	f_interp = interp1d(z_gwf, D_gwf)
 	D_z = f_interp(z_vec)
 	return D_z
 
 def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
 	# here I am assuming that the redshifts used in wkm_module and the pk_module match!
-	#print( "entering get_satellite_alignment..")
+	#print( 'entering get_satellite_alignment..')
 	wkm = np.empty([z_vec.size, mass.size, k_vec.size])
 	for jz in range(0,z_vec.size):
-		wkm_tmp = block["wkm_z%d"%jz + suffix,"w_km"]
-		k_wkm = block["wkm_z%d"%jz + suffix,"k_h"]
-		mass_wkm = block["wkm_z%d"%jz + suffix,"mass"]
+		wkm_tmp = block['wkm_z%d'%jz + suffix,'w_km']
+		k_wkm = block['wkm_z%d'%jz + suffix,'k_h']
+		mass_wkm = block['wkm_z%d'%jz + suffix,'mass']
 		w_interp2d = interp2d(k_wkm, mass_wkm, wkm_tmp)
 		wkm_interpolated = w_interp2d(k_vec, mass)
-		#print "wkm_interp.shape = ", wkm_interpolated.shape
+		#print 'wkm_interp.shape = ', wkm_interpolated.shape
 		wkm[jz] = wkm_interpolated		
-	#print( "wkm.shape = ", wkm.shape)
+	#print( 'wkm.shape = ', wkm.shape)
 	return wkm
 
 
@@ -102,16 +102,16 @@ def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
 	
 # load the hod
 def load_hods(block, section_name, pipeline, z_vec, mass):
-	#section_name = "hod" + suffix
+	#section_name = 'hod' + suffix
 	print (section_name)
-	m_hod = block[section_name, "mass"]
-	z_hod = block[section_name,  "z"]  
-	Ncen_hod = block[section_name, "n_cen"]
-	Nsat_hod = block[section_name, "n_sat"]
-	numdencen_hod = block[section_name, "number_density_cen"]
-	numdensat_hod = block[section_name, "number_density_sat"]
-	f_c_hod = block[section_name, "central_fraction"]
-	f_s_hod = block[section_name, "satellite_fraction"]
+	m_hod = block[section_name, 'mass']
+	z_hod = block[section_name,  'z']
+	Ncen_hod = block[section_name, 'n_cen']
+	Nsat_hod = block[section_name, 'n_sat']
+	numdencen_hod = block[section_name, 'number_density_cen']
+	numdensat_hod = block[section_name, 'number_density_sat']
+	f_c_hod = block[section_name, 'central_fraction']
+	f_s_hod = block[section_name, 'satellite_fraction']
 	#if pipeline == True:
 	#	Ncen = Ncen_hod
 	#	Nsat = Nsat_hod
@@ -122,10 +122,11 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
 	#else:
 	interp_Ncen = interp2d(m_hod, z_hod, Ncen_hod)
 	interp_Nsat = interp2d(m_hod, z_hod, Nsat_hod)
-	interp_numdencen = interp1d(z_hod, numdencen_hod)
-	interp_numdensat = interp1d(z_hod, numdensat_hod)
-	interp_f_c = interp1d(z_hod, f_c_hod)
-	interp_f_s = interp1d(z_hod, f_s_hod)
+    # AD: Is extrapolation warranted here? Maybe make whole calculation on same grid/spacing/thingy!?
+	interp_numdencen = interp1d(z_hod, numdencen_hod, fill_value='extrapolate')
+	interp_numdensat = interp1d(z_hod, numdensat_hod, fill_value='extrapolate')
+	interp_f_c = interp1d(z_hod, f_c_hod, fill_value='extrapolate')
+	interp_f_s = interp1d(z_hod, f_s_hod, fill_value='extrapolate')
 	Ncen = interp_Ncen(mass, z_vec)
 	Nsat = interp_Nsat(mass, z_vec)
 	#print ('z_hod', z_hod)
@@ -142,8 +143,8 @@ def load_galaxy_fractions(filename, z_vec):
 	if np.allclose(z_file, z_vec, atol=1e-3):
 		return fraction_file
 	else:
-		print("The redshift of the input galaxy fractions do not match the ranges"
-			"set in the pipeline. Performing interpolation.")
+		print('The redshift of the input galaxy fractions do not match the ranges'
+			'set in the pipeline. Performing interpolation.')
 		gal_frac_interp = interp(z_vec, z_file, fraction_file)
 		print( gal_frac_interp)
 		return gal_frac_interp
