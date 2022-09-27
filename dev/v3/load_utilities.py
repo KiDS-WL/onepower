@@ -122,10 +122,11 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
 	#else:
 	interp_Ncen = interp2d(m_hod, z_hod, Ncen_hod)
 	interp_Nsat = interp2d(m_hod, z_hod, Nsat_hod)
-	interp_numdencen = interp1d(z_hod, numdencen_hod)
-	interp_numdensat = interp1d(z_hod, numdensat_hod)
-	interp_f_c = interp1d(z_hod, f_c_hod)
-	interp_f_s = interp1d(z_hod, f_s_hod)
+    # AD: Is extrapolation warranted here? Maybe make whole calculation on same grid/spacing/thingy!?
+	interp_numdencen = interp1d(z_hod, numdencen_hod, fill_value='extrapolate')
+	interp_numdensat = interp1d(z_hod, numdensat_hod, fill_value='extrapolate')
+	interp_f_c = interp1d(z_hod, f_c_hod, fill_value='extrapolate')
+	interp_f_s = interp1d(z_hod, f_s_hod, fill_value='extrapolate')
 	Ncen = interp_Ncen(mass, z_vec)
 	Nsat = interp_Nsat(mass, z_vec)
 	#print ('z_hod', z_hod)
