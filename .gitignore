@@ -9,4 +9,4 @@
 .spyproject
 *.fits
 /filesfromIsaac
-
+runs/*/chain/*
