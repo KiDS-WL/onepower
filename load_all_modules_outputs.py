@@ -3,6 +3,11 @@ import sys
 import numpy as np
 import os
 
+############################################################################
+# Marika: Do we even need this file? 
+############################################################################
+
+
 def setup(options):
     ref_run = '/Volumes/Samsung_T5/referee_paperI/mc_uncertainties_run/ref_run'
     return ref_run
@@ -10,7 +15,10 @@ def setup(options):
 def execute(block,config):
     
     ref_run = config 
-    
+    ############################################################################
+    # Marika: Remove loadtxt everywhere. 
+    # If a file needs to be read it should be specified in setup
+    ############################################################################
     # load matter lin    
     k_h_lin = np.loadtxt(os.path.join(ref_run, 'matter_power_lin/k_h.txt'))
     pk_lin = np.loadtxt(os.path.join(ref_run, 'matter_power_lin/p_k.txt'))

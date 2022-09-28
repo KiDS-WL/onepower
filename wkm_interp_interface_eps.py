@@ -15,7 +15,7 @@ from scipy.special import legendre, sici, binom
 import math
 
 
-from uell_radial_dependent_alignment_lib_v3_eps import radvir, IA_uell_gamma_r_hankel, wkm_my_fell
+from uell_radial_dependent_alignment_lib_eps import radvir, IA_uell_gamma_r_hankel, wkm_my_fell
 from hankel import HankelTransform
 
 # We have a collection of commonly used pre-defined block section names.

@@ -30,7 +30,7 @@ def natural_keys(text):
     """
     return [ atoi(c) for c in re.split('(\d+)', text) ]
     
-def load_data(file_name): #, red_fraction):
+def load_data(file_name): 
 	logmass_bins = np.loadtxt(file_name+'/logmass.txt')
 	mass_bins = 10.**logmass_bins
 	#mass_bins = np.loadtxt(file_name+'/mass.txt')

@@ -20,22 +20,6 @@ def get_linear_power_spectrum(block, z_vec):
 	plin = interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec)
 	return k_vec, plin, growth_factor
 
-# for testing purposes
-"""
-def get_linear_power_spectrum(block, z_vec):
-	k_vec = block['matter_power_lin', 'k_h']
-	#--------------------------------------#
-	nz = len(z_vec)
-	p_lin_aj = np.empty([nz, len(k_vec)])
-	for jz in range(0, nz):
-		k_aj, p_lin_aj_tmp = np.loadtxt('../ia_halo_model_tests/andrej_comparison/Andrej/Plin3/Plin_%d.txt' % (jz + 1), unpack=True)
-		p_interp = interp1d(k_aj, p_lin_aj_tmp, bounds_error=False, fill_value=0)
-		p_lin_aj[jz] = p_interp(k_vec)
-	plin = p_lin_aj
-	#--------------------------------------#
-	growth_factor = np.ones(nz)
-	return k_vec, plin, growth_factor
-"""
 
 def get_nonlinear_power_spectrum(block, z_vec):
 	k_nl = block['matter_power_nl', 'k_h']

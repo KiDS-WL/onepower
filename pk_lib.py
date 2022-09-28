@@ -13,7 +13,7 @@ from itertools import count
 import time
 #import timing
 from darkmatter_lib import compute_u_dm, radvir_from_mass
-import dill as pickle
+# import dill as pickle
 from dark_emulator import darkemu
 
 
@@ -423,7 +423,7 @@ def compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_te
 
 
 # galaxy-galaxy power spectrum
-def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk):
+def compute_p_gg(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk):
     #
     # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     #
@@ -463,7 +463,7 @@ def compute_p_nn(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     #print('p_nn succesfully computed')
     return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
 
-def compute_p_nn_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss):
+def compute_p_gg_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss):
     #
     # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     #
@@ -508,7 +508,7 @@ def compute_p_nn_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
 
 
 # galaxy-matter power spectrum
-def compute_p_xgG(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term):
+def compute_p_gm(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term):
     #
     # p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
     #
@@ -522,7 +522,7 @@ def compute_p_xgG(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_facto
     #print('p_xgG succesfully computed')
     return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
 
-def compute_p_xgG_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm):
+def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm):
     #
     # p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
     #
@@ -544,7 +544,7 @@ def compute_p_xgG_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_f
 
 
 # galaxy-matter power spectrum
-def compute_p_xGI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_factor, alignment_amplitude_2h, nz, nk,
+def compute_p_GI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_factor, alignment_amplitude_2h, nz, nk,
                   f_gal):
     #
     # p_tot = p_sm_GI_1h + f_cen*p_cm_GI_2h + O(any other combination)
@@ -607,7 +607,7 @@ def compute_p_gI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_align_f
 # AD: Not fixing this, as it seems to be not used at all.
 
 # galaxy-galaxy power spectrum
-def compute_p_nn_two_halo(block, k_vec, plin, z_vec, bg):
+def compute_p_gg_two_halo(block, k_vec, plin, z_vec, bg):
     #
     # p_tot = b_g**2 * p_lin
     #
@@ -619,7 +619,7 @@ def compute_p_nn_two_halo(block, k_vec, plin, z_vec, bg):
 
 
 # galaxy-matter power spectrum
-def compute_p_xgG_two_halo(block, k_vec, plin, z_vec, bg):
+def compute_p_gm_two_halo(block, k_vec, plin, z_vec, bg):
     #
     # p_tot = bg * plin
     #
@@ -631,7 +631,7 @@ def compute_p_xgG_two_halo(block, k_vec, plin, z_vec, bg):
 
 
 # galaxy-matter power spectrum
-def compute_p_xGI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h):
+def compute_p_GI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h):
     #
     # p_tot = p_NLA
     #

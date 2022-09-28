@@ -1,6 +1,10 @@
 import numpy as np
 from cosmosis.datablock import option_section, names as section_names
 
+############################################################################
+# Marika: Do we need this file? cosmosis already has a load_nz
+############################################################################
+
 def setup(options):
     filename = options[option_section, 'filepath']
     des_fmt = options.get_bool(option_section,'des_fmt',default=False)

@@ -11,7 +11,6 @@ import math
 from scipy.special import erf
 from itertools import count
 import time
-#import timing
 from darkmatter_lib import compute_u_dm, radvir_from_mass
 
 

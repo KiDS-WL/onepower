@@ -18,7 +18,16 @@ import math
 from load_utilities import get_linear_power_spectrum, get_halo_functions, \
     get_nonlinear_power_spectrum, compute_effective_power_spectrum, \
     get_satellite_alignment, load_growth_factor, load_hods, load_galaxy_fractions
-from pk_lib_v3 import compute_p_mm_new, compute_u_dm_grid, \
+
+############################################################################
+# Marika: Do we need this file and the pk_interface?
+############################################################################
+
+############################################################################
+# Marika: Looks like everything is imported. Maybe better to import the whole library instead
+############################################################################
+
+from pk_lib import compute_p_mm_new, compute_u_dm_grid, \
     prepare_matter_factor_grid, prepare_Im_term, prepare_central_factor_grid, \
     prepare_satellite_factor_grid, prepare_Ic_term, prepare_Is_term, compute_p_nn, \
     prepare_satellite_alignment_factor_grid, compute_p_xgG, compute_p_gI, compute_p_xGI, compute_p_II, \
