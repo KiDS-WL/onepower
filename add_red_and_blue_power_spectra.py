@@ -149,7 +149,7 @@ def execute(block, config):
     #plt.show()
 
     """
-    if p_GG_option:
+    if p_mm_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block['matter_power_nl', 'z']
         f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')

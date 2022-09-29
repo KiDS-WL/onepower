@@ -11,10 +11,9 @@ from scipy.integrate import quad, simps, trapz
 def get_linear_power_spectrum(block, z_vec):
     # AD: growth factor should be computed from camb/hmf directly, this way we can load Plin directly without this functions!
     k_vec = block['matter_power_lin', 'k_h']
-    print(k_vec.shape)
     z_pl = block['matter_power_lin', 'z']
     matter_power_lin = block['matter_power_lin', 'p_k']
-    growth_factor_zlin = block['growth_parameters', 'd_z']
+    growth_factor_zlin = block['growth_parameters', 'd_z'] * np.ones(k_vec.size)
     gf_interp = interp1d(z_pl, growth_factor_zlin, axis=0)
     growth_factor = gf_interp(z_vec)
     # interpolate in redshift

@@ -123,6 +123,7 @@ def setup(options):
     # per each redshift bin, the range of observables over which we can integrate the conditional function changes, due to the
     # flux lim of the survey. This means that per each redshift, we have a different luminosity array to be
     # employed in the log-simpson integration.
+    # AD: For stellar masses it holds the same, but we can also employ this to construct more complex samples/bins. Can pick lower redshift limit for particulare stellar mass, etc...
 
     print('z\t log L_min(z)\t log L_max(z)\n')
     obs_simps = np.empty([nz,nobs])

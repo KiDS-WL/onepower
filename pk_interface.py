@@ -172,9 +172,9 @@ def execute(block, config):
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
     
     # Marika: change this to avoid interpolation error.
-    plin_k_interp = interp1d(k_vec_original, plin_original, axis=1)
+    plin_k_interp = interp1d(k_vec_original, plin_original, axis=1, fill_value='extrapolate')
     plin = plin_k_interp(k_vec)
-    growth_factor_interp = interp1d(k_vec_original, growth_factor_original, axis=1)
+    growth_factor_interp = interp1d(k_vec_original, growth_factor_original, axis=1, fill_value='extrapolate')
     growth_factor = growth_factor_interp(k_vec)
 
 # Marika: to here for now. 
