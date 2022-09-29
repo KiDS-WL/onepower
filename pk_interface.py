@@ -207,7 +207,8 @@ def execute(block, config):
             dn_dlnm, b_dm = load_utilities.get_halo_functions(block, pipeline, mass, z_vec)
             # prepare a grid for the navarro-frenk-white profile
             u_dm, u_sat = pk_lib.compute_u_dm_grid(block, k_vec, mass, z_vec)
-            I_m_term = pk_lib.prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
+            A_term = pk_lib.prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
+            I_m_term = pk_lib.prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk, A_term)
             m_factor = pk_lib.prepare_matter_factor_grid(mass, mean_density0, u_dm)
         if galaxy == True:
             # load linear bias:
@@ -222,7 +223,7 @@ def execute(block, config):
         if p_mm:
             # this is not very useful as for the lensing power spectrum it is usually used halofit
             raise ValueError('pmm not implemented for the two-halo only option\n')
-            # AD: Implement proper matter-matter term using the halo model here. We do now want to use halofit.
+            # AD: Implement proper matter-matter term using the halo model here. We do not want to use halofit.
             # compute_p_mm_new(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor, I_m_term, nz, nk)
         if p_gg:
             pk_gg = pk_lib.compute_p_gg_two_halo(block, k_vec, pk_eff, z_vec, bg)
