@@ -25,8 +25,6 @@ from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
 from itertools import count
 
 import time
-import matplotlib.pyplot as pl
-
 
 # We have a collection of commonly used pre-defined block section names.
 # If none of the names here is relevant for your calculation you can use any
@@ -181,23 +179,9 @@ def execute(block, config):
     phi_c = np.empty([nz, nmass, nobs])
     phi_s = np.empty([nz, nmass, nobs])
 
-    #print(phi_c.shape)
-    #to = time.time()
-    # AD: remove loops!
-    #for jz in range(0, nz):
-    #    for im in range(0,nmass):
-    #        phi_c[jz,im] = cf.cf_cen(obs_simps[jz], mass[im], hod)
-    #        phi_s[jz,im] = cf.cf_sat(obs_simps[jz], mass[im], hod)
-    #print(time.time()-to)
-    #phi_tmp = phi_c
-    #to = time.time()
     phi_c = cf.cf_cen(obs_simps[:,np.newaxis], mass[:,np.newaxis], hod)
     phi_s = cf.cf_sat(obs_simps[:,np.newaxis], mass[:,np.newaxis], hod)
-    #print(time.time()-to)
-    #print(phi_c.shape)
-    #print(np.allclose(phi_tmp,phi_c))
-    #quit()
-
+    
     phi = phi_c + phi_s
 
 
@@ -220,12 +204,9 @@ def execute(block, config):
 
         if number_density_option:
 
-            numdens_cen = np.empty(nz)
-            numdens_sat = np.empty(nz)
+            #numdens_cen = np.empty(nz)
+            #numdens_sat = np.empty(nz)
 
-            #for jz in range(0,nz):
-            #    numdens_cen[jz] = cf.compute_number_density(mass, n_cen[jz], dndlnM[jz]) #this is already normalised
-            #    numdens_sat[jz] = cf.compute_number_density(mass, n_sat[jz], dndlnM[jz]) #this is already normalised
             numdens_cen = cf.compute_number_density(mass, n_cen, dndlnM)
             numdens_sat = cf.compute_number_density(mass, n_sat, dndlnM)
 
@@ -252,14 +233,10 @@ def execute(block, config):
                 f_interp_halobias = interp2d(mass_hbf, z_hbf, halobias_hbf)
                 hbias = f_interp_halobias(mass,z_bins)
 
-                galaxybias_cen = np.empty(nz)
-                galaxybias_sat = np.empty(nz)
-                galaxybias_tot = np.empty(nz)
+                #galaxybias_cen = np.empty(nz)
+                #galaxybias_sat = np.empty(nz)
+                #galaxybias_tot = np.empty(nz)
 
-                #for jz in range(0,nz):
-                #    galaxybias_cen[jz] = cf.compute_galaxy_linear_bias(mass, n_cen[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
-                #    galaxybias_sat[jz] = cf.compute_galaxy_linear_bias(mass, n_sat[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
-                #    galaxybias_tot[jz] = cf.compute_galaxy_linear_bias(mass, n_tot[jz], hbias[jz], dndlnM[jz])/numdens_tot[jz]
                 galaxybias_cen = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_cen, hbias, dndlnM)/numdens_tot
                 galaxybias_sat = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_sat, hbias, dndlnM)/numdens_tot
                 galaxybias_tot = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
@@ -279,11 +256,8 @@ def execute(block, config):
             nl_obs = 100
             obs_range_h = np.logspace(6.5,12.5, nl_obs)
             obs_func_h = np.empty([nz,nl_obs])
-            obs_func_tmp = np.empty([nz,nobs])
+            #obs_func_tmp = np.empty([nz,nobs])
             
-            #for jz in range(0,nz):
-            #    for il in range(0,nobs):
-            #        obs_func_tmp[jz,il] = cf.obs_func(mass, phi[jz,:,il], dndlnM[jz])
             obs_func_tmp = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dndlnM[:,:,np.newaxis], axis=-2)
 
             # interpolate in L_obs to have a consistent grid
@@ -291,9 +265,6 @@ def execute(block, config):
             for jz in range(0,nz):
                 interp = interp1d(obs_simps[jz], obs_func_tmp[jz], kind='linear', bounds_error=False, fill_value=(0,0))
                 obs_func_h[jz] = interp(obs_range_h)
-                #pl.loglog(obs_simps[jz], np.log(10.0)*obs_simps[jz]*obs_func_tmp[jz])
-            #pl.show()
-            #quit()
                 
             #save on datablock
             block.put_grid('observable_function' + suffix,'z', z_bins, 'observable',obs_range_h, 'obs_func', np.log(10.0)*obs_func_h*obs_range_h)
@@ -348,10 +319,7 @@ def execute(block, config):
             # go back to the observed magnitudes
             obs_h = obs_range#/(h**2.) #note that the _h subscript avoids mixing h conventions while computing the clf_quantities
             obs_func_h = obs_func#*(h**5.)
-            #pl.loglog(obs_h, np.log(10.)*obs_func_h*obs_h)
-            #pl.show()
-            #quit()
-
+            
             mr_obs = cf.convert_to_magnitudes(obs_range, abs_mag_sun)
 
             #save on datablock

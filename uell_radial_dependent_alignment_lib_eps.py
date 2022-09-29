@@ -223,13 +223,6 @@ def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass
     #to = time.time()
     uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il, h_transf[i]) for i,il in enumerate(range(0,ell_max+1,2))]
     #print('uell array: ', time.time()-to)
-    """
-    msize = np.size(c, axis=1) #c.shape[1]
-    print ('msize IAuell = ', msize)
-    uell_ia = np.zeros((ell_max+1, z.size, msize, k.size)) 
-    for i in range(0,int(ell_max/2+1)):
-            uell_ia[2*i] = uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, 2*i)
-    """
     return np.array(uell_ia)
 
 #-----------------------------------------------------------------------#
@@ -244,23 +237,7 @@ def wkm_my_fell(uell, theta_k, phi_k, ell_max, gamma_b):
     nz = uell.shape[1]
     nm = uell.shape[2]
     nk = uell.shape[3]
-    """
-    to = time.time()
-    sum_ell = np.zeros([nz,nm,nk])
-    for ell in range(0,ell_max+1,2):
-        angular = another_fell(theta_k, phi_k, ell, gamma_b)
-        c_ = np.real(angular)
-        d_ = np.imag(angular)
-        for jz in range(nz):
-            for im in range(nm):
-                radial = (1j)**(ell) * (2.*ell + 1.) * uell[int(ell/2),jz,im]
-                a_ = np.real(radial)
-                b_ = np.imag(radial)
-                sum_ell[jz,im] = sum_ell[jz,im] + (a_*c_ - b_*d_)  + 1j*(a_*d_ + b_*c_)
-    print(time.time()-to)
-    sumell = sum_ell.copy()
-    """
-    #to = time.time()
+    
     sum_ell = np.zeros([nz,nm,nk])
     for ell in range(0,ell_max+1,2):
         angular = another_fell(theta_k, phi_k, ell, gamma_b)
