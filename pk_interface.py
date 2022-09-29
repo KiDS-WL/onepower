@@ -165,6 +165,7 @@ def execute(block, config):
     
 
 # Marika: Change this bit to read in k_vec and pk from the block directly. Get growth from camb
+# AD: If we can avoid interpolation, then yes. Looking at load_modules.py, we could leave them there to have more utility code separated. Could call them utilities. Dunno
 
     # load linear power spectrum
     k_vec_original, plin_original, growth_factor_original = load_utilities.get_linear_power_spectrum(block, z_vec)
