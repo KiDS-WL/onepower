@@ -6,10 +6,12 @@ from cosmosis.datablock import names, option_section
 import sys
 import numpy as np
 from scipy.interpolate import interp1d, interp2d
+from scipy import interp
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM
 import astropy.units as u
 from dark_emulator import darkemu 
 from scipy.interpolate import RegularGridInterpolator
+from scipy.integrate import quad, simps, trapz
 import timeit
 
 # import hankel
@@ -27,7 +29,6 @@ import os, errno
 cosmo = names.cosmological_parameters
 
 
-# Marika: remove this and move to the main code
 def get_linear_power_spectrum(block, z_vec):
     # AD: growth factor should be computed from camb/hmf directly, this way we can load Plin directly without this functions!
     k_vec = block['matter_power_lin', 'k_h']
