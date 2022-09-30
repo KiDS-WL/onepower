@@ -95,12 +95,7 @@ def add_red_and_blue_power(block, f_red, power_section, z_ext, k_ext):
         nz_ext = len(z_ext)
         pk_tot_ext_z = extrapolate_z(z_ext, z, pk_tot, nk)
         pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext)
-        #for i in range(0,nz_ext):
-        #	plt.loglog(k_ext, np.abs(pk_tot_ext[i]))
-        #plt.show()
-        #for i in range(0,nz):
-        #    plt.loglog(k, np.abs(pk_tot[i]))
-        #plt.show()
+        
         block.put_grid(power_section, 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
 		
 #--------------------------------------------------------------------------------#	
@@ -140,14 +135,6 @@ def execute(block, config):
     z_nl = block['matter_power_nl', 'z']
     k_nl = block['matter_power_nl', 'k_h']
     
-    #for i in range(0,len(z_nl)):
-    #    plt.plot(k_nl, block['matter_power_nl', 'p_k'][i]/block['matter_power_nl_bnl', 'p_k'][i])
-    #plt.loglog(k_nl, block['matter_power_nl', 'p_k'][0])
-    #plt.loglog(k_nl, block['matter_power_nl_bnl', 'p_k'][0])
-    #plt.xscale('log')
-    #plt.loglog(k_nl, block['matter_power_nl_bnl', 'p_k'][0])
-    #plt.show()
-
     """
     if p_mm_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
@@ -170,14 +157,6 @@ def execute(block, config):
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block['matter_intrinsic_power_red', 'z']
         f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
-        #print ('z_hm =', z_hm)
-        #print ('f_red(z_hm)', f_red(z_hm))
-        #import matplotlib.pyplot as plt
-        #plt.plot(z_hm, f_red(z_hm), 'r--')
-        #plt.plot(z_fred_file, f_red_file, 'kD', ls='')
-        #plt.xlabel(r'$z$')
-        #plt.ylabel(r'$f_\mathrm{red}$')
-        #plt.show()
         add_red_and_blue_power(block, f_red(z_hm), 'matter_intrinsic_power', z_nl, k_nl)
     if p_II_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):

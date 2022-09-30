@@ -180,38 +180,16 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
 
     #h_transf = HankelTransform(ell+0.5,300,0.01)
     # We initialise the class in setup as it only depends on predefined ell values
-    #print(h_transf)
     
     uk_l = np.zeros([z.size, msize, k_vec.size])
-    """
-    for jz in range(z.size):
-        for im in range(msize):
-            for kk in range(k_vec.size):
-                nfw_f = lambda x: gamma_r_nfw_profile(x/k_vec[kk], r_s[jz,im], rvir[im], gamma_1h_amplitude[jz], gamma_b)*(x**2.)*np.sqrt(np.pi/(2.*x))
-                uk_l[jz, im, kk] = h_transf.integrate(nfw_f)[0]/(k_vec[kk]**3. * mnfw[jz,im])
-    #"""
-    #print(time.time()-to)
-    #ukll = uk_l.copy()
-    #to = time.time()
+    
     for jz in range(z.size):
         for im in range(msize):
             nfw_f = lambda x: gamma_r_nfw_profile(x, r_s[jz,im], rvir[im], gamma_1h_amplitude[jz], gamma_b) * np.sqrt((x*np.pi)/2.0)
             uk_l[jz, im, :] = h_transf.transform(nfw_f, k_vec)[0] / (k_vec**0.5 * mnfw[jz,im])
             #best_h, result, best_N = hankel.get_h(nfw_f, ell+0.5, k_vec)
             #print(f'best_h = {best_h}, best_N={best_N}')
-    #print('uell transform: ', time.time()-to)
-    #print(uk_l/ukll)
-    #print(np.allclose(ukll, uk_l))
-    #plt.plot(ukll[0,0,:])
-    #plt.plot(uk_l[0,0,:])
-    #plt.plot(uk_l[0,0,:]/ukll[0,0,:])
-    #plt.xscale('log')
-    #plt.yscale('log')
-    #plt.savefig('/net/fohlen13/home/dvornik/wkl.pdf')
-    #plt.show()
     
-    #quit()
-    #uk_l = h_transf.integrate(nfw_f)[0]/(k_vec**3. * mnfw)
     return uk_l
 
 #------------------------------ uell -----------------------------------#
@@ -220,9 +198,7 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
 # uell[l,z,m,k]
 def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass, ell_max, h_transf):
     # AD: This is just adding another loop in ell around the above function. Might want to combine...
-    #to = time.time()
     uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il, h_transf[i]) for i,il in enumerate(range(0,ell_max+1,2))]
-    #print('uell array: ', time.time()-to)
     return np.array(uell_ia)
 
 #-----------------------------------------------------------------------#
@@ -248,9 +224,4 @@ def wkm_my_fell(uell, theta_k, phi_k, ell_max, gamma_b):
         b_ = np.imag(radial)
         sum_ell = sum_ell + (a_*c_ - b_*d_)  + 1j*(a_*d_ + b_*c_)
                 
-                
-                
-    #print('wkm: ', time.time()-to)
-    
-    
     return np.sqrt(np.real(sum_ell)**2.+np.imag(sum_ell)**2.)
