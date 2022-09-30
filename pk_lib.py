@@ -168,7 +168,7 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     factor_1 = np.transpose(factor_1, [0,2,1])
     factor_2 = np.transpose(factor_2, [0,2,1])
     
-    to = time.time()
+    #to = time.time()
     # AD: This is slow because there is millions of values to evaluate B_NL_interp on. Could we reduce this to be less calls to the interpolating function?
     #B_NL_k_z[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = B_NL_interp(values)
     
@@ -190,7 +190,7 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     beta_21 = A * factor_2[:,0,:] * integral_21 * rho_mean[:,np.newaxis] / mass_2[0]
     
     I_NL = beta_11 + beta_12 + beta_21 + beta_22
-    print(time.time()-to)
+    #print(time.time()-to)
     return I_NL
 
 
@@ -252,20 +252,7 @@ def create_bnl_interpolation_function(emulator, interpolation):
     k = np.logspace(-2.0, 1.5, 50) #50)
     z = np.linspace(0.0, 0.5, 5)
     
-    beta_func = np.zeros((len(z), len(M), len(M), len(k)))
-    
-    #indices = np.vstack(np.meshgrid(np.arange(len(z)), np.arange(len(M)), np.arange(len(M)))).reshape(3,-1).T
-    #values = np.vstack(np.meshgrid(z, np.log10(M), np.log10(M))).reshape(3, -1).T
-    #to = time.time()
-    #for i, val in enumerate(values):
-        #print('values: ', val)
-        #print('indices: ', indices[i,:])
-        #print('k: ', indices[i,3])
-        #beta_func[indices[i,0], indices[i,1], indices[i,2], :] = compute_bnl_darkquest(val[0], val[1], val[2], k, emulator)
-    #print(time.time()-to)
-    to = time.time()
     beta_func = compute_bnl_darkquest_2(z, np.log10(M), np.log10(M), k, emulator)
-    print(time.time()-to)
     if interpolation == True:
         beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
     else:

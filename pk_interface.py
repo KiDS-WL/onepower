@@ -23,7 +23,6 @@ import pk_lib
 import time
 
 import os, errno
-# import dill as pickle
 
 cosmo = names.cosmological_parameters
 
@@ -92,7 +91,7 @@ def setup(options):
         sys.exit()
 
 
-# Marika: what does the two halo only do? Do we need this?
+    # Marika: what does the two halo only do? Do we need this?
     if (two_halo_only == True) and (p_mm == True) or (p_mm_bnl == True):
         gravitational = True
     elif (two_halo_only == False) and ((p_mm == True) or (p_gm == True) or (p_GI == True) or (p_gm_bnl == True)):
@@ -150,7 +149,6 @@ def setup(options):
            ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl, emulator, cached_bnl
 
 
-# @profile
 def execute(block, config):
     # This function is called every time you have a new sample of cosmological and other parameters.
     # It is the main workhorse of the code. The block contains the parameters and results of any
@@ -164,8 +162,8 @@ def execute(block, config):
     mean_density0 = block['density', 'mean_density0']
     
 
-# Marika: Change this bit to read in k_vec and pk from the block directly. Get growth from camb
-# AD: If we can avoid interpolation, then yes. Looking at load_modules.py, we could leave them there to have more utility code separated. Could call them utilities. Dunno
+    # Marika: Change this bit to read in k_vec and pk from the block directly. Get growth from camb
+    # AD: If we can avoid interpolation, then yes. Looking at load_modules.py, we could leave them there to have more utility code separated. Could call them utilities. Dunno
 
     # load linear power spectrum
     k_vec_original, plin_original, growth_factor_original = load_utilities.get_linear_power_spectrum(block, z_vec)
@@ -177,7 +175,7 @@ def execute(block, config):
     growth_factor_interp = interp1d(k_vec_original, growth_factor_original, axis=1, fill_value='extrapolate')
     growth_factor = growth_factor_interp(k_vec)
 
-# Marika: to here for now. 
+    # Marika: to here for now.
     #k_interp = interp1d(k_vec, plin, axis=1)
     #k_vec = np.logspace(np.log10(k_vec.min()), np.log10(k_vec.max()-1), nk)
     #plin = k_interp(k_vec)
@@ -265,18 +263,15 @@ def execute(block, config):
                 cparam = np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w])
                 print('cparam: ', cparam)
                 emulator.set_cosmology(cparam)
-
-            
+                
                 beta_interp_tmp = pk_lib.create_bnl_interpolation_function(emulator, interpolate_bnl)
                 print('created b_nl interpolator')
         
                 beta_interp = np.zeros((z_vec.size, mass.size, mass.size, k_vec.size))
                 indices = np.vstack(np.meshgrid(np.arange(z_vec.size),np.arange(mass.size),np.arange(mass.size),np.arange(k_vec.size), copy = False)).reshape(4,-1).T
                 values = np.vstack(np.meshgrid(z_vec, np.log10(mass), np.log10(mass), k_vec, copy = False)).reshape(4,-1).T
-                to = time.time()
                 beta_interp[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = beta_interp_tmp(values)
-                print(time.time()-to)
-            
+    
                 cached_bnl['cached_bnl' + suffix] = beta_interp
             else:
                 beta_interp = cached_bnl['cached_bnl' + suffix]
@@ -291,7 +286,6 @@ def execute(block, config):
             if bnl_mm == True:
                 I_NL_mm = pk_lib.prepare_I_NL_mm(mass, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                 
-                
         if (galaxy == True) or (alignment == True):
             #print(hod_section_name)
             Ncen, Nsat, numdencen, numdensat, f_cen, f_sat = load_utilities.load_hods(block, hod_section_name, pipeline, z_vec, mass)
@@ -302,9 +296,7 @@ def execute(block, config):
                 # preparing the 2h term
                 I_c_term = pk_lib.prepare_Ic_term(mass, c_factor, b_dm, dn_dlnm, nz, nk)
                 I_s_term = pk_lib.prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)
-                
-
-                    
+            
                 if bnl == True:
                     start = time.time()
                     I_NL_cs = pk_lib.prepare_I_NL_cs(mass, c_factor, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
@@ -313,15 +305,12 @@ def execute(block, config):
                     I_NL_ss = pk_lib.prepare_I_NL_ss(mass, s_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                     I_NL_cc = pk_lib.prepare_I_NL_cc(mass, c_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
 
-                        
-
                 if bnl_gm == True:
                     I_NL_cm = pk_lib.prepare_I_NL_cm(mass, c_factor, m_factor, b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                     I_NL_sm = pk_lib.prepare_I_NL_sm(mass, s_factor, m_factor,  b_dm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
-                        
-
+                    
             if alignment == True:
-		#IT commenting ia_lum_dep_centrals
+                #IT commenting ia_lum_dep_centrals
                 alignment_amplitude_2h, alignment_amplitude_2h_II = pk_lib.compute_two_halo_alignment(block, suffix, nz, nk,
                                                                                                growth_factor, mean_density0)#,
                                                                                                #ia_lum_dep_centrals)
@@ -342,7 +331,6 @@ def execute(block, config):
                 # preparing the 1h term
                 s_align_factor = pk_lib.prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, gamma_1h, nz,
                                                                          nk, nmass)
-
         # compute the power spectra
         if p_mm == True:
             pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor,
@@ -385,22 +373,22 @@ def execute(block, config):
 
         if p_gm == True:
             #print('computing p_gm...')
-	    #IT Replacing pk_eff by plin
+            #IT Replacing pk_eff by plin
             pk_1h, pk_2h, pk_tot = pk_lib.compute_p_gm(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, m_factor, I_c_term, I_s_term,
                           I_m_term)
             #block.put_grid('matter_galaxy_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_1h)
             #block.put_grid('matter_galaxy_power_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_2h)
-	    #IT Adding suffix to matter_galaxy_power
+            #IT Adding suffix to matter_galaxy_power
             block.put_grid('matter_galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
         
         if p_gm_bnl == True:
             print('computing p_gm with beyond-linear bias...')
-	    #IT Replacing pk_eff by plin
+            #IT Replacing pk_eff by plin
             pk_1h_bnl, pk_2h_bnl, pk_tot_bnl = pk_lib.compute_p_gm_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, m_factor, I_c_term, I_s_term,
                           I_m_term, I_NL_cm, I_NL_sm)
             #block.put_grid('matter_galaxy_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_1h)
             #block.put_grid('matter_galaxy_power_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_2h)
-	    #IT Adding suffix to matter_galaxy_power
+            #IT Adding suffix to matter_galaxy_power
             block.put_grid('matter_galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot_bnl)
 
         if p_II == True:
@@ -412,7 +400,7 @@ def execute(block, config):
         if p_gI == True:
             #print('computing p_gI...')
             pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, c_factor, s_align_factor, I_c_term, alignment_amplitude_2h, nz, nk)
-	    #IT Added galaxy_intrinsic_power to datablock
+            #IT Added galaxy_intrinsic_power to datablock
             block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
         if p_GI == True:
             #print('computing p_GI...')
@@ -422,12 +410,6 @@ def execute(block, config):
             #block.put_grid('matter_intrinsic_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_1h)
             #block.put_grid('matter_intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)
             block.put_grid('matter_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI)
-
-    # after = hp.heap()
-    # leftover= after - before
-    # print leftover
-
-    #print('--- pk: %s seconds ---' % (time.time() - start_time))
 
     return 0
 
