@@ -460,13 +460,13 @@ def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
 
 
 # galaxy-matter power spectrum
-def compute_p_GI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_factor, alignment_amplitude_2h, nz, nk,
+def compute_p_mI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_factor, alignment_amplitude_2h, nz, nk,
                   f_gal):
     #
     # p_tot = p_sm_GI_1h + f_cen*p_cm_GI_2h + O(any other combination)
     #
     # 2-halo term:
-    pk_cm_2h = compute_p_GI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cm_2h = compute_p_mI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     # 1-halo term
     pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     # prepare the 1h term
@@ -541,7 +541,7 @@ def compute_p_gm_two_halo(block, k_vec, plin, z_vec, bg):
 
 
 # galaxy-matter power spectrum
-def compute_p_GI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h):
+def compute_p_mI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h):
     #
     # p_tot = p_NLA
     #

@@ -204,7 +204,7 @@ def setup(options):
     p_gm = options.get_bool(option_section, 'p_gm',default=False)
     p_gm_bnl = options.get_bool(option_section, 'p_gm_bnl',default=False)
     p_gI = options.get_bool(option_section, 'p_gI',default=False)
-    p_GI = options.get_bool(option_section, 'p_GI',default=False)
+    p_GI = options.get_bool(option_section, 'p_mI',default=False)
     p_II = options.get_bool(option_section, 'p_II',default=False)
     interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl',default=False)
 
@@ -494,7 +494,7 @@ def execute(block, config):
             #block.put_grid('matter_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
             # If you want to use this power spectrum to do cosmic shear, replace the lines above with the following:
             #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
-            block.put_grid('matter_power_nl_bnl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
+            block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
 
         if p_gg == True:
             pk_gg_1h, pk_gg_2h, pk_gg, bg_halo_model = pk_lib.compute_p_gg(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor,
@@ -545,14 +545,14 @@ def execute(block, config):
             pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, c_factor, s_align_factor, I_c_term, alignment_amplitude_2h, nz, nk)
             #IT Added galaxy_intrinsic_power to datablock
             block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
-        if p_GI == True:
+        if p_mI == True:
             #print('computing p_GI...')
             # compute_p_GI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor, s_align_factor, alignment_amplitude_2h, nz, nk, f_red_cen)
-            pk_GI_1h, pk_GI_2h, pk_GI = pk_lib.compute_p_GI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor,
+            pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor,
                                                          s_align_factor, alignment_amplitude_2h, nz, nk, f_cen)
             #block.put_grid('matter_intrinsic_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_1h)
             #block.put_grid('matter_intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)
-            block.put_grid('matter_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI)
+            block.put_grid('matter_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)
 
     return 0
 
