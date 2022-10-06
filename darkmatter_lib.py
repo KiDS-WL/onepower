@@ -15,6 +15,9 @@ import hmf.halos.mass_definitions as md
 # Concentration-mass relations
 
 def concentration(block, mass, z_vec, model, mdef, overdensity):
+    # calculates concentration given halo mass, using the colossus model provided in config
+    # furthermore it converts to halomod instance to be used with the halomodel, consistenly with halo mass function
+    # and halo bias function
     nz = len(z_vec)
     nmass = len(mass)
     c = np.empty([nz, nmass])

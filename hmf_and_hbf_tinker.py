@@ -17,6 +17,7 @@ import astropy.units as u
 from scipy.integrate import simps
 from hmf import MassFunction
 from halomod import bias as bias_func
+import time
 
 # AD: Leaving in for now...
 def tinker_bias(nu, Delta=200., delta_c=1.686):
@@ -60,11 +61,10 @@ def setup(options):
     # most general astropy cosmology initialisation, gets updated as sampler runs with camb provided cosmology parameters.
     # setting some values to generate instance
     initialise_cosmo=Flatw0waCDM(
-        H0=70., Ob0=0.044, Om0=0.3, Tcmb0=2.725, w0=-1., wa=0.)
-    
-
+        H0=70., Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
+        
     mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
-					  hmf_model=options[option_section, 'hmf_model'], mdef_model=options[option_section, 'mdef_model'], mdef_params={'overdensity':options[option_section, 'overdensity']}, transfer_model='EH', delta_c=options[option_section, 'delta_c'])
+					  hmf_model=options[option_section, 'hmf_model'], mdef_model=options[option_section, 'mdef_model'], mdef_params={'overdensity':options[option_section, 'overdensity']}, transfer_model='CAMB', delta_c=options[option_section, 'delta_c'])
     # This mf parameters that are fixed here now need to be read from the ini files! Need to make sure camb is not called when initialising the mf!
     #print( mf.cosmo)
     
@@ -83,19 +83,14 @@ def execute(block, config):
     # Update the cosmological parameters
     #this_cosmo.update(cosmo_params={'H0':block[cosmo_names, 'hubble'], 'Om0':block[cosmo_names, 'omega_m'], 'Ob0':block[cosmo_names, 'omega_b']})
     this_cosmo_run=Flatw0waCDM(
-        H0=block[cosmo_names, 'hubble'], Ob0=block[cosmo_names, 'omega_b'], Om0=block[cosmo_names, 'omega_m'], Tcmb0=2.725,
+        H0=block[cosmo_names, 'hubble'], Ob0=block[cosmo_names, 'omega_b'], Om0=block[cosmo_names, 'omega_m'], Tcmb0=block[cosmo_names, 'TCMB'],
 		w0=block[cosmo_names, 'w'], wa=block[cosmo_names, 'wa'])
     ns = block[cosmo_names, 'n_s']
-
-    #--------------------------------------#
-    # read sigma_8 for the given cosmology
-    #--------------------------------------#
 
     # Note that CAMB does not return the sigma_8 at z=0, as it might seem from the documentation, but sigma_8(z),
     # so the user should always start from z=0
     sigma_8 = block[cosmo_names, 'sigma_8']
-    #print ('sigma_8 = ', sigma_8)
-
+    
     nmass_hmf = len(mf.m)
 
     dndlnmh = np.empty([nz, nmass_hmf])
@@ -105,18 +100,13 @@ def execute(block, config):
     mean_density_z = np.empty([nz])
     for jz in range(0,nz):
         mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns)
-
-        #print ( 'mf.mean_density0 = ', mf.mean_density0 )
-
-        # Tinker assumes a different definition of nu:
-        nu[jz] = mf.nu #sqrt not needed, done internally in bias function!
+        nu[jz] = mf.nu
         dndlnmh[jz] = mf.dndlnm
         mean_density0[jz] = mf.mean_density0
         mean_density_z[jz] = mf.mean_density
         bias = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c, delta_halo=overdensity, sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
         b_nu[jz] = bias.bias()
-        #matter_power_lin[jz+1] = mf.power
-        # AD: add here the mean_density at z=0 as output, growth factor, etc!
+        #matter_power_lin[jz+1] = mf.power # we rather read linear power spectrum directly from camb, even though hmf does the same... (avoiding double work)
 
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnmh)
     block.put_double_array_1d('density', 'mean_density0', mean_density0)

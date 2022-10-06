@@ -58,7 +58,6 @@ def setup(options):
     # initialise Hankel transform
     h_transform = [HankelTransform(ell+0.5,300,0.01) for ell in range(0,ell_max+1,2)]
     # integration step size and number of r-bins to be reviewed! We might want to have more precise evaluation!
-    #print(h_transform)
 
     return z_vec, nz, mass, nmass, k_vec, nk, suffix, h_transform, ell_max
 
@@ -94,17 +93,10 @@ def execute(block, config):
     rvir = block['virial_radius', 'rvir_dm']
     mass = mass_halo
 
-
-    #print('r_s.shape = ', r_s.shape)
-    #print('rvir.shape = ', rvir.shape)
-    #print('c.shape = ', c.shape)
-    #print('mass.shape = ', mass.shape)
-
     #ell_max = 6
     # uell[l,z,m,k]
     # AD: THIS FUNCTION IS THE SLOWEST PART!
     uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max, h_transform)
-    #print (uell.shape)
     # interpolate
     # Do we need this interpolation???
     uell_interpolated = np.empty([int(ell_max/2+1), nz, nmass_setup, nk_setup])
@@ -112,20 +104,15 @@ def execute(block, config):
         for jz in range(0,nz):
             f_interp = interp2d(k, mass, uell[il, jz], kind='linear', bounds_error=False) #, fill_value=0)
             uell_interpolated[il,jz] = f_interp(k_setup, mass_setup)
-    #print ('interp ok')
-    
     
     # wkm[nz,nmass,nk]
     theta_k = np.pi/2.
     phi_k = 0.
     wkm = wkm_my_fell(uell_interpolated, theta_k, phi_k, ell_max, gamma_1h_slope)
-    #print('wkm.shape = ', wkm.shape)
+
     for jz in range(0,nz):
         block.put_grid( 'wkm_z%d'%jz+suffix, 'mass', mass_setup, 'k_h', k_setup, 'w_km', wkm[jz,:,:])
     block.put_double_array_1d('wkm'+suffix, 'z', z)
-
-    #print('--- wkm: %s seconds ---' % (time.time() - start_time))
-
 
     return 0
 

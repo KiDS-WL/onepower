@@ -22,7 +22,7 @@ GI -> pk_tot = f_red * pk_red + (1-f_red) * pk_blue
 II -> pk_tot = f_red**2. * pk_red + (1-f_red)**2. * pk_blue
 gI -> pk_tot = f_red**2. * pk_red + (1-f_red)**2. * pk_blue
 gg -> pk_tot = f_red**2. * pk_red + (1-f_red)**2. * pk_blue
-gG -> pk_tot = f_red * pk_red + (1-f_red) * pk_blue
+gm -> pk_tot = f_red * pk_red + (1-f_red) * pk_blue
 
 """
 
@@ -95,12 +95,7 @@ def add_red_and_blue_power(block, f_red, power_section, z_ext, k_ext):
         nz_ext = len(z_ext)
         pk_tot_ext_z = extrapolate_z(z_ext, z, pk_tot, nk)
         pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext)
-        #for i in range(0,nz_ext):
-        #	plt.loglog(k_ext, np.abs(pk_tot_ext[i]))
-        #plt.show()
-        #for i in range(0,nz):
-        #    plt.loglog(k, np.abs(pk_tot[i]))
-        #plt.show()
+        
         block.put_grid(power_section, 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
 		
 #--------------------------------------------------------------------------------#	
@@ -114,19 +109,19 @@ def setup(options):
     z_fred, f_red = np.loadtxt(f_red_file, unpack=True)
     print (z_fred, f_red)
     # matter
-    p_GG_option = options[option_section, 'do_p_GG']
+    p_mm_option = options[option_section, 'do_p_mm']
     # clustering
-    p_nn_option = options[option_section, 'do_p_nn']
+    p_gg_option = options[option_section, 'do_p_gg']
     # galaxy lensing
-    p_xgG_option = options[option_section, 'do_p_xgG']
+    p_gm_option = options[option_section, 'do_p_gm']
     # intrinsic alignment
-    p_xGI_option = options[option_section, 'do_p_xGI']
+    p_GI_option = options[option_section, 'do_p_GI']
     p_II_option = options[option_section, 'do_p_II']
     p_gI_option = options[option_section, 'do_p_gI']
 
     zmax =  options[option_section, 'zmax']
 			
-    return z_fred, f_red, p_GG_option, p_nn_option, p_xgG_option, p_xGI_option, p_II_option, p_gI_option, zmax
+    return z_fred, f_red, p_mm_option, p_gg_option, p_gm_option, p_GI_option, p_II_option, p_gI_option, zmax
 	
 
 def execute(block, config):
@@ -134,50 +129,34 @@ def execute(block, config):
     #It is the main workhorse of the code. The block contains the parameters and results of any
     #earlier modules, and the config is what we loaded earlier.
 	
-    z_fred_file, f_red_file, p_GG_option, p_nn_option, p_xgG_option, p_xGI_option, p_II_option, p_gI_option, zmax = config
+    z_fred_file, f_red_file, p_mm_option, p_gg_option, p_gm_option, p_GI_option, p_II_option, p_gI_option, zmax = config
 
     # load matter_power_nl k and z:
     z_nl = block['matter_power_nl', 'z']
     k_nl = block['matter_power_nl', 'k_h']
     
-    #for i in range(0,len(z_nl)):
-    #    plt.plot(k_nl, block['matter_power_nl', 'p_k'][i]/block['matter_power_nl_bnl', 'p_k'][i])
-    #plt.loglog(k_nl, block['matter_power_nl', 'p_k'][0])
-    #plt.loglog(k_nl, block['matter_power_nl_bnl', 'p_k'][0])
-    #plt.xscale('log')
-    #plt.loglog(k_nl, block['matter_power_nl_bnl', 'p_k'][0])
-    #plt.show()
-
     """
-    if p_GG_option:
+    if p_mm_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block['matter_power_nl', 'z']
         f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
         add_red_and_blue_power(block, f_red(z_hm), 'matter_power', z_nl, k_nl)
     """
-    if p_nn_option:
+    if p_gg_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block['galaxy_power_red', 'z']
         f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
         add_red_and_blue_power(block, f_red(z_hm), 'galaxy_power', z_nl, k_nl)
-    if p_xgG_option:
+    if p_gm_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block['matter_galaxy_power_red', 'z']
         #IT Added bounds_error=False and fill_value extrapolate
         f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
         add_red_and_blue_power(block, f_red(z_hm), 'matter_galaxy_power', z_nl, k_nl)
-    if p_xGI_option:
+    if p_GI_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block['matter_intrinsic_power_red', 'z']
         f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
-        #print ('z_hm =', z_hm)
-        #print ('f_red(z_hm)', f_red(z_hm))
-        #import matplotlib.pyplot as plt
-        #plt.plot(z_hm, f_red(z_hm), 'r--')
-        #plt.plot(z_fred_file, f_red_file, 'kD', ls='')
-        #plt.xlabel(r'$z$')
-        #plt.ylabel(r'$f_\mathrm{red}$')
-        #plt.show()
         add_red_and_blue_power(block, f_red(z_hm), 'matter_intrinsic_power', z_nl, k_nl)
     if p_II_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
