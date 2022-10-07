@@ -115,13 +115,13 @@ def setup(options):
     # galaxy lensing
     p_gm_option = options[option_section, 'do_p_gm']
     # intrinsic alignment
-    p_GI_option = options[option_section, 'do_p_GI']
+    p_mI_option = options[option_section, 'do_p_mI']
     p_II_option = options[option_section, 'do_p_II']
     p_gI_option = options[option_section, 'do_p_gI']
 
     zmax =  options[option_section, 'zmax']
 			
-    return z_fred, f_red, p_mm_option, p_gg_option, p_gm_option, p_GI_option, p_II_option, p_gI_option, zmax
+    return z_fred, f_red, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, zmax
 	
 
 def execute(block, config):
@@ -129,7 +129,7 @@ def execute(block, config):
     #It is the main workhorse of the code. The block contains the parameters and results of any
     #earlier modules, and the config is what we loaded earlier.
 	
-    z_fred_file, f_red_file, p_mm_option, p_gg_option, p_gm_option, p_GI_option, p_II_option, p_gI_option, zmax = config
+    z_fred_file, f_red_file, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, zmax = config
 
     # load matter_power_nl k and z:
     z_nl = block['matter_power_nl', 'z']
@@ -153,7 +153,7 @@ def execute(block, config):
         #IT Added bounds_error=False and fill_value extrapolate
         f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
         add_red_and_blue_power(block, f_red(z_hm), 'matter_galaxy_power', z_nl, k_nl)
-    if p_GI_option:
+    if p_mI_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block['matter_intrinsic_power_red', 'z']
         f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
