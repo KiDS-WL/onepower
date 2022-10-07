@@ -34,7 +34,7 @@ def get_linear_power_spectrum(block, z_vec):
     k_vec = block['matter_power_lin', 'k_h']
     z_pl = block['matter_power_lin', 'z']
     matter_power_lin = block['matter_power_lin', 'p_k']
-    growth_factor_zlin = block['growth_parameters', 'd_z'] * np.ones(k_vec.size)
+    growth_factor_zlin = block['growth_parameters', 'd_z'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
     gf_interp = interp1d(z_pl, growth_factor_zlin, axis=0)
     growth_factor = gf_interp(z_vec)
     # interpolate in redshift
@@ -204,7 +204,7 @@ def setup(options):
     p_gm = options.get_bool(option_section, 'p_gm',default=False)
     p_gm_bnl = options.get_bool(option_section, 'p_gm_bnl',default=False)
     p_gI = options.get_bool(option_section, 'p_gI',default=False)
-    p_GI = options.get_bool(option_section, 'p_mI',default=False)
+    p_mI = options.get_bool(option_section, 'p_mI',default=False)
     p_II = options.get_bool(option_section, 'p_II',default=False)
     interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl',default=False)
 
@@ -237,9 +237,9 @@ def setup(options):
     # Marika: what does the two halo only do? Do we need this?
     if (two_halo_only == True) and (p_mm == True) or (p_mm_bnl == True):
         gravitational = True
-    elif (two_halo_only == False) and ((p_mm == True) or (p_gm == True) or (p_GI == True) or (p_gm_bnl == True)):
+    elif (two_halo_only == False) and ((p_mm == True) or (p_gm == True) or (p_mI == True) or (p_gm_bnl == True)):
         gravitational = True
-    if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_GI == True) or (p_II == True) or (p_gg_bnl == True) or (p_gm_bnl == True):
+    if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gg_bnl == True) or (p_gm_bnl == True):
         galaxy = True
         hod_section_name = options[option_section, 'hod_section_name']
     if (p_gg_bnl == True):
@@ -248,7 +248,7 @@ def setup(options):
         bnl_gm = True
     if (p_mm_bnl == True):
         bnl_mm = True
-    if (p_gI == True) or (p_GI == True) or (p_II == True):
+    if (p_gI == True) or (p_mI == True) or (p_II == True):
         alignment = True
         #IT commented. No longer used
         #ia_lum_dep_centrals = options[option_section, 'ia_luminosity_dependence_centrals']
@@ -288,7 +288,7 @@ def setup(options):
     #print(f_red_cen)
     # ============================================================================== #
 
-    return mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_GI, p_II, gravitational, galaxy, bnl, bnl_gm, bnl_mm, alignment, \
+    return mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_mI, p_II, gravitational, galaxy, bnl, bnl_gm, bnl_mm, alignment, \
            ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl, emulator, cached_bnl
 
 
@@ -297,7 +297,7 @@ def execute(block, config):
     # It is the main workhorse of the code. The block contains the parameters and results of any
     # earlier modules, and the config is what we loaded earlier.
 
-    mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_GI, p_II, gravitational, galaxy, bnl, bnl_gm, bnl_mm, alignment, \
+    mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_mI, p_II, gravitational, galaxy, bnl, bnl_gm, bnl_mm, alignment, \
     ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl, emulator, cached_bnl = config
 
     start_time = time.time()
