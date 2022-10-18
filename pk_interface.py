@@ -459,7 +459,8 @@ def execute(block, config):
                     
             if alignment == True:
                 #IT commenting ia_lum_dep_centrals
-                alignment_amplitude_2h, alignment_amplitude_2h_II = pk_lib.compute_two_halo_alignment(block, suffix, nz, nk,
+                # AD: Will probably be removed after some point when we get all the Bnl terms for IA added!
+                alignment_amplitude_2h, alignment_amplitude_2h_II, C1 = pk_lib.compute_two_halo_alignment(block, suffix, nz, nk,
                                                                                                growth_factor, mean_density0)#,
                                                                                                #ia_lum_dep_centrals)
                 # ============================================================================== #
@@ -476,8 +477,10 @@ def execute(block, config):
                 # it can either be constant or radial dependent -> this is computed in the wkm module, including the amplitude of the
                 # signal (but not its luminosity dependence, which is a separate factor, see above)
                 wkm = get_satellite_alignment(block, k_vec, mass, z_vec, suffix)
-                # preparing the 1h term
+                # preparing the central and satellite terms
                 s_align_factor = pk_lib.prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, gamma_1h, nz,
+                                                                         nk, nmass)
+                c_align_factor = pk_lib.prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_cen, C1, nz,
                                                                          nk, nmass)
         # compute the power spectra
         if p_mm == True:

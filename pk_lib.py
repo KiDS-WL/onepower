@@ -80,8 +80,8 @@ def compute_central_galaxy_factor(Ncen, numdenscen, f_c):
 def compute_satellite_galaxy_factor(Nsat, numdenssat, f_s, u_gal):
     return f_s * Nsat * u_gal / numdenssat
 # central galaxy alignment
-def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_s, C1):
-    return f_s * C1 * scale_factor**2.0 / growth_factor
+def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_c, C1):
+    return f_c * C1 * scale_factor**2.0 / growth_factor
 # satellite galaxy alignment
 def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
     return f_s * Nsat * wkm_sat / numdenssat
@@ -363,7 +363,7 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     alignment_amplitude_2h = -alignment_gi[:,np.newaxis] * (C1 * mean_density0[:,np.newaxis] / growth_factor)
     alignment_amplitude_2h_II = (alignment_gi[:,np.newaxis] * C1 * mean_density0[:,np.newaxis] / growth_factor) ** 2.
     
-    return alignment_amplitude_2h, alignment_amplitude_2h_II
+    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1
 
 
 
