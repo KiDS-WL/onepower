@@ -73,13 +73,16 @@ def compute_1h_term(factor_1, factor_2, mass, dn_dlnm_z):
 # matter
 def compute_matter_factor(mass, mean_density0, u_dm):
     return (mass / mean_density0) * u_dm
-# central galaxy (position)
+# central galaxy position
 def compute_central_galaxy_factor(Ncen, numdenscen, f_c):
     return f_c * Ncen / numdenscen
-# satellite galaxy (position)
+# satellite galaxy position
 def compute_satellite_galaxy_factor(Nsat, numdenssat, f_s, u_gal):
     return f_s * Nsat * u_gal / numdenssat
-# satellite galaxy (alignment)
+# central galaxy alignment
+def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_s, C1):
+    return f_s * C1 * scale_factor**2.0 / growth_factor
+# satellite galaxy alignment
 def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
     return f_s * Nsat * wkm_sat / numdenssat
 
@@ -124,6 +127,29 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
     #s_align_factor *= gamma_1h[:, np.newaxis, np.newaxis]
     #print('s_align_factor successfully computed!')
     return s_align_factor
+    
+# alignment - centrals
+def prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_cen, C1 , nz, nk, nmass):
+    """
+    Prepare the grid in z, k and mass for the central alignment
+    f_cen/n_cen N_cen gamma_hat(k,M)
+    where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
+    times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
+    :param mass:
+    :param Ncen:
+    :param numdencen:
+    :param f_cen:
+    :param wkm:
+    :param gamma_1h:
+    :param nz:
+    :param nk:
+    :param nmass:
+    :return:
+    """
+    c_align_factor = compute_central_galaxy_alignment_factor(scale_factor[:,np.newaxis,:], growth_factor[:,np.newaxis,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1)
+    # AD: Those dimensions are still completely wrong
+    return c_align_factor
+    
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # Two halo functions
@@ -248,7 +274,8 @@ def compute_bnl_darkquest_2(z, log10M1, log10M2, k, emulator):
     
 
 def create_bnl_interpolation_function(emulator, interpolation):
-    M = np.logspace(12.0, 14.0, 5)
+    # AD: The mass range in Bnl needs to be optimised. Preferrentially set to the maximum mass limits in DarkEmulator, with the largest number of bins possible.
+    M = np.logspace(12.1, 15.9, 15)#12.0, 14.0, 5)
     k = np.logspace(-2.0, 1.5, 50) #50)
     z = np.linspace(0.0, 0.5, 5)
     
@@ -313,7 +340,7 @@ def prepare_I_NL_sm(mass, s_factor, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec
     return I_NL_sm
 
 def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_density0):
-    '''
+    """
     The IA amplitude at large scales, including the IA prefactors.
 
     :param block: the CosmoSIS datablock
@@ -324,7 +351,7 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     :param mean_density0: double, mean matter density of the Universe at redshift z=0
     Set in the option section.
     :return: double array 2d (nz, nk), double array 2d (nz, nk) : the large scale alignment amplitudes (GI and II)
-    '''
+    """
     # linear alignment coefficients
     C1 = 5.e-14
     # load the 2h (effective) amplitude of the alignment signal from the data block. 

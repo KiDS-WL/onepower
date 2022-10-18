@@ -35,11 +35,14 @@ def get_linear_power_spectrum(block, z_vec):
     z_pl = block['matter_power_lin', 'z']
     matter_power_lin = block['matter_power_lin', 'p_k']
     growth_factor_zlin = block['growth_parameters', 'd_z'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
+    scale_factor_zlin = block['growth_parameters', 'a'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
     gf_interp = interp1d(z_pl, growth_factor_zlin, axis=0)
     growth_factor = gf_interp(z_vec)
+    a_interp = interp1d(z_pl, scale_factor_zlin, axis=0)
+    scale_factor = a_interp(z_vec)
     # interpolate in redshift
     plin = interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec)
-    return k_vec, plin, growth_factor
+    return k_vec, plin, growth_factor, scale_factor
     
 def get_nonlinear_power_spectrum(block, z_vec):
     k_nl = block['matter_power_nl', 'k_h']
@@ -309,7 +312,7 @@ def execute(block, config):
     # AD: If we can avoid interpolation, then yes. Looking at load_modules.py, we could leave them there to have more utility code separated. Could call them utilities. Dunno
 
     # load linear power spectrum
-    k_vec_original, plin_original, growth_factor_original = get_linear_power_spectrum(block, z_vec)
+    k_vec_original, plin_original, growth_factor_original, scale_factor_original = get_linear_power_spectrum(block, z_vec)
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
     
     # Marika: change this to avoid interpolation error.
@@ -317,6 +320,8 @@ def execute(block, config):
     plin = plin_k_interp(k_vec)
     growth_factor_interp = interp1d(k_vec_original, growth_factor_original, axis=1, fill_value='extrapolate')
     growth_factor = growth_factor_interp(k_vec)
+    scale_factor_interp = interp1d(k_vec_original, scale_factor_original, axis=1, fill_value='extrapolate')
+    scale_factor = scale_factor_interp(k_vec)
 
     # Marika: to here for now.
     #k_interp = interp1d(k_vec, plin, axis=1)
