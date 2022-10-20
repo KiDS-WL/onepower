@@ -487,10 +487,14 @@ def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
 
 
 # galaxy-matter power spectrum
+# AD: We need:
+#
+#       p_sm_mI_1h + p_cm_mI_1h + p_cm_mI_2h + p_sm_mi_2h? + Bnl of course
+#
 def compute_p_mI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_factor, alignment_amplitude_2h, nz, nk,
                   f_gal):
     #
-    # p_tot = p_sm_GI_1h + f_cen*p_cm_GI_2h + O(any other combination)
+    # p_tot = p_sm_mI_1h + f_cen*p_cm_mI_2h + O(any other combination)
     #
     # 2-halo term:
     pk_cm_2h = compute_p_mI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
@@ -507,6 +511,10 @@ def compute_p_mI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_f
 
 
 # intrinsic-intrinsic power spectrum
+# AD: We need:
+#
+#       p_ss_II_1h + p_cc_II_1h + 2*p_sc_II_1h + p_ss_II_2h + p_cc_II_2h + 2*p_sc_II_2h ?? + Bnl of course
+#
 def compute_p_II(block, k_vec, p_eff, z_vec, mass, dn_dln_m, s_align_factor, alignment_amplitude_2h_II, nz, nk, f_gal):
     #
     # p_tot = p_ss_II_1h + p_cc_II_2h + O(p_sc_II_1h) + O(p_cs_II_2h)
@@ -522,6 +530,10 @@ def compute_p_II(block, k_vec, p_eff, z_vec, mass, dn_dln_m, s_align_factor, ali
 
 # galaxy-intrinsic power spectrum
 #IT redefinition as dn_dln_m
+# AD: We need:
+#
+#       p_cs_gI_1h + p_cc_gI_1h + p_ss_gI_1h + p_cs_gI_2h + p_cc_gI_2h + p_ss_gI_2h ?? + Bnl of course
+#
 def compute_p_gI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_align_factor, I_c_term, alignment_amplitude_2h,
                  nz, nk):
     #
