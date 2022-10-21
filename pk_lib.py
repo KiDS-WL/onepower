@@ -369,7 +369,7 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     alignment_amplitude_2h = -alignment_gi[:,np.newaxis] * (C1 * mean_density0[:,np.newaxis] / growth_factor)
     alignment_amplitude_2h_II = (alignment_gi[:,np.newaxis] * C1 * mean_density0[:,np.newaxis] / growth_factor) ** 2.
     
-    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * mean_density0[:,np.newaxis,np.newaxis]
+    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * mean_density0[:,np.newaxis,np.newaxis] * alignment_gi[:,np.newaxis,np.newaxis]
 
 
 
@@ -513,7 +513,7 @@ def compute_p_mI(block, k_vec, p_eff, p_lin, z_vec, mass, dn_dln_m, m_factor, s_
         plt.loglog(k_vec, -1 * pk_tot[i])
     # Above from Maria Cristina, belowe the added missing parts from Schneider & Bridle (+Bnl eventually):
     # Why 1h negative?
-    pk_sm_1h = (-1.0) * f_gal[:,np.newaxis] * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_sm_2h = (-1.0) * compute_2h_term(p_lin, I_m_term, I_s_align_term)# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_cm_2h = (-1.0) * compute_2h_term(p_lin, I_m_term, I_c_align_term)# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
