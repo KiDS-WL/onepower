@@ -146,8 +146,7 @@ def prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_c
     :param nmass:
     :return:
     """
-    c_align_factor = compute_central_galaxy_alignment_factor(scale_factor[:,np.newaxis,:], growth_factor[:,np.newaxis,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1)
-    # AD: Those dimensions are still completely wrong
+    c_align_factor = compute_central_galaxy_alignment_factor(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1)
     return c_align_factor
     
 
@@ -303,6 +302,13 @@ def prepare_Ic_term(mass, c_factor, b_m, dn_dlnm, nz, nk):
     I_c_term = np.tile(np.array([compute_Ig_term(c_factor, mass[np.newaxis,:], dn_dlnm, b_m)]).T, [1,nk])
     return I_c_term
     
+def prepare_Is_align_term(mass, s_align_factor, b_m, dn_dlnm, nz, nk):
+    I_s_align_term = compute_Ig_term(s_align_factor, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
+    return I_s_align_term
+    
+def prepare_Ic_align_term(mass, c_align_factor, b_m, dn_dlnm, nz, nk):
+    I_c_align_term = compute_Ig_term(c_align_factor, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
+    return I_c_align_term
     
 def prepare_I_NL_mm(mass, m_factor, b_m, dn_dlnm, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     # For Constance, do check this!
@@ -363,7 +369,7 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     alignment_amplitude_2h = -alignment_gi[:,np.newaxis] * (C1 * mean_density0[:,np.newaxis] / growth_factor)
     alignment_amplitude_2h_II = (alignment_gi[:,np.newaxis] * C1 * mean_density0[:,np.newaxis] / growth_factor) ** 2.
     
-    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1
+    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * mean_density0[:,np.newaxis,np.newaxis]
 
 
 
@@ -489,9 +495,9 @@ def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
 # galaxy-matter power spectrum
 # AD: We need:
 #
-#       p_sm_mI_1h + p_cm_mI_1h + p_cm_mI_2h + p_sm_mi_2h? + Bnl of course
+#       p_sm_mI_1h + p_cm_mI_2h + p_sm_mi_2h + 2xBnl of course
 #
-def compute_p_mI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_factor, alignment_amplitude_2h, nz, nk,
+def compute_p_mI(block, k_vec, p_eff, p_lin, z_vec, mass, dn_dln_m, m_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, alignment_amplitude_2h, nz, nk,
                   f_gal):
     #
     # p_tot = p_sm_mI_1h + f_cen*p_cm_mI_2h + O(any other combination)
@@ -502,19 +508,31 @@ def compute_p_mI(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_f
     pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     # prepare the 1h term
     pk_tot = pk_sm_1h + pk_cm_2h
-    # save in the datablock
-    # block.put_grid('matter_intrinsic_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cm_2h)
-    # block.put_grid('matter_intrinsic_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_sm_1h)
-    # block.put_grid('matter_intrinsic_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
-    #print('p_xGI succesfully computed')
+    import matplotlib.pyplot as plt
+    for i in range(nz):
+        plt.loglog(k_vec, -1 * pk_tot[i])
+    # Above from Maria Cristina, belowe the added missing parts from Schneider & Bridle (+Bnl eventually):
+    # Why 1h negative?
+    pk_sm_1h = (-1.0) * f_gal[:,np.newaxis] * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_sm_2h = (-1.0) * compute_2h_term(p_lin, I_m_term, I_s_align_term)# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cm_2h = (-1.0) * compute_2h_term(p_lin, I_m_term, I_c_align_term)# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
+    for i in range(nz):
+        plt.loglog(k_vec, -1 * pk_tot[i])
+        plt.loglog(k_vec, -1 * pk_sm_1h[i])
+        plt.loglog(k_vec, -1 * pk_sm_2h[i])
+        plt.loglog(k_vec, -1 * pk_cm_2h[i])
+    plt.show()
+    quit()
     return pk_sm_1h, pk_cm_2h, pk_tot
 
 
 # intrinsic-intrinsic power spectrum
 # AD: We need:
 #
-#       p_ss_II_1h + p_cc_II_1h + 2*p_sc_II_1h + p_ss_II_2h + p_cc_II_2h + 2*p_sc_II_2h ?? + Bnl of course
+#       p_ss_II_1h + p_ss_II_2h + p_cc_II_2h + p_sc_II_2h + 3xBnl of course
 #
+# Needs Poisson parameter as well!
 def compute_p_II(block, k_vec, p_eff, z_vec, mass, dn_dln_m, s_align_factor, alignment_amplitude_2h_II, nz, nk, f_gal):
     #
     # p_tot = p_ss_II_1h + p_cc_II_2h + O(p_sc_II_1h) + O(p_cs_II_2h)

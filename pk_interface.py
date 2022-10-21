@@ -482,6 +482,9 @@ def execute(block, config):
                                                                          nk, nmass)
                 c_align_factor = pk_lib.prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_cen, C1, nz,
                                                                          nk, nmass)
+
+                I_c_align_term = pk_lib.prepare_Ic_align_term(mass, c_align_factor, b_dm, dn_dlnm, nz, nk)
+                I_s_align_term = pk_lib.prepare_Is_align_term(mass, s_align_factor, b_dm, dn_dlnm, nz, nk)
         # compute the power spectra
         if p_mm == True:
             pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor,
@@ -555,8 +558,8 @@ def execute(block, config):
         if p_mI == True:
             #print('computing p_GI...')
             # compute_p_GI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor, s_align_factor, alignment_amplitude_2h, nz, nk, f_red_cen)
-            pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor,
-                                                         s_align_factor, alignment_amplitude_2h, nz, nk, f_cen)
+            pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI(block, k_vec, pk_eff, plin, z_vec, mass, dn_dlnm, m_factor,
+                                                         s_align_factor, I_m_term, I_c_align_term, I_s_align_term, alignment_amplitude_2h, nz, nk, f_cen)
             #block.put_grid('matter_intrinsic_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_1h)
             #block.put_grid('matter_intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)
             block.put_grid('matter_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)
