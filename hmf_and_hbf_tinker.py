@@ -54,8 +54,7 @@ def setup(options):
     zmax = options[option_section, 'zmax']
     nz = options[option_section, 'nz']
     z_vec = np.linspace(zmin, zmax, nz)
-    print(z_vec)
-
+    
     dlog10m = (log_mass_max-log_mass_min)/nmass
     
     # most general astropy cosmology initialisation, gets updated as sampler runs with camb provided cosmology parameters.

@@ -81,7 +81,7 @@ def compute_satellite_galaxy_factor(Nsat, numdenssat, f_s, u_gal):
     return f_s * Nsat * u_gal / numdenssat
 # central galaxy alignment
 def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_c, C1):
-    return f_c * C1 * scale_factor**2.0 / growth_factor
+    return f_c * (C1  / growth_factor) * scale_factor#**2.0
 # satellite galaxy alignment
 def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
     return f_s * Nsat * wkm_sat / numdenssat
@@ -369,7 +369,7 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     alignment_amplitude_2h = -alignment_gi[:,np.newaxis] * (C1 * mean_density0[:,np.newaxis] / growth_factor)
     alignment_amplitude_2h_II = (alignment_gi[:,np.newaxis] * C1 * mean_density0[:,np.newaxis] / growth_factor) ** 2.
     
-    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * mean_density0[:,np.newaxis,np.newaxis] * alignment_gi[:,np.newaxis,np.newaxis]
+    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * alignment_gi[:,np.newaxis,np.newaxis] * mean_density0[:,np.newaxis,np.newaxis]
 
 
 
@@ -497,8 +497,7 @@ def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
 #
 #       p_sm_mI_1h + p_cm_mI_2h + p_sm_mi_2h + 2xBnl of course
 #
-def compute_p_mI(block, k_vec, p_eff, p_lin, z_vec, mass, dn_dln_m, m_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, alignment_amplitude_2h, nz, nk,
-                  f_gal):
+def compute_p_mI(block, k_vec, p_eff, p_lin, z_vec, mass, dn_dln_m, m_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, alignment_amplitude_2h, nz, nk, f_gal):
     #
     # p_tot = p_sm_mI_1h + f_cen*p_cm_mI_2h + O(any other combination)
     #
@@ -514,14 +513,14 @@ def compute_p_mI(block, k_vec, p_eff, p_lin, z_vec, mass, dn_dln_m, m_factor, s_
     # Above from Maria Cristina, belowe the added missing parts from Schneider & Bridle (+Bnl eventually):
     # Why 1h negative?
     pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    pk_sm_2h = (-1.0) * compute_2h_term(p_lin, I_m_term, I_s_align_term)# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
-    pk_cm_2h = (-1.0) * compute_2h_term(p_lin, I_m_term, I_c_align_term)# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_sm_2h = (-1.0) * f_gal[:,np.newaxis] * compute_2h_term(p_lin, I_m_term, I_s_align_term) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cm_2h = (-1.0) * f_gal[:,np.newaxis] * compute_2h_term(p_lin, I_m_term, I_c_align_term) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
     for i in range(nz):
         plt.loglog(k_vec, -1 * pk_tot[i])
-        plt.loglog(k_vec, -1 * pk_sm_1h[i])
-        plt.loglog(k_vec, -1 * pk_sm_2h[i])
-        plt.loglog(k_vec, -1 * pk_cm_2h[i])
+        #plt.loglog(k_vec, -1 * pk_sm_1h[i])
+        #plt.loglog(k_vec, -1 * pk_sm_2h[i])
+        #plt.loglog(k_vec, -1 * pk_cm_2h[i])
     plt.show()
     quit()
     return pk_sm_1h, pk_cm_2h, pk_tot
