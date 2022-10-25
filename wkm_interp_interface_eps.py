@@ -77,7 +77,8 @@ def execute(block, config):
     #mass = np.logspace(np.log10(mass_setup.min()), np.log10(mass_setup.max()), nmass)
     nk = 80 #500
     #k = np.logspace(np.log10(k_setup.min()), np.log10(k_setup.max()), nk)
-    k = np.logspace(-1., 3., nk)
+    #k = np.logspace(-1., 3., nk)
+    k = np.logspace(-3., 3., nk)
 
     #k = np.logspace(-2., np.log10(k_setup.max()), nk)
 
@@ -99,11 +100,12 @@ def execute(block, config):
     uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max, h_transform)
     # interpolate
     # Do we need this interpolation???
-    uell_interpolated = np.empty([int(ell_max/2+1), nz, nmass_setup, nk_setup])
-    for il in range(0,int(ell_max/2+1)):
-        for jz in range(0,nz):
-            f_interp = interp2d(k, mass, uell[il, jz], kind='linear', bounds_error=False) #, fill_value=0)
-            uell_interpolated[il,jz] = f_interp(k_setup, mass_setup)
+    uell_interpolated = uell
+    #uell_interpolated = np.empty([int(ell_max/2+1), nz, nmass_setup, nk_setup])
+    #for il in range(0,int(ell_max/2+1)):
+    #    for jz in range(0,nz):
+    #        f_interp = interp2d(k, mass, uell[il, jz], kind='linear', bounds_error=False, fill_value=0)
+    #        uell_interpolated[il,jz] = f_interp(k_setup, mass_setup)
     
     # wkm[nz,nmass,nk]
     theta_k = np.pi/2.
@@ -111,7 +113,8 @@ def execute(block, config):
     wkm = wkm_my_fell(uell_interpolated, theta_k, phi_k, ell_max, gamma_1h_slope)
 
     for jz in range(0,nz):
-        block.put_grid( 'wkm_z%d'%jz+suffix, 'mass', mass_setup, 'k_h', k_setup, 'w_km', wkm[jz,:,:])
+        #block.put_grid( 'wkm_z%d'%jz+suffix, 'mass', mass_setup, 'k_h', k_setup, 'w_km', wkm[jz,:,:])
+        block.put_grid( 'wkm_z%d'%jz+suffix, 'mass', mass, 'k_h', k, 'w_km', wkm[jz,:,:])
     block.put_double_array_1d('wkm'+suffix, 'z', z)
 
     return 0

@@ -507,22 +507,22 @@ def compute_p_mI(block, k_vec, p_eff, p_lin, z_vec, mass, dn_dln_m, m_factor, s_
     pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     # prepare the 1h term
     pk_tot = pk_sm_1h + pk_cm_2h
-    import matplotlib.pyplot as plt
-    for i in range(nz):
-        plt.loglog(k_vec, -1 * pk_tot[i])
+    #import matplotlib.pyplot as plt
+    #for i in range(nz):
+    #    plt.loglog(k_vec, -1 * pk_tot[i])
     # Above from Maria Cristina, belowe the added missing parts from Schneider & Bridle (+Bnl eventually):
     # Why 1h negative?
     pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_sm_2h = (-1.0) * f_gal[:,np.newaxis] * compute_2h_term(p_lin, I_m_term, I_s_align_term) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_cm_2h = (-1.0) * f_gal[:,np.newaxis] * compute_2h_term(p_lin, I_m_term, I_c_align_term) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
-    for i in range(nz):
-        plt.loglog(k_vec, -1 * pk_tot[i])
+    #for i in range(nz):
+    #    plt.loglog(k_vec, -1 * pk_tot[i])
         #plt.loglog(k_vec, -1 * pk_sm_1h[i])
         #plt.loglog(k_vec, -1 * pk_sm_2h[i])
         #plt.loglog(k_vec, -1 * pk_cm_2h[i])
-    plt.show()
-    quit()
+    #plt.show()
+    #quit()
     return pk_sm_1h, pk_cm_2h, pk_tot
 
 
@@ -532,7 +532,7 @@ def compute_p_mI(block, k_vec, p_eff, p_lin, z_vec, mass, dn_dln_m, m_factor, s_
 #       p_ss_II_1h + p_ss_II_2h + p_cc_II_2h + p_sc_II_2h + 3xBnl of course
 #
 # Needs Poisson parameter as well!
-def compute_p_II(block, k_vec, p_eff, z_vec, mass, dn_dln_m, s_align_factor, alignment_amplitude_2h_II, nz, nk, f_gal):
+def compute_p_II(block, k_vec, p_eff, p_lin, z_vec, mass, dn_dln_m, s_align_factor, I_c_align_term, I_s_align_term, alignment_amplitude_2h_II, nz, nk, f_gal):
     #
     # p_tot = p_ss_II_1h + p_cc_II_2h + O(p_sc_II_1h) + O(p_cs_II_2h)
     #
@@ -541,6 +541,26 @@ def compute_p_II(block, k_vec, p_eff, z_vec, mass, dn_dln_m, s_align_factor, ali
     # 1-halo term
     pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_tot = pk_ss_1h + pk_cc_2h
+    import matplotlib.pyplot as plt
+    for i in range(nz):
+        plt.loglog(k_vec, pk_tot[i])
+    # Above from Maria Cristina, belowe the added missing parts from Schneider & Bridle (+Bnl eventually):
+    pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_ss_2h = f_gal[:,np.newaxis] * compute_2h_term(p_lin, I_s_align_term, I_s_align_term)# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cc_2h = f_gal[:,np.newaxis] * compute_2h_term(p_lin, I_c_align_term, I_c_align_term)# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cs_2h = f_gal[:,np.newaxis] * compute_2h_term(p_lin, I_c_align_term, I_s_align_term)# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_tot = pk_ss_1h + pk_ss_2h + pk_cs_2h + pk_cc_2h
+    for i in range(nz):
+        plt.loglog(k_vec, pk_tot[i])
+        plt.loglog(k_vec, pk_ss_1h[i])
+        plt.loglog(k_vec, pk_ss_2h[i])
+        plt.loglog(k_vec, pk_cs_2h[i])
+        plt.loglog(k_vec, pk_cc_2h[i])
+        #plt.loglog(k_vec, I_s_align_term[i])
+        #plt.loglog(k_vec, I_c_align_term[i])
+    plt.show()
+    quit()
+
     #print('p_II succesfully computed')
     return pk_ss_1h, pk_cc_2h, pk_tot
 

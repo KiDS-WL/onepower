@@ -136,7 +136,7 @@ def mass_nfw(r_s, c):
 def nfw_profile_trunc(r, rs, rvir):
     mask_above_rvir = r>=rvir
     nfw = nfw_profile(r, rs)
-    nfw[mask_above_rvir] = 0.0
+    #nfw[mask_above_rvir] = 0.0 # AD: no truncation!
     return nfw
 
 

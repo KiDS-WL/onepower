@@ -98,8 +98,11 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
         wkm_tmp = block['wkm_z%d'%jz + suffix,'w_km']
         k_wkm = block['wkm_z%d'%jz + suffix,'k_h']
         mass_wkm = block['wkm_z%d'%jz + suffix,'mass']
-        w_interp2d = interp2d(k_wkm, mass_wkm, wkm_tmp)
-        wkm_interpolated = w_interp2d(k_vec, mass)
+        #w_interp2d = interp2d(k_wkm, mass_wkm, wkm_tmp, bounds_error=False)#, fill_value=0)
+        w_interp2d = RegularGridInterpolator((k_wkm.T, mass_wkm.T), wkm_tmp.T, bounds_error=False, fill_value=None)#, fill_value=0)
+        #wkm_interpolated = w_interp2d((k_vec, mass))
+        kk, mm = np.meshgrid(k_vec, mass, sparse=True)
+        wkm_interpolated = w_interp2d((kk.T, mm.T)).T
         #print 'wkm_interp.shape = ', wkm_interpolated.shape
         wkm[jz] = wkm_interpolated
     #print( 'wkm.shape = ', wkm.shape)
@@ -545,7 +548,7 @@ def execute(block, config):
             block.put_grid('matter_galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot_bnl)
 
         if p_II == True:
-            pk_II_1h, pk_II_2h, pk_II = pk_lib.compute_p_II(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, s_align_factor,
+            pk_II_1h, pk_II_2h, pk_II = pk_lib.compute_p_II(block, k_vec, pk_eff, plin, z_vec, mass, dn_dlnm, s_align_factor, I_c_align_term, I_s_align_term, 
                                                      alignment_amplitude_2h_II, nz, nk, f_cen)
             #block.put_grid('intrinsic_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_1h)
             #block.put_grid('intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_2h)
