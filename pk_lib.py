@@ -653,8 +653,11 @@ def compute_p_II_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_ampli
 
 
 def interp_udm(mass_udm, k_udm, udm_z, mass, k_vec):
-    interp_udm = interp2d(mass_udm, k_udm, udm_z, kind='linear', bounds_error=False)
-    u_dm = interp_udm(mass, k_vec)
+    #interp_udm = interp2d(mass_udm, k_udm, udm_z, kind='linear', bounds_error=False)
+    #u_dm = interp_udm(mass, k_vec)
+    interp_udm = RegularGridInterpolator((mass_udm.T, k_udm.T), udm_z.T, bounds_error=False, fill_value=None)
+    mm, kk = np.meshgrid(mass, k_vec, sparse=True)
+    u_dm = interp_udm((mm.T, kk.T)).T
     return u_dm
 
 def compute_u_dm_grid(block, k_vec, mass, z_vec):

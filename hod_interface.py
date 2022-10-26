@@ -173,8 +173,11 @@ def execute(block, config):
     mass_dn = block['hmf','m_h']
     z_dn = block['hmf','z']
 
-    f_int_dndlnM = interp2d(mass_dn, z_dn, dndlnM_grid)
-    dndlnM = f_int_dndlnM(mass, z_bins)
+    #f_int_dndlnM = interp2d(mass_dn, z_dn, dndlnM_grid)
+    #dndlnM = f_int_dndlnM(mass, z_bins)
+    f_int_dndlnM = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
+    mass_i, z_bins_i = np.meshgrid(mass, z_bins, sparse=True)
+    dndlnM = f_int_dndlnM((mass_i.T, z_bins_i.T)).T
 
     phi_c = np.empty([nz, nmass, nobs])
     phi_s = np.empty([nz, nmass, nobs])
@@ -230,8 +233,11 @@ def execute(block, config):
                 z_hbf = block['halobias', 'z']
                 halobias_hbf = block['halobias', 'b_hb']
 
-                f_interp_halobias = interp2d(mass_hbf, z_hbf, halobias_hbf)
-                hbias = f_interp_halobias(mass,z_bins)
+                #f_interp_halobias = interp2d(mass_hbf, z_hbf, halobias_hbf)
+                #hbias = f_interp_halobias(mass,z_bins)
+                f_interp_halobias = RegularGridInterpolator((mass_hbf.T, z_hbf.T), halobias_hbf.T, bounds_error=False, fill_value=None)
+                mass_i, z_bins_i = np.meshgrid(mass, z_bins, sparse=True)
+                hbias = f_interp_halobias((mass_i.T,z_bins_i.T)).T
 
                 #galaxybias_cen = np.empty(nz)
                 #galaxybias_sat = np.empty(nz)
@@ -281,11 +287,12 @@ def execute(block, config):
 
         if observable_mode == 'obs_zmed':
             #interpolate the hmf at the redshift where the luminosity function is evaluated
-            f_mass_z_dn = interp2d(mass_dn, z_bins, dndlnM)
-            dn_dlnM_zmedian = f_mass_z_dn(mass_dn, z_picked)
+            #f_mass_z_dn = interp2d(mass_dn, z_bins, dndlnM)
+            #dn_dlnM_zmedian = f_mass_z_dn(mass_dn, z_picked)
 
-            f_mass_z_dn = interp2d(mass_dn, z_bins, dndlnM)
-            dn_dlnM_zmedian = f_mass_z_dn(mass_dn, z_picked)
+            f_mass_z_dn = RegularGridInterpolator((mass_dn.T, z_bins.T), dndlnM.T, bounds_error=False, fill_value=None)
+            mass_dn_i, z_picked_i = np.meshgrid(mass_dn, z_picked)
+            dn_dlnM_zmedian = f_mass_z_dn((mass_dn_i.T, z_picked_i.T)).T
 
             log_lum_min = np.log10(obs_simps.min())
             log_lum_max = np.log10(obs_simps.max())

@@ -54,8 +54,11 @@ def get_nonlinear_power_spectrum(block, z_vec):
     
 def compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff):
     # interpolate
-    p_nl_interp = interp2d(k_nl, z_vec, p_nl)
-    pnl_int = p_nl_interp(k_vec, z_vec)
+    #p_nl_interp = interp2d(k_nl, z_vec, p_nl)
+    #pnl_int = p_nl_interp(k_vec, z_vec)
+    p_nl_interp = RegularGridInterpolator((k_nl.T, z_vec.T), p_nl.T, bounds_error=False, fill_value=None)
+    kk, zz = np.meshgrid(k_vec, z_vec, sparse=True)
+    pnl_int = p_nl_interp((kk.T, zz.T)).T
     return (1.-t_eff)*plin+t_eff*pnl_int
     
     
@@ -111,13 +114,19 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
 
 # interpolation routines
 def interpolate2d_dndlnm(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec):
-    f_interp = interp2d(mass_hmf, z_hmf, dndlnmh_hmf)
-    hmf_interpolated = f_interp(mass, z_vec)
+    #f_interp = interp2d(mass_hmf, z_hmf, dndlnmh_hmf)
+    #hmf_interpolated = f_interp(mass, z_vec)
+    f_interp = RegularGridInterpolator((mass_hmf.T, z_hmf.T), dndlnmh_hmf.T, bounds_error=False, fill_value=None)
+    mm, zz = np.meshgrid(mass, z_vec, sparse=True)
+    hmf_interpolated = f_interp((mm.T, zz.T)).T
     return hmf_interpolated
     
 def interpolate2d_halobias(halobias_hbf, mass_hbf, z_hbf, mass, z_vec):
-    f_interp = interp2d(mass_hbf, z_hbf, halobias_hbf)
-    hbf_interpolated = f_interp(mass, z_vec)
+    #f_interp = interp2d(mass_hbf, z_hbf, halobias_hbf)
+    #hbf_interpolated = f_interp(mass, z_vec)
+    f_interp = RegularGridInterpolator((mass_hbf.T, z_hbf.T), halobias_hbf.T, bounds_error=False, fill_value=None)
+    mm, zz = np.meshgrid(mass, z_vec, sparse=True)
+    hbf_interpolated = f_interp((mm.T, zz.T)).T
     return hbf_interpolated
     
 def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
@@ -146,15 +155,20 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
     #    f_c = f_c_hod
     #    f_s = f_s_hod
     #else:
-    interp_Ncen = interp2d(m_hod, z_hod, Ncen_hod)
-    interp_Nsat = interp2d(m_hod, z_hod, Nsat_hod)
+    #interp_Ncen = interp2d(m_hod, z_hod, Ncen_hod)
+    #interp_Nsat = interp2d(m_hod, z_hod, Nsat_hod)
+    interp_Ncen = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=None)
+    interp_Nsat = RegularGridInterpolator((m_hod.T, z_hod.T), Nsat_hod.T, bounds_error=False, fill_value=None)
     # AD: Is extrapolation warranted here? Maybe make whole calculation on same grid/spacing/thingy!?
     interp_numdencen = interp1d(z_hod, numdencen_hod, fill_value='extrapolate')
     interp_numdensat = interp1d(z_hod, numdensat_hod, fill_value='extrapolate')
     interp_f_c = interp1d(z_hod, f_c_hod, fill_value='extrapolate')
     interp_f_s = interp1d(z_hod, f_s_hod, fill_value='extrapolate')
-    Ncen = interp_Ncen(mass, z_vec)
-    Nsat = interp_Nsat(mass, z_vec)
+    #Ncen = interp_Ncen(mass, z_vec)
+    #Nsat = interp_Nsat(mass, z_vec)
+    mm, zz = np.meshgrid(mass, z_vec, sparse=True)
+    Ncen = interp_Ncen((mm.T, zz.T)).T
+    Nsat = interp_Nsat((mm.T, zz.T)).T
     #print ('z_hod', z_hod)
     #print ('z_vec', z_vec)
     numdencen = interp_numdencen(z_vec)
