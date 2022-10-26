@@ -569,7 +569,7 @@ def execute(block, config):
             block.put_grid('intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
         if p_gI == True:
             #print('computing p_gI...')
-            pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, c_factor, s_align_factor, I_c_term, alignment_amplitude_2h, nz, nk)
+            pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI(block, k_vec, pk_eff, plin, z_vec, mass, dn_dlnm, c_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, alignment_amplitude_2h, nz, nk)
             #IT Added galaxy_intrinsic_power to datablock
             block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
         if p_mI == True:
