@@ -521,18 +521,28 @@ def execute(block, config):
                 c_align_factor = pk_lib.prepare_central_alignment_factor_grid(mass, Ncen, numdencen, scale_factor, growth_factor, f_cen, C1, nz,
                                                                          nk, nmass)
 
-                I_c_align_term = pk_lib.prepare_Ic_align_term(mass, c_align_factor, b_dm, dn_dlnm, nz, nk)
-                I_s_align_term = pk_lib.prepare_Is_align_term(mass, s_align_factor, b_dm, dn_dlnm, nz, nk)
+                I_c_align_term = pk_lib.prepare_Ic_align_term(mass, c_align_factor, b_dm, dn_dlnm, nz, nk, mean_density0, A_term)
+                I_s_align_term = pk_lib.prepare_Is_align_term(mass, s_align_factor, b_dm, dn_dlnm, nz, nk, mean_density0, A_term)
                 if bnl_ia == True:
-                    #I_NL_ia_cm = pk_lib.prepare_I_NL(mass, mass, c_align_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
-                    #I_NL_ia_sm = pk_lib.prepare_I_NL(mass, mass, s_align_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_ia_cm = pk_lib.prepare_I_NL(mass, mass, c_align_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_ia_sm = pk_lib.prepare_I_NL(mass, mass, s_align_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                     
                     I_NL_ia_cc = pk_lib.prepare_I_NL(mass, mass, c_align_factor, c_align_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                     I_NL_ia_cs = pk_lib.prepare_I_NL(mass, mass, c_align_factor, s_align_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                     I_NL_ia_ss = pk_lib.prepare_I_NL(mass, mass, s_align_factor, s_align_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
                     
-                    #I_NL_ia_gc = pk_lib.prepare_I_NL(mass, mass, c_align_factor, c_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
-                    #I_NL_ia_gs = pk_lib.prepare_I_NL(mass, mass, s_align_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_ia_gc = pk_lib.prepare_I_NL(mass, mass, c_align_factor, c_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_ia_gs = pk_lib.prepare_I_NL(mass, mass, s_align_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                else:
+                    I_NL_ia_cm = np.zeros_like(plin)
+                    I_NL_ia_sm = np.zeros_like(plin)
+                    
+                    I_NL_ia_cc = np.zeros_like(plin)
+                    I_NL_ia_cs = np.zeros_like(plin)
+                    I_NL_ia_ss = np.zeros_like(plin)
+                    
+                    I_NL_ia_gc = np.zeros_like(plin)
+                    I_NL_ia_gs = np.zeros_like(plin)
                     
                 
         # compute the power spectra
@@ -603,14 +613,14 @@ def execute(block, config):
             block.put_grid('intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
         if p_gI == True:
             #print('computing p_gI...')
-            pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, nz, nk)
+            pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, nz, nk, f_cen, I_NL_ia_gc, I_NL_ia_gs, alignment_amplitude_2h, pk_eff)
             #IT Added galaxy_intrinsic_power to datablock
             block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
         if p_mI == True:
             #print('computing p_GI...')
             # compute_p_GI(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor, s_align_factor, alignment_amplitude_2h, nz, nk, f_red_cen)
             pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor,
-                                                         c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, nz, nk, f_cen)
+                                                         c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, nz, nk, f_cen, I_NL_ia_cm, I_NL_ia_sm, alignment_amplitude_2h, pk_eff)
             #block.put_grid('matter_intrinsic_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_1h)
             #block.put_grid('matter_intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)
             block.put_grid('matter_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)

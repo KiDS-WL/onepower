@@ -80,8 +80,8 @@ def compute_central_galaxy_factor(Ncen, numdenscen, f_c):
 def compute_satellite_galaxy_factor(Nsat, numdenssat, f_s, u_gal):
     return f_s * Nsat * u_gal / numdenssat
 # central galaxy alignment
-def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_c, C1, Ncen, numdenscen):
-    return f_c * (C1  / growth_factor) * scale_factor * (Ncen / numdenscen)#**2.0
+def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_c, C1, Ncen, numdenscen, mass):
+    return f_c * (C1  / growth_factor) * mass# * scale_factor**2.0
 # satellite galaxy alignment
 def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
     return f_s * Nsat * wkm_sat / numdenssat
@@ -146,7 +146,7 @@ def prepare_central_alignment_factor_grid(mass, Ncen, numdencen, scale_factor, g
     :param nmass:
     :return:
     """
-    c_align_factor = compute_central_galaxy_alignment_factor(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, Ncen[:,np.newaxis,:], numdencen[:,np.newaxis,np.newaxis])
+    c_align_factor = compute_central_galaxy_alignment_factor(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, Ncen[:,np.newaxis,:], numdencen[:,np.newaxis,np.newaxis], mass[np.newaxis, np.newaxis, :])
     return c_align_factor
     
 
@@ -274,13 +274,14 @@ def compute_bnl_darkquest_2(z, log10M1, log10M2, k, emulator):
 
 def create_bnl_interpolation_function(emulator, interpolation):
     # AD: The mass range in Bnl needs to be optimised. Preferrentially set to the maximum mass limits in DarkEmulator, with the largest number of bins possible.
-    M = np.logspace(12.1, 15.9, 15)#12.0, 14.0, 5)
+    M = np.logspace(12.1, 15.0, 5)#12.0, 14.0, 5)
+    #M = np.logspace(12.0, 14.0, 5)
     k = np.logspace(-2.0, 1.5, 50) #50)
     z = np.linspace(0.0, 0.5, 5)
     
     beta_func = compute_bnl_darkquest_2(z, np.log10(M), np.log10(M), k, emulator)
     if interpolation == True:
-        beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
+        beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False, method='slinear')
     else:
         beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=0.0, bounds_error=False)
     return beta_nl_interp    
@@ -302,13 +303,13 @@ def prepare_Ic_term(mass, c_factor, b_m, dn_dlnm, nz, nk):
     I_c_term = np.tile(np.array([compute_Ig_term(c_factor, mass[np.newaxis,:], dn_dlnm, b_m)]).T, [1,nk])
     return I_c_term
     
-def prepare_Is_align_term(mass, s_align_factor, b_m, dn_dlnm, nz, nk):
+def prepare_Is_align_term(mass, s_align_factor, b_m, dn_dlnm, nz, nk, mean_density0, A_term):
     I_s_align_term = compute_Ig_term(s_align_factor, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
-    return I_s_align_term
+    return I_s_align_term + A_term * s_align_factor[:,:,0] * mean_density0[:,np.newaxis] / mass[0]
     
-def prepare_Ic_align_term(mass, c_align_factor, b_m, dn_dlnm, nz, nk):
+def prepare_Ic_align_term(mass, c_align_factor, b_m, dn_dlnm, nz, nk, mean_density0, A_term):
     I_c_align_term = compute_Ig_term(c_align_factor, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
-    return I_c_align_term
+    return I_c_align_term + A_term * c_align_factor[:,:,0] * mean_density0[:,np.newaxis] / mass[0]
     
 def prepare_I_NL(mass_1, mass_2, factor_1, factor_2, bias_1, bias_2, dn_dlnm_1, dn_dlnm_2, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
     I_NL = compute_I_NL_term(k_vec, z_vec, factor_1, factor_2, bias_1, bias_2, mass_1, mass_2, dn_dlnm_1, dn_dlnm_2, A, rho_mean, interpolation, beta_interp, emulator)
@@ -338,7 +339,7 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     alignment_amplitude_2h = -alignment_gi[:,np.newaxis] * (C1 * mean_density0[:,np.newaxis] / growth_factor)
     alignment_amplitude_2h_II = (alignment_gi[:,np.newaxis] * C1 * mean_density0[:,np.newaxis] / growth_factor) ** 2.
     
-    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * alignment_gi[:,np.newaxis,np.newaxis] * mean_density0[:,np.newaxis,np.newaxis]
+    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * alignment_gi[:,np.newaxis,np.newaxis]# * mean_density0[:,np.newaxis,np.newaxis]
 
 
 
@@ -474,31 +475,55 @@ def compute_p_mI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_alig
     pk_tot = pk_sm_1h + pk_cm_2h
     return pk_sm_1h, pk_cm_2h, pk_tot
 
-def compute_p_mI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, m_factor, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, nz, nk, f_gal):
+def compute_p_mI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, m_factor, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, nz, nk, f_gal, I_NL_ia_cm, I_NL_ia_sm, alignment_amplitude_2h, p_eff):
+    
+    import matplotlib.pyplot as plt
+    
+    pk_cm_2h_mc = compute_p_mI_two_halo(block, k_vec, p_eff, z_vec, nz, f_gal, alignment_amplitude_2h)# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    # 1-halo term
+    pk_sm_1h_mc = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    # prepare the 1h term
+    pk_tot_mc = pk_sm_1h_mc + pk_cm_2h_mc
+    for i in range(nz):
+        plt.plot(k_vec, -pk_tot_mc[i], label='MC')
+    
+    
     
     pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     #pk_cm_1h = (-1.0) * compute_1h_term(m_factor, c_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    pk_sm_2h = (-1.0) * f_gal[:,np.newaxis] * compute_2h_term(p_lin, I_m_term, I_s_align_term)
-    pk_cm_2h = (-1.0) * f_gal[:,np.newaxis] * compute_2h_term(p_lin, I_m_term, I_c_align_term)
+    pk_sm_2h = (-1.0) * compute_2h_term(p_lin, I_m_term, I_s_align_term)
+    pk_cm_2h = (-1.0) * compute_2h_term(p_lin, I_m_term, I_c_align_term)
     pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
+    
+    pk_sm_2h_bnl = pk_sm_2h - p_lin*(I_NL_ia_sm)
+    pk_cm_2h_bnl = pk_cm_2h - p_lin*(I_NL_ia_cm)
+    pk_tot_bnl = pk_sm_1h + pk_sm_2h_bnl + pk_cm_2h_bnl
+    
     #"""
     #for i in range(nz):
-    #    plt.loglog(k_vec, -1 * pk_tot[i])
-    #    plt.loglog(k_vec, -1 * pk_sm_1h[i])
-    #    plt.loglog(k_vec, -1 * pk_sm_2h[i])
-    #    plt.loglog(k_vec, -1 * pk_cm_2h[i])
+    #    plt.plot(k_vec, -1 * pk_tot[i])
+    #    plt.plot(k_vec, -1 * pk_sm_1h[i])
+    #    plt.plot(k_vec, -1 * pk_sm_2h[i])
+    #    plt.plot(k_vec, -1 * pk_cm_2h[i])
     #plt.show()
     #quit()
-    plt.loglog(k_vec, -pk_sm_1h[-1], label='Psm, 1h')
-    plt.loglog(k_vec, -pk_cm_1h[-1], label='Pcm, 1h')
-    plt.loglog(k_vec, -pk_sm_2h[-1], label='Psm, 2h')
-    plt.loglog(k_vec, -pk_cm_2h[-1], label='Pcm, 2h')
-    plt.loglog(k_vec, -pk_tot[-1], label='Tot')
+    for i in range(nz):
+        #plt.plot(k_vec, -pk_sm_1h[i], label='Psm, 1h')
+        #plt.plot(k_vec, -pk_cm_1h[-1], label='Pcm, 1h')
+        #plt.plot(k_vec, -pk_sm_2h[i], label='Psm, 2h')
+        #plt.plot(k_vec, -pk_cm_2h[i], label='Pcm, 2h')
+        #plt.plot(k_vec, -pk_sm_2h_bnl[i], label='Psm, 2h_bnl')
+        #plt.plot(k_vec, -pk_cm_2h_bnl[i], label='Pcm, 2h_bnl')
+        #plt.plot(k_vec, pk_tot[i]/pk_tot_mc[i], label='Tot')
+        plt.plot(k_vec, pk_tot[i], label='Tot')
+        plt.plot(k_vec, -pk_tot_bnl[i], label='Tot_bnl')
 
     plt.title('matter-intrinsic')
     plt.xlabel('k')
     plt.ylabel('P(k)')
     plt.ylim([1e-4,1e3])
+    plt.xscale('log')
+    plt.yscale('log')
     plt.legend()
     plt.savefig('/net/home/fohlen13/dvornik/hm_ia_test_mi_bnl.pdf')
     plt.show()
@@ -528,55 +553,57 @@ def compute_p_II(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_align_factor, s_a
     # 1-halo term
     pk_ss_1h_mc = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_tot_mc = pk_ss_1h_mc + pk_cc_2h_mc
-    print(pk_cc_2h_mc)
-    
-    plt.loglog(k_vec, pk_tot_mc[-1], label='MC')
-    
+    for i in range(nz):
+        plt.plot(k_vec, pk_tot_mc[i], label='MC')
     
     pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     #pk_cs_1h = compute_1h_term(c_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    pk_ss_2h = -f_gal[:,np.newaxis]**2 * compute_2h_term(p_lin, I_s_align_term, I_s_align_term)# + p_lin*I_NL_ia_ss
-    pk_cc_2h = f_gal[:,np.newaxis]**2 * compute_2h_term(p_lin, I_c_align_term, I_c_align_term)# + p_lin*I_NL_ia_cc
-    pk_cs_2h = f_gal[:,np.newaxis]**2 * compute_2h_term(p_lin, I_c_align_term, I_s_align_term)# + p_lin*I_NL_ia_cs
-    pk_ss_2h_bnl = pk_ss_2h + f_gal[:,np.newaxis]**2 * p_lin*(-I_NL_ia_ss)
-    pk_cs_2h_bnl = pk_cs_2h + f_gal[:,np.newaxis]**2 * p_lin*(I_NL_ia_cs)
-    pk_cc_2h_bnl = pk_cc_2h + f_gal[:,np.newaxis]**2 * p_lin*(I_NL_ia_cc)
+    pk_ss_2h = compute_2h_term(p_lin, I_s_align_term, I_s_align_term)# + p_lin*I_NL_ia_ss
+    pk_cc_2h = compute_2h_term(p_lin, I_c_align_term, I_c_align_term)# + p_lin*I_NL_ia_cc
+    pk_cs_2h = compute_2h_term(p_lin, I_c_align_term, I_s_align_term)# + p_lin*I_NL_ia_cs
+    pk_ss_2h_bnl = pk_ss_2h + p_lin*(I_NL_ia_ss)
+    pk_cs_2h_bnl = pk_cs_2h + p_lin*(I_NL_ia_cs)
+    pk_cc_2h_bnl = pk_cc_2h + p_lin*(I_NL_ia_cc)
     pk_tot = pk_ss_1h + pk_ss_2h + pk_cs_2h + pk_cc_2h
     pk_tot_bnl = pk_ss_1h + pk_ss_2h_bnl + pk_cs_2h_bnl + pk_cc_2h_bnl
     #"""
     #for i in range(nz):
-    #    plt.loglog(k_vec, pk_tot[i])
-    #    plt.loglog(k_vec, pk_ss_1h[i])
-    #    plt.loglog(k_vec, pk_ss_2h[i])
-    #    plt.loglog(k_vec, pk_cs_2h[i])
-    #    plt.loglog(k_vec, pk_cc_2h[i])
+    #    plt.plot(k_vec, pk_tot[i])
+    #    plt.plot(k_vec, pk_ss_1h[i])
+    #    plt.plot(k_vec, pk_ss_2h[i])
+    #    plt.plot(k_vec, pk_cs_2h[i])
+    #    plt.plot(k_vec, pk_cc_2h[i])
     #plt.show()
     #quit()
-    plt.loglog(k_vec, pk_ss_1h[-1], label='Pss, 1h')
-    #plt.loglog(k_vec, pk_cs_1h[-1], label='Pcs, 1h')
-    plt.loglog(k_vec, pk_ss_2h[-1], label='Pss, 2h')
-    plt.loglog(k_vec, pk_cc_2h[-1], label='Pcc, 2h')
-    plt.loglog(k_vec, pk_cs_2h[-1], label='Pcs, 2h')
+    for i in range(nz):
+        #plt.plot(k_vec, pk_ss_1h[i], label='Pss, 1h')
+        #plt.plot(k_vec, pk_cs_1h[-1], label='Pcs, 1h')
+        #plt.plot(k_vec, pk_ss_2h[i], label='Pss, 2h')
+        #plt.plot(k_vec, pk_cc_2h[i], label='Pcc, 2h')
+        #plt.plot(k_vec, pk_cs_2h[i], label='Pcs, 2h')
 
-    plt.loglog(k_vec, pk_ss_2h_bnl[-1], label='Pss_bnl, 2h')
-    plt.loglog(k_vec, pk_cc_2h_bnl[-1], label='Pcc_bnl, 2h')
-    plt.loglog(k_vec, pk_cs_2h_bnl[-1], label='Pcs_bnl, 2h')
-    
-    #plt.loglog(k_vec, (p_lin*I_NL_ia_ss)[-1], label='Pss_bnl, 2h')
-    #plt.loglog(k_vec, (p_lin*I_NL_ia_cc)[-1], label='Pcc_bnl, 2h')
-    #plt.loglog(k_vec, (p_lin*I_NL_ia_cs)[-1], label='Pcs_bnl, 2h')
-    
-    plt.loglog(k_vec, pk_tot[-1], label='Tot')
-    plt.loglog(k_vec, pk_tot_bnl[-1], label='Tot_bnl')
+        #plt.plot(k_vec, pk_ss_2h_bnl[i], label='Pss_bnl, 2h')
+        #plt.plot(k_vec, pk_cc_2h_bnl[i], label='Pcc_bnl, 2h')
+        #plt.plot(k_vec, pk_cs_2h_bnl[i], label='Pcs_bnl, 2h')
+        
+        #plt.plot(k_vec, (p_lin*I_NL_ia_ss)[-1], label='Pss_bnl, 2h')
+        #plt.plot(k_vec, (p_lin*I_NL_ia_cc)[-1], label='Pcc_bnl, 2h')
+        #plt.plot(k_vec, (p_lin*I_NL_ia_cs)[-1], label='Pcs_bnl, 2h')
+        
+        #plt.plot(k_vec, pk_tot[i]/pk_tot_mc[i], label='Tot')
+        plt.plot(k_vec, pk_tot[i], label='Tot')
+        plt.plot(k_vec, pk_tot_bnl[i], label='Tot_bnl')
 
     plt.title('intrinsic-intrinsic')
     plt.xlabel('k')
     plt.ylabel('P(k)')
     plt.ylim([1e-8,1e2])
+    plt.xscale('log')
+    plt.yscale('log')
     plt.legend()
     plt.savefig('/net/home/fohlen13/dvornik/hm_ia_test_ii_bnl.pdf')
     plt.show()
-    quit()
+    #quit()
     #"""
     #print('p_II succesfully computed')
     return pk_ss_1h, pk_cc_2h+pk_cs_2h+pk_cs_2h, pk_tot
@@ -597,30 +624,54 @@ def compute_p_gI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_alig
     pk_tot = pk_cs_1h + pk_cc_2h
     return pk_cs_1h, pk_cc_2h, pk_tot
 
-def compute_p_gI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_factor, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, nz, nk):
+def compute_p_gI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_factor, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, nz, nk, f_gal, I_NL_ia_gc, I_NL_ia_gs, alignment_amplitude_2h, p_eff):
+    import matplotlib.pyplot as plt
+    
+    
+    pk_cc_2h_mc = -compute_2h_term(p_eff, I_c_term, alignment_amplitude_2h[:,])# * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    # 1-halo term
+    pk_cs_1h_mc = compute_1h_term(c_factor[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    
+    pk_tot_mc = pk_cs_1h_mc + pk_cc_2h_mc
+
+    for i in range(nz):
+        plt.plot(k_vec, pk_tot_mc[-1], label='MC')
     
     pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_cc_2h = compute_2h_term(p_lin, I_c_term, I_c_align_term)
     pk_cs_2h = compute_2h_term(p_lin, I_c_term, I_s_align_term)
 
-    
+
     pk_tot = pk_cs_1h + pk_cs_2h + pk_cc_2h
+    
+    
+    pk_cs_2h_bnl = pk_cs_2h + p_lin*(I_NL_ia_gc)
+    pk_cc_2h_bnl = pk_cc_2h + p_lin*(I_NL_ia_gs)
+    pk_tot_bnl = pk_cs_1h + pk_cs_2h_bnl + pk_cc_2h_bnl
+    
     #"""
     #for i in range(nz):
-        #plt.loglog(k_vec, pk_tot[i])
-        #plt.loglog(k_vec, pk_cs_1h[i])
-        #plt.loglog(k_vec, pk_ss_2h[i])
-        #plt.loglog(k_vec, pk_cs_2h[i])
-        #plt.loglog(k_vec, pk_cc_2h[i])
-    plt.loglog(k_vec, pk_cs_1h[-1], label='Pcs, 1h')
-    plt.loglog(k_vec, pk_cs_2h[-1], label='Pcs, 2h')
-    plt.loglog(k_vec, pk_cc_2h[-1], label='Pcc, 2h')
-    plt.loglog(k_vec, pk_tot[-1], label='Tot')
+        #plt.plot(k_vec, pk_tot[i])
+        #plt.plot(k_vec, pk_cs_1h[i])
+        #plt.plot(k_vec, pk_ss_2h[i])
+        #plt.plot(k_vec, pk_cs_2h[i])
+        #plt.plot(k_vec, pk_cc_2h[i])
+    for i in range(nz):
+        #plt.plot(k_vec, pk_cs_1h[i], label='Pcs, 1h')
+        #plt.plot(k_vec, pk_cs_2h[i], label='Pcs, 2h')
+        #plt.plot(k_vec, pk_cc_2h[i], label='Pcc, 2h')
+        #plt.plot(k_vec, pk_cs_2h_bnl[i], label='Pcs, 2h_bnl')
+        #plt.plot(k_vec, pk_cc_2h_bnl[i], label='Pcc, 2h_bnl')
+        plt.plot(k_vec, pk_tot[i], label='Tot')
+        #plt.plot(k_vec, pk_tot[i]/pk_tot_mc[i], label='Tot')
+        plt.plot(k_vec, pk_tot_bnl[i], label='Tot_bnl')
 
     plt.title('galaxy-intrinsic')
     plt.xlabel('k')
     plt.ylabel('P(k)')
     plt.ylim([1e-4,1e3])
+    plt.xscale('log')
+    plt.yscale('log')
     plt.legend()
     plt.savefig('/net/home/fohlen13/dvornik/hm_ia_test_gi_bnl.pdf')
     plt.show()
