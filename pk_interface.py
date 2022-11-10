@@ -518,7 +518,7 @@ def execute(block, config):
                 # preparing the central and satellite terms
                 s_align_factor = pk_lib.prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, gamma_1h, nz,
                                                                          nk, nmass)
-                c_align_factor = pk_lib.prepare_central_alignment_factor_grid(mass, Ncen, numdencen, scale_factor, growth_factor, f_cen, C1, nz,
+                c_align_factor = pk_lib.prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_cen, C1, nz,
                                                                          nk, nmass)
 
                 I_c_align_term = pk_lib.prepare_Ic_align_term(mass, c_align_factor, b_dm, dn_dlnm, nz, nk, mean_density0, A_term)

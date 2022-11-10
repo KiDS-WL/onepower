@@ -80,7 +80,7 @@ def compute_central_galaxy_factor(Ncen, numdenscen, f_c):
 def compute_satellite_galaxy_factor(Nsat, numdenssat, f_s, u_gal):
     return f_s * Nsat * u_gal / numdenssat
 # central galaxy alignment
-def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_c, C1, Ncen, numdenscen, mass):
+def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_c, C1, mass):
     return f_c * (C1  / growth_factor) * mass# * scale_factor**2.0
 # satellite galaxy alignment
 def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
@@ -129,7 +129,7 @@ def prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, g
     return s_align_factor
     
 # alignment - centrals
-def prepare_central_alignment_factor_grid(mass, Ncen, numdencen, scale_factor, growth_factor, f_cen, C1 , nz, nk, nmass):
+def prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_cen, C1 , nz, nk, nmass):
     """
     Prepare the grid in z, k and mass for the central alignment
     f_cen/n_cen N_cen gamma_hat(k,M)
@@ -146,7 +146,7 @@ def prepare_central_alignment_factor_grid(mass, Ncen, numdencen, scale_factor, g
     :param nmass:
     :return:
     """
-    c_align_factor = compute_central_galaxy_alignment_factor(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, Ncen[:,np.newaxis,:], numdencen[:,np.newaxis,np.newaxis], mass[np.newaxis, np.newaxis, :])
+    c_align_factor = compute_central_galaxy_alignment_factor(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :])
     return c_align_factor
     
 
@@ -274,14 +274,14 @@ def compute_bnl_darkquest_2(z, log10M1, log10M2, k, emulator):
 
 def create_bnl_interpolation_function(emulator, interpolation):
     # AD: The mass range in Bnl needs to be optimised. Preferrentially set to the maximum mass limits in DarkEmulator, with the largest number of bins possible.
-    M = np.logspace(12.1, 15.0, 5)#12.0, 14.0, 5)
+    M = np.logspace(11.0, 14, 10)#12.0, 14.0, 5)
     #M = np.logspace(12.0, 14.0, 5)
     k = np.logspace(-2.0, 1.5, 50) #50)
-    z = np.linspace(0.0, 0.5, 5)
+    z = np.linspace(0.0, 1.4, 5)
     
     beta_func = compute_bnl_darkquest_2(z, np.log10(M), np.log10(M), k, emulator)
     if interpolation == True:
-        beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False, method='slinear')
+        beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
     else:
         beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=0.0, bounds_error=False)
     return beta_nl_interp    
@@ -339,7 +339,7 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     alignment_amplitude_2h = -alignment_gi[:,np.newaxis] * (C1 * mean_density0[:,np.newaxis] / growth_factor)
     alignment_amplitude_2h_II = (alignment_gi[:,np.newaxis] * C1 * mean_density0[:,np.newaxis] / growth_factor) ** 2.
     
-    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * alignment_gi[:,np.newaxis,np.newaxis]# * mean_density0[:,np.newaxis,np.newaxis]
+    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * alignment_gi[:,np.newaxis,np.newaxis]
 
 
 
