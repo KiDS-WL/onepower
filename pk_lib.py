@@ -371,24 +371,6 @@ def compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_te
     # Total
     pk_mm_tot = pk_mm_1h + pk_mm_2h
     
-    
-    pk_mm_tot_nbnl = pk_mm_1h + pk_mm_2h - plin*I_NL_mm
-    import matplotlib.pyplot as plt
-    for i in range(nz):
-        plt.plot(k_vec, pk_mm_tot[i]/pk_mm_tot_nbnl[i], label='Tot')
-        #plt.plot(k_vec, pk_mm_tot_nbnl[i], label='Tot')
-        #plt.plot(k_vec, pk_mm_tot[i], label='Tot_bnl')
-
-    plt.title('mm')
-    plt.xlabel('k')
-    plt.ylabel('P(k)')
-    #plt.ylim([1e-4,1e3])
-    plt.xscale('log')
-    #plt.yscale('log')
-    plt.legend()
-    #plt.savefig('/net/home/fohlen13/dvornik/hm_mm_test_bnl.pdf')
-    #plt.show()
-    
     #print('p_mm succesfully computed')
     return pk_mm_1h, pk_mm_2h, pk_mm_tot
 
@@ -447,21 +429,6 @@ def compute_p_gg_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
     # in case, save in the datablock
     #block.put_grid('galaxy_cs_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cs_1h)
     #block.put_grid('galaxy_ss_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_ss_1h)
-    import matplotlib.pyplot as plt
-    for i in range(nz):
-        plt.plot(k_vec, pk_tot[i]/pk_tot_nbnl[i], label='Tot')
-        #plt.plot(k_vec, pk_tot_nbnl[i], label='Tot')
-        #plt.plot(k_vec, pk_tot[i], label='Tot_bnl')
-
-    plt.title('gg')
-    plt.xlabel('k')
-    plt.ylabel('P(k)')
-    #plt.ylim([1e-4,1e3])
-    plt.xscale('log')
-    #plt.yscale('log')
-    plt.legend()
-    #plt.savefig('/net/home/fohlen13/dvornik/hm_gg_test_bnl.pdf')
-    #plt.show()
 
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
