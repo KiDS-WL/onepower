@@ -318,7 +318,7 @@ def execute(block, config):
             # AD: ln(10) factor added to the output and multiplication with M/L to get to the usual units data are in 99% reported in!
             
             #If required, convert everything to the h from the cosmological parameter section, otherwise keep h=1
-            h=1.
+            #h=1.
             #if rescale_to_h == True:
             #	h = block['cosmological_parameters', 'h0']
             #	print h

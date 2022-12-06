@@ -9,26 +9,6 @@ import hankel
 from scipy.integrate import quad, simps, trapz
 from scipy.special import legendre, sici, binom
 import math
-from halomod.concentration import make_colossus_cm
-import hmf.halos.mass_definitions as md
-
-# Concentration-mass relations
-
-def concentration(block, mass, z_vec, model, mdef, overdensity):
-    # calculates concentration given halo mass, using the colossus model provided in config
-    # furthermore it converts to halomod instance to be used with the halomodel, consistenly with halo mass function
-    # and halo bias function
-    nz = len(z_vec)
-    nmass = len(mass)
-    c = np.empty([nz, nmass])
-    
-    conc_func = make_colossus_cm(model=model)()
-    conc_func.mdef = getattr(md, mdef)()
-    conc_func.overdensity = overdensity
-    c = conc_func.cm(mass[np.newaxis,:], z_vec[:,np.newaxis])
-    
-    return c
-
 
 def scalar_rvir(mass, rho_halo):
     return ((3. * mass) / (4. * np.pi * rho_halo)) ** (1. / 3.)
@@ -65,10 +45,10 @@ def norm_fourier(x, c):
     rescaled_mass = np.log(1. + c) - c / (1. + c)
     u_fourier = (sinterm + costerm) / rescaled_mass
     return u_fourier
-
+    
 
 # compute the analytic fourier-transform of the nfw profile
-def compute_u_dm(k_vec, rs, conc):
+def compute_u_dm(k_vec, rs, conc, mass):
     # k : array-1d. The wave vector in units of h/Mpc
     # rs : array-2d [nz,nmass]. The scale radius.
     # c_dm : array-2d [nz,nmass]. The concentration of the halo as a function of redshift and mass.
@@ -79,6 +59,19 @@ def compute_u_dm(k_vec, rs, conc):
     
     u_dm = norm_fourier(k_vec[:,np.newaxis] * rs[:,np.newaxis,:], conc[:,np.newaxis,:])
     u_dm = u_dm/np.expand_dims(u_dm[:,0,:], 1) # Force normalisation to 1!
+    """
+    # This works but needs further refinement before we can completely replace the default NFW
+    #print(u_dm.shape)
+    from halomod.profiles import NFW
+    profile = NFW('Duffy08')
+    u_dm_halomod = np.zeros((conc.shape[0], k_vec.size, mass.size))
+    #print(u_dm_halomod.shape)
+    for i,ci in enumerate(conc):
+        u_dm_halomod[i,:,:] = profile.u(k_vec, mass, norm='m', c=ci, coord='k')
+    #print(u_dm_halomod.shape)
+    #print(u_dm/u_dm_halomod)
+    #quit()
+    #"""
     
     return u_dm
 

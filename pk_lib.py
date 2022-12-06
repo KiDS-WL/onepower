@@ -18,12 +18,25 @@ from dark_emulator import darkemu
 
 
 def one_halo_truncation(k_vec):
-    k_star = 0.1
-    return 1.-np.exp(-(k_vec/k_star)**2.)
+    k_star = 0.01#0.1
+    #return 1.-np.exp(-(k_vec/k_star)**2.)
+    return erf(k_vec/k_star)
+    
+def one_halo_truncation_mead(k_vec, block):
+    sigma_var = (block['hmf', 'sigma_var'][:,np.newaxis])
+    k_star = 0.05618 * sigma_var**(-1.013)
+    return ((k_vec/k_star)**4.0)/(1.0 + (k_vec/k_star)**4.0)
 
 def two_halo_truncation(k_vec):
     k_trunc = 2.0
     return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
+    
+def two_halo_truncation_mead(k_vec, block):
+    sigma_var = (block['hmf', 'sigma_var'][:,np.newaxis])
+    f = 0.2696 * sigma_var**(0.9403)
+    k_d = 0.05699 * sigma_var**(-1.089)
+    nd = 2.853
+    return 1.0 - (f*((k_vec/k_d)**nd)/(1.0 + (k_vec/k_d)**nd))
 
 def two_halo_truncation_ia(k_vec):
     k_trunc = 6.0
@@ -70,6 +83,21 @@ def compute_1h_term(factor_1, factor_2, mass, dn_dlnm_z):
 # Args : scalars
 # Return: scalar
 
+def fg(mass, fstar, theta_agn, z, block):
+    
+    mb = (10.0**(13.87) - (1.81*theta_agn) * 10.0**(z*(0.195*theta_agn - 0.108)))
+    
+    f = ((block['cosmological_parameters', 'omega_b']/block['cosmological_parameters', 'omega_m']) - fstar) * (mass/mb)**2.0 / (1.0+(mass/mb)**2.0)
+    return f
+
+def compute_matter_factor_baryon(mass, mean_density0, u_dm, z, block):
+
+    theta_agn = np.log10(10.0**block['halo_model_parameters', 'logT_AGN']/10**7.8)
+    
+    fstar = ((0.0201 - 0.0030*theta_agn) * 10.0**(z*(0.409 + 0.0224*theta_agn)))
+    
+    return ((mass / mean_density0) * u_dm * (1.0 - (block['cosmological_parameters', 'omega_nu']/block['cosmological_parameters', 'omega_m'])) * ((block['cosmological_parameters', 'omega_c']/block['cosmological_parameters', 'omega_m']) + fg(mass, fstar, theta_agn, z, block))) + (fstar * (mass / mean_density0))
+
 # matter
 def compute_matter_factor(mass, mean_density0, u_dm):
     return (mass / mean_density0) * u_dm
@@ -93,6 +121,10 @@ def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
 # matter
 def prepare_matter_factor_grid(mass, mean_density0, u_dm):
     m_factor = compute_matter_factor(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm)
+    return m_factor
+    
+def prepare_matter_factor_grid_baryon(mass, mean_density0, u_dm, z, block):
+    m_factor = compute_matter_factor_baryon(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, z[:, np.newaxis, np.newaxis], block)
     return m_factor
 
 # clustering - satellites
@@ -272,26 +304,96 @@ def compute_bnl_darkquest_2(z, log10M1, log10M2, k, emulator):
                     Pk_hh0 = emulator.get_phh_mass(klin, M01, M02, z1)
                     db = Pk_hh0/(b1*b2*Pk_klin) - 1.0
                     #print(db)
-                    #beta_func[iz1, iM1, iM2, :] = (beta_func[iz1, iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0
+                    beta_func[iz1, iM1, iM2, :] = (beta_func[iz1, iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0
                     #beta_func[iz1, iM1, iM2, :] = (beta_func[iz1, iM1, iM2, :] - db)
     
     return beta_func
     
-
-def create_bnl_interpolation_function(emulator, interpolation):
-    # AD: The mass range in Bnl needs to be optimised. Preferrentially set to the maximum mass limits in DarkEmulator, with the largest number of bins possible.
-    M = np.logspace(11.0, 15.5, 5)#12.0, 14.0, 5)
-    #M = np.logspace(12.0, 14.0, 5)
-    k = np.logspace(-2.0, 2.5, 50) #50)
-    z = np.linspace(0.0, 1.4, 5)
+def compute_bnl_darkquest_3(z, log10M1, log10M2, k, emulator):
+    # Much faster than above func, mostly because it uses symmetry.
+    M1 = 10.0**log10M1
+    M2 = 10.0**log10M2
+    # Parameters
+    klin = np.array([k[0]])#np.array([0.02])  # Large 'linear' scale for linear halo bias [h/Mpc]
     
+    # Calculate beta_NL by looping over mass arrays
+    beta_func = np.zeros((len(M1), len(M2), len(k)))
+    b01 = np.zeros(len(M1))
+    b02 = np.zeros(len(M2))
+    
+    # Linear power
+    Pk_lin = emulator.get_pklin_from_z(k, z)
+    Pk_klin = emulator.get_pklin_from_z(klin, z)
+    for iM, M0 in enumerate(M1):
+        #to = time.time()
+        #b01[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z)/Pk_klin)
+        #print(b01[iM], time.time()-to)
+        #to = time.time()
+        b01[iM] = emulator.get_bias_mass(M0, z)
+        #print(b01[iM], time.time()-to)
+    #for iM, M0 in enumerate(M2):
+    #    b02[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z1)/Pk_klin)
+    for iM1, M01 in enumerate(M1):
+        for iM2, M02 in enumerate(M2):
+            if iM2 < iM1:
+                # Use symmetry to not double calculate
+                beta_func[iM1, iM2, :] = beta_func[iM2, iM1, :]
+            else:
+                # Halo-halo power spectrum
+                Pk_hh = emulator.get_phh_mass(k, M01, M02, z)
+            
+                # Linear halo bias
+                b1 = b01[iM1]
+                b2 = b01[iM2]
+                    
+                # Create beta_NL
+                beta_func[iM1, iM2, :] = Pk_hh/(b1*b2*Pk_lin) - 1.0
+                    
+                Pk_hh0 = emulator.get_phh_mass(klin, M01, M02, z)
+                db = Pk_hh0/(b1*b2*Pk_klin) - 1.0
+                #print(db)
+                beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0
+                #beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db)
+    
+    return beta_func
+    
+    
+def create_bnl_interpolation_function(emulator, interpolation, z, h):
+    # AD: The mass range in Bnl needs to be optimised. Preferrentially set to the maximum mass limits in DarkEmulator, with the largest number of bins possible.
+    #M = np.logspace(12.0, 16.0, 5)
+    #M = np.array([np.logspace(12.1, 15.0, 5), np.logspace(12.1, 14.6, 5), np.logspace(12.1, 14.4, 5), np.logspace(12.1, 14.2, 5), np.logspace(12.1, 14.1, 5), np.logspace(12.1, 14.0, 5)])
+    #M = np.logspace(12.0, 14.0, 5)
+    #"""
+    lenM = 5
+    M = np.empty_like(z, dtype=np.object)
+    for i,zi in enumerate(z):
+        #M_up = 14.7788 - 0.624468*zi
+        M_up = 0.581217*zi**2 - 1.47736*zi + 16.0
+        #M_up = 0.581217*zi**2 - 1.47736*zi + 14.9418
+        #M_up = 0.581217*zi**2 - 1.47736*zi + 15.9418
+        #M_up = 16.0
+        M[i] = np.logspace(11.9, M_up, lenM)
+    #"""
+    k = np.logspace(-2.0, 0.2, 50) #50)
+    #z = np.linspace(0.0, 1.4, 5)
+    #z = np.array([0.0, 0.2, 0.42, 0.69, 1.02, 1.47])
+    
+    beta_func = np.zeros((len(z), lenM, lenM, len(k)))
+    beta_nl_interp_i = np.empty(len(z), dtype=object)
+    for i,zi in enumerate(z):
+        beta_func[i,:,:,:] = compute_bnl_darkquest_3(zi, np.log10(M[i]), np.log10(M[i]), k, emulator)
+        beta_func[i,:,:,:] = np.nan_to_num(beta_func[i,:,:,:], nan=0.0, posinf=0.0, neginf=0.0)
+        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M[i]), np.log10(M[i]), k], beta_func[i,:,:,:], fill_value=None, bounds_error=False)
+    
+    """
     beta_func = compute_bnl_darkquest_2(z, np.log10(M), np.log10(M), k, emulator)
     if interpolation == True:
         beta_func = np.nan_to_num(beta_func, nan=0.0, posinf=0.0, neginf=0.0)
         beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
     else:
         beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=0.0, bounds_error=False)
-    return beta_nl_interp    
+    #"""
+    return beta_nl_interp_i
 
 
 def prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk):
@@ -352,6 +454,12 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
 
 # ---- POWER SPECTRA ----#
 
+def transition_smoothing(block, k_vec, one_halo, two_halo):
+    delta_prefac = (k_vec**3.0)/(2.0*np.pi**2.0)
+    alpha = (1.875 * (1.603**block['hmf', 'neff'][:,np.newaxis]))
+    p_tot = (((delta_prefac * one_halo)**alpha + (delta_prefac * two_halo)**alpha)**(1.0/alpha))/delta_prefac
+    return p_tot
+
 # matter-matter
 def compute_p_mm(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, nz, nk):
     # 2-halo term:
@@ -359,7 +467,7 @@ def compute_p_mm(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, 
     # 1-halo term
     pk_mm_1h = compute_1h_term(m_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     # Total
-    pk_mm_tot= pk_mm_1h + pk_mm_2h
+    pk_mm_tot = pk_mm_1h + pk_mm_2h
     #print('p_mm succesfully computed')
     return pk_mm_1h, pk_mm_2h, pk_mm_tot
     
@@ -370,10 +478,17 @@ def compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_te
     pk_mm_1h = compute_1h_term(m_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     # Total
     pk_mm_tot = pk_mm_1h + pk_mm_2h
-    
     #print('p_mm succesfully computed')
     return pk_mm_1h, pk_mm_2h, pk_mm_tot
-
+    
+def compute_p_mm_mead(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, nz, nk):
+    # 2-halo term:
+    pk_mm_2h = plin * two_halo_truncation_mead(k_vec, block)
+    # 1-halo term
+    pk_mm_1h = compute_1h_term(m_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_mead(k_vec, block)
+    # Total
+    pk_mm_tot = transition_smoothing(block, k_vec, pk_mm_1h, pk_mm_2h)
+    return pk_mm_1h, pk_mm_2h, pk_mm_tot
 
 # galaxy-galaxy power spectrum
 def compute_p_gg(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk):
@@ -658,10 +773,14 @@ def compute_u_dm_grid(block, k_vec, mass, z_vec):
     u_udm = np.reshape(u_udm, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
     u_usat = np.reshape(u_usat, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
     # interpolate
+    """
     nz = np.size(z_vec)
     nk = np.size(k_vec)
     nmass = np.size(mass)
     u_dm = np.array([interp_udm(mass_udm, k_udm, udm_z, mass, k_vec) for udm_z in u_udm])
     u_sat = np.array([interp_udm(mass_udm, k_udm, usat_z, mass, k_vec) for usat_z in u_usat])
+    #"""
+    u_dm = u_udm
+    u_sat = u_usat
     #print('--- u_dm: %s seconds ---' % (time.time() - start_time_udm))
     return np.abs(u_dm), np.abs(u_sat)
