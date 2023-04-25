@@ -250,79 +250,16 @@ def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dln
     I_NL = beta_11 + beta_12 + beta_21 + beta_22
     #print(time.time()-to)
     return I_NL
-
-
-def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator):
-    M1 = 10.0**log10M1
-    M2 = 10.0**log10M2
-    P_hh = emulator.get_phh_mass(k, M1, M2, z)
-    Pk_lin = emulator.get_pklin_from_z(k, z)
-    klin = 0.02 #large k to calculate bias
-    Pk_klin = emulator.get_pklin_from_z(np.array([klin]), z)
-    bM1 = np.sqrt(emulator.get_phh_mass(klin, M1, M1, z)/Pk_klin)
-    bM2 = np.sqrt(emulator.get_phh_mass(klin, M2, M2, z)/Pk_klin)
-
-    Bnl = P_hh/(bM1*bM2*Pk_lin) - 1.0
-    
-    return Bnl
-    
-
-def compute_bnl_darkquest_2(z, log10M1, log10M2, k, emulator):
-    # Much faster than above func, mostly because it uses symmetry.
-    M1 = 10.0**log10M1
-    M2 = 10.0**log10M2
-    # Parameters
-    klin = np.array([0.02])  # Large 'linear' scale for linear halo bias [h/Mpc]
-    
-    # Calculate beta_NL by looping over mass arrays
-    beta_func = np.zeros((len(z), len(M1), len(M2), len(k)))
-    #b01 = np.zeros(len(M1))
-    #b02 = np.zeros(len(M2))
-    for iz1, z1 in enumerate(z):
-        # Linear power
-        Pk_lin = emulator.get_pklin_from_z(k, z1)
-        klin = np.array([k[np.argmax(Pk_lin)]])
-        Pk_klin = emulator.get_pklin_from_z(klin, z1)
-        b01 = np.zeros(len(M1))
-        b02 = np.zeros(len(M2))
-        for iM, M0 in enumerate(M1):
-            b01[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z1)/Pk_klin)
-            #b01[iM] = np.nan_to_num(emulator.get_bias_mass(M0, z1), nan=1.0, posinf=1.0, neginf=1.0)
-        #for iM, M0 in enumerate(M2):
-        #    b02[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z1)/Pk_klin)
-        for iM1, M01 in enumerate(M1):
-            for iM2, M02 in enumerate(M2):
-                if iM2 < iM1:
-                    # Use symmetry to not double calculate
-                    beta_func[iz1, iM1, iM2, :] = beta_func[iz1, iM2, iM1, :]
-                else:
-                    # Halo-halo power spectrum
-                    Pk_hh = emulator.get_phh_mass(k, M01, M02, z1)
-            
-                    # Linear halo bias
-                    b1 = b01[iM1]
-                    b2 = b01[iM2]
-                    
-                    # Create beta_NL
-                    beta_func[iz1, iM1, iM2, :] = Pk_hh/(b1*b2*Pk_lin) - 1.0
-                    
-                    Pk_hh0 = emulator.get_phh_mass(klin, M01, M02, z1)
-                    db = Pk_hh0/(b1*b2*Pk_klin) - 1.0
-                    #print(db)
-                    beta_func[iz1, iM1, iM2, :] = (beta_func[iz1, iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0
-                    #beta_func[iz1, iM1, iM2, :] = (beta_func[iz1, iM1, iM2, :] - db)
-    
-    return beta_func
    
 def nan_helper(y):
     return np.isnan(y), lambda z: z.nonzero()[0]
    
-def compute_bnl_darkquest_3(z, log10M1, log10M2, k, emulator, block):
-    # Much faster than above func, mostly because it uses symmetry.
+def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block):
     M1 = 10.0**log10M1
     M2 = 10.0**log10M2
     # Parameters
-    #klin = np.array([k[0]])#np.array([0.02])  # Large 'linear' scale for linear halo bias [h/Mpc]
+    # Large 'linear' scale for linear halo bias [h/Mpc]
+    #klin = np.array([k[0]])
     #klin = np.array([0.02])
     
     # Calculate beta_NL by looping over mass arrays
@@ -336,13 +273,8 @@ def compute_bnl_darkquest_3(z, log10M1, log10M2, k, emulator, block):
 
     
     for iM, M0 in enumerate(M1):
-        #Pk_hhb = emulator.get_phh_mass(klin, M0, M0, z)
-        #b01[iM] = np.sqrt(Pk_hhb/Pk_klin)
         #b01[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z)/Pk_klin)
         b01[iM] = np.nan_to_num(emulator.get_bias_mass(M0, z), nan=1.0, posinf=1.0, neginf=1.0)
-    #nans, x = nan_helper(b01)
-    #b_interp = interp1d(x(~nans), b01[~nans], kind='linear', fill_value='extrapolate')
-    #b01[nans] = b_interp(x(nans))
     #for iM, M0 in enumerate(M2):
     #    b02[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z1)/Pk_klin)
     for iM1, M01 in enumerate(M1):
@@ -354,27 +286,17 @@ def compute_bnl_darkquest_3(z, log10M1, log10M2, k, emulator, block):
                 # Linear halo bias
                 b1 = b01[iM1]
                 b2 = b01[iM2]
-                #if np.isnan(b1) or np.isnan(b2):
-                #    beta_func[iM1, iM2, :] = np.ones_like(k)
-                #else:
                     
                 # Halo-halo power spectrum
                 Pk_hh = emulator.get_phh_mass(k, M01, M02, z)
-                #mask = np.where(Pk_hh<=0.0)
-                #Pk_hh[mask] = Pk_lin[mask]
-                #Pk_hh[Pk_hh<0.0]=1e-20
                     
                 # Create beta_NL
                 beta_func[iM1, iM2, :] = Pk_hh/(b1*b2*Pk_lin) - 1.0
                     
                 Pk_hh0 = emulator.get_phh_mass(klin, M01, M02, z)
                 db = Pk_hh0/(b1*b2*Pk_klin) - 1.0
-                #print(db)
+        
                 beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0
-                #beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :]/db)# - 1.0
-                #beta_func[iM1, iM2, mask] = 0.0
-                #beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db)
-                #print(beta_func[iM1, iM2, :])
     
     return beta_func
     
@@ -382,9 +304,8 @@ def compute_bnl_darkquest_3(z, log10M1, log10M2, k, emulator, block):
 def create_bnl_interpolation_function(emulator, interpolation, z, block):
     # AD: The mass range in Bnl needs to be optimised. Preferrentially set to the maximum mass limits in DarkEmulator, with the largest number of bins possible.
     #M = np.logspace(12.0, 16.0, 5)
-    #M = np.array([np.logspace(12.1, 15.0, 5), np.logspace(12.1, 14.6, 5), np.logspace(12.1, 14.4, 5), np.logspace(12.1, 14.2, 5), np.logspace(12.1, 14.1, 5), np.logspace(12.1, 14.0, 5)])
     #M = np.logspace(12.0, 14.0, 5)
-    #"""
+    
     lenM = 5
     lenk = 50
     M = np.empty_like(z, dtype=np.object)
@@ -400,11 +321,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
         M_lo = 12.0
         M[i] = np.logspace(M_lo, M_up, lenM)# * 0.7 / block['cosmological_parameters', 'h0']
         k[i] = np.logspace(-2.0, np.log10(0.35 * (0.7 / block['cosmological_parameters', 'h0'])), lenk)
-    #"""
     #k = np.logspace(-2.0, 0.2, 50) #50)
-    #z = np.linspace(0.0001, 1.4, 10)
-    #z = np.array([0.0, 0.2, 0.42, 0.69, 1.02, 1.47])
-    #"""
     #beta_func = np.zeros((len(z), lenM, lenM, lenk))
     beta_nl_interp_i = np.empty(len(z), dtype=object)
     for i,zi in enumerate(zc):
@@ -412,15 +329,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
         #beta_func = np.nan_to_num(compute_bnl_darkquest_3(zi, np.log10(M[i]), np.log10(M[i]), k[i], emulator, block), nan=0.0, posinf=0.0, neginf=0.0)
         beta_func = compute_bnl_darkquest_3(zi, np.log10(M[i]), np.log10(M[i]), k[i], emulator, block)
         beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M[i]), np.log10(M[i]), k[i]], beta_func, fill_value=None, bounds_error=False, method='linear')
-    #"""
-    """
-    beta_func = compute_bnl_darkquest_2(z, np.log10(M), np.log10(M), k, emulator)
-    if interpolation == True:
-        beta_func = np.nan_to_num(beta_func, nan=0.0, posinf=0.0, neginf=0.0)
-        beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=None, bounds_error=False)
-    else:
-        beta_nl_interp = RegularGridInterpolator([z, np.log10(M), np.log10(M), k], beta_func, fill_value=0.0, bounds_error=False)
-    #"""
+    
     return beta_nl_interp_i
 
 

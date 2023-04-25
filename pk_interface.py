@@ -491,26 +491,16 @@ def execute(block, config):
                 cparam = test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
                 #print('cparam: ', cparam)
                 emulator.set_cosmology(cparam)
-                #print(np.sqrt((ombh2 + omch2 + 0.00064) / (1 - omega_lambda)))
-                #print(emulator.cosmo.get_hubble())
-                #print(block['cosmological_parameters', 'omnuh2'])
-                #quit()
                 
                 beta_interp_tmp = pk_lib.create_bnl_interpolation_function(emulator, interpolate_bnl, z_vec, block)
                 print('Created b_nl interpolator')
-                """
-                beta_interp = np.zeros((z_vec.size, mass.size, mass.size, k_vec.size))
-                indices = np.vstack(np.meshgrid(np.arange(z_vec.size),np.arange(mass.size),np.arange(mass.size),np.arange(k_vec.size), copy = False)).reshape(4,-1).T
-                values = np.vstack(np.meshgrid(z_vec, np.log10(mass), np.log10(mass), k_vec, copy = False)).reshape(4,-1).T
-                beta_interp[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = beta_interp_tmp(values)
-                #"""
-                #"""
+                
                 beta_interp = np.zeros((z_vec.size, mass.size, mass.size, k_vec.size))
                 indices = np.vstack(np.meshgrid(np.arange(mass.size),np.arange(mass.size),np.arange(k_vec.size), copy = False)).reshape(3,-1).T
                 values = np.vstack(np.meshgrid(np.log10(mass), np.log10(mass), k_vec, copy = False)).reshape(3,-1).T
                 for i,zi in enumerate(z_vec):
                     beta_interp[i,indices[:,0], indices[:,1], indices[:,2]] = beta_interp_tmp[i](values)
-                #"""
+    
                 cached_bnl['cached_bnl' + suffix] = beta_interp
             else:
                 beta_interp = cached_bnl['cached_bnl' + suffix]

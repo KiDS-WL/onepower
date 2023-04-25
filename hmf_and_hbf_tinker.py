@@ -272,16 +272,16 @@ def execute(block, config):
         sigma_var[jz] = mf.normalised_filter.sigma(8.0)
         neff[jz] = mf.n_eff[idx_neff]
         dndlnmh[jz] = mf.dndlnm
-        mean_density0[jz] = mf.mean_density0# * (1.0 - this_cosmo_run.Onu0/this_cosmo_run.Om0)
+        mean_density0[jz] = mf.mean_density0
         mean_density_z[jz] = mf.mean_density
-        rho_halo[jz] = overdensity_i * mf.mean_density0# * (1.0 - this_cosmo_run.Onu0/this_cosmo_run.Om0)
+        rho_halo[jz] = overdensity_i * mf.mean_density0
         bias = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_i, delta_halo=overdensity_i, sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
         b_nu[jz] = bias.bias()
         f_nu[jz] = this_cosmo_run.Onu0/this_cosmo_run.Om0
         #matter_power_lin[jz] = mf.power # we rather read linear power spectrum directly from camb, even though hmf does the same... (avoiding double work)
         #conc[jz,:] = concentration_halomod(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_i, mf, delta_c_i)
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnmh)
-    block.put_double_array_1d('density', 'mean_density0', mean_density0)#(mean_density0/this_cosmo_run.Om0)*this_cosmo_run.Odm0)
+    block.put_double_array_1d('density', 'mean_density0', mean_density0) #(mean_density0/this_cosmo_run.Om0)*this_cosmo_run.Odm0)
     block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
     block.put_double_array_1d('cosmological_parameters', 'fnu', f_nu)
     block.put_double_array_1d('density', 'rho_crit', mean_density0/this_cosmo_run.Om0)
