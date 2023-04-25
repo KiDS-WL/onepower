@@ -344,8 +344,8 @@ def setup(options):
             mead_correction = 'nofeedback'
         elif use_mead == 'mead2020_feedback':
             mead_correction = 'feedback'
-        #elif use_mead == True and mead_version == 'mead2020_feedback':
-        #    mead_correction = 'fit'
+        elif use_mead == 'fit':
+            mead_correction = 'fit'
     else:
         mead_correction = None
 
