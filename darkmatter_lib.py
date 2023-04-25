@@ -62,8 +62,8 @@ def compute_u_dm(k_vec, rs, conc, mass):
     """
     # This works but needs further refinement before we can completely replace the default NFW
     #print(u_dm.shape)
-    from halomod.profiles import NFW
-    profile = NFW('Duffy08')
+    from halomod.profiles import NFW #GeneralizedNFW as NFW
+    profile = NFW('Bullock01')#, alpha=1.25)
     u_dm_halomod = np.zeros((conc.shape[0], k_vec.size, mass.size))
     #print(u_dm_halomod.shape)
     for i,ci in enumerate(conc):

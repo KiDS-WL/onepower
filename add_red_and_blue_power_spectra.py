@@ -132,16 +132,24 @@ def execute(block, config):
     z_fred_file, f_red_file, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, zmax = config
 
     # load matter_power_nl k and z:
-    z_nl = block['matter_power_nl', 'z']
-    k_nl = block['matter_power_nl', 'k_h']
+    z_nl = block['matter_power_lin', 'z']
+    k_nl = block['matter_power_lin', 'k_h']
     
-    """
+    #"""
     if p_mm_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block['matter_power_nl', 'z']
-        f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
-        add_red_and_blue_power(block, f_red(z_hm), 'matter_power', z_nl, k_nl)
-    """
+        k_hm = block['matter_power_nl', 'k_h']
+        nz = len(z_hm)
+        nk = len(k_hm)
+        pk_nl = block['matter_power_nl', 'p_k']
+        nz_ext = len(z_nl)
+        pk_tot_ext_z = extrapolate_z(z_nl, z_hm, pk_nl, nk)
+        pk_tot_ext = extrapolate_k(k_nl, k_hm, pk_tot_ext_z, nz_ext)
+        
+        block.replace_grid('matter_power_nl', 'z', z_nl, 'k_h', k_nl, 'p_k', pk_tot_ext)
+        #add_red_and_blue_power(block, f_red(z_hm), 'matter_power', z_nl, k_nl)
+    #"""
     if p_gg_option:
         # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
         z_hm = block['galaxy_power_red', 'z']

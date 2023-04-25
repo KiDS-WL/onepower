@@ -43,15 +43,15 @@ def setup(options):
     """
     nk = options[option_section, 'nk']
     profile = options[option_section, 'profile']
-    use_mead = options.get_bool(option_section, 'use_mead2020_corrections',default=False)
-    mead_version = options['camb', 'halofit_version']
-    
-    if use_mead == True and mead_version == 'mead2020':
-        mead_correction = 'nofeedback'
-    elif use_mead == True and mead_version == 'mead2020_feedback':
-        mead_correction = 'feedback'
-    #elif use_mead == True and mead_version == 'mead2020_feedback':
-    #    mead_correction = 'fit'
+    check_mead = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
+    if check_mead:
+        use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
+        if use_mead == 'mead2020':
+            mead_correction = 'nofeedback'
+        elif use_mead == 'mead2020_feedback':
+            mead_correction = 'feedback'
+        #elif use_mead == True and mead_version == 'mead2020_feedback':
+        #    mead_correction = 'fit'
     else:
         mead_correction = None
 
@@ -83,12 +83,13 @@ def execute(block, config):
     eta_sat = block['nfw_halo', 'eta_sat']
 
     if mead_correction == 'nofeedback':
-        norm_cen = 0.85*1.299
+        norm_cen = 1.0#(5.196/3.85)#0.85*1.299
         sigma_var = block['hmf', 'sigma_var']
         eta_cen = (0.1281 * sigma_var[:,np.newaxis]**(-0.3644))
     if mead_correction == 'feedback':
-        theta_agn = np.log10(10.0**block['halo_model_parameters', 'logT_AGN']/10**7.8)
+        theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
         norm_cen = (((3.44 - 0.496*theta_agn) * 10.0**(z*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
+        eta_cen = (0.3 * (1.0+z)**0.5)[:,np.newaxis]
     
     conc_cen = norm_cen * block['concentration', 'c']#concentration(block, mass, z, model_cm, mdef, overdensity)
     conc_sat = norm_sat * block['concentration', 'c']#concentration(block, mass, z, model_cm, mdef, overdensity)

@@ -253,8 +253,9 @@ def setup(options):
     p_mI_mc = options.get_bool(option_section, 'p_mI_mc',default=False)
     p_II_mc = options.get_bool(option_section, 'p_II_mc',default=False)
     interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl',default=False)
-    use_mead = options.get_bool(option_section, 'use_mead2020_corrections',default=False)
-    mead_version = options['camb', 'halofit_version']
+    check_mead = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
+    #use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
+    #mead_version = options['camb', 'halofit_version']
 
     # initiate pipeline parameters
     ia_lum_dep_centrals = False
@@ -337,12 +338,14 @@ def setup(options):
         emulator = None
         cached_bnl = None
         
-    if use_mead == True and mead_version == 'mead2020':
-        mead_correction = 'nofeedback'
-    elif use_mead == True and mead_version == 'mead2020_feedback':
-        mead_correction = 'feedback'
-    #elif use_mead == True and mead_version == 'mead2020_feedback':
-    #    mead_correction = 'fit'
+    if check_mead:
+        use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
+        if use_mead == 'mead2020':
+            mead_correction = 'nofeedback'
+        elif use_mead == 'mead2020_feedback':
+            mead_correction = 'feedback'
+        #elif use_mead == True and mead_version == 'mead2020_feedback':
+        #    mead_correction = 'fit'
     else:
         mead_correction = None
 
@@ -399,8 +402,9 @@ def execute(block, config):
 
     # load nonlinear power spectrum (halofit)
     k_nl, p_nl = get_nonlinear_power_spectrum(block, z_vec)
-    #plin_k_interp = interp1d(k_nl, p_nl, axis=1, fill_value='extrapolate')
-    #pnl = plin_k_interp(k_vec)
+    plin_k_interp = interp1d(k_nl, p_nl, axis=1, fill_value='extrapolate')
+    pnl = plin_k_interp(k_vec)
+    block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
     #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
     
     # AD: avoid this! (Maybe needed for IA part ...)
@@ -418,13 +422,20 @@ def execute(block, config):
     # If the two_halo_only option is set True, then only the linear regime is computed and the linear bias is used (either computed by the
     # hod module or passed in the value	file (same structure as for the constant bias module)
     # Otherwise, compute the full power spectra (including the small scales)
+    
+    # load the halo mass and bias functions from the datablock
+    dn_dlnm, b_dm = get_halo_functions(block, pipeline, mass, z_vec)
+    # prepare a grid for the navarro-frenk-white profile
+    u_dm, u_sat = pk_lib.compute_u_dm_grid(block, k_vec, mass, z_vec)
+    
+    #print(mean_density0)
+    #mean_density0 = pk_lib.compute_mean_density(mass, dn_dlnm, block)
+    #print(mean_density0)
+    #quit()
+    
     if two_halo_only == True:
         # preparing the integrals:
         if gravitational == True:
-            # load the halo mass and bias functions from the datablock
-            dn_dlnm, b_dm = get_halo_functions(block, pipeline, mass, z_vec)
-            # prepare a grid for the navarro-frenk-white profile
-            u_dm, u_sat = pk_lib.compute_u_dm_grid(block, k_vec, mass, z_vec)
             A_term = pk_lib.prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
             I_m_term = pk_lib.prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk, A_term)
             m_factor = pk_lib.prepare_matter_factor_grid(mass, mean_density0, u_dm)
@@ -462,9 +473,6 @@ def execute(block, config):
             block.put_grid('intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
 
     else:
-        # load the halo mass and bias functions from the datablock and prepare a grid for the navarro-frenk-white profile
-        dn_dlnm, b_dm = get_halo_functions(block, pipeline, mass, z_vec)
-        u_dm, u_sat = pk_lib.compute_u_dm_grid(block, k_vec, mass, z_vec)
         A_term = pk_lib.prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
 
         if (bnl_gg == True) or (bnl_gm == True) or (bnl_mm == True) or (bnl_ia == True):
@@ -479,31 +487,30 @@ def execute(block, config):
                 A_s = block['cosmological_parameters', 'A_s']
                 n_s = block['cosmological_parameters', 'n_s']
                 w = block['cosmological_parameters', 'w']
-            
-                cparam = np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w])
-                #cparam = test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
-                print('cparam: ', cparam)
+                #cparam = np.array([ombh2, omch2, omega_lambda, np.log(A_s*10.0**10.0),n_s,w])
+                cparam = test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
+                #print('cparam: ', cparam)
                 emulator.set_cosmology(cparam)
                 #print(np.sqrt((ombh2 + omch2 + 0.00064) / (1 - omega_lambda)))
                 #print(emulator.cosmo.get_hubble())
                 #print(block['cosmological_parameters', 'omnuh2'])
                 #quit()
                 
-                beta_interp_tmp = pk_lib.create_bnl_interpolation_function(emulator, interpolate_bnl, z_vec, block['cosmological_parameters', 'h0'])
-                print('created b_nl interpolator')
+                beta_interp_tmp = pk_lib.create_bnl_interpolation_function(emulator, interpolate_bnl, z_vec, block)
+                print('Created b_nl interpolator')
                 """
                 beta_interp = np.zeros((z_vec.size, mass.size, mass.size, k_vec.size))
                 indices = np.vstack(np.meshgrid(np.arange(z_vec.size),np.arange(mass.size),np.arange(mass.size),np.arange(k_vec.size), copy = False)).reshape(4,-1).T
                 values = np.vstack(np.meshgrid(z_vec, np.log10(mass), np.log10(mass), k_vec, copy = False)).reshape(4,-1).T
                 beta_interp[indices[:,0], indices[:,1], indices[:,2], indices[:,3]] = beta_interp_tmp(values)
-                """
-                
+                #"""
+                #"""
                 beta_interp = np.zeros((z_vec.size, mass.size, mass.size, k_vec.size))
                 indices = np.vstack(np.meshgrid(np.arange(mass.size),np.arange(mass.size),np.arange(k_vec.size), copy = False)).reshape(3,-1).T
                 values = np.vstack(np.meshgrid(np.log10(mass), np.log10(mass), k_vec, copy = False)).reshape(3,-1).T
                 for i,zi in enumerate(z_vec):
                     beta_interp[i,indices[:,0], indices[:,1], indices[:,2]] = beta_interp_tmp[i](values)
-                
+                #"""
                 cached_bnl['cached_bnl' + suffix] = beta_interp
             else:
                 beta_interp = cached_bnl['cached_bnl' + suffix]
@@ -514,7 +521,7 @@ def execute(block, config):
         if gravitational == True:
             # the matter integral and factor
             I_m_term = pk_lib.prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk, A_term)
-            m_factor = pk_lib.prepare_matter_factor_grid(mass, mean_density0, u_dm)
+            m_factor = pk_lib.prepare_matter_factor_grid(mass, mean_density0, u_dm, block)
             if mead_correction == 'feedback':
                 m_factor_1h = pk_lib.prepare_matter_factor_grid_baryon(mass, mean_density0, u_dm, z_vec, block)
             elif mead_correction == 'fit':
@@ -604,7 +611,7 @@ def execute(block, config):
             #block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)
             #block.put_grid('matter_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
             # If you want to use this power spectrum to do cosmic shear, replace the lines above with the following:
-            block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
+            #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
             
         if p_mm_bnl == True:
             pk_mm_1h_bnl, pk_mm_2h_bnl, pk_mm_tot_bnl = pk_lib.compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor_1h,
