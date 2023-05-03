@@ -142,32 +142,42 @@ def execute(block, config):
     lum, lum_pdf_z, nz, nlum, galaxy_type, luminosity_dependence, suffix = config
             
     if galaxy_type==0:
-        if luminosity_dependence == 'None':
-            gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'A']
-            block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * np.ones(nz))
-        if luminosity_dependence == 'Joachimi2011':        
+        if luminosity_dependence == 'scalar':
+            amplitude_IA = block['intrinsic_alignment_parameters' + suffix, 'A']
+            block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', amplitude_IA * np.ones(nz))
+        if luminosity_dependence == 'joachimi2011':
             l0 = block['intrinsic_alignment_parameters' + suffix, 'l_0']
             beta_l = block['intrinsic_alignment_parameters' + suffix, 'beta_l']
-            gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
-            print ('gamma_2h = ', gamma_2h)          
+            amplitude_IA = block['intrinsic_alignment_parameters' + suffix, 'A']
+            print ('amplitude_IA = ', amplitude_IA)
             #mean_lscaling = np.empty(nz)
             #mean_lscaling_beta2 = np.empty(nz)
             #for i in range(0,nz):
             #    mean_lscaling[i] = mean_L_L0_to_beta(lum[i], lum_pdf_z[i], l0, beta_l)
             mean_lscaling = mean_L_L0_to_beta(lum, lum_pdf_z, l0, beta_l)
-            block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * mean_lscaling)
+            block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', amplitude_IA * mean_lscaling)
         if luminosity_dependence == 'double_powerlaw':        
             l0 = block['intrinsic_alignment_parameters' + suffix, 'l_0']
             beta_l = block['intrinsic_alignment_parameters' + suffix, 'beta_l']
             beta_low = block['intrinsic_alignment_parameters' + suffix, 'beta_low']
-            gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
+            amplitude_IA = block['intrinsic_alignment_parameters' + suffix, 'A']
             mean_lscaling = np.empty(nz)
             for i in range(0,nz):
-                mean_lscaling[i] = broken_powerlaw(lum[i], lum_pdf_z[i], gamma_2h, l0, beta_l, beta_low)
+                mean_lscaling[i] = broken_powerlaw(lum[i], lum_pdf_z[i], amplitude_IA, l0, beta_l, beta_low)
             block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', mean_lscaling)
+        # Still developed, do not use!
+        if luminosity_dependence == 'halo_mass':
+            m0 = block['intrinsic_alignment_parameters' + suffix, 'M_0']
+            beta_m = block['intrinsic_alignment_parameters' + suffix, 'beta_mh']
+            amplitude_IA = block['intrinsic_alignment_parameters' + suffix, 'A']
+            # Technicall just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
+            block.put_double('ia_large_scale_alignment' + suffix, 'alignment_gi', amplitude_IA * np.ones(nz))
+            block.put_double('ia_large_scale_alignment' + suffix, 'M_0', m0)
+            block.put_double('ia_large_scale_alignment' + suffix, 'beta_mh', beta_m)
+            block.put_double('ia_large_scale_alignment' + suffix, 'instance', luminosity_dependence)
         
     if galaxy_type==1:
-        if luminosity_dependence == 'None':
+        if luminosity_dependence == 'scalar':
             gamma_1h = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude']
             block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * np.ones(nz))
         if luminosity_dependence == 'satellite_luminosity_dependence':

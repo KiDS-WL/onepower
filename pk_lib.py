@@ -126,6 +126,10 @@ def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_c, C1
 # satellite galaxy alignment
 def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
     return f_s * Nsat * wkm_sat / numdenssat
+# central galaxy alignment: halo mass dependence
+# CHECK IF THIS MAKES SENSE IN THE TERM OF WINDOW FUNCTION COMPARED TO LA FORMALISM!
+#def compute_central_galaxy_alignment_factor_halo(scale_factor, growth_factor, f_c, C1, mass, beta, m0):
+#    return f_c * (C1  / growth_factor) * mass * (mass/m0)**beta # * scale_factor**2.0
 
 # Compute the grid in z, k, and M of the quantities described above
 # Args:
@@ -197,6 +201,17 @@ def prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_c
     """
     c_align_factor = compute_central_galaxy_alignment_factor(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :])
     return c_align_factor
+    
+# alignment - centrals: halo mass dependence
+#def prepare_central_alignment_factor_grid_halo(mass, scale_factor, growth_factor, f_cen, C1 , nz, nk, nmass, beta, m0):
+#    """
+#    Prepare the grid in z, k and mass for the central alignment
+#    f_cen/n_cen N_cen gamma_hat(k,M)
+#    where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
+#    times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
+#    """
+#    c_align_factor = compute_central_galaxy_alignment_factor_halo(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :], beta, m0) # need to check dimensionality of beta, m0!
+#    return c_align_factor
     
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -329,6 +344,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     zc = z.copy()
     zc[zc>=0.5] = 0.5
     for i,zi in enumerate(zc):
+        # Fitting the upper mass limit to the box size constraints as a function of redshift. Not stable.
         #M_up = 14.7788 - 0.624468*zi
         #M_up = 0.581217*zi**2 - 1.47736*zi + 16.0
         #M_up = 0.581217*zi**2 - 1.47736*zi + 14.9418
@@ -336,14 +352,14 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
         M_up = 14.0
         M_lo = 12.0
         M[i] = np.logspace(M_lo, M_up, lenM)# * 0.7 / block['cosmological_parameters', 'h0']
-        k[i] = np.logspace(-2.0, np.log10(0.35 * (0.7 / block['cosmological_parameters', 'h0'])), lenk)
+        k[i] = np.logspace(-2.0, np.log10(0.35 * (0.7 / block['cosmological_parameters', 'h0'])), lenk) # Need to correct k for h parameter here.
     #k = np.logspace(-2.0, 0.2, 50) #50)
     #beta_func = np.zeros((len(z), lenM, lenM, lenk))
     beta_nl_interp_i = np.empty(len(z), dtype=object)
     for i,zi in enumerate(zc):
         #zi += 1e-3
-        #beta_func = np.nan_to_num(compute_bnl_darkquest_3(zi, np.log10(M[i]), np.log10(M[i]), k[i], emulator, block), nan=0.0, posinf=0.0, neginf=0.0)
-        beta_func = compute_bnl_darkquest_3(zi, np.log10(M[i]), np.log10(M[i]), k[i], emulator, block)
+        #beta_func = np.nan_to_num(compute_bnl_darkquest(zi, np.log10(M[i]), np.log10(M[i]), k[i], emulator, block), nan=0.0, posinf=0.0, neginf=0.0)
+        beta_func = compute_bnl_darkquest(zi, np.log10(M[i]), np.log10(M[i]), k[i], emulator, block)
         beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M[i]), np.log10(M[i]), k[i]], beta_func, fill_value=None, bounds_error=False, method='linear')
     
     return beta_nl_interp_i
