@@ -113,7 +113,7 @@ def setup(options):
     abs_mag_sun = options[option_section, 'abs_mag_sun']
 
     name = options.get_string(option_section, 'name', default='').lower()
-    if name:
+    if name != '':
         suffix = '_' + name
     else:
         suffix = ''

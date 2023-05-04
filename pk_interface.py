@@ -301,7 +301,7 @@ def setup(options):
         #print('alignment is true')
 
     name = options.get_string(option_section, 'name', default='').lower()
-    if name:
+    if name != '':
         suffix = '_' + name
     else:
         suffix = ''
