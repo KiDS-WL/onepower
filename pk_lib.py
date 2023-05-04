@@ -242,7 +242,7 @@ def compute_Ig_term(factor_1, mass, dn_dlnm_z, b_m):
     return I_g
 
 
-def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_mean, interpolation, B_NL_k_z, emulator):
+def compute_I_NL_term(k, z, factor_1, factor_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_mean, B_NL_k_z):
     
     #B_NL_k_z = np.zeros((z.size, mass_1.size, mass_2.size, k.size))
     #indices = np.vstack(np.meshgrid(np.arange(z.size),np.arange(mass_1.size),np.arange(mass_2.size),np.arange(k.size))).reshape(4,-1).T
@@ -389,8 +389,8 @@ def prepare_Ic_align_term(mass, c_align_factor, b_m, dn_dlnm, nz, nk, mean_densi
     I_c_align_term = compute_Ig_term(c_align_factor, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
     return I_c_align_term + A_term * c_align_factor[:,:,0] * mean_density0[:,np.newaxis] / mass[0]
     
-def prepare_I_NL(mass_1, mass_2, factor_1, factor_2, bias_1, bias_2, dn_dlnm_1, dn_dlnm_2, nz, nk, k_vec, z_vec, A, rho_mean, emulator, interpolation, beta_interp=None):
-    I_NL = compute_I_NL_term(k_vec, z_vec, factor_1, factor_2, bias_1, bias_2, mass_1, mass_2, dn_dlnm_1, dn_dlnm_2, A, rho_mean, interpolation, beta_interp, emulator)
+def prepare_I_NL(mass_1, mass_2, factor_1, factor_2, bias_1, bias_2, dn_dlnm_1, dn_dlnm_2, nz, nk, k_vec, z_vec, A, rho_mean, beta_interp=None):
+    I_NL = compute_I_NL_term(k_vec, z_vec, factor_1, factor_2, bias_1, bias_2, mass_1, mass_2, dn_dlnm_1, dn_dlnm_2, A, rho_mean, beta_interp)
     return I_NL
     
 def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_density0):

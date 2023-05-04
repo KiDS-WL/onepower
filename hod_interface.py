@@ -267,7 +267,7 @@ def execute(block, config):
             obs_func_tmp = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dndlnM[:,:,np.newaxis], axis=-2)
 
             # interpolate in L_obs to have a consistent grid
-            print(nz)
+            #print(nz)
             for jz in range(0,nz):
                 interp = interp1d(obs_simps[jz], obs_func_tmp[jz], kind='linear', bounds_error=False, fill_value=(0,0))
                 obs_func_h[jz] = interp(obs_range_h)

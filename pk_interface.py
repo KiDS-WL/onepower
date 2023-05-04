@@ -9,7 +9,6 @@ from scipy.interpolate import interp1d, interp2d
 from scipy import interp
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM
 import astropy.units as u
-from dark_emulator import darkemu 
 from scipy.interpolate import RegularGridInterpolator
 from scipy.integrate import quad, simps, trapz
 import timeit
@@ -28,25 +27,6 @@ import time
 import os, errno
 
 cosmo = names.cosmological_parameters
-
-def test_cosmo(cparam_in):
-    # Returns the edge values for DarkQuest emulator if the values are outside the emulator range
-    cparam_range = OrderedDict((["omegab", [0.0211375, 0.0233625]],
-                          ["omegac", [0.10782, 0.13178]],
-                          ["Omagede", [0.54752, 0.82128]],
-                          ["ln(10^10As)", [2.4752, 3.7128]],
-                          ["ns", [0.916275, 1.012725]],
-                          ["w", [-1.2, -0.8]]))
-
-    cparam_in = cparam_in.reshape(1, 6)
-    cparam_out = np.copy(cparam_in)
-
-    for i, (key, edges) in enumerate(cparam_range.items()):
-        if cparam_in[0, i] < edges[0]:
-            cparam_out[0, i] = edges[0]
-        if cparam_in[0, i] > edges[1]:
-            cparam_out[0, i] = edges[1]
-    return cparam_out
 
 def get_linear_power_spectrum(block, z_vec):
     # AD: growth factor should be computed from camb/hmf directly, this way we can load Plin directly without this functions!
@@ -252,7 +232,7 @@ def setup(options):
     p_gI_mc = options.get_bool(option_section, 'p_gI_mc',default=False)
     p_mI_mc = options.get_bool(option_section, 'p_mI_mc',default=False)
     p_II_mc = options.get_bool(option_section, 'p_II_mc',default=False)
-    interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl',default=False)
+    #interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl',default=False)
     check_mead = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
     #use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
     #mead_version = options['camb', 'halofit_version']
@@ -326,18 +306,6 @@ def setup(options):
     else:
         suffix = ''
         
-        
-    if (bnl_gg == True) or (bnl_gm == True) or (bnl_mm == True) or (bnl_ia == True):
-        #initialise emulator
-        emulator = darkemu.base_class()
-        cached_bnl = {}
-        cached_bnl['num_calls' + suffix] = 0
-        cached_bnl['cached_bnl' + suffix] = None
-        cached_bnl['update_bnl' + suffix] = options[option_section, 'update_bnl']
-    else:
-        emulator = None
-        cached_bnl = None
-        
     if check_mead:
         use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
         if use_mead == 'mead2020':
@@ -364,7 +332,7 @@ def setup(options):
     # ============================================================================== #
 
     return mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_mI, p_II, p_gI_bnl, p_mI_bnl, p_II_bnl, p_gI_mc, p_mI_mc, p_II_mc, gravitational, galaxy, bnl_gg, bnl_gm, bnl_mm, bnl_ia, alignment, \
-           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl, emulator, cached_bnl, mead_correction
+           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, mead_correction
 
 
 def execute(block, config):
@@ -373,7 +341,7 @@ def execute(block, config):
     # earlier modules, and the config is what we loaded earlier.
 
     mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_mI, p_II, p_gI_bnl, p_mI_bnl, p_II_bnl, p_gI_mc, p_mI_mc, p_II_mc, gravitational, galaxy, bnl_gg, bnl_gm, bnl_mm, bnl_ia, alignment, \
-    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, interpolate_bnl, emulator, cached_bnl, mead_correction = config
+    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, mead_correction = config
 
     start_time = time.time()
 
@@ -476,36 +444,10 @@ def execute(block, config):
         A_term = pk_lib.prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk)
 
         if (bnl_gg == True) or (bnl_gm == True) or (bnl_mm == True) or (bnl_ia == True):
-        
-            num_calls = cached_bnl['num_calls' + suffix]
-            update_bnl = cached_bnl['update_bnl' + suffix]
-            
-            if num_calls % update_bnl == 0:
-                ombh2 = block['cosmological_parameters', 'ombh2']
-                omch2 = block['cosmological_parameters', 'omch2']# - 0.00064 #need to subtract the neutrino density to get h right in DQ emulator!
-                omega_lambda = block['cosmological_parameters', 'omega_lambda']
-                A_s = block['cosmological_parameters', 'A_s']
-                n_s = block['cosmological_parameters', 'n_s']
-                w = block['cosmological_parameters', 'w']
-                #cparam = np.array([ombh2, omch2, omega_lambda, np.log(A_s*10.0**10.0),n_s,w])
-                cparam = test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
-                #print('cparam: ', cparam)
-                emulator.set_cosmology(cparam)
-                
-                beta_interp_tmp = pk_lib.create_bnl_interpolation_function(emulator, interpolate_bnl, z_vec, block)
-                print('Created b_nl interpolator')
-                
-                beta_interp = np.zeros((z_vec.size, mass.size, mass.size, k_vec.size))
-                indices = np.vstack(np.meshgrid(np.arange(mass.size),np.arange(mass.size),np.arange(k_vec.size), copy = False)).reshape(3,-1).T
-                values = np.vstack(np.meshgrid(np.log10(mass), np.log10(mass), k_vec, copy = False)).reshape(3,-1).T
-                for i,zi in enumerate(z_vec):
-                    beta_interp[i,indices[:,0], indices[:,1], indices[:,2]] = beta_interp_tmp[i](values)
-    
-                cached_bnl['cached_bnl' + suffix] = beta_interp
-            else:
-                beta_interp = cached_bnl['cached_bnl' + suffix]
+            beta_interp = block.get_double_array_nd('bnl', 'beta_interp')
+            if beta_interp is False:
+                raise ValueError('Non-linear halo bias module bnl not initialised!\n')
 
-            cached_bnl['num_calls' + suffix] = num_calls + 1
             
         # prepare the integrals
         if gravitational == True:
@@ -521,7 +463,7 @@ def execute(block, config):
                 m_factor_1h = m_factor.copy()
                 
             if bnl_mm == True:
-                I_NL_mm = pk_lib.prepare_I_NL(mass, mass, m_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                I_NL_mm = pk_lib.prepare_I_NL(mass, mass, m_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
                 
         if (galaxy == True) or (alignment == True):
             #print(hod_section_name)
@@ -536,15 +478,15 @@ def execute(block, config):
             
                 if bnl_gg == True:
                     start = time.time()
-                    I_NL_cs = pk_lib.prepare_I_NL(mass, mass, c_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_cs = pk_lib.prepare_I_NL(mass, mass, c_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
                     end = time.time()
                     print('time I_NL_cs: ', end - start)
-                    I_NL_ss = pk_lib.prepare_I_NL(mass, mass, s_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
-                    I_NL_cc = pk_lib.prepare_I_NL(mass, mass, c_factor, c_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_ss = pk_lib.prepare_I_NL(mass, mass, s_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                    I_NL_cc = pk_lib.prepare_I_NL(mass, mass, c_factor, c_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
 
                 if bnl_gm == True:
-                    I_NL_cm = pk_lib.prepare_I_NL(mass, mass, c_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
-                    I_NL_sm = pk_lib.prepare_I_NL(mass, mass, s_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                    I_NL_cm = pk_lib.prepare_I_NL(mass, mass, c_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                    I_NL_sm = pk_lib.prepare_I_NL(mass, mass, s_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
                     
             if alignment == True:
                 #IT commenting ia_lum_dep_centrals
@@ -580,17 +522,17 @@ def execute(block, config):
                 I_s_align_term = pk_lib.prepare_Is_align_term(mass, s_align_factor, b_dm, dn_dlnm, nz, nk, mean_density0, A_term)
                 if bnl_ia == True:
                     if p_mI_bnl == True:
-                        I_NL_ia_cm = pk_lib.prepare_I_NL(mass, mass, c_align_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
-                        I_NL_ia_sm = pk_lib.prepare_I_NL(mass, mass, s_align_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                        I_NL_ia_cm = pk_lib.prepare_I_NL(mass, mass, c_align_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                        I_NL_ia_sm = pk_lib.prepare_I_NL(mass, mass, s_align_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
                     
                     if p_II_bnl == True:
-                        I_NL_ia_cc = pk_lib.prepare_I_NL(mass, mass, c_align_factor, c_align_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
-                        I_NL_ia_cs = pk_lib.prepare_I_NL(mass, mass, c_align_factor, s_align_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
-                        I_NL_ia_ss = pk_lib.prepare_I_NL(mass, mass, s_align_factor, s_align_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                        I_NL_ia_cc = pk_lib.prepare_I_NL(mass, mass, c_align_factor, c_align_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                        I_NL_ia_cs = pk_lib.prepare_I_NL(mass, mass, c_align_factor, s_align_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                        I_NL_ia_ss = pk_lib.prepare_I_NL(mass, mass, s_align_factor, s_align_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
                         
                     if p_gI_bnl == True:
-                        I_NL_ia_gc = pk_lib.prepare_I_NL(mass, mass, c_align_factor, c_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
-                        I_NL_ia_gs = pk_lib.prepare_I_NL(mass, mass, s_align_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, emulator, interpolate_bnl, beta_interp)
+                        I_NL_ia_gc = pk_lib.prepare_I_NL(mass, mass, c_align_factor, c_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                        I_NL_ia_gs = pk_lib.prepare_I_NL(mass, mass, s_align_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
                 
         # compute the power spectra
         if p_mm == True:
