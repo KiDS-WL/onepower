@@ -41,21 +41,21 @@ import time
 # string you want instead.
 cosmo = names.cosmological_parameters
 
-def	extrapolate_z(z_ext, z_vec, pk, nk):
-	nz_ext = len(z_ext)
-	pk_extz = np.empty([nz_ext, nk])
-	for ik in range(0,nk):
-		#pk_kfixed = pk[:,ik]
-		pk_extz[:,ik] = interp(z_ext, z_vec, pk[:,ik])
-	return pk_extz
+def extrapolate_z(z_ext, z_vec, pk, nk):
+    nz_ext = len(z_ext)
+    pk_extz = np.empty([nz_ext, nk])
+    for ik in range(0,nk):
+        inter_func = interp1d(z_vec, pk[:,ik], kind='linear', fill_value='extrapolate', bounds_error=False)
+        pk_extz[:,ik] = inter_func(z_ext)
+    return pk_extz
 
-def	extrapolate_k(k_ext, k, pk, nz):
-	nk_ext = len(k_ext)
-	pk_extk = np.empty([nz, nk_ext])
-	for jz in range(0,nz):
-		#pk_zfixed = pk[jz,:]
-		pk_extk[jz,:] = interp(k_ext, k, pk[jz,:])
-	return pk_extk
+def extrapolate_k(k_ext, k, pk, nz):
+    nk_ext = len(k_ext)
+    pk_extk = np.empty([nz, nk_ext])
+    for jz in range(0,nz):
+        inter_func = interp1d(k, pk[jz,:], kind='linear', fill_value='extrapolate', bounds_error=False)
+        pk_extk[jz,:] = inter_func(k_ext)
+    return pk_extk
 
 def add_red_and_blue_power(block, suffix_red, suffix_blue, f_red, power_section, z_ext, k_ext):
     # Note that we have first interpolated the f_red to the halo model pipeline z range

@@ -123,7 +123,7 @@ def setup(options):
     # employed in the log-simpson integration.
     # AD: For stellar masses it holds the same, but we can also employ this to construct more complex samples/bins. Can pick lower redshift limit for particulare stellar mass, etc...
 
-    print('z\t log L_min(z)\t log L_max(z)\n')
+    print('z\t log OBS_min(z)\t log OBS_max(z)\n')
     obs_simps = np.empty([nz,nobs])
     for jz in range(0,nz):
         obs_minz = log_obs_min[jz]
@@ -346,36 +346,6 @@ def execute(block, config):
 
             block.put_double_array_1d('observable_function' + suffix,'mass_med',mass)
             block.put_double_array_1d('observable_function' + suffix,'obs_med',obs_cen)
-
-
-    ######################################   CLF DERIVED QUANTITIES   #########################################
-    """
-    #For testing purposes it is useful to save some hod-derived quantities
-    if clf_quantities:
-        lf_cen = np.empty(nobs)
-        lf_sat = np.empty(nobs)
-        central_fraction_L = np.empty(nobs)
-        satellite_fraction_L = np.empty(nobs)
-
-        phi_star_sat = cf.phi_star(mass, hod)
-        for i in range(0,nobs):
-            lf_sat[i] = cf.LF(mass, phi_s_lf[i], dn_dlnM_zmedian)
-            lf_cen[i] = cf.LF(mass, phi_c_lf[i], dn_dlnM_zmedian)
-            satellite_fraction_L[i] = lf_sat[i]/Lf_func[i]
-            central_fraction_L[i] = lf_cen[i]/Lf_func[i]
-
-        #convert in mags and rescale to the h for the adopted cosmology
-        lf_cen_mags = 0.4*np.log(10.)*L_obs*lf_cen*(h**3.)
-        lf_sat_mags = 0.4*np.log(10.)*L_obs*lf_sat*(h**3.)
-
-        block.put_double_array_1d('conditional_luminosity_function' + suffix,'phi_star',phi_star_sat)
-        block.put_double_array_1d('conditional_luminosity_function' + suffix,'lf_cen_mags',lf_cen_mags)
-        block.put_double_array_1d('conditional_luminosity_function' + suffix,'lf_sat_mags',lf_sat_mags)
-        block.put_grid('conditional_luminosity_function', 'lum' + suffix, L_obs, 'mass', mass, 'clf_cen', phi_c_lf)
-        block.put_grid('conditional_luminosity_function', 'lum', L_obs, 'mass', mass, 'clf_sat', phi_s_lf)
-        block.put_double_array_1d('conditional_luminosity_function' + suffix,'central_fraction_L',central_fraction_L)
-        block.put_double_array_1d('conditional_luminosity_function' + suffix,'satellite_fraction_L',satellite_fraction_L)
-    """
 
     return 0
 
