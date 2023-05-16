@@ -189,6 +189,16 @@ def execute(block, config):
             #    mean_lscaling[i] = mean_L_L0_to_beta(lum[i], lum_pdf_z[i], l0, zeta_l)
             mean_lscaling = mean_L_L0_to_beta(lum, lum_pdf_z, l0, zeta_l)
             block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * mean_lscaling)
+        if luminosity_dependence == 'halo_mass':
+            m0 = block['intrinsic_alignment_parameters' + suffix, 'M_0']
+            zeta_m = block['intrinsic_alignment_parameters' + suffix, 'zeta_m']
+            gamma_1h = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude']
+            #mean_lscaling = mean_L_L0_to_beta(lum, lum_pdf_z, l0, zeta_l)
+            block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * * np.ones(nz))
+            block.put_double('ia_large_scale_alignment' + suffix, 'M_0', m0)
+            block.put_double('ia_large_scale_alignment' + suffix, 'zeta_mh', zeta_m)
+            block.put_double('ia_small_scale_alignment' + suffix, 'instance', luminosity_dependence)
+
 
     return 0
     
