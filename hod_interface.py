@@ -204,53 +204,56 @@ def execute(block, config):
         block.put_grid('hod' + suffix, 'z', z_bins, 'mass', mass, 'n_sat', n_sat)
         block.put_grid('hod' + suffix, 'z', z_bins, 'mass', mass, 'n_cen', n_cen)
         block.put_grid('hod' + suffix, 'z', z_bins, 'mass', mass, 'n_tot', n_tot)
+        
+        
+        #numdens_cen = np.empty(nz)
+        #numdens_sat = np.empty(nz)
 
-        if number_density_option:
+        numdens_cen = cf.compute_number_density(mass, n_cen, dndlnM)
+        numdens_sat = cf.compute_number_density(mass, n_sat, dndlnM)
 
-            #numdens_cen = np.empty(nz)
-            #numdens_sat = np.empty(nz)
+        numdens_tot = numdens_cen + numdens_sat
+        fraction_cen = numdens_cen/numdens_tot
+        fraction_sat = numdens_sat/numdens_tot
 
-            numdens_cen = cf.compute_number_density(mass, n_cen, dndlnM)
-            numdens_sat = cf.compute_number_density(mass, n_sat, dndlnM)
+        # save on datablock
+        block.put_double_array_1d('hod' + suffix, 'number_density_cen', numdens_cen)
+        block.put_double_array_1d('hod' + suffix, 'number_density_sat', numdens_sat)
+        block.put_double_array_1d('hod' + suffix, 'number_density_tot', numdens_tot)
+        block.put_double_array_1d('hod' + suffix, 'central_fraction', fraction_cen)
+        block.put_double_array_1d('hod' + suffix, 'satellite_fraction', fraction_sat)
+        
+        # compute average halo mass per bin
+        mass_avg = cf.compute_avg_halo_mass(mass, n_cen, dndlnM)/numdens_cen
+        block.put_double_array_1d('hod' + suffix, 'average_halo_mass', mass_avg)
 
-            numdens_tot = numdens_cen + numdens_sat
-            fraction_cen = numdens_cen/numdens_tot
-            fraction_sat = numdens_sat/numdens_tot
-
-            # save on datablock
-            block.put_double_array_1d('hod' + suffix, 'number_density_cen', numdens_cen)
-            block.put_double_array_1d('hod' + suffix, 'number_density_sat', numdens_sat)
-            block.put_double_array_1d('hod' + suffix, 'number_density_tot', numdens_tot)
-            block.put_double_array_1d('hod' + suffix, 'central_fraction', fraction_cen)
-            block.put_double_array_1d('hod' + suffix, 'satellite_fraction', fraction_sat)
-
-            #print('--- hod: %s seconds ---' % (time.time() - start_time))
+        
 
 
-            if galaxy_bias_option:
-                #---- loading the halo bias function ----#
-                mass_hbf = block['halobias', 'm_h']
-                z_hbf = block['halobias', 'z']
-                halobias_hbf = block['halobias', 'b_hb']
+        if galaxy_bias_option:
+            #---- loading the halo bias function ----#
+            mass_hbf = block['halobias', 'm_h']
+            z_hbf = block['halobias', 'z']
+            halobias_hbf = block['halobias', 'b_hb']
 
-                #f_interp_halobias = interp2d(mass_hbf, z_hbf, halobias_hbf)
-                #hbias = f_interp_halobias(mass,z_bins)
-                f_interp_halobias = RegularGridInterpolator((mass_hbf.T, z_hbf.T), halobias_hbf.T, bounds_error=False, fill_value=None)
-                mass_i, z_bins_i = np.meshgrid(mass, z_bins, sparse=True)
-                hbias = f_interp_halobias((mass_i.T,z_bins_i.T)).T
+            #f_interp_halobias = interp2d(mass_hbf, z_hbf, halobias_hbf)
+            #hbias = f_interp_halobias(mass,z_bins)
+            f_interp_halobias = RegularGridInterpolator((mass_hbf.T, z_hbf.T), halobias_hbf.T, bounds_error=False, fill_value=None)
+            mass_i, z_bins_i = np.meshgrid(mass, z_bins, sparse=True)
+            hbias = f_interp_halobias((mass_i.T,z_bins_i.T)).T
 
-                #galaxybias_cen = np.empty(nz)
-                #galaxybias_sat = np.empty(nz)
-                #galaxybias_tot = np.empty(nz)
+            #galaxybias_cen = np.empty(nz)
+            #galaxybias_sat = np.empty(nz)
+            #galaxybias_tot = np.empty(nz)
 
-                galaxybias_cen = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_cen, hbias, dndlnM)/numdens_tot
-                galaxybias_sat = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_sat, hbias, dndlnM)/numdens_tot
-                galaxybias_tot = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
+            galaxybias_cen = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_cen, hbias, dndlnM)/numdens_tot
+            galaxybias_sat = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_sat, hbias, dndlnM)/numdens_tot
+            galaxybias_tot = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
 
-                block.put_double_array_1d('galaxy_bias' + suffix, 'galaxy_bias_centrals', galaxybias_cen)
-                block.put_double_array_1d('galaxy_bias' + suffix, 'galaxy_bias_satellites', galaxybias_sat)
-                # this can be useful in case you want to use the constant bias module to compute p_gg
-                block.put_double_array_1d('galaxy_bias' + suffix, 'b', galaxybias_tot)
+            block.put_double_array_1d('galaxy_bias' + suffix, 'galaxy_bias_centrals', galaxybias_cen)
+            block.put_double_array_1d('galaxy_bias' + suffix, 'galaxy_bias_satellites', galaxybias_sat)
+            # this can be useful in case you want to use the constant bias module to compute p_gg
+            block.put_double_array_1d('galaxy_bias' + suffix, 'b', galaxybias_tot)
 
     #print('--- bias; %s seconds ---' % (time.time() - start_time))
 

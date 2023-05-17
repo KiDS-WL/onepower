@@ -137,7 +137,7 @@ def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
 # load the hod
 def load_hods(block, section_name, pipeline, z_vec, mass):
     #section_name = 'hod' + suffix
-    print (section_name)
+    #print (section_name)
     m_hod = block[section_name, 'mass']
     z_hod = block[section_name,  'z']
     Ncen_hod = block[section_name, 'n_cen']
@@ -146,6 +146,7 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
     numdensat_hod = block[section_name, 'number_density_sat']
     f_c_hod = block[section_name, 'central_fraction']
     f_s_hod = block[section_name, 'satellite_fraction']
+    mass_avg_hod = block[section_name, 'average_halo_mass']
     #if pipeline == True:
     #    Ncen = Ncen_hod
     #    Nsat = Nsat_hod
@@ -163,6 +164,7 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
     interp_numdensat = interp1d(z_hod, numdensat_hod, fill_value='extrapolate')
     interp_f_c = interp1d(z_hod, f_c_hod, fill_value='extrapolate')
     interp_f_s = interp1d(z_hod, f_s_hod, fill_value='extrapolate')
+    interp_mass_avg = interp1d(z_hod, mass_avg_hod, fill_value='extrapolate')
     #Ncen = interp_Ncen(mass, z_vec)
     #Nsat = interp_Nsat(mass, z_vec)
     mm, zz = np.meshgrid(mass, z_vec, sparse=True)
@@ -174,8 +176,9 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
     numdensat = interp_numdensat(z_vec)
     f_c = interp_f_c(z_vec)
     f_s = interp_f_s(z_vec)
+    mass_avg = interp_mass_avg(z_vec)
     
-    return Ncen, Nsat, numdencen, numdensat, f_c, f_s
+    return Ncen, Nsat, numdencen, numdensat, f_c, f_s, mass_avg
         
 def load_galaxy_fractions(filename, z_vec):
     z_file, fraction_file = np.loadtxt(filename, unpack=True)
@@ -467,7 +470,7 @@ def execute(block, config):
                 
         if (galaxy == True) or (alignment == True):
             #print(hod_section_name)
-            Ncen, Nsat, numdencen, numdensat, f_cen, f_sat = load_hods(block, hod_section_name, pipeline, z_vec, mass)
+            Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg = load_hods(block, hod_section_name, pipeline, z_vec, mass)
             if galaxy == True:
                 # preparing the 1h term
                 c_factor = pk_lib.prepare_central_factor_grid(Ncen, numdencen, f_cen)
@@ -497,20 +500,15 @@ def execute(block, config):
                 # ============================================================================== #
                 # One halo alignment
                 # ============================================================================== #
-                ###########
-                # gamma_1h am_amplitude is now computed inside the wkm module, so this is only the luminosity dependence of it
-                gamma_1h = np.ones(nz)
-                ###########
-                #if ia_lum_dep_satellites == True:
-                #    sat_l_term = block['ia_small_scale_alignment' + suffix, 'alignment_1h']
-                #    gamma_1h *= sat_l_term
                 # load the satellite density run w(k|m) for a perfect 3d radial alignment projected along the line of sight
                 # it can either be constant or radial dependent -> this is computed in the wkm module, including the amplitude of the
                 # signal (but not its luminosity dependence, which is a separate factor, see above)
                 wkm = get_satellite_alignment(block, k_vec, mass, z_vec, suffix)
                 # preparing the central and satellite terms
-                s_align_factor = pk_lib.prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, gamma_1h, nz,
-                                                                         nk, nmass)
+                #if block['ia_smale_scale_alignment' + suffix, 'instance'] == 'halo_mass':
+                #   pk_lib.prepare_satellite_alignment_factor_grid_halo(mass, Nsat, numdensat, f_sat, wkm, nz, nk, nmass, block['ia_small_scale_alignment' + suffix, 'beta_mh'], block['ia_small_scale_alignment' + suffix, 'M_0'])
+                #else:
+                s_align_factor = pk_lib.prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, nz, nk, nmass)
                 #if block['ia_large_scale_alignment' + suffix, 'instance'] == 'halo_mass':
                 #    c_align_factor = pk_lib.prepare_central_alignment_factor_grid_halo(mass, scale_factor, growth_factor, f_cen, C1, nz,
                 #                                                         nk, nmass, block['ia_large_scale_alignment' + suffix, 'beta_mh'], block['ia_large_scale_alignment' + suffix, 'M_0'])

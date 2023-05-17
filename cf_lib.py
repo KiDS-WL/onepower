@@ -64,6 +64,12 @@ def compute_number_density(mass, N_g, dn_dlnM_normalised):
     n_integrand = N_g*dn_dlnM_normalised/mass
     n_integral = simps(n_integrand, mass)
     return n_integral
+    
+
+def compute_avg_halo_mass(mass, N_g, dn_dlnM_normalised):
+    n_integrand = N_g*dn_dlnM_normalised
+    n_integral = simps(n_integrand, mass)
+    return n_integral
 
 
 def compute_galaxy_linear_bias(mass, N_g, halo_bias, dn_dlnM_normalised):
