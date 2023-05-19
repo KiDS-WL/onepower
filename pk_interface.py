@@ -239,6 +239,7 @@ def setup(options):
     check_mead = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
     #use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
     #mead_version = options['camb', 'halofit_version']
+    poisson_type = options.get_string(option_section, 'poisson_type',default='')
 
     # initiate pipeline parameters
     ia_lum_dep_centrals = False
@@ -335,7 +336,7 @@ def setup(options):
     # ============================================================================== #
 
     return mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_mI, p_II, p_gI_bnl, p_mI_bnl, p_II_bnl, p_gI_mc, p_mI_mc, p_II_mc, gravitational, galaxy, bnl_gg, bnl_gm, bnl_mm, bnl_ia, alignment, \
-           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, mead_correction
+           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, mead_correction, poisson_type
 
 
 def execute(block, config):
@@ -344,7 +345,7 @@ def execute(block, config):
     # earlier modules, and the config is what we loaded earlier.
 
     mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_mI, p_II, p_gI_bnl, p_mI_bnl, p_II_bnl, p_gI_mc, p_mI_mc, p_II_mc, gravitational, galaxy, bnl_gg, bnl_gm, bnl_mm, bnl_ia, alignment, \
-    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, mead_correction = config
+    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, mead_correction, poisson_type = config
 
     start_time = time.time()
 
@@ -480,10 +481,10 @@ def execute(block, config):
                 I_s_term = pk_lib.prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)
             
                 if bnl_gg == True:
-                    start = time.time()
+                    #start = time.time()
                     I_NL_cs = pk_lib.prepare_I_NL(mass, mass, c_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
-                    end = time.time()
-                    print('time I_NL_cs: ', end - start)
+                    #end = time.time()
+                    #print('time I_NL_cs: ', end - start)
                     I_NL_ss = pk_lib.prepare_I_NL(mass, mass, s_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
                     I_NL_cc = pk_lib.prepare_I_NL(mass, mass, c_factor, c_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
 
@@ -559,17 +560,16 @@ def execute(block, config):
 
         if p_gg == True:
             pk_gg_1h, pk_gg_2h, pk_gg, bg_halo_model = pk_lib.compute_p_gg(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor,
-                                                                    s_factor, I_c_term, I_s_term, nz, nk)
+                                                                    s_factor, I_c_term, I_s_term, nz, nk, mass_avg, poisson_type)
             #block.put_grid('galaxy_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_1h)
             #block.put_grid('galaxy_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_2h)
             block.put_grid('galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg)
             #block.put_grid('galaxy_linear_bias' + suffix, 'z', z_vec, 'k_h', k_vec, 'galaxybiastotal', bg_halo_model)
 
         if p_gg_bnl == True:
-            print('beyond-linear halo bias selected')
-            print('plin_shape: ', plin.shape)
-            pk_gg_1h_bnl, pk_gg_2h_bnl, pk_gg_bnl, bg_halo_model_bnl = pk_lib.compute_p_gg_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor,
-                                                                    s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss)
+            #print('beyond-linear halo bias selected')
+            #print('plin_shape: ', plin.shape)
+            pk_gg_1h_bnl, pk_gg_2h_bnl, pk_gg_bnl, bg_halo_model_bnl = pk_lib.compute_p_gg_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss, mass_avg, poisson_type)
             block.put_grid('galaxy_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_1h_bnl)
             block.put_grid('galaxy_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_2h_bnl)
             block.put_grid('galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_bnl)

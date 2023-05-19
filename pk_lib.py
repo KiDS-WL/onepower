@@ -428,12 +428,14 @@ def compute_two_halo_alignment(block, suffix, nz, nk, growth_factor, mean_densit
     
     return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * alignment_gi[:,np.newaxis,np.newaxis]
 
-def poisson_func(block, mass_avg, k_vec, z_vec):
+def poisson_func(block, type, mass_avg, k_vec, z_vec):
     
-    if block['pk_parameters', 'poisson_type'] == 'scalar':
-        poisson_num = block['pk_parameters', 'P']
-    if block['pk_parameters', 'poisson_type'] == 'power_law':
+    if type == 'scalar':
+        poisson_num = block['pk_parameters', 'P'] * np.ones_like(mass_avg)
+    elif type == 'power_law':
         poisson_num = block['pk_parameters', 'P'] * (mass_avg/block['pk_parameters', 'M_0'])**block['pk_parameters', 'slope']
+    else:
+        poisson_num = np.ones_like(mass_avg)
     return poisson_num
 
 # ---- POWER SPECTRA ----#
@@ -475,7 +477,7 @@ def compute_p_mm_mead(block, k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_t
     return pk_mm_1h, pk_mm_2h, pk_mm_tot
 
 # galaxy-galaxy power spectrum
-def compute_p_gg(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk):
+def compute_p_gg(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk, mass_avg, poisson_type):
     #
     # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     #
@@ -490,7 +492,8 @@ def compute_p_gg(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     
     # Total
     # AD: adding Poisson parameter to ph_ss_1h!
-    poisson = block['pk_parameters', 'poisson']
+    #poisson = block['pk_parameters', 'poisson']
+    poisson = poisson_func(block, poisson_type, mass_avg, k_vec, z_vec)[:,np.newaxis]
     pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
 
     # in case, save in the datablock
@@ -502,7 +505,7 @@ def compute_p_gg(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     #print('p_nn succesfully computed')
     return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
 
-def compute_p_gg_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss):
+def compute_p_gg_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, nz, nk, I_NL_cs, I_NL_cc, I_NL_ss, mass_avg, poisson_type):
     #
     # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     #
@@ -520,7 +523,8 @@ def compute_p_gg_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
     
     # Total
     # AD: adding Poisson parameter to ph_ss_1h!
-    poisson = block['pk_parameters', 'poisson']
+    #poisson = block['pk_parameters', 'poisson']
+    poisson = poisson_func(block, poisson_type, mass_avg, k_vec, z_vec)[:,np.newaxis]
     pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
     
     pk_tot_nbnl = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h - (pk_lin*I_NL_cc) + pk_ss_2h - (pk_lin*I_NL_ss) + (2. * pk_cs_2h) - (2. * pk_lin*I_NL_cs)

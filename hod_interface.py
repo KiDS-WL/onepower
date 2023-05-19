@@ -226,7 +226,6 @@ def execute(block, config):
         # compute average halo mass per bin
         mass_avg = cf.compute_avg_halo_mass(mass, n_cen, dndlnM)/numdens_cen
         block.put_double_array_1d('hod' + suffix, 'average_halo_mass', mass_avg)
-
         
 
 
