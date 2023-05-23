@@ -128,8 +128,11 @@ def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
     return f_s * Nsat * wkm_sat / numdenssat
 # central galaxy alignment: halo mass dependence
 # CHECK IF THIS MAKES SENSE IN THE TERM OF WINDOW FUNCTION COMPARED TO LA FORMALISM!
-#def compute_central_galaxy_alignment_factor_halo(scale_factor, growth_factor, f_c, C1, mass, beta, m0):
-#    return f_c * (C1  / growth_factor) * mass * (mass/m0)**beta # * scale_factor**2.0
+def compute_central_galaxy_alignment_factor_halo(scale_factor, growth_factor, f_c, C1, mass, beta, m0):
+    return f_c * (C1  / growth_factor) * mass * (mass/m0)**beta # * scale_factor**2.0
+# satellite galaxy alignment
+def compute_satellite_galaxy_alignment_factor_halo(Nsat, numdenssat, f_s, wkm_sat):
+    return f_s * Nsat * wkm_sat / numdenssat
 
 # Compute the grid in z, k, and M of the quantities described above
 # Args:
@@ -202,26 +205,26 @@ def prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_c
     return c_align_factor
     
 # alignment - centrals 2h: halo mass dependence
-#def prepare_central_alignment_factor_grid_halo(mass, scale_factor, growth_factor, f_cen, C1 , nz, nk, nmass, beta, m0):
-#    """
-#    Prepare the grid in z, k and mass for the central alignment
-#    f_cen/n_cen N_cen gamma_hat(k,M)
-#    where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
-#    times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
-#    """
-#    c_align_factor = compute_central_galaxy_alignment_factor_halo(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :], beta, m0) # need to check dimensionality of beta, m0!
-#    return c_align_factor
+def prepare_central_alignment_factor_grid_halo(mass, scale_factor, growth_factor, f_cen, C1 , nz, nk, nmass, beta, m0):
+    """
+    Prepare the grid in z, k and mass for the central alignment
+    f_cen/n_cen N_cen gamma_hat(k,M)
+    where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
+    times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
+    """
+    c_align_factor = compute_central_galaxy_alignment_factor_halo(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :], beta, m0) # need to check dimensionality of beta, m0!
+    return c_align_factor
 
 # alignment - satellites 1h: halo mass dependence
-#def prepare_satellite_alignment_factor_grid_halo(mass, Nsat, numdensat, f_sat, wkm, nz, nk, nmass):
-#    """
-#    Prepare the grid in z, k and mass for the satellite alignment
-#    f_sat/n_sat N_sat gamma_hat(k,M)
-#    where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
-#    times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
-#    """
-#    s_align_factor = compute_satellite_galaxy_alignment_factor_halo(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1))
-#    return s_align_factor
+def prepare_satellite_alignment_factor_grid_halo(mass, Nsat, numdensat, f_sat, wkm, nz, nk, nmass):
+    """
+    Prepare the grid in z, k and mass for the satellite alignment
+    f_sat/n_sat N_sat gamma_hat(k,M)
+    where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
+    times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
+    """
+    s_align_factor = compute_satellite_galaxy_alignment_factor_halo(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1))
+    return s_align_factor
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # Two halo functions
