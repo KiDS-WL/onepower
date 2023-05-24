@@ -507,11 +507,11 @@ def execute(block, config):
                 wkm = get_satellite_alignment(block, k_vec, mass, z_vec, suffix)
                 # preparing the central and satellite terms
                 if block['ia_smale_scale_alignment' + suffix, 'instance'] == 'halo_mass':
-                    s_align_factor = pk_lib.prepare_satellite_alignment_factor_grid_halo(mass, Nsat, numdensat, f_sat, wkm, nz, nk, nmass, block['ia_small_scale_alignment' + suffix, 'beta_mh'], block['ia_small_scale_alignment' + suffix, 'M_0'])
+                    s_align_factor = pk_lib.prepare_satellite_alignment_factor_grid_halo(mass, Nsat, numdensat, f_sat, wkm, nz, nk, nmass, block['ia_small_scale_alignment' + suffix, 'zeta_mh'], block['ia_small_scale_alignment' + suffix, 'M_0'], mass_avg)
                 else:
                     s_align_factor = pk_lib.prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, nz, nk, nmass)
                 if block['ia_large_scale_alignment' + suffix, 'instance'] == 'halo_mass':
-                    c_align_factor = pk_lib.prepare_central_alignment_factor_grid_halo(mass, scale_factor, growth_factor, f_cen, C1, nz, nk, nmass, block['ia_large_scale_alignment' + suffix, 'beta_mh'], block['ia_large_scale_alignment' + suffix, 'M_0'])
+                    c_align_factor = pk_lib.prepare_central_alignment_factor_grid_halo(mass, scale_factor, growth_factor, f_cen, C1, nz, nk, nmass, block['ia_large_scale_alignment' + suffix, 'beta_mh'], block['ia_large_scale_alignment' + suffix, 'M_0'], mass_avg)
                 else:
                     c_align_factor = pk_lib.prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_cen, C1, nz,
                                                                          nk, nmass)
