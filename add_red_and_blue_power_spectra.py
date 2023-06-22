@@ -41,23 +41,23 @@ import time
 # string you want instead.
 cosmo = names.cosmological_parameters
 
-def extrapolate_z(z_ext, z_vec, pk, nk):
+def extrapolate_z(z_ext, z_vec, pk, nk, extrapolate_option):
     nz_ext = len(z_ext)
     pk_extz = np.empty([nz_ext, nk])
     for ik in range(0,nk):
-        inter_func = interp1d(z_vec, pk[:,ik], kind='linear', fill_value='extrapolate', bounds_error=False)
+        inter_func = interp1d(z_vec, pk[:,ik], kind='linear', fill_value=extrapolate_option, bounds_error=False)
         pk_extz[:,ik] = inter_func(z_ext)
     return pk_extz
 
-def extrapolate_k(k_ext, k, pk, nz):
+def extrapolate_k(k_ext, k, pk, nz, extrapolate_option):
     nk_ext = len(k_ext)
     pk_extk = np.empty([nz, nk_ext])
     for jz in range(0,nz):
-        inter_func = interp1d(k, pk[jz,:], kind='linear', fill_value='extrapolate', bounds_error=False)
+        inter_func = interp1d(k, pk[jz,:], kind='linear', fill_value=extrapolate_option, bounds_error=False)
         pk_extk[jz,:] = inter_func(k_ext)
     return pk_extk
 
-def add_red_and_blue_power(block, suffix_red, suffix_blue, f_red, power_section, z_ext, k_ext):
+def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, power_section, z_ext, k_ext, extrapolate_option):
     # Note that we have first interpolated the f_red to the halo model pipeline z range
     k = block[power_section + suffix_red, 'k_h']
     z = block[power_section + suffix_red, 'z']
@@ -79,22 +79,22 @@ def add_red_and_blue_power(block, suffix_red, suffix_blue, f_red, power_section,
     #IT 02/03/22: Commented line 86 to execute the code
     # extrapolate
     nz_ext = len(z_ext)
-    pk_tot_ext_z = extrapolate_z(z_ext, z, pk_tot, nk)
-    pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext)
+    pk_tot_ext_z = extrapolate_z(z_ext, z, pk_tot, nk, extrapolate_option)
+    pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext, 'extrapolate')
         
-    block.put_grid(power_section, 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
+    block.put_grid(power_section + suffix_out, 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
 
-def extrapolate_power(block, power_section, z_ext, k_ext):
-    k = block[power_section, 'k_h']
-    z = block[power_section, 'z']
+def extrapolate_power(block, suffix_out, suffix_in, power_section, z_ext, k_ext, extrapolate_option):
+    k = block[power_section + suffix_in, 'k_h']
+    z = block[power_section + suffix_in, 'z']
     nz = len(z)
     nk = len(k)
-    pk_in = block[power_section, 'p_k']
+    pk_in = block[power_section + suffix_in, 'p_k']
     nz_ext = len(z_ext)
-    pk_tot_ext_z = extrapolate_z(z_ext, z, pk_in, nk)
-    pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext)
+    pk_tot_ext_z = extrapolate_z(z_ext, z, pk_in, nk, extrapolate_option)
+    pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext, 'extrapolate')
         
-    block.put_grid(power_section, 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
+    block.put_grid(power_section + suffix_out, 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
  
  
 #--------------------------------------------------------------------------------#	
@@ -115,8 +115,7 @@ def setup(options):
     p_II_option = options[option_section, 'do_p_II']
     p_gI_option = options[option_section, 'do_p_gI']
 
-    
-    if any([p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]) == 'add_and_extrapolate':
+    if any(option == 'add_and_extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
         f_red_file = options[option_section, 'f_red_file']
         z_fred, f_red = np.loadtxt(f_red_file, unpack=True)
         print(z_fred, f_red)
@@ -124,8 +123,13 @@ def setup(options):
         print('Only extrapolating power spectra.')
         z_fred, f_red = None, None
 
+    name_extrap = options.get_string(option_section, 'name_extrap', default='').lower()
     name_red = options.get_string(option_section, 'name_red', default='').lower()
     name_blue = options.get_string(option_section, 'name_blue', default='').lower()
+    if name_extrap != '':
+        suffix_extrap = '_' + name_extrap
+    else:
+        suffix_extrap = ''
     if name_red != '':
         suffix_red = '_' + name_red
     else:
@@ -134,10 +138,8 @@ def setup(options):
         suffix_blue = '_' + name_blue
     else:
         suffix_blue = ''
-
-    zmax =  options[option_section, 'zmax']
 			
-    return z_fred, f_red, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, zmax, suffix_red, suffix_blue
+    return z_fred, f_red, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, suffix_extrap, suffix_red, suffix_blue
 	
 
 def execute(block, config):
@@ -145,7 +147,7 @@ def execute(block, config):
     #It is the main workhorse of the code. The block contains the parameters and results of any
     #earlier modules, and the config is what we loaded earlier.
 	
-    z_fred_file, f_red_file, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, zmax, suffix_red, suffix_blue = config
+    z_fred_file, f_red_file, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, suffix0_extrap, suffix0_red, suffix0_blue = config
 
     # load matter_power_nl k and z:
     z_lin = block['matter_power_lin', 'z']
@@ -153,53 +155,101 @@ def execute(block, config):
     
     
     if p_mm_option == 'extrapolate':
-        extrapolate_power(block, 'matter_power_nl', z_lin, k_lin)
+        extrapolate_power(block, '','', 'matter_power_nl', z_lin, k_lin, 'extrapolate')
         # For testing!
         try:
-            extrapolate_power(block, 'matter_power_nl_mead', z_lin, k_lin)
+            extrapolate_power(block, '','', 'matter_power_nl_mead', z_lin, k_lin, 'extrapolate')
         except:
             pass
     
-    if p_gg_option == 'extrapolate':
-        extrapolate_power(block, 'galaxy_power', z_lin, k_lin)
-    if p_gg_option == 'add_and_extrapolate':
-        # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
-        z_hm = block['galaxy_power' + suffix_red, 'z']
-        f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
-        add_red_and_blue_power(block, suffix_red, suffix_blue, f_red(z_hm), 'galaxy_power', z_lin, k_lin)
+    if any(option == 'extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
+        hod_bins_extrap = block['hod' + suffix0_extrap + '_params', 'nbins']
+        observables_z = block['hod' + suffix0_extrap + '_params', 'option']
         
-    if p_gm_option == 'extrapolate':
-        extrapolate_power(block, 'matter_galaxy_power', z_lin, k_lin)
-    if p_gm_option == 'add_and_extrapolate':
-        # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
-        z_hm = block['matter_galaxy_power' + suffix_red, 'z']
-        #IT Added bounds_error=False and fill_value extrapolate
-        f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
-        add_red_and_blue_power(block, suffix_red, suffix_blue, f_red(z_hm), 'matter_galaxy_power', z_lin, k_lin)
+        if observables_z == True:
+            extrapolate_option = 'extrapolate'
+        if observables_z == False:
+            extrapolate_option = 0.0
         
-    if p_mI_option == 'extrapolate':
-        extrapolate_power(block, 'matter_intrinsic_power', z_lin, k_lin)
-    if p_mI_option == 'add_and_extrapolate':
-        # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
-        z_hm = block['matter_intrinsic_power' + suffix_red, 'z']
-        f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
-        add_red_and_blue_power(block, suffix_red, suffix_blue, f_red(z_hm), 'matter_intrinsic_power', z_lin, k_lin)
+        for nb in range(0,hod_bins_extrap):
+            print(nb)
+            if hod_bins_extrap != 1:
+                suffix_extrap = suffix0_extrap + '_{}'.format(nb+1)
+                suffix_out = '_{}'.format(nb+1)
+            else:
+                suffix_extrap = suffix0_extrap
+                suffix_out = ''
+                
+            if p_gg_option == 'extrapolate':
+                extrapolate_power(block, suffix_out, suffix_extrap, 'galaxy_power', z_lin, k_lin, extrapolate_option)
+                
+            if p_gm_option == 'extrapolate':
+                extrapolate_power(block, suffix_out, suffix_extrap, 'matter_galaxy_power', z_lin, k_lin, extrapolate_option)
+                
+            if p_mI_option == 'extrapolate':
+                extrapolate_power(block, suffix_out, suffix_extrap, 'matter_intrinsic_power', z_lin, k_lin, extrapolate_option)
+                
+            if p_II_option == 'extrapolate':
+                extrapolate_power(block, suffix_out, suffix_extrap, 'intrinsic_power', z_lin, k_lin, extrapolate_option)
+                
+            if p_gI_option == 'extrapolate':
+                extrapolate_power(block, suffix_out, suffix_extrap, 'galaxy_intrinsic_power', z_lin, k_lin, extrapolate_option)
         
-    if p_II_option == 'extrapolate':
-        extrapolate_power(block, 'intrinsic_power', z_lin, k_lin)
-    if p_II_option == 'add_and_extrapolate':
-        # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
-        z_hm = block['intrinsic_power' + suffix_red, 'z']
-        f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
-        add_red_and_blue_power(block, suffix_red, suffix_blue, f_red(z_hm), 'intrinsic_power', z_lin, k_lin)
         
-    if p_gI_option == 'extrapolate':
-        extrapolate_power(block, 'galaxy_intrinsic_power', z_lin, k_lin)
-    if p_gI_option == 'add_and_extrapolate':
-        # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
-        z_hm = block['galaxy_intrinsic_power' + suffix_red, 'z']
-        f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
-        add_red_and_blue_power(block, suffix_red, suffix_blue, f_red(z_hm), 'galaxy_intrinsic_power', z_lin, k_lin)
+    if any(option == 'add_and_extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
+        hod_bins_red = block['hod' + suffix0_red + '_params', 'nbins']
+        hod_bins_blue = block['hod' + suffix0_blue + '_params', 'nbins']
+        
+        observables_z_red = block['hod' + suffix0_red + '_params', 'option']
+        if observables_z_red == True:
+            extrapolate_option = 'extrapolate'
+        if observables_z_red == False:
+            extrapolate_option = 0
+        
+        if not hod_bins_red == hod_bins_blue:
+            raise Exception('Error: number of red and blue stellar mass bins should be the same.')
+    
+        print(hod_bins_red)
+        for nb in range(0,hod_bins_red):
+            if hod_bins_red != 1:
+                suffix_red = suffix0_red + '_{}'.format(nb+1)
+                suffix_blue = suffix0_blue + '_{}'.format(nb+1)
+                suffix_out = '_{}'.format(nb+1)
+            else:
+                suffix_red = suffix0_red
+                suffix_blue = suffix0_blue
+                suffix_out = ''
+        
+            if p_gg_option == 'add_and_extrapolate':
+                # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
+                z_hm = block['galaxy_power' + suffix_red, 'z']
+                f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
+                add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red(z_hm), 'galaxy_power', z_lin, k_lin, extrapolate_option)
+                
+            if p_gm_option == 'add_and_extrapolate':
+                # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
+                z_hm = block['matter_galaxy_power' + suffix_red, 'z']
+                #IT Added bounds_error=False and fill_value extrapolate
+                f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
+                add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red(z_hm), 'matter_galaxy_power', z_lin, k_lin, extrapolate_option)
+                
+            if p_mI_option == 'add_and_extrapolate':
+                # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
+                z_hm = block['matter_intrinsic_power' + suffix_red, 'z']
+                f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
+                add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red(z_hm), 'matter_intrinsic_power', z_lin, k_lin, extrapolate_option)
+                
+            if p_II_option == 'add_and_extrapolate':
+                # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
+                z_hm = block['intrinsic_power' + suffix_red, 'z']
+                f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
+                add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red(z_hm), 'intrinsic_power', z_lin, k_lin, extrapolate_option)
+                
+            if p_gI_option == 'add_and_extrapolate':
+                # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
+                z_hm = block['galaxy_intrinsic_power' + suffix_red, 'z']
+                f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
+                add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red(z_hm), 'galaxy_intrinsic_power', z_lin, k_lin, extrapolate_option)
 				
     return 0
 
