@@ -483,7 +483,7 @@ def execute(block, config):
         if (galaxy == True) or (alignment == True):
             hod_bins = block[hod_section_name0 + '_params', 'nbins']
             
-            print(hod_bins)
+            #print(hod_bins)
             for nb in range(0,hod_bins):
                 if hod_bins != 1:
                     hod_section_name = hod_section_name0 + '_{}'.format(nb+1)

@@ -172,7 +172,7 @@ def execute(block, config):
             extrapolate_option = 0.0
         
         for nb in range(0,hod_bins_extrap):
-            print(nb)
+            #print(nb)
             if hod_bins_extrap != 1:
                 suffix_extrap = suffix0_extrap + '_{}'.format(nb+1)
                 suffix_out = '_{}'.format(nb+1)
