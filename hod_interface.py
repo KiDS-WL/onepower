@@ -299,7 +299,7 @@ def execute(block, config):
                 obs_func_h[jz] = interp(obs_range_h)
                     
             #save on datablock
-            block.put_grid('observable_function' + suffix,'z', z_bins[nb], 'observable',obs_range_h, 'obs_func', np.log(10.0)*obs_func_h*obs_range_h)
+            block.put_grid('observable_function' + suffix,'z', z_bins[nb], 'obs',obs_range_h, 'obs_func', np.log(10.0)*obs_func_h*obs_range_h)
     
     
     #########################
@@ -315,15 +315,15 @@ def execute(block, config):
         #interpolate the hmf at the redshift where the luminosity function is evaluated
         #f_mass_z_dn = interp2d(mass_dn, z_bins, dndlnM)
         #dn_dlnM_zmedian = f_mass_z_dn(mass_dn, z_picked)
-    
-        f_mass_z_dn = RegularGridInterpolator((mass_dn.T, z_bins.T), dndlnM.T, bounds_error=False, fill_value=None)
+        
+        f_mass_z_dn = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
         mass_dn_i, z_picked_i = np.meshgrid(mass_dn, z_picked)
         dn_dlnM_zmedian = f_mass_z_dn((mass_dn_i.T, z_picked_i.T)).T
     
-        log_lum_min = np.log10(obs_simps.min())
-        log_lum_max = np.log10(obs_simps.max())
+        log_obs_min = np.log10(obs_simps.min())
+        log_obs_max = np.log10(obs_simps.max())
     
-        obs_range = np.logspace(log_lum_min, log_lum_max, nobs)
+        obs_range = np.logspace(log_obs_min, log_obs_max, nobs)
     
         phi_c_lf = np.empty([nobs, nmass])
         phi_s_lf = np.empty([nobs, nmass])
@@ -356,22 +356,22 @@ def execute(block, config):
         mr_obs = cf.convert_to_magnitudes(obs_range, abs_mag_sun)
 
         #save on datablock
-        block.put_double_array_1d('observable_function' + suffix0,'lum_med',obs_h)
+        block.put_double_array_1d('observable_function' + suffix0,'obs_med',obs_h)
         #block.put_double_array_1d('observable_function' + suffix,'obs_func_med',obs_func_h)
         block.put_double_array_1d('observable_function' + suffix0,'obs_func_med',np.log(10.)*obs_func_h*obs_h)
 
         #Back to magnitudes
         # It doesn't mean anything if the observable is stellar mass!
-        Lf_in_mags = 0.4*np.log(10.)*obs_h*obs_func_h
+        #Lf_in_mags = 0.4*np.log(10.)*obs_h*obs_func_h
 
-        block.put_double_array_1d('observable_function' + suffix0,'mr_med', mr_obs)
-        block.put_double_array_1d('observable_function' + suffix0,'obs_mr_med',Lf_in_mags)
+        #block.put_double_array_1d('observable_function' + suffix0,'mr_med', mr_obs)
+        #block.put_double_array_1d('observable_function' + suffix0,'obs_mr_med',Lf_in_mags)
 
         #Characteristic luminosity of central galaxies
         obs_cen = cf.mor(mass, hod, norm_c)
 
-        block.put_double_array_1d('observable_function' + suffix0,'mass_med',mass)
-        block.put_double_array_1d('observable_function' + suffix0,'obs_med',obs_cen)
+        block.put_double_array_1d('observable_function' + suffix0,'halo_mass_med',mass)
+        block.put_double_array_1d('observable_function' + suffix0,'obs_halo_mass_relation',obs_cen)
     
     return 0
 
