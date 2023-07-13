@@ -286,7 +286,7 @@ def execute(block, config):
     
         if observable_option and observable_mode == 'obs_z':
             nl_obs = 100
-            obs_range_h = np.logspace(6.5,12.5, nl_obs)
+            obs_range_h = np.logspace(np.log10(obs_simps[nb].min()),np.log10(obs_simps[nb].max()), nl_obs)
             obs_func_h = np.empty([nz,nl_obs])
             #obs_func_tmp = np.empty([nz,nobs])
                 
@@ -299,7 +299,10 @@ def execute(block, config):
                 obs_func_h[jz] = interp(obs_range_h)
                     
             #save on datablock
-            block.put_grid('observable_function' + suffix,'z', z_bins[nb], 'obs',obs_range_h, 'obs_func', np.log(10.0)*obs_func_h*obs_range_h)
+            block.put_grid('observable_function' + suffix0, 'z_bin_{}'.format(nb+1), z_bins[nb], 'obs_{}'.format(nb+1), obs_range_h, 'obs_func_{}'.format(nb+1), np.log(10.0)*obs_func_h*obs_range_h)
+            #block.put_double_array_1d('observable_function' + suffix0, 'z_bin_{}'.format(nb), z_bins[nb])
+            #block.put_double_array_1d('observable_function' + suffix0, 'obs_{}'.format(nb), obs_range_h)
+            #block.put_double_array_2d('observable_function' + suffix0, 'obs_func_{}'.format(nb), np.log(10.0)*obs_func_h*obs_range_h)
     
     
     #########################
