@@ -282,27 +282,47 @@ def execute(block, config):
         #print('--- bias; %s seconds ---' % (time.time() - start_time))
     
     
-        #######################################   LUMINOSITY FUNCTION   #############################################
+        #######################################   OBSERVABLE FUNCTION   #############################################
     
         if observable_option and observable_mode == 'obs_z':
             nl_obs = 100
             obs_range_h = np.logspace(np.log10(obs_simps[nb].min()),np.log10(obs_simps[nb].max()), nl_obs)
             obs_func_h = np.empty([nz,nl_obs])
-            #obs_func_tmp = np.empty([nz,nobs])
                 
             obs_func_tmp = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dndlnM[:,:,np.newaxis], axis=-2)
     
             # interpolate in L_obs to have a consistent grid
-            #print(nz)
             for jz in range(0,nz):
                 interp = interp1d(obs_simps[nb,jz], obs_func_tmp[jz], kind='linear', bounds_error=False, fill_value=(0,0))
                 obs_func_h[jz] = interp(obs_range_h)
                     
             #save on datablock
             block.put_grid('observable_function' + suffix0, 'z_bin_{}'.format(nb+1), z_bins[nb], 'obs_{}'.format(nb+1), obs_range_h, 'obs_func_{}'.format(nb+1), np.log(10.0)*obs_func_h*obs_range_h)
-            #block.put_double_array_1d('observable_function' + suffix0, 'z_bin_{}'.format(nb), z_bins[nb])
-            #block.put_double_array_1d('observable_function' + suffix0, 'obs_{}'.format(nb), obs_range_h)
-            #block.put_double_array_2d('observable_function' + suffix0, 'obs_func_{}'.format(nb), np.log(10.0)*obs_func_h*obs_range_h)
+            
+            
+    if observable_option and observable_mode == 'obs_onebin':
+        nl_obs = 100
+        nl_z = 15
+        z_bins_one = np.linspace(z_bins.min(), z_bins.max(), nl_z)
+        
+        f_mass_z_one = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
+        mass_one_i, z_one_i = np.meshgrid(mass_dn, z_bins_one)
+        dn_dlnM_one = f_mass_z_one((mass_one_i.T, z_one_i.T)).T
+        
+        obs_range_h = np.empty([nl_z,nl_obs])
+        for jz in range(0,nl_z):
+            obs_range_h[jz] = np.logspace(np.log10(obs_simps.min()),np.log10(obs_simps.max()), nl_obs)
+        obs_func_h = np.empty([nl_z,nl_obs])
+        
+        phi_c = cf.cf_cen(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod)
+        phi_s = cf.cf_sat(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod)
+        phi = phi_c + phi_s
+            
+        obs_func_h = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
+
+        #save on datablock
+        block.put_grid('observable_function' + suffix0, 'z_bin_{}'.format(1), z_bins_one, 'obs_{}'.format(1), obs_range_h[0], 'obs_func_{}'.format(1),np.log(10.0)*obs_func_h*obs_range_h[0])
+        
     
     
     #########################
@@ -323,25 +343,14 @@ def execute(block, config):
         mass_dn_i, z_picked_i = np.meshgrid(mass_dn, z_picked)
         dn_dlnM_zmedian = f_mass_z_dn((mass_dn_i.T, z_picked_i.T)).T
     
-        log_obs_min = np.log10(obs_simps.min())
-        log_obs_max = np.log10(obs_simps.max())
+        obs_range = np.logspace(np.log10(obs_simps.min()), np.log10(obs_simps.max()), nobs)
     
-        obs_range = np.logspace(log_obs_min, log_obs_max, nobs)
-    
-        phi_c_lf = np.empty([nobs, nmass])
-        phi_s_lf = np.empty([nobs, nmass])
-        phi_lf = np.empty([nobs, nmass])
-    
-        for j in range(0, nobs):
-            phi_c_lf[j] = cf.cf_cen(obs_range[j], mass, hod)
-            phi_s_lf[j] = cf.cf_sat(obs_range[j], mass, hod)
-            #phi_lf[j] = phi_c_lf[j]+phi_s_lf[j]
+        phi_c_lf = cf.cf_cen(obs_range[:,np.newaxis], mass, hod)
+        phi_s_lf = cf.cf_sat(obs_range[:,np.newaxis], mass, hod)
         phi_lf = phi_c_lf+phi_s_lf
 
-        obs_func = np.empty(nobs)
-        for i in range(0,nobs):
-            obs_func[i] = cf.obs_func(mass, phi_lf[i], dn_dlnM_zmedian)
-
+        obs_func = cf.obs_func(mass, phi_lf, dn_dlnM_zmedian)
+            
         # AD: CHECK THE h HERE!
         # AD: Should be without as the h is carried through in the first place!
         # AD: ln(10) factor added to the output and multiplication with M/L to get to the usual units data are in 99% reported in!

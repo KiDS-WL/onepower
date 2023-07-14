@@ -71,12 +71,12 @@ def setup(options):
         config['sample'] = None
         config['suffixes'] = ['med']
         
-    config['obs_min'] = options[option_section, 'obs_min']
-    config['obs_max'] = options[option_section, 'obs_max']
-    config['n_obs'] = options[option_section, 'n_obs']
-    config['x_arr'] = np.logspace(config['obs_min'], config['obs_max'], config['n_obs'])
-    
-    print(config)
+    config['obs_min'] = [np.float64(str_val) for str_val in str(options[option_section, 'obs_min']).split(',')]
+    config['obs_max'] = [np.float64(str_val) for str_val in str(options[option_section, 'obs_max']).split(',')]
+    config['n_obs'] = [np.int(str_val) for str_val in str(options[option_section, 'n_obs']).split(',')]
+    config['x_arr'] = []
+    for i in range(config['nbins']):
+        config['x_arr'].append(np.logspace(config['obs_min'][i], config['obs_max'][i], config['n_obs'][i]))
     
     return config
 	
@@ -96,7 +96,7 @@ def execute(block, config):
     
     nbins = config['nbins']
     for i in range(nbins):
-        z_obs, obs_ext = load_and_extrapolate_obs(block, input_section_name, suffixes[i], x_arr, 'extrapolate')
+        z_obs, obs_ext = load_and_extrapolate_obs(block, input_section_name, suffixes[i], x_arr[i], 0.0)
     
         if z_obs is not None:
             # Load kernel if exists
@@ -107,7 +107,7 @@ def execute(block, config):
             # Just use interpolated result at the median redshift for the output
             obs_out = obs_ext
         block.put_double_array_1d(output_section_name, 'bin_{}'.format(i+1), obs_out)
-    block.put_double_array_1d(output_section_name, 'obs', x_arr)
+        block.put_double_array_1d(output_section_name, 'obs_{}'.format(i+1), x_arr[i])
     
     return 0
 
