@@ -180,6 +180,14 @@ def execute(block, config):
     b0 = block['hod_parameters' + suffix0, 'b0']
     b1 = block['hod_parameters' + suffix0, 'b1']
     b2 = block['hod_parameters' + suffix0, 'b2']
+    if block.has_value('hod_parameters' + suffix0, 'A_cen'):
+        A_cen = block['hod_parameters' + suffix0, 'A_cen']
+    else:
+        A_cen = None
+    if block.has_value('hod_parameters' + suffix0, 'A_sat'):
+        A_sat = block['hod_parameters' + suffix0, 'A_sat']
+    else:
+        A_sat = None
 
     hod = HODpar(norm_c, 10.**log_ml_0, 10.**log_ml_1, g1, g2, scatter, norm_s, pivot, alpha_s, b0, b1, b2)
 
@@ -223,6 +231,14 @@ def execute(block, config):
         if hod_option:
             n_sat = np.array([cf.compute_hod(obs_simps_z, phi_s_z) for obs_simps_z, phi_s_z in zip(obs_simps[nb], phi_s)])
             n_cen = np.array([cf.compute_hod(obs_simps_z, phi_c_z) for obs_simps_z, phi_c_z in zip(obs_simps[nb], phi_c)])
+            
+            # Assembly bias (using the decorated HOD formalism for concentration as a secondary parameter):
+            if A_cen is not None:
+                delta_pop_c = A_cen * np.fmin(n_cen, 1.0-n_cen)
+                n_cen = n_cen + delta_pop_c
+            if A_sat is not None:
+                delta_pop_s = A_sat * n_sat
+                n_sat = n_sat + delta_pop_s
     
             n_tot = n_cen + n_sat
     
