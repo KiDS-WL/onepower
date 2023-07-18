@@ -97,9 +97,9 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
     #print( 'entering get_satellite_alignment..')
     wkm = np.empty([z_vec.size, mass.size, k_vec.size])
     for jz in range(0,z_vec.size):
-        wkm_tmp = block['wkm_z%d'%jz + suffix,'w_km']
-        k_wkm = block['wkm_z%d'%jz + suffix,'k_h']
-        mass_wkm = block['wkm_z%d'%jz + suffix,'mass']
+        wkm_tmp = block['wkm','w_km_%d'%jz + suffix]
+        k_wkm = block['wkm','k_h_%d'%jz+suffix]
+        mass_wkm = block['wkm','mass_%d'%jz+suffix]
         #w_interp2d = interp2d(k_wkm, mass_wkm, wkm_tmp, bounds_error=False)#, fill_value=0)
         w_interp2d = RegularGridInterpolator((k_wkm.T, mass_wkm.T), wkm_tmp.T, bounds_error=False, fill_value=None)#, fill_value=0)
         #wkm_interpolated = w_interp2d((k_vec, mass))

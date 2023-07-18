@@ -114,8 +114,8 @@ def execute(block, config):
 
     for jz in range(0,nz):
         #block.put_grid( 'wkm_z%d'%jz+suffix, 'mass', mass_setup, 'k_h', k_setup, 'w_km', wkm[jz,:,:])
-        block.put_grid( 'wkm_z%d'%jz+suffix, 'mass', mass, 'k_h', k, 'w_km', wkm[jz,:,:])
-    block.put_double_array_1d('wkm'+suffix, 'z', z)
+        block.put_grid( 'wkm', 'mass_%d'%jz+suffix, mass, 'k_h_%d'%jz+suffix, k, 'w_km_%d'%jz+suffix, wkm[jz,:,:])
+    block.put_double_array_1d('wkm', 'z'+suffix, z)
 
     return 0
 
