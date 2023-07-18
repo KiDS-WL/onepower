@@ -61,7 +61,7 @@ def setup(options):
     #load any data, or do any calculations that are fixed once.
 
     luminosity_dependence = options[option_section, 'luminosity_dependence']
-    if luminosity_dependence not in ['None', 'Joachimi2011', 'double_powerlaw', 'satellite_luminosity_dependence']:
+    if luminosity_dependence not in ['None', 'Joachimi2011', 'double_powerlaw', 'satellite_luminosity_dependence', 'halo_mass']:
         #IT (02/03/22): Replaced broken_powerlaw by double_powerlaw in line 64
         raise ValueError('The luminosity dependence can only take one of the following options:\n \
         None\n \
@@ -81,9 +81,14 @@ def setup(options):
     zmax = options[option_section, 'zmax']
     nz = options[option_section, 'nz']
  
-    if luminosity_dependence=='None':
+    if luminosity_dependence == 'None':
         # dummy variables
         print ('No luminosity dependence assumed for the IA signal...')
+        nlbins = 100000
+        lum = np.ones([nz,nlbins])
+        lum_pdf_z = np.ones([nz, nlbins])
+    if luminosity_dependence == 'halo_mass':
+        print ('Halo mass dependence assumed for the IA signal...')
         nlbins = 100000
         lum = np.ones([nz,nlbins])
         lum_pdf_z = np.ones([nz, nlbins])
@@ -167,14 +172,14 @@ def execute(block, config):
             block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', mean_lscaling)
         # Still developed, do not use!
         if luminosity_dependence == 'halo_mass':
-            m0 = block['intrinsic_alignment_parameters' + suffix, 'M_0']
-            beta_m = block['intrinsic_alignment_parameters' + suffix, 'beta_mh']
-            gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
-            # Technicall just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
-            block.put_double('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * np.ones(nz))
+            m0 = block.get_double('intrinsic_alignment_parameters' + suffix, 'M_0')
+            beta_m = block.get_double('intrinsic_alignment_parameters' + suffix, 'beta_mh')
+            gamma_2h = block.get_double('intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude')
+            # Technically just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
+            block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * np.ones(nz))
             block.put_double('ia_large_scale_alignment' + suffix, 'M_0', m0)
             block.put_double('ia_large_scale_alignment' + suffix, 'beta_mh', beta_m)
-            block.put_double('ia_large_scale_alignment' + suffix, 'instance', luminosity_dependence)
+            block.put_string('ia_large_scale_alignment' + suffix, 'instance', luminosity_dependence)
         
     if galaxy_type==1:
         if luminosity_dependence == 'scalar':
@@ -190,14 +195,14 @@ def execute(block, config):
             mean_lscaling = mean_L_L0_to_beta(lum, lum_pdf_z, l0, zeta_l)
             block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * mean_lscaling)
         if luminosity_dependence == 'halo_mass':
-            m0 = block['intrinsic_alignment_parameters' + suffix, 'M_0']
-            zeta_m = block['intrinsic_alignment_parameters' + suffix, 'zeta_m']
-            gamma_1h = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude']
-            # Technicall just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
+            m0 = block.get_double('intrinsic_alignment_parameters' + suffix, 'M_0')
+            zeta_m = block.get_double('intrinsic_alignment_parameters' + suffix, 'zeta_mh')
+            gamma_1h = block.get_double('intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude')
+            # Technically just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
             block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * np.ones(nz))
-            block.put_double('ia_large_scale_alignment' + suffix, 'M_0', m0)
-            block.put_double('ia_large_scale_alignment' + suffix, 'zeta_mh', zeta_m)
-            block.put_double('ia_small_scale_alignment' + suffix, 'instance', luminosity_dependence)
+            block.put_double('ia_small_scale_alignment' + suffix, 'M_0', m0)
+            block.put_double('ia_small_scale_alignment' + suffix, 'zeta_mh', zeta_m)
+            block.put_string('ia_small_scale_alignment' + suffix, 'instance', luminosity_dependence)
 
 
     return 0

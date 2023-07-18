@@ -528,7 +528,7 @@ def execute(block, config):
                     # signal (but not its luminosity dependence, which is a separate factor, see above)
                     wkm = get_satellite_alignment(block, k_vec, mass, z_vec, suffix0)
                     # preparing the central and satellite terms
-                    if block['ia_smale_scale_alignment' + suffix0, 'instance'] == 'halo_mass':
+                    if block['ia_small_scale_alignment' + suffix0, 'instance'] == 'halo_mass':
                         s_align_factor = pk_lib.prepare_satellite_alignment_factor_grid_halo(mass, Nsat, numdensat, f_sat, wkm, nz, nk, nmass, block['ia_small_scale_alignment' + suffix0, 'zeta_mh'],   block['ia_small_scale_alignment' + suffix0, 'M_0'], mass_avg)
                     else:
                         s_align_factor = pk_lib.prepare_satellite_alignment_factor_grid(mass, Nsat, numdensat, f_sat, wkm, nz, nk, nmass)

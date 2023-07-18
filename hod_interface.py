@@ -115,20 +115,20 @@ def setup(options):
     observable_mode = options[option_section, 'observable_mode'] # options.get_string(option_section, 'lf_mode', default=None).lower() #
     z_picked = options[option_section, 'z_median']
 
-    #compute ancillary quantities
-    #that comes with the HODs,
-    #such as the fraction of satellites as
-    #function of luminosity, the
-    #mass-to-light-ratio of centrals etc
-    cf_quantities = options[option_section, 'do_cf_quantities']
 
     abs_mag_sun = options[option_section, 'abs_mag_sun']
 
-    name = options.get_string(option_section, 'name', default='').lower()
+    name = options.get_string(option_section, 'output_suffix', default='').lower()
     if name != '':
         suffix = '_' + name
     else:
         suffix = ''
+        
+    name_params = options.get_string(option_section, 'params_suffix', default='').lower()
+    if name_params != '':
+        suffix_params = '_' + name_params
+    else:
+        suffix_params = ''
 
     # per each redshift bin, the range of observables over which we can integrate the conditional function changes, due to the
     # flux lim of the survey. This means that per each redshift, we have a different luminosity array to be
@@ -150,7 +150,7 @@ def setup(options):
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
             print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
     
-    return obs_simps, nbins, nz, nobs, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, cf_quantities, observable_mode, suffix, observables_z
+    return obs_simps, nbins, nz, nobs, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, observable_mode, suffix, suffix_params, observables_z
 
 
 
@@ -160,32 +160,32 @@ def execute(block, config):
     #It is the main workhorse of the code. The block contains the parameters and results of any 
     #earlier modules, and the config is what we loaded earlier.
 
-    obs_simps, nbins, nz, nobs, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, cf_quantities, observable_mode, suffix0, observables_z = config
+    obs_simps, nbins, nz, nobs, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, observable_mode, suffix0, suffix_params, observables_z = config
 
     start_time = time.time()
 
     #---- loading hod from the datablock ----#
 
     #centrals
-    norm_c = block['hod_parameters' + suffix0, 'norm_c']
-    log_ml_0 = block['hod_parameters' + suffix0, 'log_ml_0']
-    log_ml_1 = block['hod_parameters' + suffix0, 'log_ml_1']
-    g1 = block['hod_parameters' + suffix0, 'g1']
-    g2 = block['hod_parameters' + suffix0, 'g2']
-    scatter=block['hod_parameters' + suffix0, 'scatter']
+    norm_c = block['hod_parameters' + suffix_params, 'norm_c']
+    log_ml_0 = block['hod_parameters' + suffix_params, 'log_ml_0']
+    log_ml_1 = block['hod_parameters' + suffix_params, 'log_ml_1']
+    g1 = block['hod_parameters' + suffix_params, 'g1']
+    g2 = block['hod_parameters' + suffix_params, 'g2']
+    scatter=block['hod_parameters' + suffix_params, 'scatter']
     #satellites
-    norm_s = block['hod_parameters' + suffix0, 'norm_s']
-    pivot = block['hod_parameters' + suffix0, 'pivot']
-    alpha_s = block['hod_parameters' + suffix0, 'alpha_s']
-    b0 = block['hod_parameters' + suffix0, 'b0']
-    b1 = block['hod_parameters' + suffix0, 'b1']
-    b2 = block['hod_parameters' + suffix0, 'b2']
-    if block.has_value('hod_parameters' + suffix0, 'A_cen'):
-        A_cen = block['hod_parameters' + suffix0, 'A_cen']
+    norm_s = block['hod_parameters' + suffix_params, 'norm_s']
+    pivot = block['hod_parameters' + suffix_params, 'pivot']
+    alpha_s = block['hod_parameters' + suffix_params, 'alpha_s']
+    b0 = block['hod_parameters' + suffix_params, 'b0']
+    b1 = block['hod_parameters' + suffix_params, 'b1']
+    b2 = block['hod_parameters' + suffix_params, 'b2']
+    if block.has_value('hod_parameters' + suffix_params, 'A_cen'):
+        A_cen = block['hod_parameters' + suffix_params, 'A_cen']
     else:
         A_cen = None
-    if block.has_value('hod_parameters' + suffix0, 'A_sat'):
-        A_sat = block['hod_parameters' + suffix0, 'A_sat']
+    if block.has_value('hod_parameters' + suffix_params, 'A_sat'):
+        A_sat = block['hod_parameters' + suffix_params, 'A_sat']
     else:
         A_sat = None
 
