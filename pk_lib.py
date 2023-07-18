@@ -127,7 +127,6 @@ def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_c, C1
 def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
     return f_s * Nsat * wkm_sat / numdenssat
 # central galaxy alignment: halo mass dependence
-# CHECK IF THIS MAKES SENSE IN THE TERM OF WINDOW FUNCTION COMPARED TO LA FORMALISM!
 def compute_central_galaxy_alignment_factor_halo(scale_factor, growth_factor, f_c, C1, mass, beta, m0, mass_avg):
     return f_c * (C1  / growth_factor) * mass * (mass_avg/m0)**beta
 # satellite galaxy alignment
