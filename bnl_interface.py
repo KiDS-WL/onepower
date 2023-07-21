@@ -146,7 +146,7 @@ def execute(block, config):
                 
             beta_interp = np.zeros((z_vec.size, mass.size, mass.size, k_vec.size))
             indices = np.vstack(np.meshgrid(np.arange(mass.size),np.arange(mass.size),np.arange(k_vec.size), copy = False)).reshape(3,-1).T
-            values = np.vstack(np.meshgrid(np.log10(mass), np.log10(mass), k_vec, copy = False)).reshape(3,-1).T
+            values = np.vstack(np.meshgrid(np.log10(mass), np.log10(mass), np.log10(k_vec), copy = False)).reshape(3,-1).T
             for i,zi in enumerate(z_vec):
                 beta_interp[i,indices[:,0], indices[:,1], indices[:,2]] = beta_interp_tmp[i](values)
     

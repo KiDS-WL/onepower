@@ -89,7 +89,7 @@ def execute(block, config):
     if mead_correction == 'feedback':
         theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
         norm_cen = (((3.44 - 0.496*theta_agn) * 10.0**(z*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
-        eta_cen = (0.3 * (1.0+z)**0.5)[:,np.newaxis]
+        eta_cen = (0.15 * (1.0+z)**0.5)[:,np.newaxis]
     
     conc_cen = norm_cen * block['concentration', 'c']#concentration(block, mass, z, model_cm, mdef, overdensity)
     conc_sat = norm_sat * block['concentration', 'c']#concentration(block, mass, z, model_cm, mdef, overdensity)

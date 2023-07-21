@@ -38,9 +38,14 @@ def concentration_colossus(block, cosmo, mass, z_vec, model, mdef, overdensity):
     this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom', sigma8=block[cosmo_names, 'sigma_8'], ns=block[cosmo_names, 'n_s'])
     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
     #for i,zi in enumerate(z_vec):
-    c = np.abs(colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model))
+    #c = np.abs(colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model))
+    c = colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model)
+    c_interp = interp1d(mass[c>=0.0], c[c>=0.0], kind='linear', bounds_error=False, fill_value='extrapolate')
+    #print(c)
+    #print(c_interp(mass))
+    #quit()
     #c[c<=1.0]=1.0#e-4
-    return c
+    return c_interp(mass)
     
     
 def concentration_halomod(block, cosmo, mass, z, model, mdef, overdensity, mf, delta_c):

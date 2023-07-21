@@ -371,7 +371,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
         #zi += 1e-3
         #beta_func = np.nan_to_num(compute_bnl_darkquest(zi, np.log10(M[i]), np.log10(M[i]), k[i], emulator, block), nan=0.0, posinf=0.0, neginf=0.0)
         beta_func = compute_bnl_darkquest(zi, np.log10(M[i]), np.log10(M[i]), k[i], emulator, block)
-        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M[i]), np.log10(M[i]), k[i]], beta_func, fill_value=None, bounds_error=False, method='linear')
+        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M[i]), np.log10(M[i]), np.log10(k[i])], beta_func, fill_value=None, bounds_error=False, method='linear')
     
     return beta_nl_interp_i
 
@@ -496,7 +496,7 @@ def compute_p_gg(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     # AD: adding Poisson parameter to ph_ss_1h!
     #poisson = block['pk_parameters', 'poisson']
     poisson = poisson_func(block, poisson_type, mass_avg, k_vec, z_vec)[:,np.newaxis]
-    pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
+    pk_tot = 2.0*pk_cs_1h + poisson*pk_ss_1h + pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
 
     # in case, save in the datablock
     #block.put_grid('galaxy_cs_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cs_1h)
@@ -527,7 +527,7 @@ def compute_p_gg_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
     # AD: adding Poisson parameter to ph_ss_1h!
     #poisson = block['pk_parameters', 'poisson']
     poisson = poisson_func(block, poisson_type, mass_avg, k_vec, z_vec)[:,np.newaxis]
-    pk_tot = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h
+    pk_tot = 2.0*pk_cs_1h + poisson*pk_ss_1h + pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
     
     pk_tot_nbnl = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h - (pk_lin*I_NL_cc) + pk_ss_2h - (pk_lin*I_NL_ss) + (2. * pk_cs_2h) - (2. * pk_lin*I_NL_cs)
 

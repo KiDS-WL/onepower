@@ -74,10 +74,10 @@ def setup(options):
         z_bins = z_bins[np.newaxis,:]
         nbins = 1
     else:
-        obs_min = np.array([np.float64(str_val) for str_val in options[option_section, 'obs_min'].split(',')]) #options[option_section, 'obs_min']
-        obs_max = np.array([np.float64(str_val) for str_val in options[option_section, 'obs_max'].split(',')]) #options[option_section, 'obs_max']
-        zmin = np.array([np.float64(str_val) for str_val in options[option_section, 'zmin'].split(',')]) #options[option_section, 'zmin']
-        zmax = np.array([np.float64(str_val) for str_val in options[option_section, 'zmax'].split(',')]) #options[option_section, 'zmax']
+        obs_min = np.array([np.float64(str_val) for str_val in str(options[option_section, 'obs_min']).split(',')]) #options[option_section, 'obs_min']
+        obs_max = np.array([np.float64(str_val) for str_val in str(options[option_section, 'obs_max']).split(',')]) #options[option_section, 'obs_max']
+        zmin = np.array([np.float64(str_val) for str_val in str(options[option_section, 'zmin']).split(',')]) #options[option_section, 'zmin']
+        zmax = np.array([np.float64(str_val) for str_val in str(options[option_section, 'zmax']).split(',')]) #options[option_section, 'zmax']
         nobs = options[option_section, 'nobs']
         nz = options[option_section, 'nz']
         
