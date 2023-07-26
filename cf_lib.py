@@ -58,6 +58,11 @@ def obs_func(mass, phi_clf, dn_dlnM_normalised, axis=-1):
 def compute_hod(obs, phi_clf):
     hod_integral = simps(phi_clf, obs)
     return hod_integral
+    
+    
+def compute_stellar_fraction(obs, phi_clf):
+    integral = simps(phi_clf*obs, obs)
+    return integral
    
    
 def compute_number_density(mass, N_g, dn_dlnM_normalised):

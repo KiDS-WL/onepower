@@ -133,7 +133,16 @@ def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
     pk_interpolated = f_interp(z_vec)
     return pk_interpolated
     
+def load_fstar_mm(block, section_name, pipeline, z_vec, mass):
+    m_hod = block[section_name, 'mass']
+    z_hod = block[section_name,  'z']
+    f_star = block[section_name, 'f_star']
+    interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=None)
+    mm, zz = np.meshgrid(mass, z_vec, sparse=True)
+    fstar = interp_fstar((mm.T, zz.T)).T
     
+    return fstar
+
 # load the hod
 def load_hods(block, section_name, pipeline, z_vec, mass):
     #section_name = 'hod' + suffix
@@ -147,6 +156,7 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
     f_c_hod = block[section_name, 'central_fraction']
     f_s_hod = block[section_name, 'satellite_fraction']
     mass_avg_hod = block[section_name, 'average_halo_mass']
+    f_star = block[section_name, 'f_star']
     #if pipeline == True:
     #    Ncen = Ncen_hod
     #    Nsat = Nsat_hod
@@ -159,6 +169,7 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
     #interp_Nsat = interp2d(m_hod, z_hod, Nsat_hod)
     interp_Ncen = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=None)
     interp_Nsat = RegularGridInterpolator((m_hod.T, z_hod.T), Nsat_hod.T, bounds_error=False, fill_value=None)
+    interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=None)
     # AD: Is extrapolation warranted here? Maybe make whole calculation on same grid/spacing/thingy!?
     interp_numdencen = interp1d(z_hod, numdencen_hod, fill_value='extrapolate', bounds_error=False)
     interp_numdensat = interp1d(z_hod, numdensat_hod, fill_value='extrapolate', bounds_error=False)
@@ -170,6 +181,7 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
     mm, zz = np.meshgrid(mass, z_vec, sparse=True)
     Ncen = interp_Ncen((mm.T, zz.T)).T
     Nsat = interp_Nsat((mm.T, zz.T)).T
+    fstar = interp_fstar((mm.T, zz.T)).T
     #print ('z_hod', z_hod)
     #print ('z_vec', z_vec)
     numdencen = interp_numdencen(z_vec)
@@ -178,10 +190,7 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
     f_s = interp_f_s(z_vec)
     mass_avg = interp_mass_avg(z_vec)
     
-    #print(numdencen)
-    #print(mass_avg)
-    
-    return Ncen, Nsat, numdencen, numdensat, f_c, f_s, mass_avg
+    return Ncen, Nsat, numdencen, numdensat, f_c, f_s, mass_avg, fstar
         
 def load_galaxy_fractions(filename, z_vec):
     z_file, fraction_file = np.loadtxt(filename, unpack=True)
@@ -240,9 +249,8 @@ def setup(options):
     p_II_mc = options.get_bool(option_section, 'p_II_mc',default=False)
     #interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl',default=False)
     check_mead = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
-    #use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
-    #mead_version = options['camb', 'halofit_version']
     poisson_type = options.get_string(option_section, 'poisson_type',default='')
+    point_mass = options.get_bool(option_section, 'point_mass',default=False)
 
     # initiate pipeline parameters
     ia_lum_dep_centrals = False
@@ -321,6 +329,10 @@ def setup(options):
             mead_correction = 'feedback'
         elif use_mead == 'fit':
             mead_correction = 'fit'
+            if not options.has_value(option_section, 'hod_section_name'):
+                print('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon feedback one needs to provide the hod section name of used hod!')
+                sys.exit()
+            hod_section_name = options[option_section, 'hod_section_name']
     else:
         mead_correction = None
 
@@ -339,7 +351,7 @@ def setup(options):
     # ============================================================================== #
 
     return mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_mI, p_II, p_gI_bnl, p_mI_bnl, p_II_bnl, p_gI_mc, p_mI_mc, p_II_mc, gravitational, galaxy, bnl_gg, bnl_gm, bnl_mm, bnl_ia, alignment, \
-           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, mead_correction, poisson_type
+           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, mead_correction, point_mass, poisson_type
 
 
 def execute(block, config):
@@ -348,7 +360,7 @@ def execute(block, config):
     # earlier modules, and the config is what we loaded earlier.
 
     mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_mI, p_II, p_gI_bnl, p_mI_bnl, p_II_bnl, p_gI_mc, p_mI_mc, p_II_mc, gravitational, galaxy, bnl_gg, bnl_gm, bnl_mm, bnl_ia, alignment, \
-    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name0, suffix0, mead_correction, poisson_type = config
+    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name0, suffix0, mead_correction, point_mass, poisson_type = config
 
     start_time = time.time()
 
@@ -470,12 +482,12 @@ def execute(block, config):
             I_m_term = pk_lib.prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, nz, nk, A_term)
             m_factor = pk_lib.prepare_matter_factor_grid(mass, mean_density0, u_dm, block)
             if mead_correction == 'feedback':
-                m_factor_1h = pk_lib.prepare_matter_factor_grid_baryon(mass, mean_density0, u_dm, z_vec, block)
+                m_factor_1h_mm = pk_lib.prepare_matter_factor_grid_baryon(mass, mean_density0, u_dm, z_vec, block)
             elif mead_correction == 'fit':
-                m_factor_1h = m_factor.copy() # for now does nothing!
-                #m_factor_1h = pk_lib.prepare_matter_factor_grid_baryon_fit(mass, mean_density0, u_dm, z_vec, block)
+                fstar = load_fstar_mm(block, hod_section_name0 + '_params', pipeline, z_vec, mass)
+                m_factor_1h_mm = pk_lib.prepare_matter_factor_grid_baryon_fit(mass, mean_density0, u_dm, z_vec, fstar, block)
             else:
-                m_factor_1h = m_factor.copy()
+                m_factor_1h_mm = m_factor.copy()
                 
             if bnl_mm == True:
                 I_NL_mm = pk_lib.prepare_I_NL(mass, mass, m_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
@@ -483,7 +495,6 @@ def execute(block, config):
         if (galaxy == True) or (alignment == True):
             hod_bins = block[hod_section_name0 + '_params', 'nbins']
             
-            #print(hod_bins)
             for nb in range(0,hod_bins):
                 if hod_bins != 1:
                     hod_section_name = hod_section_name0 + '_{}'.format(nb+1)
@@ -492,7 +503,7 @@ def execute(block, config):
                     hod_section_name = hod_section_name0
                     suffix = suffix0
                     
-                Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg = load_hods(block, hod_section_name, pipeline, z_vec, mass)
+                Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg, fstar = load_hods(block, hod_section_name, pipeline, z_vec, mass)
             
                 if galaxy == True:
                     # preparing the 1h term
@@ -501,7 +512,14 @@ def execute(block, config):
                     # preparing the 2h term
                     I_c_term = pk_lib.prepare_Ic_term(mass, c_factor, b_dm, dn_dlnm, nz, nk)
                     I_s_term = pk_lib.prepare_Is_term(mass, s_factor, b_dm, dn_dlnm, nz, nk)
-        
+                    
+                    if mead_correction == 'fit' or point_mass == True:
+                        # Include point mass and gas contribution to the GGL power spectrum, defined from HOD
+                        # Maybe extend to input the mass per bin!
+                        m_factor_1h = pk_lib.prepare_matter_factor_grid_baryon_fit(mass, mean_density0, u_dm, z_vec, fstar, block)
+                    else:
+                        m_factor_1h = m_factor_1h_mm.copy()
+                        
                     if bnl_gg == True:
                         #start = time.time()
                         I_NL_cs = pk_lib.prepare_I_NL(mass, mass, c_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, nz, nk, k_vec, z_vec, A_term, mean_density0, beta_interp)
@@ -651,9 +669,9 @@ def execute(block, config):
                 
         if p_mm == True:
             if mead_correction == 'nofeedback':
-                pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_mead(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor_1h, I_m_term, nz, nk)
+                pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_mead(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor_1h_mm, I_m_term, nz, nk)
             else:
-                pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor_1h, I_m_term, nz, nk)
+                pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor_1h_mm, I_m_term, nz, nk)
             # save in the datablock
             #block.put_grid('matter_1h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_1h)
             #block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)
@@ -662,7 +680,7 @@ def execute(block, config):
             block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
             
         if p_mm_bnl == True:
-            pk_mm_1h_bnl, pk_mm_2h_bnl, pk_mm_tot_bnl = pk_lib.compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor_1h, I_m_term, nz, nk, I_NL_mm)
+            pk_mm_1h_bnl, pk_mm_2h_bnl, pk_mm_tot_bnl = pk_lib.compute_p_mm_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor_1h_mm, I_m_term, nz, nk, I_NL_mm)
             # save in the datablock
             #block.put_grid('matter_1h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_1h)
             #block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)

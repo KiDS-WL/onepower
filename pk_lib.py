@@ -94,20 +94,22 @@ def compute_matter_factor_baryon(mass, mean_density0, u_dm, z, block):
 
     theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
     
-    fstar = ((2.01 - 0.30*theta_agn)*0.01 * 10.0**(z*(0.409 + 0.0224*theta_agn))) / (0.75 * (1.0+z)**(1.0/6.0))# / block['cosmological_parameters', 'h0'] / (1.0+z)**(1.0/3.0)# / block['cosmological_parameters', 'h_z'][:, np.newaxis, np.newaxis]**(1.0/3.0)
+    fstar = ((2.01 - 0.30*theta_agn)*0.01 * 10.0**(z*(0.409 + 0.0224*theta_agn))) / (0.75 * (1.0+z)**(1.0/6.0))
     
     return ((mass / mean_density0) * u_dm * ((block['cosmological_parameters', 'omega_c']/block['cosmological_parameters', 'omega_m']) + fg(mass, fstar, theta_agn, z, block))) + (fstar * (mass / mean_density0))
     
+    
+    
 def fg_fit(mass, fstar, z, block):
     
-    mb = block['pk_parameters', 'm_b'] # free parameter.
+    mb = 10**13.87#block['pk_parameters', 'm_b'] # free parameter.
     
     f = ((block['cosmological_parameters', 'omega_b']/block['cosmological_parameters', 'omega_m']) - fstar) * (mass/mb)**2.0 / (1.0+(mass/mb)**2.0)
     return f
 
-def compute_matter_factor_baryon_fit(mass, mean_density0, u_dm, z, block):
+def compute_matter_factor_baryon_fit(mass, mean_density0, u_dm, z, fstar, block):
 
-    fstar = block['pk_parameters', 'fstar'] # free parameter. Could it be specified by the point mass?
+    #fstar = block['pk_parameters', 'fstar'] # For now specified by the point mass!
     
     return ((mass / mean_density0) * u_dm * ((block['cosmological_parameters', 'omega_c']/block['cosmological_parameters', 'omega_m']) + fg_fit(mass, fstar, z, block))) + (fstar * (mass / mean_density0))
 
@@ -146,8 +148,8 @@ def prepare_matter_factor_grid_baryon(mass, mean_density0, u_dm, z, block):
     m_factor = compute_matter_factor_baryon(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, z[:, np.newaxis, np.newaxis], block)
     return m_factor
     
-def prepare_matter_factor_grid_baryon_fit(mass, mean_density0, u_dm, z, block):
-    m_factor = compute_matter_factor_baryon_fit(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, z[:, np.newaxis, np.newaxis], block)
+def prepare_matter_factor_grid_baryon_fit(mass, mean_density0, u_dm, z, fstar, block):
+    m_factor = compute_matter_factor_baryon_fit(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, z[:, np.newaxis, np.newaxis], fstar[:,np.newaxis,:], block)
     return m_factor
 
 # clustering - satellites

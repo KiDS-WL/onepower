@@ -231,7 +231,8 @@ def execute(block, config):
         if hod_option:
             n_sat = np.array([cf.compute_hod(obs_simps_z, phi_s_z) for obs_simps_z, phi_s_z in zip(obs_simps[nb], phi_s)])
             n_cen = np.array([cf.compute_hod(obs_simps_z, phi_c_z) for obs_simps_z, phi_c_z in zip(obs_simps[nb], phi_c)])
-            
+            f_star = np.array([cf.compute_stellar_fraction(obs_simps_z, phi_z_i)/mass for obs_simps_z, phi_z_i in zip(obs_simps[nb], phi)])
+
             # Assembly bias (using the decorated HOD formalism for concentration as a secondary parameter):
             if A_cen is not None:
                 delta_pop_c = A_cen * np.fmin(n_cen, 1.0-n_cen)
@@ -245,7 +246,7 @@ def execute(block, config):
             block.put_grid('hod' + suffix, 'z', z_bins[nb], 'mass', mass, 'n_sat', n_sat)
             block.put_grid('hod' + suffix, 'z', z_bins[nb], 'mass', mass, 'n_cen', n_cen)
             block.put_grid('hod' + suffix, 'z', z_bins[nb], 'mass', mass, 'n_tot', n_tot)
-            
+            block.put_grid('hod' + suffix, 'z', z_bins[nb], 'mass', mass, 'f_star', f_star)
             
             #numdens_cen = np.empty(nz)
             #numdens_sat = np.empty(nz)
@@ -268,8 +269,6 @@ def execute(block, config):
             mass_avg = cf.compute_avg_halo_mass(mass, n_cen, dndlnM)/numdens_cen
             block.put_double_array_1d('hod' + suffix, 'average_halo_mass', mass_avg)
             
-    
-    
             if galaxy_bias_option:
                 #---- loading the halo bias function ----#
                 mass_hbf = block['halobias', 'm_h']
@@ -282,10 +281,6 @@ def execute(block, config):
                 mass_i, z_bins_i = np.meshgrid(mass, z_bins[nb], sparse=True)
                 hbias = f_interp_halobias((mass_i.T,z_bins_i.T)).T
     
-                #galaxybias_cen = np.empty(nz)
-                #galaxybias_sat = np.empty(nz)
-                #galaxybias_tot = np.empty(nz)
-    
                 galaxybias_cen = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_cen, hbias, dndlnM)/numdens_tot
                 galaxybias_sat = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_sat, hbias, dndlnM)/numdens_tot
                 galaxybias_tot = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
@@ -294,9 +289,6 @@ def execute(block, config):
                 block.put_double_array_1d('galaxy_bias' + suffix, 'galaxy_bias_satellites', galaxybias_sat)
                 # this can be useful in case you want to use the constant bias module to compute p_gg
                 block.put_double_array_1d('galaxy_bias' + suffix, 'b', galaxybias_tot)
-    
-        #print('--- bias; %s seconds ---' % (time.time() - start_time))
-    
     
         #######################################   OBSERVABLE FUNCTION   #############################################
     
@@ -316,24 +308,28 @@ def execute(block, config):
             block.put_grid('observable_function' + suffix0, 'z_bin_{}'.format(nb+1), z_bins[nb], 'obs_{}'.format(nb+1), obs_range_h, 'obs_func_{}'.format(nb+1), np.log(10.0)*obs_func_h*obs_range_h)
             
             
+    # Calculating the full stellar mass fraction and if desired the observable function for one bin case
+    nl_obs = 100
+    nl_z = 15
+    z_bins_one = np.linspace(z_bins.min(), z_bins.max(), nl_z)
+        
+    f_mass_z_one = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
+    mass_one_i, z_one_i = np.meshgrid(mass_dn, z_bins_one)
+    dn_dlnM_one = f_mass_z_one((mass_one_i.T, z_one_i.T)).T
+        
+    obs_range_h = np.empty([nl_z,nl_obs])
+    for jz in range(0,nl_z):
+        obs_range_h[jz] = np.logspace(np.log10(obs_simps.min()),np.log10(obs_simps.max()), nl_obs)
+    obs_func_h = np.empty([nl_z,nl_obs])
+        
+    phi_c = cf.cf_cen(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod)
+    phi_s = cf.cf_sat(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod)
+    phi = phi_c + phi_s
+    
+    f_star = np.array([cf.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
+    block.put_grid('hod' + suffix0 + '_params', 'z', z_bins_one, 'mass', mass, 'f_star', f_star)
+    
     if observable_option and observable_mode == 'obs_onebin':
-        nl_obs = 100
-        nl_z = 15
-        z_bins_one = np.linspace(z_bins.min(), z_bins.max(), nl_z)
-        
-        f_mass_z_one = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
-        mass_one_i, z_one_i = np.meshgrid(mass_dn, z_bins_one)
-        dn_dlnM_one = f_mass_z_one((mass_one_i.T, z_one_i.T)).T
-        
-        obs_range_h = np.empty([nl_z,nl_obs])
-        for jz in range(0,nl_z):
-            obs_range_h[jz] = np.logspace(np.log10(obs_simps.min()),np.log10(obs_simps.max()), nl_obs)
-        obs_func_h = np.empty([nl_z,nl_obs])
-        
-        phi_c = cf.cf_cen(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod)
-        phi_s = cf.cf_sat(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod)
-        phi = phi_c + phi_s
-            
         obs_func_h = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
 
         #save on datablock
