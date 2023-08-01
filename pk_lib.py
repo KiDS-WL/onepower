@@ -110,7 +110,11 @@ def fg_fit(mass, fstar, z, block):
 def compute_matter_factor_baryon_fit(mass, mean_density0, u_dm, z, fstar, block):
 
     #fstar = block['pk_parameters', 'fstar'] # For now specified by the point mass!
-    
+    #ratio = 2.01*0.01 / np.median(fstar, axis=2)
+    #fstar = fstar * ratio[:,:,np.newaxis] * 10.0**(z*(0.409))
+    #print(ratio)
+    #Tagn = 2.01/0.3 - fstar/(0.01*0.3)
+    #print(np.max(np.abs(Tagn)))
     return ((mass / mean_density0) * u_dm * ((block['cosmological_parameters', 'omega_c']/block['cosmological_parameters', 'omega_m']) + fg_fit(mass, fstar, z, block))) + (fstar * (mass / mean_density0))
 
 # matter
