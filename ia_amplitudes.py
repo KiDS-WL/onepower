@@ -184,7 +184,7 @@ def setup(options):
         print ('pdf:')
         print (pdf_satellites)
             
-    name = options.get_string(option_section, 'name', default='').lower()
+    name = options.get_string(option_section, 'output_suffix', default='').lower()
     if name != '':
         suffix = '_' + name
     else:

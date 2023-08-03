@@ -234,6 +234,8 @@ def execute(block, config):
             f_star = np.array([cf.compute_stellar_fraction(obs_simps_z, phi_z_i)/mass for obs_simps_z, phi_z_i in zip(obs_simps[nb], phi)])
 
             # Assembly bias (using the decorated HOD formalism for concentration as a secondary parameter):
+            # arXiv:1512.03050
+            
             if A_cen is not None:
                 delta_pop_c = A_cen * np.fmin(n_cen, 1.0-n_cen)
                 n_cen = n_cen + delta_pop_c

@@ -315,11 +315,11 @@ def setup(options):
         #f_red_cen_option = options[option_section, 'f_red_cen'] # TODO: consider to remove it (not particularly relevant anymore.. )
         #print('alignment is true')
 
-    name = options.get_string(option_section, 'name', default='').lower()
+    name = options.get_string(option_section, 'output_suffix', default='').lower()
     if name != '':
-        suffix = '_' + name
+        suffix0 = '_' + name
     else:
-        suffix = ''
+        suffix0 = ''
         
     if check_mead:
         use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
@@ -351,7 +351,7 @@ def setup(options):
     # ============================================================================== #
 
     return mass, nmass, z_vec, nz, nk, p_mm, p_mm_bnl, p_gg, p_gg_bnl, p_gm, p_gm_bnl, p_gI, p_mI, p_II, p_gI_bnl, p_mI_bnl, p_II_bnl, p_gI_mc, p_mI_mc, p_II_mc, gravitational, galaxy, bnl_gg, bnl_gm, bnl_mm, bnl_ia, alignment, \
-           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix, mead_correction, point_mass, poisson_type
+           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix0, mead_correction, point_mass, poisson_type
 
 
 def execute(block, config):

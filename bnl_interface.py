@@ -1,6 +1,6 @@
 # A new power spectrum module
 
-# NOTE: no truncation (halo exclusion problem) applied!
+# NOTE: no truncation (halo exclusion problem) applied, as it is included in BNL!
 
 from cosmosis.datablock import names, option_section
 import sys

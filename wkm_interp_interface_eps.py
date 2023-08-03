@@ -49,7 +49,7 @@ def setup(options):
     nk = options[option_section, 'nk']
     k_vec = np.logspace(np.log10(kmin), np.log10(kmax), nk)
 
-    name = options.get_string(option_section, 'name', default='').lower()
+    name = options.get_string(option_section, 'output_suffix', default='').lower()
     if name != '':
         suffix = '_' + name
     else:

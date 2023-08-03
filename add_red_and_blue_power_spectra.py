@@ -123,9 +123,9 @@ def setup(options):
         print('Only extrapolating power spectra.')
         z_fred, f_red = None, None
 
-    name_extrap = options.get_string(option_section, 'name_extrap', default='').lower()
-    name_red = options.get_string(option_section, 'name_red', default='').lower()
-    name_blue = options.get_string(option_section, 'name_blue', default='').lower()
+    name_extrap = options.get_string(option_section, 'input_suffix_extrap', default='').lower()
+    name_red = options.get_string(option_section, 'input_suffix_red', default='').lower()
+    name_blue = options.get_string(option_section, 'input_suffix_blue', default='').lower()
     if name_extrap != '':
         suffix_extrap = '_' + name_extrap
     else:
