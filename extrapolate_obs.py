@@ -31,7 +31,8 @@ def load_kernel(block, kernel_section, bin, z_ext, extrapolate_option):
 
     z_obs = block[kernel_section, 'z']
     obs_in = block[kernel_section, 'bin_{}'.format(bin)]
-    kernel_ext = extrapolate(z_ext, z_obs, obs_in, extrapolate_option)
+    inter_func = interp1d(z_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
+    kernel_ext = inter_func(z_ext)
     
     return kernel_ext
 
