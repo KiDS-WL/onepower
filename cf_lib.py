@@ -37,6 +37,7 @@ def phi_star(mass, hod):
     
 def cf_cen(obs, mass, hod):
     # log10(e)/sqrt(2*pi) = 0.17325843097
+    # AD: keeping this approximation in, but considering to replace with the on the fly calculation
     cf_c = np.log((0.17325843097/(hod.sigma_c))) +((-(np.log10(obs)-np.log10(mor(mass,hod,hod.norm_c)))**2.)/(2.*hod.sigma_c**2.)) - np.log(obs)
     return np.exp(cf_c)
 

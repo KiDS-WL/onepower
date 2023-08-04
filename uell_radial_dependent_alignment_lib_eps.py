@@ -96,23 +96,9 @@ satellite.
 
 import numpy as np
 #from hankel import HankelTransform
-import hankel
-import math
-
-import time
-from itertools import count
-from numpy import absolute, array, arange, cos, exp, linspace, log10, \
-                  logspace, max as npmax, median, newaxis, ones, outer,\
-                  pi, sin,  sum as npsum, zeros
-from scipy.integrate import quad, simps, trapz
-from scipy.interpolate import interp1d
-from scipy.special import legendre, sici, binom
-import math
+#import hankel
 
 from wkm_angular_part_eps import *
-
-import matplotlib.pyplot as plt
-from itertools import product
 
 #-----------------------------------------------------------------------#
 #								u_ell									#
@@ -136,25 +122,28 @@ def mass_nfw(r_s, c):
 def nfw_profile_trunc(r, rs, rvir):
     mask_above_rvir = r>=rvir
     nfw = nfw_profile(r, rs)
-    #nfw[mask_above_rvir] = 0.0 # AD: no truncation!
+    nfw[mask_above_rvir] = 0.0
     return nfw
+    
 
-
-def gamma_r_nfw_profile(r, rs, rvir, A, b, rcore=0.06):
+def gamma_r_nfw_profile_trunc(r, rs, rvir, A, b, rcore=0.06):
     mask_small_r = r<rcore
     gamma = A*(r/rvir)**b
     # note that in the case of non-radial dependent alignment, this cut is not recommendable since it introduces ringing
     gamma[mask_small_r] = A*(rcore/rvir)**b
-    #mask_gamma = gamma > 0.3
     gamma[gamma > 0.3] = 0.3
     gamma_weighted = gamma * nfw_profile_trunc(r,rs,rvir)
     return gamma_weighted
 
 
-# not used
-def gamma_r_nfw_profile_notrunc(r, rs, rvir, A, b):
-    gamma_nfw = A*(r/rvir)**b * nfw_profile(r,rs)
-    return gamma_nfw
+def gamma_r_nfw_profile_notrunc(r, rs, rvir, A, b, rcore=0.06):
+    mask_small_r = r<rcore
+    gamma = A*(r/rvir)**b
+    # note that in the case of non-radial dependent alignment, this cut is not recommendable since it introduces ringing
+    gamma[mask_small_r] = A*(rcore/rvir)**b
+    gamma[gamma > 0.3] = 0.3
+    gamma_weighted = gamma * nfw_profile(r,rs)
+    return gamma_weighted
 
 
 # not used
@@ -167,13 +156,12 @@ def vector_step_function(x, threshold):
 
 # virial radius 	
 def radvir(m, rho_halo):
-    radvir_constants = 3./(4.*math.pi*rho_halo)
+    radvir_constants = 3./(4.*np.pi*rho_halo)
     r_vir = (m*radvir_constants)**(1./3.) #Mpc/h
     return r_vir
     
 
 def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z, r_s, rvir, c, mass, ell, h_transf):
-    to = time.time()
     msize = np.size(mass)
     zsize = np.size(z)
     mnfw = mass_nfw(r_s, c)
@@ -198,7 +186,7 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
 # uell[l,z,m,k]
 def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass, ell_max, h_transf):
     # AD: This is just adding another loop in ell around the above function. Might want to combine...
-    uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il, h_transf[i]) for i,il in enumerate(range(0,ell_max+1,2))]
+    uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile_notrunc, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il, h_transf[i]) for i,il in enumerate(range(0,ell_max+1,2))]
     return np.array(uell_ia)
 
 #-----------------------------------------------------------------------#

@@ -1,12 +1,6 @@
 from cosmosis.datablock import names, option_section
-import sys
 import numpy as np
-from scipy.interpolate import interp1d, interp2d
-import time
 
-import math
-
-#from darkmatter_lib import concentration, radvir_from_mass, scale_radius, compute_u_dm
 from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
 
 # We have a collection of commonly used pre-defined block section names.
@@ -65,7 +59,6 @@ def execute(block, config):
 
     #z, nz, nk, mass, nmass = config
     nk, profile, mead_correction = config
-    start_time = time.time()
 
     z = block['hmf', 'z']
     rho_m = block['density', 'mean_density0']
@@ -91,8 +84,8 @@ def execute(block, config):
         norm_cen = (((3.44 - 0.496*theta_agn) * 10.0**(z*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
         eta_cen = (0.15 * (1.0+z)**0.5)[:,np.newaxis]
     
-    conc_cen = norm_cen * block['concentration', 'c']#concentration(block, mass, z, model_cm, mdef, overdensity)
-    conc_sat = norm_sat * block['concentration', 'c']#concentration(block, mass, z, model_cm, mdef, overdensity)
+    conc_cen = norm_cen * block['concentration', 'c']
+    conc_sat = norm_sat * block['concentration', 'c']
     rvir_cen = radvir_from_mass(mass, rho_halo)
     rvir_sat = radvir_from_mass(mass, rho_halo)
     

@@ -1,19 +1,6 @@
 from cosmosis.datablock import names, option_section
-import sys
 import numpy as np
-import hankel
-import math
-
-import time
-from itertools import count
-from numpy import absolute, array, arange, cos, exp, linspace, log10, \
-                  logspace, max as npmax, median, newaxis, ones, outer,\
-                  pi, sin,  sum as npsum, zeros
-from scipy.integrate import quad, simps, trapz
-from scipy.interpolate import interp1d, interp2d
-from scipy.special import legendre, sici, binom
-import math
-
+from scipy.interpolate import interp2d
 
 from uell_radial_dependent_alignment_lib_eps import radvir, IA_uell_gamma_r_hankel, wkm_my_fell
 from hankel import HankelTransform
@@ -24,6 +11,7 @@ from hankel import HankelTransform
 
 cosmo = names.cosmological_parameters
 
+# TODO: Clean this file up!
 
 #--------------------------------------------------------------------------------#	
 
@@ -67,7 +55,6 @@ def execute(block, config):
     #earlier modules, and the config is what we loaded earlier.
     
     z_setup, nz_setup, mass_setup, nmass_setup, k_setup, nk_setup, suffix, h_transform, ell_max = config
-    start_time = time.time()
 
     # create intermediate variables to speed up the calculation
     nz = nz_setup

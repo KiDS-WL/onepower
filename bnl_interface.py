@@ -3,29 +3,12 @@
 # NOTE: no truncation (halo exclusion problem) applied, as it is included in BNL!
 
 from cosmosis.datablock import names, option_section
-import sys
 import numpy as np
-from scipy.interpolate import interp1d, interp2d
-from scipy import interp
-from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM
-import astropy.units as u
-from dark_emulator import darkemu 
-from scipy.interpolate import RegularGridInterpolator
-from scipy.integrate import quad, simps, trapz
-import timeit
+from scipy.interpolate import interp1d, RegularGridInterpolator
+from dark_emulator import darkemu
 from collections import OrderedDict
 
-# import hankel
-from scipy.integrate import quad, simps, trapz
-# from scipy.misc import factorial
-# from scipy.special import legendre, sici, binom
-import math
-#import load_utilities
 import pk_lib
-
-import time
-
-import os, errno
 
 cosmo = names.cosmological_parameters
 
@@ -77,7 +60,6 @@ def setup(options):
     # It is a chance to read any fixed options from the configuration file,
     # load any data, or do any calculations that are fixed once.
     
-
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
     nmass = options[option_section, 'nmass']
@@ -85,6 +67,7 @@ def setup(options):
     dlog10m = (log_mass_max-log_mass_min)/nmass
     mass = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
+    # TODO: We might need to specify the mass bining of bnl, but for now it is not user accessible!
     #nmass_bnl = options[option_section, 'nmass_bnl']
     #mass_bnl = np.logspace(log_mass_min, log_mass_max, nmass_bnl) 
 
@@ -96,6 +79,7 @@ def setup(options):
     nk = options[option_section, 'nk']
 
     bnl = options.get_bool(option_section, 'bnl', default=False)
+    # TODO: Interpolatation option currently not working, will need to implement in the future!
     interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl', default=False)
     
     if bnl == True:
@@ -131,7 +115,7 @@ def execute(block, config):
             
         if num_calls % update_bnl == 0:
             ombh2 = block['cosmological_parameters', 'ombh2']
-            omch2 = block['cosmological_parameters', 'omch2']# - 0.00064 #need to subtract the neutrino density to get h right in DQ emulator!
+            omch2 = block['cosmological_parameters', 'omch2'] # - 0.00064 #need to subtract the neutrino density to get h right in DQ emulator!
             omega_lambda = block['cosmological_parameters', 'omega_lambda']
             A_s = block['cosmological_parameters', 'A_s']
             n_s = block['cosmological_parameters', 'n_s']

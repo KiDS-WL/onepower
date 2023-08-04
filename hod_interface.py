@@ -15,16 +15,12 @@
 #
 # where j=cen,sat.
 
-# AD: make this more general for stellar mass function, re-thing the liminusity limits, functional forms for HOD relations!
+# TODO: Generalise the functional forms for HOD relations!
 
 from cosmosis.datablock import names, option_section
-import sys
 import numpy as np
 import cf_lib as cf
 from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
-from itertools import count
-
-import time
 
 # We have a collection of commonly used pre-defined block section names.
 # If none of the names here is relevant for your calculation you can use any
@@ -74,10 +70,10 @@ def setup(options):
         z_bins = z_bins[np.newaxis,:]
         nbins = 1
     else:
-        obs_min = np.array([np.float64(str_val) for str_val in str(options[option_section, 'obs_min']).split(',')]) #options[option_section, 'obs_min']
-        obs_max = np.array([np.float64(str_val) for str_val in str(options[option_section, 'obs_max']).split(',')]) #options[option_section, 'obs_max']
-        zmin = np.array([np.float64(str_val) for str_val in str(options[option_section, 'zmin']).split(',')]) #options[option_section, 'zmin']
-        zmax = np.array([np.float64(str_val) for str_val in str(options[option_section, 'zmax']).split(',')]) #options[option_section, 'zmax']
+        obs_min = np.array([np.float64(str_val) for str_val in str(options[option_section, 'obs_min']).split(',')])
+        obs_max = np.array([np.float64(str_val) for str_val in str(options[option_section, 'obs_max']).split(',')])
+        zmin = np.array([np.float64(str_val) for str_val in str(options[option_section, 'zmin']).split(',')])
+        zmax = np.array([np.float64(str_val) for str_val in str(options[option_section, 'zmax']).split(',')])
         nobs = options[option_section, 'nobs']
         nz = options[option_section, 'nz']
         
@@ -86,15 +82,9 @@ def setup(options):
         else:
             nbins = len(obs_min)
         
-        #log_obs_min = np.repeat(obs_min,nz)
-        #log_obs_max = np.repeat(obs_max,nz)
-        #z_bins = np.linspace(zmin, zmax, nz)
-        
         z_bins = np.array([np.linspace(zmin_i, zmax_i, nz) for zmin_i, zmax_i in zip(zmin, zmax)])
         log_obs_min = np.array([np.repeat(obs_min_i,nz) for obs_min_i in obs_min])
         log_obs_max = np.array([np.repeat(obs_max_i,nz) for obs_max_i in obs_max])
-    
-    #nobs = 200
 
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
@@ -112,7 +102,7 @@ def setup(options):
         'please, select the hod option too.')
 
     observable_option = options[option_section, 'do_observable_function']
-    observable_mode = options[option_section, 'observable_mode'] # options.get_string(option_section, 'lf_mode', default=None).lower() #
+    observable_mode = options[option_section, 'observable_mode']
     z_picked = options[option_section, 'z_median']
 
 
@@ -136,12 +126,6 @@ def setup(options):
     # AD: For stellar masses it holds the same, but we can also employ this to construct more complex samples/bins. Can pick lower redshift limit for particulare stellar mass, etc...
 
     print('z\t log OBS_min(z)\t log OBS_max(z)\n')
-    #obs_simps = np.empty([nz,nobs])
-    #for jz in range(0,nz):
-    #    obs_minz = log_obs_min[jz]
-    #    obs_maxz = log_obs_max[jz]
-    #    obs_simps[jz] = np.logspace(obs_minz, obs_maxz, nobs)
-    #    print ('%f %f %f' %(z_bins[jz], obs_minz, obs_maxz))
     obs_simps = np.empty([nbins,nz,nobs])
     for nb in range(0,nbins):
         for jz in range(0,nz):
@@ -161,8 +145,6 @@ def execute(block, config):
     #earlier modules, and the config is what we loaded earlier.
 
     obs_simps, nbins, nz, nobs, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, observable_mode, suffix0, suffix_params, observables_z = config
-
-    start_time = time.time()
 
     #---- loading hod from the datablock ----#
 
@@ -206,8 +188,6 @@ def execute(block, config):
         else:
             suffix = suffix0
             
-        #f_int_dndlnM = interp2d(mass_dn, z_dn, dndlnM_grid)
-        #dndlnM = f_int_dndlnM(mass, z_bins)
         f_int_dndlnM = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
         mass_i, z_bins_i = np.meshgrid(mass, z_bins[nb], sparse=True)
         dndlnM = f_int_dndlnM((mass_i.T, z_bins_i.T)).T
@@ -249,10 +229,7 @@ def execute(block, config):
             block.put_grid('hod' + suffix, 'z', z_bins[nb], 'mass', mass, 'n_cen', n_cen)
             block.put_grid('hod' + suffix, 'z', z_bins[nb], 'mass', mass, 'n_tot', n_tot)
             block.put_grid('hod' + suffix, 'z', z_bins[nb], 'mass', mass, 'f_star', f_star)
-            
-            #numdens_cen = np.empty(nz)
-            #numdens_sat = np.empty(nz)
-    
+        
             numdens_cen = cf.compute_number_density(mass, n_cen, dndlnM)
             numdens_sat = cf.compute_number_density(mass, n_sat, dndlnM)
     
@@ -277,8 +254,6 @@ def execute(block, config):
                 z_hbf = block['halobias', 'z']
                 halobias_hbf = block['halobias', 'b_hb']
     
-                #f_interp_halobias = interp2d(mass_hbf, z_hbf, halobias_hbf)
-                #hbias = f_interp_halobias(mass,z_bins)
                 f_interp_halobias = RegularGridInterpolator((mass_hbf.T, z_hbf.T), halobias_hbf.T, bounds_error=False, fill_value=None)
                 mass_i, z_bins_i = np.meshgrid(mass, z_bins[nb], sparse=True)
                 hbias = f_interp_halobias((mass_i.T,z_bins_i.T)).T

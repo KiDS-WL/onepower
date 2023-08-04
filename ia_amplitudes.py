@@ -21,16 +21,9 @@
 
 
 from cosmosis.datablock import names, option_section
-import sys
-import re
-from os import listdir
 import numpy as np
-import lf_lib_simps as lf
-from scipy.interpolate import interp1d, interp2d
 from scipy.integrate import simps
 from astropy.io import fits
-
-import time
 
 cosmo = names.cosmological_parameters
 
@@ -86,7 +79,7 @@ def setup(options):
         nlbins = 100000
         lum_centrals = np.ones([nz,nlbins])
         lum_pdf_z_centrals = np.ones([nz, nlbins])
-    if centrals_luminosity_dependence == 'halo_mass':
+    elif centrals_luminosity_dependence == 'halo_mass':
         print ('Halo mass dependence assumed for the centrals IA signal...')
         nlbins = 100000
         lum_centrals = np.ones([nz,nlbins])
@@ -113,21 +106,17 @@ def setup(options):
             mask_z = (z_gal_centrals>=z_edges[i]) & (z_gal_centrals<z_edges[i+1])
             loglum_bin_centrals = loglum_gal_centrals[mask_z]
             if loglum_bin_centrals.size:
-                #print (i)
-                lum = 10.**loglum_bin
+                lum = 10.**loglum_bin_centrals
                 pdf_tmp, _lum_bins = np.histogram(lum, bins=nlbins, density=True)
                 _dbin = (_lum_bins[-1]-_lum_bins[0])/(1.*nlbins)
                 bincen_centrals[i] = _lum_bins[0:-1]+0.5*_dbin
                 print('check norm: ', np.sum(pdf_tmp*np.diff(_lum_bins)))
                 pdf_centrals[i] = pdf_tmp
                 print('check mean:', simps(pdf_centrals[i]*bincen_centrals[i], bincen_centrals[i])/np.mean(lum))
-                #import matplotlib.pyplot as plt
-                #plt.plot(bincen[i], pdf[i])
-                #plt.xscale('log')
             else:
                 pdf_centrals[i] = 0
-        #plt.show()       
-        lum_centrals = bincen
+                
+        lum_centrals = bincen_centrals
         lum_pdf_z_centrals = pdf_centrals
         print ('pdf:')
         print (pdf_centrals)
@@ -138,7 +127,7 @@ def setup(options):
         nlbins = 100000
         lum_satellites = np.ones([nz,nlbins])
         lum_pdf_z_satellites = np.ones([nz, nlbins])
-    if satellites_luminosity_dependence == 'halo_mass':
+    elif satellites_luminosity_dependence == 'halo_mass':
         print ('Halo mass dependence assumed for the satellites IA signal...')
         nlbins = 100000
         lum_satellites = np.ones([nz,nlbins])
@@ -165,22 +154,18 @@ def setup(options):
             mask_z = (z_gal_satellites>=z_edges[i]) & (z_gal_satellites<z_edges[i+1])
             loglum_bin_satellites = loglum_gal_satellites[mask_z]
             if loglum_bin_satellites.size:
-                #print (i)
-                lum = 10.**loglum_bin
+                lum = 10.**loglum_bin_satellites
                 pdf_tmp, _lum_bins = np.histogram(lum, bins=nlbins, density=True)
                 _dbin = (_lum_bins[-1]-_lum_bins[0])/(1.*nlbins)
                 bincen_satellites[i] = _lum_bins[0:-1]+0.5*_dbin
                 print('check norm: ', np.sum(pdf_tmp*np.diff(_lum_bins)))
                 pdf_satellites[i] = pdf_tmp
                 print('check mean:', simps(pdf_satellites[i]*bincen_satellites[i], bincen_satellites[i])/np.mean(lum))
-                #import matplotlib.pyplot as plt
-                #plt.plot(bincen[i], pdf[i])
-                #plt.xscale('log')
             else:
                 pdf_satellites[i] = 0
-        #plt.show()
-        lum_satellites = bincen
-        lum_pdf_z_satellites = pdf_centrals
+        
+        lum_satellites = bincen_satellites
+        lum_pdf_z_satellites = pdf_satellites
         print ('pdf:')
         print (pdf_satellites)
             
@@ -196,22 +181,20 @@ def setup(options):
 def execute(block, config):
 
     lum_centrals, lum_pdf_z_centrals, lum_satellites, lum_pdf_z_satellites, nz, nlum, centrals_luminosity_dependence, satellites_luminosity_dependence, suffix = config
-            
+    # TODO: Check if all the options work as intended!
     
     if centrals_luminosity_dependence == 'constant':
         gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'A']
         block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * np.ones(nz))
+        
     if centrals_luminosity_dependence == 'joachimi2011':
         l0 = block['intrinsic_alignment_parameters' + suffix, 'l_0']
         beta_l = block['intrinsic_alignment_parameters' + suffix, 'beta_l']
         gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
         print ('amplitude_IA = ', gamma_2h)
-        #mean_lscaling = np.empty(nz)
-        #mean_lscaling_beta2 = np.empty(nz)
-        #for i in range(0,nz):
-        #    mean_lscaling[i] = mean_L_L0_to_beta(lum[i], lum_pdf_z[i], l0, beta_l)
-        mean_lscaling = mean_L_L0_to_beta(lum, lum_pdf_z, l0, beta_l)
+        mean_lscaling = mean_L_L0_to_beta(lum_centrals, lum_pdf_z_centrals, l0, beta_l)
         block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * mean_lscaling)
+        
     if centrals_luminosity_dependence == 'double_powerlaw':
         l0 = block['intrinsic_alignment_parameters' + suffix, 'l_0']
         beta_l = block['intrinsic_alignment_parameters' + suffix, 'beta_l']
@@ -219,8 +202,9 @@ def execute(block, config):
         gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
         mean_lscaling = np.empty(nz)
         for i in range(0,nz):
-            mean_lscaling[i] = broken_powerlaw(lum[i], lum_pdf_z[i], gamma_2h, l0, beta_l, beta_low)
+            mean_lscaling[i] = broken_powerlaw(lum_centrals[i], lum_pdf_z_centrals[i], gamma_2h, l0, beta_l, beta_low)
         block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', mean_lscaling)
+        
     if centrals_luminosity_dependence == 'halo_mass':
         m0 = block.get_double('intrinsic_alignment_parameters' + suffix, 'M_0')
         beta_m = block.get_double('intrinsic_alignment_parameters' + suffix, 'beta_mh')
@@ -232,18 +216,19 @@ def execute(block, config):
         block.put_string('ia_large_scale_alignment' + suffix, 'instance', centrals_luminosity_dependence)
         
     
+    
+    
     if satellites_luminosity_dependence == 'constant':
         gamma_1h = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude']
         block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * np.ones(nz))
+        
     if satellites_luminosity_dependence == 'satellite_luminosity_dependence':
         l0 = block['intrinsic_alignment_parameters' + suffix, 'l_0']
         zeta_l = block['intrinsic_alignment_parameters' + suffix, 'zeta_l']
         gamma_1h = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude']
-        #mean_lscaling = np.empty(nz)
-        #for i in range(0,nz):
-        #    mean_lscaling[i] = mean_L_L0_to_beta(lum[i], lum_pdf_z[i], l0, zeta_l)
-        mean_lscaling = mean_L_L0_to_beta(lum, lum_pdf_z, l0, zeta_l)
+        mean_lscaling = mean_L_L0_to_beta(lum_satellites, lum_pdf_z_satellites, l0, zeta_l)
         block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * mean_lscaling)
+        
     if satellites_luminosity_dependence == 'halo_mass':
         m0 = block.get_double('intrinsic_alignment_parameters' + suffix, 'M_0')
         zeta_m = block.get_double('intrinsic_alignment_parameters' + suffix, 'zeta_mh')

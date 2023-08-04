@@ -9,12 +9,11 @@
 
 
 from cosmosis.datablock import names, option_section
-import sys
 import numpy as np
-from scipy.interpolate import interp1d, interp2d
+from scipy.interpolate import interp1d
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 import astropy.units as u
-from scipy.integrate import simps
+from scipy.integrate import simps, solve_ivp, quad
 from hmf import MassFunction
 from halomod import bias as bias_func
 from halomod.concentration import make_colossus_cm
@@ -23,28 +22,17 @@ from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
 import hmf.halos.mass_definitions as md
 import hmf.cosmology.growth_factor as gf
-import time
-import pk_lib
-import copy
 
     
 def concentration_colossus(block, cosmo, mass, z_vec, model, mdef, overdensity):
     # calculates concentration given halo mass, using the halomod model provided in config
     # furthermore it converts to halomod instance to be used with the halomodel, consistenly with halo mass function
     # and halo bias function
-    #nz = len(z_vec)
-    nmass = len(mass)
-    c = np.empty([nmass])
     this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom', sigma8=block[cosmo_names, 'sigma_8'], ns=block[cosmo_names, 'n_s'])
     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
-    #for i,zi in enumerate(z_vec):
-    #c = np.abs(colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model))
     c = colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model)
     c_interp = interp1d(mass[c>=0.0], c[c>=0.0], kind='linear', bounds_error=False, fill_value='extrapolate')
-    #print(c)
-    #print(c_interp(mass))
-    #quit()
-    #c[c<=1.0]=1.0#e-4
+    
     return c_interp(mass)
     
     
@@ -56,7 +44,6 @@ def concentration_halomod(block, cosmo, mass, z, model, mdef, overdensity, mf, d
     cm = getattr(conc_func, model)(cosmo=mf, filter0=mf.filter, delta_c=delta_c, mdef=mdef)
     
     c = cm.cm(mass, z)
-    #print(cm.zc(mass, z))
     return c
     
     
@@ -90,13 +77,13 @@ def get_growth_interpolator(cosmo):
     #z_init = (1.0/a_init) - 1.0
     z_init = 500.0
     a_init = 1.0/(1.0+z_init)
-    from scipy.integrate import solve_ivp
+
     na = 129 # Number of scale factors used to construct interpolator
     a = np.linspace(a_init, 1.0, na)
     f = 1.0 - cosmo.Om(z_init) # Early mass density
     d_init = a_init**(1.0 - ((3.0/5.0) * f))            # Initial condition (~ a_init; but f factor accounts for EDE-ish)
     v_init = (1.0 - ((3.0/5.0) * f))*a_init**(-((3.0/5.0) * f)) # Initial condition (~ 1; but f factor accounts for EDE-ish)
-    #print(d_init, v_init)
+
     y0 = (d_init, v_init)
     def fun(ax, y):
         d, v = y[0], y[1]
@@ -118,7 +105,7 @@ def get_accumulated_growth(a, g):
     
     z_init = 500.0
     a_init = 1.0/(1.0+z_init)
-    from scipy.integrate import quad
+    
     missing = g(a_init) # Integeral from 0 to ai of g(ai)/ai ~ g(ai) for ai << 1
     G, _ = quad(lambda a: g(a)/a, a_init, a) + missing
     return G
@@ -251,8 +238,6 @@ def execute(block, config):
         growth = get_growth_interpolator(this_cosmo_run)
     for jz in range(0,nz):
         if mdef in ['SOVirial'] and mead_correction is None:
-            #x = this_cosmo_run.Om(z_vec[jz]) - 1.0
-            #overdensity_i = (18 * np.pi**2 + 82 * x - 39 * x**2) / this_cosmo_run.Om(z_vec[jz]) # Calculated within HMF!
             delta_c_i = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_vec[jz])))
             mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_i)
             overdensity_i = mf.halo_overdensity_mean
@@ -283,8 +268,7 @@ def execute(block, config):
         bias = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_i, delta_halo=overdensity_i, sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
         b_nu[jz] = bias.bias()
         f_nu[jz] = this_cosmo_run.Onu0/this_cosmo_run.Om0
-        #matter_power_lin[jz] = mf.power # we rather read linear power spectrum directly from camb, even though hmf does the same... (avoiding double work)
-        #conc[jz,:] = concentration_halomod(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_i, mf, delta_c_i)
+        
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnmh)
     block.put_double_array_1d('density', 'mean_density0', mean_density0) #(mean_density0/this_cosmo_run.Om0)*this_cosmo_run.Odm0)
     block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
@@ -300,8 +284,6 @@ def execute(block, config):
     block.put_double_array_1d('hmf', 'sigma_var', sigma_var)
     h_z = this_cosmo_run.H(z_vec).value/100.0
     block.put_double_array_1d('cosmological_parameters', 'h_z', h_z)
-    #print(h_z)
-    #quit()
 
     return 0
 

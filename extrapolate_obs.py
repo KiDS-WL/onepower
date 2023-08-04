@@ -6,39 +6,23 @@ add_red_and_blue_power_spectra.py module
 """
 
 from cosmosis.datablock import names, option_section
-import sys
 import numpy as np
-from cosmosis.datablock import names, option_section
-from scipy import interp
 from scipy.interpolate import interp1d
 from scipy.integrate import simps
 
-import time
-
-def extrapolate_obs(x_ext, x_obs, obs_in, nz, extrapolate_option):
-    nx_ext = len(x_ext)
-    obs_extk = np.empty([nz, nx_ext])
-    for jz in range(0,nz):
-        inter_func = interp1d(x_obs, obs_in[jz,:], kind='linear', fill_value=extrapolate_option, bounds_error=False)
-        obs_extk[jz,:] = inter_func(x_ext)
-    return obs_extk
-    
-def extrapolate(x_ext, x_obs, obs_in, extrapolate_option):
-    inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
-    obs_extk = inter_func(x_ext)
-    return obs_extk
 
 def load_and_extrapolate_obs(block, obs_section, suffix_in, x_ext, extrapolate_option):
 
     x_obs = block[obs_section, 'obs_' + suffix_in]
     if block.has_value(obs_section, 'z_bin_' + suffix_in):
         z_obs = block[obs_section, 'z_bin_' + suffix_in]
-        nz = len(z_obs)
         obs_in = block[obs_section, 'obs_func_' + suffix_in]
-        obs_ext = extrapolate_obs(x_ext, x_obs, obs_in, nz, extrapolate_option)
+        inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=1)
+        obs_ext = inter_func(x_ext)
     else:
         obs_in = block[obs_section, 'obs_func_' + suffix_in]
-        obs_ext = extrapolate(x_ext, x_obs, obs_in, extrapolate_option)
+        inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
+        obs_ext = inter_func(x_ext)
         z_obs = None
     
     return z_obs, obs_ext
@@ -88,9 +72,6 @@ def execute(block, config):
 	
     input_section_name = config['input_section_name']
     output_section_name = config['output_section_name']
-    obs_min = config['obs_min']
-    obs_max = config['obs_max']
-    n_obs = config['n_obs']
     x_arr = config['x_arr']
     suffixes = config['suffixes']
     

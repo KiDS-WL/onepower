@@ -1,14 +1,5 @@
-from cosmosis.datablock import names, option_section
-import sys
 import numpy as np
-from scipy.interpolate import interp1d, interp2d
-from astropy.cosmology import FlatLambdaCDM
-import astropy.units as u
-
-import hankel
-from scipy.integrate import quad, simps, trapz
-from scipy.special import legendre, sici, binom
-import math
+from scipy.special import sici
 
 def scalar_rvir(mass, rho_halo):
     return ((3. * mass) / (4. * np.pi * rho_halo)) ** (1. / 3.)

@@ -27,43 +27,19 @@ gm -> pk_tot = f_red * pk_red + (1-f_red) * pk_blue
 """
 
 from cosmosis.datablock import names, option_section
-import sys
 import numpy as np
-from cosmosis.datablock import names, option_section
-from scipy import interp
 from scipy.interpolate import interp1d
-
-import time
-
 
 # We have a collection of commonly used pre-defined block section names.
 # If none of the names here is relevant for your calculation you can use any
 # string you want instead.
 cosmo = names.cosmological_parameters
 
-def extrapolate_z(z_ext, z_vec, pk, nk, extrapolate_option):
-    nz_ext = len(z_ext)
-    pk_extz = np.empty([nz_ext, nk])
-    for ik in range(0,nk):
-        inter_func = interp1d(z_vec, np.nan_to_num(np.log10(pk[:,ik])), kind='linear', fill_value=extrapolate_option, bounds_error=False)
-        pk_extz[:,ik] = inter_func(z_ext)
-    return 10.0**pk_extz
-
-def extrapolate_k(k_ext, k, pk, nz, extrapolate_option):
-    nk_ext = len(k_ext)
-    pk_extk = np.empty([nz, nk_ext])
-    for jz in range(0,nz):
-        inter_func = interp1d(np.log10(k), np.nan_to_num(np.log10(pk[jz,:])), kind='linear', fill_value=extrapolate_option, bounds_error=False)
-        pk_extk[jz,:] = inter_func(np.log10(k_ext))
-    return 10.0**pk_extk
 
 def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, power_section, z_ext, k_ext, extrapolate_option):
     # Note that we have first interpolated the f_red to the halo model pipeline z range
     k = block[power_section + suffix_red, 'k_h']
     z = block[power_section + suffix_red, 'z']
-    nz = len(z)
-    nk = len(k)
-    pk_tot = np.zeros([nz,nk])
     pk_red = block[power_section + suffix_red, 'p_k']
     pk_blue = block[power_section + suffix_blue, 'p_k']
 		
@@ -77,22 +53,27 @@ def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, po
         
     #warnings.warn('No cross terms between red and blue galaxies implemented.\nThis is only valid for IA in the regime of negligible blue galaxy alignment.')
     #IT 02/03/22: Commented line 86 to execute the code
+    
     # extrapolate
-    nz_ext = len(z_ext)
-    pk_tot_ext_z = extrapolate_z(z_ext, z, pk_tot, nk, extrapolate_option)
-    pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext, 'extrapolate')
+    inter_func_z = interp1d(z, np.nan_to_num(np.log10(pk_tot)), kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
+    pk_tot_ext_z = 10.0**inter_func_z(z_ext)
+    
+    inter_func_k = interp1d(np.log10(k), np.nan_to_num(np.log10(pk_tot_ext_z)), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
+    pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext))
         
     block.put_grid(power_section + suffix_out, 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
+
 
 def extrapolate_power(block, suffix_out, suffix_in, power_section, z_ext, k_ext, extrapolate_option):
     k = block[power_section + suffix_in, 'k_h']
     z = block[power_section + suffix_in, 'z']
-    nz = len(z)
-    nk = len(k)
     pk_in = block[power_section + suffix_in, 'p_k']
-    nz_ext = len(z_ext)
-    pk_tot_ext_z = extrapolate_z(z_ext, z, pk_in, nk, extrapolate_option)
-    pk_tot_ext = extrapolate_k(k_ext, k, pk_tot_ext_z, nz_ext, 'extrapolate')
+    
+    inter_func_z = interp1d(z, np.nan_to_num(np.log10(pk_in)), kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
+    pk_tot_ext_z = 10.0**inter_func_z(z_ext)
+        
+    inter_func_k = interp1d(np.log10(k), np.nan_to_num(np.log10(pk_tot_ext_z)), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
+    pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext))
         
     block.put_grid(power_section + suffix_out, 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
  
@@ -156,7 +137,7 @@ def execute(block, config):
     
     if p_mm_option == 'extrapolate':
         extrapolate_power(block, '','', 'matter_power_nl', z_lin, k_lin, 'extrapolate')
-        # For testing!
+        # TODO: Remove  once extrapolation of NL power spectra is validated
         try:
             extrapolate_power(block, '','', 'matter_power_nl_mead', z_lin, k_lin, 'extrapolate')
         except:
@@ -172,7 +153,6 @@ def execute(block, config):
             extrapolate_option = 0.0
         
         for nb in range(0,hod_bins_extrap):
-            #print(nb)
             if hod_bins_extrap != 1:
                 suffix_extrap = suffix0_extrap + '_{}'.format(nb+1)
                 suffix_out = '_{}'.format(nb+1)
@@ -209,7 +189,6 @@ def execute(block, config):
         if not hod_bins_red == hod_bins_blue:
             raise Exception('Error: number of red and blue stellar mass bins should be the same.')
     
-        print(hod_bins_red)
         for nb in range(0,hod_bins_red):
             if hod_bins_red != 1:
                 suffix_red = suffix0_red + '_{}'.format(nb+1)
