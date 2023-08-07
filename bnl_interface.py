@@ -80,7 +80,7 @@ def setup(options):
 
     bnl = options.get_bool(option_section, 'bnl', default=False)
     # TODO: Interpolatation option currently not working, will need to implement in the future!
-    interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl', default=False)
+    interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl', default=True)
     
     if bnl == True:
         #initialise emulator
