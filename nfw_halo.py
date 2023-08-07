@@ -36,7 +36,13 @@ def setup(options):
     #overdensity = options[option_section, 'overdensity']
     """
     nk = options[option_section, 'nk']
-    profile = options[option_section, 'profile']
+    if options.has_value(option_section, 'profile'):
+        print('\'profile\' option not yet implemented, using the default NFW profile.')
+        #profile = options[option_section, 'profile']
+        profile = None
+    else:
+        profile = None
+        
     check_mead = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
     if check_mead:
         use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']

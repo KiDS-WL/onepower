@@ -242,6 +242,7 @@ def setup(options):
     ia_lum_dep_satellites = False
     gravitational = False
     galaxy = False
+    # TODO: Combine bnl calculation for all/none power spectra!
     bnl_gg = False
     bnl_gm = False
     bnl_mm = False
