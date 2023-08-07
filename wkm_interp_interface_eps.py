@@ -1,19 +1,6 @@
 from cosmosis.datablock import names, option_section
-import sys
 import numpy as np
-import hankel
-import math
-
-import time
-from itertools import count
-from numpy import absolute, array, arange, cos, exp, linspace, log10, \
-                  logspace, max as npmax, median, newaxis, ones, outer,\
-                  pi, sin,  sum as npsum, zeros
-from scipy.integrate import quad, simps, trapz
-from scipy.interpolate import interp1d, interp2d
-from scipy.special import legendre, sici, binom
-import math
-
+from scipy.interpolate import interp2d
 
 from uell_radial_dependent_alignment_lib_eps import radvir, IA_uell_gamma_r_hankel, wkm_my_fell
 from hankel import HankelTransform
@@ -24,6 +11,7 @@ from hankel import HankelTransform
 
 cosmo = names.cosmological_parameters
 
+# TODO: Clean this file up!
 
 #--------------------------------------------------------------------------------#	
 
@@ -49,8 +37,8 @@ def setup(options):
     nk = options[option_section, 'nk']
     k_vec = np.logspace(np.log10(kmin), np.log10(kmax), nk)
 
-    name = options.get_string(option_section, 'name', default='').lower()
-    if name:
+    name = options.get_string(option_section, 'output_suffix', default='').lower()
+    if name != '':
         suffix = '_' + name
     else:
         suffix = ''
@@ -67,7 +55,6 @@ def execute(block, config):
     #earlier modules, and the config is what we loaded earlier.
     
     z_setup, nz_setup, mass_setup, nmass_setup, k_setup, nk_setup, suffix, h_transform, ell_max = config
-    start_time = time.time()
 
     # create intermediate variables to speed up the calculation
     nz = nz_setup
@@ -77,7 +64,8 @@ def execute(block, config):
     #mass = np.logspace(np.log10(mass_setup.min()), np.log10(mass_setup.max()), nmass)
     nk = 80 #500
     #k = np.logspace(np.log10(k_setup.min()), np.log10(k_setup.max()), nk)
-    k = np.logspace(-1., 3., nk)
+    #k = np.logspace(-1., 3., nk)
+    k = np.logspace(-3., 3., nk)
 
     #k = np.logspace(-2., np.log10(k_setup.max()), nk)
 
@@ -99,11 +87,12 @@ def execute(block, config):
     uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max, h_transform)
     # interpolate
     # Do we need this interpolation???
-    uell_interpolated = np.empty([int(ell_max/2+1), nz, nmass_setup, nk_setup])
-    for il in range(0,int(ell_max/2+1)):
-        for jz in range(0,nz):
-            f_interp = interp2d(k, mass, uell[il, jz], kind='linear', bounds_error=False) #, fill_value=0)
-            uell_interpolated[il,jz] = f_interp(k_setup, mass_setup)
+    uell_interpolated = uell
+    #uell_interpolated = np.empty([int(ell_max/2+1), nz, nmass_setup, nk_setup])
+    #for il in range(0,int(ell_max/2+1)):
+    #    for jz in range(0,nz):
+    #        f_interp = interp2d(k, mass, uell[il, jz], kind='linear', bounds_error=False, fill_value=0)
+    #        uell_interpolated[il,jz] = f_interp(k_setup, mass_setup)
     
     # wkm[nz,nmass,nk]
     theta_k = np.pi/2.
@@ -111,8 +100,9 @@ def execute(block, config):
     wkm = wkm_my_fell(uell_interpolated, theta_k, phi_k, ell_max, gamma_1h_slope)
 
     for jz in range(0,nz):
-        block.put_grid( 'wkm_z%d'%jz+suffix, 'mass', mass_setup, 'k_h', k_setup, 'w_km', wkm[jz,:,:])
-    block.put_double_array_1d('wkm'+suffix, 'z', z)
+        #block.put_grid( 'wkm_z%d'%jz+suffix, 'mass', mass_setup, 'k_h', k_setup, 'w_km', wkm[jz,:,:])
+        block.put_grid( 'wkm', 'mass_%d'%jz+suffix, mass, 'k_h_%d'%jz+suffix, k, 'w_km_%d'%jz+suffix, wkm[jz,:,:])
+    block.put_double_array_1d('wkm', 'z'+suffix, z)
 
     return 0
 

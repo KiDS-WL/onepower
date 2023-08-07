@@ -2,6 +2,7 @@ import numpy as np
 from scipy.integrate import simps
 
 # AD: make these general for stellar mass, add different options for flexibility (single power law, ...)
+# AD: Superseeded by cf_lib.py but keeping this one here for now if we missed something ...
 
 # Conversion functions
 

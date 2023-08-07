@@ -37,6 +37,7 @@ def phi_star(mass, hod):
     
 def cf_cen(obs, mass, hod):
     # log10(e)/sqrt(2*pi) = 0.17325843097
+    # AD: keeping this approximation in, but considering to replace with the on the fly calculation
     cf_c = np.log((0.17325843097/(hod.sigma_c))) +((-(np.log10(obs)-np.log10(mor(mass,hod,hod.norm_c)))**2.)/(2.*hod.sigma_c**2.)) - np.log(obs)
     return np.exp(cf_c)
 
@@ -58,10 +59,21 @@ def obs_func(mass, phi_clf, dn_dlnM_normalised, axis=-1):
 def compute_hod(obs, phi_clf):
     hod_integral = simps(phi_clf, obs)
     return hod_integral
+    
+    
+def compute_stellar_fraction(obs, phi_clf):
+    integral = simps(phi_clf*obs, obs)
+    return integral
    
    
 def compute_number_density(mass, N_g, dn_dlnM_normalised):
     n_integrand = N_g*dn_dlnM_normalised/mass
+    n_integral = simps(n_integrand, mass)
+    return n_integral
+    
+
+def compute_avg_halo_mass(mass, N_g, dn_dlnM_normalised):
+    n_integrand = N_g*dn_dlnM_normalised
     n_integral = simps(n_integrand, mass)
     return n_integral
 

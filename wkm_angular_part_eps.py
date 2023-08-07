@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.integrate import simps
-from math import factorial
 from scipy.special import legendre, binom
 
 def I_x(a,b):
