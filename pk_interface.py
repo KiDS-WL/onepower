@@ -308,7 +308,7 @@ def setup(options):
             mead_correction = 'nofeedback'
         elif use_mead == 'mead2020_feedback':
             mead_correction = 'feedback'
-        elif use_mead == 'fit_fitfeedback':
+        elif use_mead == 'fit_feedback':
             mead_correction = 'fit'
             if not options.has_value(option_section, 'hod_section_name'):
                 print('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon feedback one needs to provide the hod section name of used hod!')
