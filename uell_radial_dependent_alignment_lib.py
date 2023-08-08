@@ -98,7 +98,7 @@ import numpy as np
 #from hankel import HankelTransform
 #import hankel
 
-from wkm_angular_part_eps import *
+from wkm_angular import *
 
 #-----------------------------------------------------------------------#
 #								u_ell									#
