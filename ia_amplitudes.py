@@ -182,9 +182,10 @@ def execute(block, config):
 
     lum_centrals, lum_pdf_z_centrals, lum_satellites, lum_pdf_z_satellites, nz, nlum, centrals_luminosity_dependence, satellites_luminosity_dependence, suffix = config
     # TODO: Check if all the options work as intended!
-    
+    # TODO: I think we should re-write this bit so the type of dependence doens't have to be defined
+    # Include default values if parameters are not defined in the value file instead.
     if centrals_luminosity_dependence == 'constant':
-        gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'A']
+        gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
         block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * np.ones(nz))
         
     if centrals_luminosity_dependence == 'joachimi2011':
