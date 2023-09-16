@@ -405,9 +405,9 @@ def compute_two_halo_alignment(block, suffix, growth_factor, mean_density0):
 def poisson_func(block, type, mass_avg, k_vec, z_vec):
     
     if type == 'scalar':
-        poisson_num = block['pk_parameters', 'P'] * np.ones_like(mass_avg)
+        poisson_num = block['pk_parameters', 'poisson'] * np.ones_like(mass_avg)
     elif type == 'power_law':
-        poisson_num = block['pk_parameters', 'P'] * (mass_avg/block['pk_parameters', 'M_0'])**block['pk_parameters', 'slope']
+        poisson_num = block['pk_parameters', 'poisson'] * (mass_avg/block['pk_parameters', 'M_0'])**block['pk_parameters', 'slope']
     else:
         poisson_num = np.ones_like(mass_avg)
     return poisson_num
