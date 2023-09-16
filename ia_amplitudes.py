@@ -54,7 +54,7 @@ def setup(options):
     #load any data, or do any calculations that are fixed once.
 
     centrals_luminosity_dependence = options[option_section, 'centrals_luminosity_dependence']
-    if centrals_luminosity_dependence not in ['None', 'Joachimi2011', 'double_powerlaw', 'halo_mass']:
+    if centrals_luminosity_dependence not in ['constant', 'Joachimi2011', 'double_powerlaw', 'halo_mass']:
         raise ValueError('The luminosity/halo mass dependence can only take one of the following options:\n \
         constant\n \
         Joachimi2011\n \
@@ -63,7 +63,7 @@ def setup(options):
         halo_mass\n')
         
     satellites_luminosity_dependence = options[option_section, 'satellites_luminosity_dependence']
-    if satellites_luminosity_dependence not in ['None', 'satellite_luminosity_dependence', 'halo_mass']:
+    if satellites_luminosity_dependence not in ['constant', 'satellite_luminosity_dependence', 'halo_mass']:
         raise ValueError('The satellites luminosity/halo mass dependence can only take one of the following options:\n \
         constant\n \
         satellite_luminosity_dependence\n \
@@ -213,7 +213,9 @@ def execute(block, config):
         block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * np.ones(nz))
         block.put_double('ia_large_scale_alignment' + suffix, 'M_0', m0)
         block.put_double('ia_large_scale_alignment' + suffix, 'beta_mh', beta_m)
-        block.put_string('ia_large_scale_alignment' + suffix, 'instance', centrals_luminosity_dependence)
+    
+    #Add instance information to block
+    block.put_string('ia_large_scale_alignment' + suffix, 'instance', centrals_luminosity_dependence)
         
     
     
@@ -237,7 +239,9 @@ def execute(block, config):
         block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * np.ones(nz))
         block.put_double('ia_small_scale_alignment' + suffix, 'M_0', m0)
         block.put_double('ia_small_scale_alignment' + suffix, 'zeta_mh', zeta_m)
-        block.put_string('ia_small_scale_alignment' + suffix, 'instance', satellites_luminosity_dependence)
+
+    #Add instance information to block
+    block.put_string('ia_small_scale_alignment' + suffix, 'instance', satellites_luminosity_dependence)
 
 
     return 0
