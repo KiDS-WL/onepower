@@ -11,7 +11,7 @@ from itertools import count
 
 import time
 
-
+# TODO: Update the module to work with the new version of the pipeline!
 
 # We have a collection of commonly used pre-defined block section names.
 # If none of the names here is relevant for your calculation you can use any

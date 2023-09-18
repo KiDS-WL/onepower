@@ -2,7 +2,7 @@ from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp2d
 
-from uell_radial_dependent_alignment_lib_eps import radvir, IA_uell_gamma_r_hankel, wkm_my_fell
+from uell_radial_dependent_alignment_lib import radvir, IA_uell_gamma_r_hankel, wkm_my_fell
 from hankel import HankelTransform
 
 # We have a collection of commonly used pre-defined block section names.
