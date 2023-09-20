@@ -20,12 +20,10 @@
 # -------------------------------------------------------------------------------- #
 
 
-from cosmosis.datablock import names, option_section
+from cosmosis.datablock import option_section
 import numpy as np
 from scipy.integrate import simps
 from astropy.io import fits
-
-cosmo = names.cosmological_parameters
 
 
 # ===================== square outside the average ========================== #
@@ -53,38 +51,25 @@ def setup(options):
     #It is a chance to read any fixed options from the configuration file,
     #load any data, or do any calculations that are fixed once.
 
-    centrals_luminosity_dependence = options[option_section, 'centrals_luminosity_dependence']
-    if centrals_luminosity_dependence not in ['constant', 'Joachimi2011', 'double_powerlaw', 'halo_mass']:
-        raise ValueError('The luminosity/halo mass dependence can only take one of the following options:\n \
+    central_IA_depends_on = options[option_section, 'central_IA_depends_on']
+    if central_IA_depends_on not in ['constant', 'luminosity', 'halo_mass']:
+        raise ValueError('Choose one of the following options for the dependence of the central IA model:\n \
         constant\n \
-        Joachimi2011\n \
-        double_powerlaw\n \
-        satellite_luminosity_dependence\n \
+        luminosity\n \
         halo_mass\n')
-        
-    satellites_luminosity_dependence = options[option_section, 'satellites_luminosity_dependence']
-    if satellites_luminosity_dependence not in ['constant', 'satellite_luminosity_dependence', 'halo_mass']:
-        raise ValueError('The satellites luminosity/halo mass dependence can only take one of the following options:\n \
+    
+    satellite_IA_depends_on = options[option_section, 'satellite_IA_depends_on']
+    if satellite_IA_depends_on not in ['constant', 'luminosity', 'halo_mass']:
+        raise ValueError('Choose one of the following options for the dependence of the satellite IA model:\n \
         constant\n \
-        satellite_luminosity_dependence\n \
+        luminosity\n \
         halo_mass\n')
         
     zmin = options[option_section, 'zmin']
     zmax = options[option_section, 'zmax']
     nz = options[option_section, 'nz']
  
-    if centrals_luminosity_dependence == 'constant':
-        # dummy variables
-        print ('No luminosity dependence assumed for the centrals IA signal...')
-        nlbins = 100000
-        lum_centrals = np.ones([nz,nlbins])
-        lum_pdf_z_centrals = np.ones([nz, nlbins])
-    elif centrals_luminosity_dependence == 'halo_mass':
-        print ('Halo mass dependence assumed for the centrals IA signal...')
-        nlbins = 100000
-        lum_centrals = np.ones([nz,nlbins])
-        lum_pdf_z_centrals = np.ones([nz, nlbins])
-    else:
+    if central_IA_depends_on == 'luminosity':
         print ('Preparing the luminosities...')
         z_loglum_file_centrals = options[option_section, 'z_loglum_file_centrals']
         galfile_centrals = fits.open(z_loglum_file_centrals)[1].data
@@ -120,19 +105,13 @@ def setup(options):
         lum_pdf_z_centrals = pdf_centrals
         print ('pdf:')
         print (pdf_centrals)
-        
-    if satellites_luminosity_dependence == 'constant':
-        # dummy variables
-        print ('No luminosity dependence assumed for the satellites IA signal...')
-        nlbins = 100000
-        lum_satellites = np.ones([nz,nlbins])
-        lum_pdf_z_satellites = np.ones([nz, nlbins])
-    elif satellites_luminosity_dependence == 'halo_mass':
-        print ('Halo mass dependence assumed for the satellites IA signal...')
-        nlbins = 100000
-        lum_satellites = np.ones([nz,nlbins])
-        lum_pdf_z_satellites = np.ones([nz, nlbins])
     else:
+        # include dummy variables
+        nlbins = 100000
+        lum_centrals = np.ones([nz,nlbins])
+        lum_pdf_z_centrals = np.ones([nz, nlbins])
+        
+    if satellite_IA_depends_on == 'luminosity':
         print ('Preparing the luminosities...')
         z_loglum_file_satellites = options[option_section, 'z_loglum_file_satellites']
         galfile_satellites = fits.open(z_loglum_file_satellites)[1].data
@@ -168,6 +147,11 @@ def setup(options):
         lum_pdf_z_satellites = pdf_satellites
         print ('pdf:')
         print (pdf_satellites)
+    else:
+        # dummy variables
+        nlbins = 100000
+        lum_satellites = np.ones([nz,nlbins])
+        lum_pdf_z_satellites = np.ones([nz, nlbins])
             
     name = options.get_string(option_section, 'output_suffix', default='').lower()
     if name != '':
@@ -175,75 +159,88 @@ def setup(options):
     else:
         suffix = ''
     
-    return lum_centrals, lum_pdf_z_centrals, lum_satellites, lum_pdf_z_satellites, nz, nlbins, centrals_luminosity_dependence, satellites_luminosity_dependence, suffix
+    return lum_centrals, lum_pdf_z_centrals, lum_satellites, lum_pdf_z_satellites, nz, nlbins, central_IA_depends_on, satellite_IA_depends_on, suffix
 
 
 def execute(block, config):
 
-    lum_centrals, lum_pdf_z_centrals, lum_satellites, lum_pdf_z_satellites, nz, nlum, centrals_luminosity_dependence, satellites_luminosity_dependence, suffix = config
+    lum_centrals, lum_pdf_z_centrals, lum_satellites, lum_pdf_z_satellites, nz, nlum, central_IA_depends_on, satellite_IA_depends_on, suffix = config
     # TODO: Check if all the options work as intended!
     # TODO: I think we should re-write this bit so the type of dependence doens't have to be defined
     # Include default values if parameters are not defined in the value file instead.
-    if centrals_luminosity_dependence == 'constant':
-        gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
+
+    # First the Centrals
+    # All options require the central 2-halo amplitude to be defined 
+    gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
+
+    if central_IA_depends_on == 'constant':
         block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * np.ones(nz))
         
-    if centrals_luminosity_dependence == 'joachimi2011':
-        l0 = block['intrinsic_alignment_parameters' + suffix, 'l_0']
-        beta_l = block['intrinsic_alignment_parameters' + suffix, 'beta_l']
-        gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
-        print ('amplitude_IA = ', gamma_2h)
-        mean_lscaling = mean_L_L0_to_beta(lum_centrals, lum_pdf_z_centrals, l0, beta_l)
-        block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * mean_lscaling)
+    if central_IA_depends_on == 'luminosity':
+        # Check that the user knows what they're doing:
+        if not block.has_value('intrinsic_alignment_parameters' + suffix, 'L_pivot'):
+            raise ValueError('You have chosen central luminosity scaling without providing a pivot luminosity parameter.  Include L_pivot. "\n ')
         
-    if centrals_luminosity_dependence == 'double_powerlaw':
-        l0 = block['intrinsic_alignment_parameters' + suffix, 'l_0']
-        beta_l = block['intrinsic_alignment_parameters' + suffix, 'beta_l']
-        beta_low = block['intrinsic_alignment_parameters' + suffix, 'beta_low']
-        gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
-        mean_lscaling = np.empty(nz)
-        for i in range(0,nz):
-            mean_lscaling[i] = broken_powerlaw(lum_centrals[i], lum_pdf_z_centrals[i], gamma_2h, l0, beta_l, beta_low)
-        block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', mean_lscaling)
+        # single-power law parameters
+        lpiv = block['intrinsic_alignment_parameters' + suffix, 'L_pivot']
+        beta = block['intrinsic_alignment_parameters' + suffix, 'beta']
+
+        # Then lets see whether user wants to implement a double power law based on what they've included in values.ini
+        if block.has_value('intrinsic_alignment_parameters' + suffix, 'beta_two'):
+            print('You have chosen to implement a double power law model for the luminosity dependence of the centrals')
+            beta_two = block['intrinsic_alignment_parameters' + suffix, 'beta_two']
+            mean_lscaling = np.empty(nz)
+            for i in range(0,nz):
+                mean_lscaling[i] = broken_powerlaw(lum_centrals[i], lum_pdf_z_centrals[i], gamma_2h, lpiv, beta, beta_two)
+            block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', mean_lscaling)
+        else: 
+            print('You have chosen to implement a single power law model for the luminosity dependence of the centrals')
+            mean_lscaling = mean_L_L0_to_beta(lum_centrals, lum_pdf_z_centrals, lpiv, beta)
+            block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * mean_lscaling)
         
-    if centrals_luminosity_dependence == 'halo_mass':
-        m0 = block.get_double('intrinsic_alignment_parameters' + suffix, 'M_0')
-        beta_m = block.get_double('intrinsic_alignment_parameters' + suffix, 'beta_mh')
-        gamma_2h = block.get_double('intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude')
+    if central_IA_depends_on  == 'halo_mass':
+
+        # Check that the user knows what they're doing:
+        if not block.has_value('intrinsic_alignment_parameters' + suffix, 'M_pivot'):
+            raise ValueError('You have chosen central halo-mass scaling without providing a pivot mass parameter.  Include M_pivot. "\n ')
+        
+        mpiv = block.get_double('intrinsic_alignment_parameters' + suffix, 'M_pivot')
+        beta = block.get_double('intrinsic_alignment_parameters' + suffix, 'beta')
+        if block.has_value('intrinsic_alignment_parameters' + suffix, 'beta_two'):
+            raise ValueError('A double power law model for the halo mass dependence of centrals has not been implemented.  Either remove beta_two from your parameter list or select central_IA_depends_on="luminosity"\n ')
         # Technically just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
         block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * np.ones(nz))
-        block.put_double('ia_large_scale_alignment' + suffix, 'M_0', m0)
-        block.put_double('ia_large_scale_alignment' + suffix, 'beta_mh', beta_m)
+        block.put_double('ia_large_scale_alignment' + suffix, 'M_pivot', mpiv)
+        block.put_double('ia_large_scale_alignment' + suffix, 'beta', beta)
     
     #Add instance information to block
-    block.put_string('ia_large_scale_alignment' + suffix, 'instance', centrals_luminosity_dependence)
+    block.put_string('ia_large_scale_alignment' + suffix, 'instance', central_IA_depends_on )
         
+    # Second the Satellites
+    # All options require the satellite 1-halo amplitude to be defined 
+    gamma_1h = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude']
     
-    
-    
-    if satellites_luminosity_dependence == 'constant':
-        gamma_1h = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude']
+    if satellite_IA_depends_on == 'constant':
         block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * np.ones(nz))
         
-    if satellites_luminosity_dependence == 'satellite_luminosity_dependence':
-        l0 = block['intrinsic_alignment_parameters' + suffix, 'l_0']
-        zeta_l = block['intrinsic_alignment_parameters' + suffix, 'zeta_l']
+    if satellite_IA_depends_on == 'luminosity':
+        lpiv = block['intrinsic_alignment_parameters' + suffix, 'L_pivot']
+        beta_sat = block['intrinsic_alignment_parameters' + suffix, 'beta_sat']
         gamma_1h = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude']
-        mean_lscaling = mean_L_L0_to_beta(lum_satellites, lum_pdf_z_satellites, l0, zeta_l)
+        mean_lscaling = mean_L_L0_to_beta(lum_satellites, lum_pdf_z_satellites, lpiv, beta_sat)
         block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * mean_lscaling)
         
-    if satellites_luminosity_dependence == 'halo_mass':
-        m0 = block.get_double('intrinsic_alignment_parameters' + suffix, 'M_0')
-        zeta_m = block.get_double('intrinsic_alignment_parameters' + suffix, 'zeta_mh')
+    if satellite_IA_depends_on == 'halo_mass':
+        mpiv = block.get_double('intrinsic_alignment_parameters' + suffix, 'M_pivot')
+        beta_sat = block.get_double('intrinsic_alignment_parameters' + suffix, 'beta_sat')
         gamma_1h = block.get_double('intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude')
         # Technically just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
         block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * np.ones(nz))
-        block.put_double('ia_small_scale_alignment' + suffix, 'M_0', m0)
-        block.put_double('ia_small_scale_alignment' + suffix, 'zeta_mh', zeta_m)
+        block.put_double('ia_small_scale_alignment' + suffix, 'M_pivot', mpiv)
+        block.put_double('ia_small_scale_alignment' + suffix, 'beta_sat', beta_sat)
 
     #Add instance information to block
-    block.put_string('ia_small_scale_alignment' + suffix, 'instance', satellites_luminosity_dependence)
-
+    block.put_string('ia_small_scale_alignment' + suffix, 'instance', satellite_IA_depends_on)
 
     return 0
     
