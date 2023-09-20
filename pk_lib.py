@@ -135,12 +135,12 @@ def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
     return f_s * Nsat * wkm_sat / numdenssat
 
 
-def compute_central_galaxy_alignment_factor_halo(scale_factor, growth_factor, f_c, C1, mass, beta, m0, mass_avg):
-    return f_c * (C1  / growth_factor) * mass * (mass_avg/m0)**beta
+def compute_central_galaxy_alignment_factor_halo(growth_factor, f_c, C1, mass, beta, mpivot, mass_avg):
+    return f_c * (C1  / growth_factor) * mass * (mass_avg/mpivot)**beta
 
 
-def compute_satellite_galaxy_alignment_factor_halo(Nsat, numdenssat, f_s, wkm_sat, zeta, m0, mass_avg):
-    return f_s * Nsat * wkm_sat / numdenssat * (mass_avg/m0)**zeta
+def compute_satellite_galaxy_alignment_factor_halo(Nsat, numdenssat, f_s, wkm_sat, beta_sat, mpivot, mass_avg):
+    return f_s * Nsat * wkm_sat / numdenssat * (mass_avg/mpivot)**beta_sat
 
 
 # Compute the grid in z, k, and M of the quantities described above
@@ -190,25 +190,25 @@ def prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_c
     return c_align_factor
     
 # alignment - centrals 2h: halo mass dependence
-def prepare_central_alignment_factor_grid_halo(mass, scale_factor, growth_factor, f_cen, C1, beta, m0, mass_avg):
+def prepare_central_alignment_factor_grid_halo(mass, scale_factor, growth_factor, f_cen, C1, beta, mpivot, mass_avg):
     """
     Prepare the grid in z, k and mass for the central alignment
     f_cen/n_cen N_cen gamma_hat(k,M)
     where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
     times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
     """
-    c_align_factor = compute_central_galaxy_alignment_factor_halo(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :], beta, m0, mass_avg[:,np.newaxis,np.newaxis])
+    c_align_factor = compute_central_galaxy_alignment_factor_halo(growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :], beta, mpivot, mass_avg[:,np.newaxis,np.newaxis])
     return c_align_factor
 
 # alignment - satellites 1h: halo mass dependence
-def prepare_satellite_alignment_factor_grid_halo(Nsat, numdensat, f_sat, wkm, zeta, m0, mass_avg):
+def prepare_satellite_alignment_factor_grid_halo(Nsat, numdensat, f_sat, wkm, beta_sat, mpivot, mass_avg):
     """
     Prepare the grid in z, k and mass for the satellite alignment
     f_sat/n_sat N_sat gamma_hat(k,M)
     where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
     times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
     """
-    s_align_factor = compute_satellite_galaxy_alignment_factor_halo(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1), zeta, m0, mass_avg[:,np.newaxis,np.newaxis])
+    s_align_factor = compute_satellite_galaxy_alignment_factor_halo(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1), beta_sat, mpivot, mass_avg[:,np.newaxis,np.newaxis])
     return s_align_factor
 
 
@@ -405,9 +405,9 @@ def compute_two_halo_alignment(block, suffix, growth_factor, mean_density0):
 def poisson_func(block, type, mass_avg, k_vec, z_vec):
     
     if type == 'scalar':
-        poisson_num = block['pk_parameters', 'P'] * np.ones_like(mass_avg)
+        poisson_num = block['pk_parameters', 'poisson'] * np.ones_like(mass_avg)
     elif type == 'power_law':
-        poisson_num = block['pk_parameters', 'P'] * (mass_avg/block['pk_parameters', 'M_0'])**block['pk_parameters', 'slope']
+        poisson_num = block['pk_parameters', 'poisson'] * (mass_avg/block['pk_parameters', 'M_0'])**block['pk_parameters', 'slope']
     else:
         poisson_num = np.ones_like(mass_avg)
     return poisson_num
