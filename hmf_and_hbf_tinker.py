@@ -22,17 +22,28 @@ from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
 import hmf.halos.mass_definitions as md
 import hmf.cosmology.growth_factor as gf
+import warnings
 
     
 def concentration_colossus(block, cosmo, mass, z_vec, model, mdef, overdensity):
     # calculates concentration given halo mass, using the halomod model provided in config
     # furthermore it converts to halomod instance to be used with the halomodel, consistenly with halo mass function
     # and halo bias function
-    this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom', sigma8=block[cosmo_names, 'sigma_8'], ns=block[cosmo_names, 'n_s'])
+    this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
+                     sigma8=block[cosmo_names, 'sigma_8'], ns=block[cosmo_names, 'n_s'])
     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
-    c = colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model)
-    c_interp = interp1d(mass[c>=0.0], c[c>=0.0], kind='linear', bounds_error=False, fill_value='extrapolate')
-    
+    # To avoid errors from colossus we set the allowed range here.
+    mass_colossus = mass
+    if model == 'bullock01':
+        if (mass>1e15).any():
+            mass_colossus = mass[mass<=1e15]
+            warnings.warn(
+                        "Bolluck concentration is only calculated for halo masses up to 10^15 M_sun."
+                        "Will only calculate concentration for that range and extrapolate beyond it."
+                    )
+    # elif model == '':
+    c = colossus_concentration.concentration(M=mass_colossus, z=z_vec, mdef=mdef.colossus_name, model=model)
+    c_interp = interp1d(mass_colossus[c>=0.0], c[c>=0.0], kind='linear', bounds_error=False, fill_value='extrapolate')
     return c_interp(mass)
     
     
