@@ -58,7 +58,7 @@ def setup(options):
         
     config['obs_min'] = [np.float64(str_val) for str_val in str(options[option_section, 'obs_min']).split(',')]
     config['obs_max'] = [np.float64(str_val) for str_val in str(options[option_section, 'obs_max']).split(',')]
-    config['n_obs'] = [np.int(str_val) for str_val in str(options[option_section, 'n_obs']).split(',')]
+    config['n_obs'] = [int(str_val) for str_val in str(options[option_section, 'n_obs']).split(',')]
     config['x_arr'] = []
     for i in range(config['nbins']):
         config['x_arr'].append(np.logspace(config['obs_min'][i], config['obs_max'][i], config['n_obs'][i]))

@@ -322,8 +322,8 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     
     lenM = 5
     lenk = 50
-    M = np.empty_like(z, dtype=np.object)
-    k = np.empty_like(z, dtype=np.object)
+    M = np.empty_like(z, dtype=object)
+    k = np.empty_like(z, dtype=object)
     zc = z.copy()
     zc[zc>=0.5] = 0.5
     for i,zi in enumerate(zc):

@@ -8,3 +8,5 @@ You will also need to install python functions from:
 1. The [halo mass function calculator, hmf](https://hmf.readthedocs.io/en/3.3.4/)
 2. [halomod](https://github.com/halomod/halomod).
 3. The [Dark Emulator](https://dark-emulator.readthedocs.io/en/latest/)
+
+The fits files are here: [Luminosity_redshift](https://ruhr-uni-bochum.sciebo.de/s/ZdAE6nTf0OPyV6S)
