@@ -6,8 +6,7 @@
 
 # The module also includes an option to compute the halo bias from Tinker+10.
 
-
-
+import warnings
 from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp1d
@@ -22,28 +21,26 @@ from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
 import hmf.halos.mass_definitions as md
 import hmf.cosmology.growth_factor as gf
-import warnings
 
     
 def concentration_colossus(block, cosmo, mass, z_vec, model, mdef, overdensity):
     # calculates concentration given halo mass, using the halomod model provided in config
     # furthermore it converts to halomod instance to be used with the halomodel, consistenly with halo mass function
     # and halo bias function
-    this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
+    
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=UserWarning)
+        # This dissables the warning from colossus that is just telling us what we know
+        # colossus warns us about massive neutrinos, but that is also ok
+        # as we do not use cosmology from it, but it requires it to setup the instance!
+        this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
                      sigma8=block[cosmo_names, 'sigma_8'], ns=block[cosmo_names, 'n_s'])
+                     
     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
-    # To avoid errors from colossus we set the allowed range here.
-    mass_colossus = mass
-    if model == 'bullock01':
-        if (mass>1e15).any():
-            mass_colossus = mass[mass<=1e15]
-            warnings.warn(
-                        "Bolluck concentration is only calculated for halo masses up to 10^15 M_sun."
-                        "Will only calculate concentration for that range and extrapolate beyond it."
-                    )
-    # elif model == '':
-    c = colossus_concentration.concentration(M=mass_colossus, z=z_vec, mdef=mdef.colossus_name, model=model)
-    c_interp = interp1d(mass_colossus[c>=0.0], c[c>=0.0], kind='linear', bounds_error=False, fill_value='extrapolate')
+    
+    c, ms = colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model,
+            range_return=True, range_warning=False)
+    c_interp = interp1d(mass[c>=0.0], c[c>=0.0], kind='linear', bounds_error=False, fill_value='extrapolate')
     return c_interp(mass)
     
     
@@ -118,7 +115,7 @@ def get_accumulated_growth(a, g):
     a_init = 1.0/(1.0+z_init)
     
     missing = g(a_init) # Integeral from 0 to ai of g(ai)/ai ~ g(ai) for ai << 1
-    G, _ = quad(lambda a: g(a)/a, a_init, a) + missing
+    G, _ = quad(lambda a: g(a)/a, a_init, a, limit=100) + missing
     return G
 
 def f_Mead(x, y, p0, p1, p2, p3):
@@ -254,13 +251,17 @@ def execute(block, config):
             overdensity_i = mf.halo_overdensity_mean
             conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_i)
         elif mead_correction is not None:
-            ajz = this_cosmo_run.scale_factor(z_vec[jz])
-            g = growth(ajz)
-            G = get_accumulated_growth(ajz, growth)
-            delta_c_i = dc_Mead(ajz, this_cosmo_run.Om(z_vec[jz]), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
-            overdensity_i = Dv_Mead(ajz, this_cosmo_run.Om(z_vec[jz]), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
-            mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
-            mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_i, mdef_params={'overdensity':overdensity_i}, mdef_model=mdef_mead)
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=UserWarning)
+                # This dissables the warning from hmf is just telling us what we know
+                # hmf warns us that the mass conversion is not kosher, but how we calculate overdensities it is acually ok!
+                ajz = this_cosmo_run.scale_factor(z_vec[jz])
+                g = growth(ajz)
+                G = get_accumulated_growth(ajz, growth)
+                delta_c_i = dc_Mead(ajz, this_cosmo_run.Om(z_vec[jz]), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                overdensity_i = 2*Dv_Mead(ajz, this_cosmo_run.Om(z_vec[jz]), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
+                mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_i, mdef_params={'overdensity':overdensity_i}, mdef_model=mdef_mead)
             conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef_mead, overdensity_i)
         else:
             overdensity_i = overdensity

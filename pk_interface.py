@@ -48,24 +48,20 @@ def compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff):
     return (1.-t_eff)*plin+t_eff*pnl_int
     
     
-def get_halo_functions(block, pipeline, mass, z_vec):
-    if pipeline == True:
-        # load the halo mass function
-        dn_dlnm = block['hmf', 'dndlnmh']
-        # load the halobias
-        b_dm = block['halobias', 'b_hb']
-    else:
-        # load the halo mass function
-        mass_hmf = block['hmf', 'm_h']
-        z_hmf = block['hmf', 'z']
-        dndlnmh_hmf = block['hmf', 'dndlnmh']
-        # load the halobias
-        mass_hbf = block['halobias', 'm_h']
-        z_hbf = block['halobias', 'z']
-        halobias_hbf = block['halobias', 'b_hb']
-        # interpolate all the quantities that enter in the integrals
-        dn_dlnm = interpolate2d_dndlnm(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec)
-        b_dm = interpolate2d_halobias(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
+def get_halo_functions(block, mass, z_vec):
+    
+    # load the halo mass function
+    mass_hmf = block['hmf', 'm_h']
+    z_hmf = block['hmf', 'z']
+    dndlnmh_hmf = block['hmf', 'dndlnmh']
+    # load the halobias
+    mass_hbf = block['halobias', 'm_h']
+    z_hbf = block['halobias', 'z']
+    halobias_hbf = block['halobias', 'b_hb']
+    # interpolate all the quantities that enter in the integrals
+    dn_dlnm = interpolate2d_dndlnm(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec)
+    b_dm = interpolate2d_halobias(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
+    
     return dn_dlnm, b_dm
     
 # --------------------- #
@@ -120,7 +116,7 @@ def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
     pk_interpolated = f_interp(z_vec)
     return pk_interpolated
     
-def load_fstar_mm(block, section_name, pipeline, z_vec, mass):
+def load_fstar_mm(block, section_name, z_vec, mass):
     m_hod = block[section_name, 'mass']
     z_hod = block[section_name,  'z']
     f_star = block[section_name, 'f_star']
@@ -131,7 +127,7 @@ def load_fstar_mm(block, section_name, pipeline, z_vec, mass):
     return fstar
 
 # load the hod
-def load_hods(block, section_name, pipeline, z_vec, mass):
+def load_hods(block, section_name, z_vec, mass):
     
     m_hod = block[section_name, 'mass']
     z_hod = block[section_name,  'z']
@@ -143,25 +139,18 @@ def load_hods(block, section_name, pipeline, z_vec, mass):
     f_s_hod = block[section_name, 'satellite_fraction']
     mass_avg_hod = block[section_name, 'average_halo_mass']
     f_star = block[section_name, 'f_star']
-    #if pipeline == True:
-    #    Ncen = Ncen_hod
-    #    Nsat = Nsat_hod
-    #    numdencen = numdencen_hod
-    #    numdensat = numdensat_hod
-    #    f_c = f_c_hod
-    #    f_s = f_s_hod
-    #else:
+    
     #interp_Ncen = interp2d(m_hod, z_hod, Ncen_hod)
     #interp_Nsat = interp2d(m_hod, z_hod, Nsat_hod)
-    interp_Ncen = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=None)
-    interp_Nsat = RegularGridInterpolator((m_hod.T, z_hod.T), Nsat_hod.T, bounds_error=False, fill_value=None)
-    interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=None)
+    interp_Ncen = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=0.0)
+    interp_Nsat = RegularGridInterpolator((m_hod.T, z_hod.T), Nsat_hod.T, bounds_error=False, fill_value=0.0)
+    interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=0.0)
     # AD: Is extrapolation warranted here? Maybe make whole calculation on same grid/spacing/thingy!?
     interp_numdencen = interp1d(z_hod, numdencen_hod, fill_value='extrapolate', bounds_error=False)
     interp_numdensat = interp1d(z_hod, numdensat_hod, fill_value='extrapolate', bounds_error=False)
     interp_f_c = interp1d(z_hod, f_c_hod, fill_value='extrapolate', bounds_error=False)
     interp_f_s = interp1d(z_hod, f_s_hod, fill_value='extrapolate', bounds_error=False)
-    interp_mass_avg = interp1d(z_hod, mass_avg_hod, fill_value='extrapolate', bounds_error=False)
+    interp_mass_avg = interp1d(z_hod, mass_avg_hod, fill_value=0.0, bounds_error=False)
     #Ncen = interp_Ncen(mass, z_vec)
     #Nsat = interp_Nsat(mass, z_vec)
     mm, zz = np.meshgrid(mass, z_vec, sparse=True)
@@ -214,8 +203,6 @@ def setup(options):
     z_vec = np.linspace(zmin, zmax, nz)
 
     nk = options[option_section, 'nk']
-
-    pipeline = options[option_section, 'pipeline']
 
     p_mm = options.get_bool(option_section, 'p_mm', default=False)
     p_gg = options.get_bool(option_section, 'p_gg',default=False)
@@ -290,7 +277,7 @@ def setup(options):
 
 
     return mass, nmass, z_vec, nz, nk, p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_mc, p_mI_mc, p_II_mc, gravitational, galaxy, bnl, alignment, \
-           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name, suffix0, mead_correction, point_mass, poisson_type
+           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, hod_section_name, suffix0, mead_correction, point_mass, poisson_type
 
 
 def execute(block, config):
@@ -299,7 +286,7 @@ def execute(block, config):
     # earlier modules, and the config is what we loaded earlier.
 
     mass, nmass, z_vec, nz, nk, p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_mc, p_mI_mc, p_II_mc, gravitational, galaxy, bnl, alignment, \
-    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, pipeline, hod_section_name0, suffix0, mead_correction, point_mass, poisson_type = config
+    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, hod_section_name0, suffix0, mead_correction, point_mass, poisson_type = config
 
 
     mean_density0 = block['density', 'mean_density0']
@@ -348,7 +335,7 @@ def execute(block, config):
     # Otherwise, compute the full power spectra (including the small scales)
     
     # load the halo mass and bias functions from the datablock
-    dn_dlnm, b_dm = get_halo_functions(block, pipeline, mass, z_vec)
+    dn_dlnm, b_dm = get_halo_functions(block, mass, z_vec)
     # prepare a grid for the navarro-frenk-white profile
     u_dm, u_sat = pk_lib.compute_u_dm_grid(block, k_vec, mass, z_vec)
     
@@ -415,7 +402,7 @@ def execute(block, config):
             if mead_correction == 'feedback':
                 m_factor_1h_mm = pk_lib.prepare_matter_factor_grid_baryon(mass, mean_density0, u_dm, z_vec, block)
             elif mead_correction == 'fit':
-                fstar = load_fstar_mm(block, hod_section_name0 + '_params', pipeline, z_vec, mass)
+                fstar = load_fstar_mm(block, hod_section_name0 + '_params', z_vec, mass)
                 m_factor_1h_mm = pk_lib.prepare_matter_factor_grid_baryon_fit(mass, mean_density0, u_dm, z_vec, fstar, block)
             else:
                 m_factor_1h_mm = m_factor.copy()
@@ -434,7 +421,7 @@ def execute(block, config):
                     hod_section_name = hod_section_name0
                     suffix = suffix0
                     
-                Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg, fstar = load_hods(block, hod_section_name, pipeline, z_vec, mass)
+                Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg, fstar = load_hods(block, hod_section_name, z_vec, mass)
             
                 if galaxy == True:
                     # preparing the 1h term
