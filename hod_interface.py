@@ -106,7 +106,7 @@ def setup(options):
     z_picked = options[option_section, 'z_median']
 
 
-    abs_mag_sun = options[option_section, 'abs_mag_sun']
+    #abs_mag_sun = options[option_section, 'abs_mag_sun']
 
     name = options.get_string(option_section, 'output_suffix', default='').lower()
     if name != '':
@@ -134,7 +134,7 @@ def setup(options):
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
             print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
     
-    return obs_simps, nbins, nz, nobs, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, observable_mode, suffix, suffix_params, observables_z
+    return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, observable_mode, suffix, suffix_params, observables_z
 
 
 
@@ -144,7 +144,7 @@ def execute(block, config):
     #It is the main workhorse of the code. The block contains the parameters and results of any 
     #earlier modules, and the config is what we loaded earlier.
 
-    obs_simps, nbins, nz, nobs, z_bins, abs_mag_sun, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, observable_mode, suffix0, suffix_params, observables_z = config
+    obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, observable_mode, suffix0, suffix_params, observables_z = config
 
     #---- loading hod from the datablock ----#
 
@@ -354,7 +354,7 @@ def execute(block, config):
         obs_h = obs_range#/(h**2.) #note that the _h subscript avoids mixing h conventions while computing the clf_quantities
         obs_func_h = obs_func#*(h**5.)
         
-        mr_obs = cf.convert_to_magnitudes(obs_range, abs_mag_sun)
+        #mr_obs = cf.convert_to_magnitudes(obs_range, abs_mag_sun)
 
         #save on datablock
         block.put_double_array_1d('observable_function' + suffix0,'obs_med',obs_h)
