@@ -65,11 +65,14 @@ def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, po
     #IT 02/03/22: Commented line 86 to execute the code
     
     # extrapolate
-    inter_func_z = interp1d(z, np.log10(pk_tot), kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
-    pk_tot_ext_z = 10.0**inter_func_z(z_ext)
+    #inter_func_z = interp1d(z, np.nan_to_num(np.log10(pk_tot + 1.0), nan=0.0, posinf=0.0, neginf=0.0), kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
+    #pk_tot_ext_z = 10.0**inter_func_z(z_ext) - 1.0
+    # In redshift direction this seems to be more stable:
+    inter_func_z = interp1d(z, pk_tot, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
+    pk_tot_ext_z = inter_func_z(z_ext)
     
-    inter_func_k = interp1d(np.log10(k), np.log10(pk_tot_ext_z), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
-    pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext))
+    inter_func_k = interp1d(np.log10(k), np.nan_to_num(np.log10(pk_tot_ext_z + 1.0), nan=0.0, posinf=0.0, neginf=0.0), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
+    pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
         
     # Introduce the sign convention back for the GI terms    
     if changed_sign:
@@ -83,11 +86,27 @@ def extrapolate_power(block, suffix_out, suffix_in, power_section, z_ext, k_ext,
     z = block[power_section + suffix_in, 'z']
     pk_in = block[power_section + suffix_in, 'p_k']
     
-    inter_func_z = interp1d(z, np.nan_to_num(np.log10(pk_in)), kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
-    pk_tot_ext_z = 10.0**inter_func_z(z_ext)
+    # For matter-intrinsic and galaxy-intrinsic, pk_tot will usually be negative (for A_IA > 0)
+    # If we're interpolating over log10(pk_tot) negative power is problematic
+    # Check to see if it is negative, and take the absolute value
+    if np.sum(pk_in)<0:
+        pk_in = pk_in * -1
+        changed_sign=True
+    else:
+        changed_sign=False
+    
+    #inter_func_z = interp1d(z, np.nan_to_num(np.log10(pk_in + 1.0), nan=0.0, posinf=0.0, neginf=0.0), kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
+    #pk_tot_ext_z = 10.0**inter_func_z(z_ext) - 1.0
+    # In redshift direction this seems to be more stable:
+    inter_func_z = interp1d(z, pk_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
+    pk_tot_ext_z = inter_func_z(z_ext)
+    
+    inter_func_k = interp1d(np.log10(k), np.nan_to_num(np.log10(pk_tot_ext_z + 1.0), nan=0.0, posinf=0.0, neginf=0.0), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
+    pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
         
-    inter_func_k = interp1d(np.log10(k), np.nan_to_num(np.log10(pk_tot_ext_z)), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
-    pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext))
+    # Introduce the sign convention back for the GI terms
+    if changed_sign:
+        pk_tot_ext=pk_tot_ext*-1
         
     block.put_grid(power_section + suffix_out, 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
  
