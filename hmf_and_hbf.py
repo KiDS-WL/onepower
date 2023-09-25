@@ -40,7 +40,8 @@ def concentration_colossus(block, cosmo, mass, z_vec, model, mdef, overdensity):
     
     c, ms = colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model,
             range_return=True, range_warning=False)
-    c_interp = interp1d(mass[c>=0.0], c[c>=0.0], kind='linear', bounds_error=False, fill_value='extrapolate')
+    c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
+    
     return c_interp(mass)
     
     
