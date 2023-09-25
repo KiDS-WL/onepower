@@ -9,9 +9,9 @@ def plot_pow_spec(ax,pow_spec,iz,colour,linestyle):
     kvals = np.loadtxt(datadir+pow_spec+'/k_h.txt')
     pkvals = np.loadtxt(datadir+pow_spec+'/p_k.txt')
     zvals = np.loadtxt(datadir+pow_spec+'/z.txt')
-#    ax.plot(kvals, np.abs(pkvals[iz,:]),label=pow_spec,color=colour,linestyle=linestyle)
-    ax.plot(kvals, kvals*kvals*pkvals[iz,:],label=pow_spec,color=colour,linestyle=linestyle)
-    print(np.max(pkvals[iz,:]),zvals[iz])
+    ax.plot(kvals, np.abs(pkvals[iz,:]),label=pow_spec,color=colour,linestyle=linestyle)
+#    ax.plot(kvals, kvals*kvals*pkvals[iz,:],label=pow_spec,color=colour,linestyle=linestyle)
+    print(np.max(pkvals[iz,:]),np.min(pkvals[iz,:]),zvals[iz])
 
 def plot_ratio_pow_spec(ax,pow_spec,pkvals_base,iz,colour,linestyle):
     # Read in the power spectra files
@@ -22,7 +22,7 @@ def plot_ratio_pow_spec(ax,pow_spec,pkvals_base,iz,colour,linestyle):
     print(np.max(pkvals[iz,:]),zvals[iz])
 
 # Choose redshift of interest
-iz=5  #z=0.75
+iz=2  #z=0.75
 plot_pow_spec(ax1,'matter_power_nl',iz,'black','solid')
 plot_pow_spec(ax1, 'galaxy_power_red',iz,'red','solid')
 plot_pow_spec(ax1, 'galaxy_power_blue',iz,'blue','solid')
@@ -34,10 +34,10 @@ plot_pow_spec(ax1, 'galaxy_power_blue',iz,'blue','solid')
 #plot_pow_spec(ax1,'intrinsic_power_red',iz,'red','dashed')
 
 ax1.legend(loc='upper right',bbox_to_anchor=(1.2, 1.2),fontsize=8)
-#ax1.set_yscale('log')
+ax1.set_yscale('log')
 ax1.set_xscale('log')
 ax1.set_xlabel('k h/Mpc')
-ax1.set_ylabel('k^2 P(k,z=0.75)')
+ax1.set_ylabel('P(k,z=0.75)')
 
 # Now plot ratios to the NL matter power spectrum
 pkvals_base = np.loadtxt(datadir+'matter_power_nl/p_k.txt')
