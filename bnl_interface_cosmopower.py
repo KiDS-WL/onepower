@@ -104,6 +104,8 @@ def get_cosmopower_inputs(block, z_vec, len_zvec, len_Mvec, M_vec):
                 z_list.append(z_vec[i])
                 log10M1_list.append(M_vec[j])
                 log10M2_list.append(M_vec[k])
+    # AD: Just thinking out loud, is this creating a set of all combinations?
+    # This must be easier to do with itertools...
 
         
     len_z_list = len(z_list)
