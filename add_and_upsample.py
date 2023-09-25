@@ -52,6 +52,7 @@ def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, po
         pk_tot = f_red[:,np.newaxis]*pk_red + (1.-f_red[:,np.newaxis])*pk_blue
 
     # For matter-intrinsic and galaxy-intrinsic, pk_tot will usually be negative (for A_IA > 0)
+    # And at very high k can be as large as -100!
     # If we're interpolating over log10(pk_tot) negative power is problematic
     # Check to see if it is negative, and take the absolute value 
     if np.sum(pk_tot)<0:

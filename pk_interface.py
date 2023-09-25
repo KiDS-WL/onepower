@@ -148,8 +148,8 @@ def load_hods(block, section_name, z_vec, mass):
     # AD: Is extrapolation warranted here? Maybe make whole calculation on same grid/spacing/thingy!?
     interp_numdencen = interp1d(z_hod, numdencen_hod, fill_value='extrapolate', bounds_error=False)
     interp_numdensat = interp1d(z_hod, numdensat_hod, fill_value='extrapolate', bounds_error=False)
-    interp_f_c = interp1d(z_hod, f_c_hod, fill_value='extrapolate', bounds_error=False)
-    interp_f_s = interp1d(z_hod, f_s_hod, fill_value='extrapolate', bounds_error=False)
+    interp_f_c = interp1d(z_hod, f_c_hod, fill_value=0.0, bounds_error=False)
+    interp_f_s = interp1d(z_hod, f_s_hod, fill_value=0.0, bounds_error=False)
     interp_mass_avg = interp1d(z_hod, mass_avg_hod, fill_value=0.0, bounds_error=False)
     #Ncen = interp_Ncen(mass, z_vec)
     #Nsat = interp_Nsat(mass, z_vec)
