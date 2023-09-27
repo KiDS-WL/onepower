@@ -29,8 +29,8 @@ def execute(block, config):
 
     delete_bnl, bnl = config
     
-    if delete_bnl == True:
-        if bnl == True:
+    if bnl == True:
+        if delete_bnl == True:
             block.replace_double_array_nd('bnl', 'beta_interp', np.array([0.0]))
         else:
             pass
