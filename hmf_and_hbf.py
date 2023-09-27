@@ -215,10 +215,14 @@ def execute(block, config):
 
     log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, model_cm, mdef, overdensity, delta_c, bias_model, mead_correction = config
 
+    try:
+        tcmb = block[cosmo_names, 'TCMB']
+    except:
+        tcmb = 2.7255
     # Update the cosmological parameters
     #this_cosmo.update(cosmo_params={'H0':block[cosmo_names, 'hubble'], 'Om0':block[cosmo_names, 'omega_m'], 'Ob0':block[cosmo_names, 'omega_b']})
     this_cosmo_run=Flatw0waCDM(
-        H0=block[cosmo_names, 'hubble'], Ob0=block[cosmo_names, 'omega_b'], Om0=block[cosmo_names, 'omega_m'], m_nu=block[cosmo_names, 'mnu'], Tcmb0=block[cosmo_names, 'TCMB'],
+        H0=block[cosmo_names, 'hubble'], Ob0=block[cosmo_names, 'omega_b'], Om0=block[cosmo_names, 'omega_m'], m_nu=block[cosmo_names, 'mnu'], Tcmb0=tcmb,
     		w0=block[cosmo_names, 'w'], wa=block[cosmo_names, 'wa'])
     ns = block[cosmo_names, 'n_s']
 
