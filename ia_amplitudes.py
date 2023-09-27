@@ -103,8 +103,8 @@ def setup(options):
                 
         lum_centrals = bincen_centrals
         lum_pdf_z_centrals = pdf_centrals
-        print ('pdf:')
-        print (pdf_centrals)
+        # print ('pdf:')
+        # print (pdf_centrals)
     else:
         # include dummy variables
         nlbins = 100000
@@ -117,8 +117,8 @@ def setup(options):
         galfile_satellites = fits.open(z_loglum_file_satellites)[1].data
         z_gal_satellites = np.array(galfile_satellites['z'])
         loglum_gal_satellites = np.array(galfile_satellites['loglum'])
-        print('loglum gals:')
-        print(loglum_gal_satellites)
+        # print('loglum gals:')
+        # print(loglum_gal_satellites)
     
         z_bins = np.linspace(zmin, zmax, nz)
         dz = 0.5*(z_bins[1]-z_bins[0])
@@ -137,16 +137,16 @@ def setup(options):
                 pdf_tmp, _lum_bins = np.histogram(lum, bins=nlbins, density=True)
                 _dbin = (_lum_bins[-1]-_lum_bins[0])/(1.*nlbins)
                 bincen_satellites[i] = _lum_bins[0:-1]+0.5*_dbin
-                print('check norm: ', np.sum(pdf_tmp*np.diff(_lum_bins)))
+                # print('check norm: ', np.sum(pdf_tmp*np.diff(_lum_bins)))
                 pdf_satellites[i] = pdf_tmp
-                print('check mean:', simps(pdf_satellites[i]*bincen_satellites[i], bincen_satellites[i])/np.mean(lum))
+                # print('check mean:', simps(pdf_satellites[i]*bincen_satellites[i], bincen_satellites[i])/np.mean(lum))
             else:
                 pdf_satellites[i] = 0
         
         lum_satellites = bincen_satellites
         lum_pdf_z_satellites = pdf_satellites
-        print ('pdf:')
-        print (pdf_satellites)
+        # print ('pdf:')
+        # print (pdf_satellites)
     else:
         # dummy variables
         nlbins = 100000
