@@ -27,7 +27,7 @@ def execute(block, config):
     # earlier modules, and the config is what we loaded earlier.
 
     delete_bnl = config
-    print(delete_bnl)
+    
     if delete_bnl == True:
         block.replace_double_array_nd('bnl', 'beta_interp', np.array([0.0]))
     else:
