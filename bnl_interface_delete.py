@@ -13,12 +13,13 @@ def setup(options):
     # load any data, or do any calculations that are fixed once.
     
     sampler_name = options['runtime', 'sampler']
+    bnl = options.get_bool(option_section, 'bnl', default=False)
     if sampler_name != 'test':
         delete_bnl = False
     else:
         delete_bnl = True
     
-    return delete_bnl
+    return delete_bnl, bnl
 
 
 def execute(block, config):
@@ -26,10 +27,13 @@ def execute(block, config):
     # It is the main workhorse of the code. The block contains the parameters and results of any
     # earlier modules, and the config is what we loaded earlier.
 
-    delete_bnl = config
+    delete_bnl, bnl = config
     
-    if delete_bnl == True:
-        block.replace_double_array_nd('bnl', 'beta_interp', np.array([0.0]))
+    if bnl == True:
+        if delete_bnl == True:
+            block.replace_double_array_nd('bnl', 'beta_interp', np.array([0.0]))
+        else:
+            pass
     else:
         pass
         
