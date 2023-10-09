@@ -116,25 +116,38 @@ def legendre_coefficients(l,m):
     # note that scipy.special.legendre returns an array with the coefficients of the legendre polynomials
     return legendre(l)[m]
 
+# Computes the angular part of the satellite intrinsic shear field,
+# Eq. (C8) in `Fortuna et al. 2021 <https://arxiv.org/abs/2003.02700>`
+def calculate_f_ell(theta_k, phi_k, l, gamma_b):
 
-def g(n):
-    g_vec = np.zeros(11)
-    g_vec[2] = np.pi/2.
-    g_vec[4] = np.pi/2.
-    g_vec[6] = np.pi*15./32.
-    g_vec[8] = np.pi*7./16.
-    g_vec[10] = np.pi*105./256.
-    return g_vec[n]
-
-
-# see Fortuna et al. 2020, Appendix B
-def another_fell(theta_k, phi_k, l, gamma_b):
     phase = np.cos(2.*phi_k) + 1j*np.sin(2.*phi_k)
+
+    # Follow CCL by hard-coding for most common cases (b=0, b=-2) to gain speed 
+    # (in CCL gain is ~1.3sec - gain here depends on how many times this is called).
+    if theta_k==np.pi/2.:
+        if gamma_b==0:
+            pre_calc_f_ell = np.array([0,0,2.77582637, 0 , -0.19276603, 0,
+                                   0.04743899, 0, -0.01779024, 0,
+                                   0.00832446, 0, -0.00447308, 0])
+            return pre_calc_f_ell[l]*phase
+    
+        if gamma_b==-2:
+            pre_calc_f_ell = np.array([0,0,4.71238898, 0, -2.61799389, 0,
+                                         2.06167032, 0, -1.76714666, 0,
+                                        1.57488973, 0, -1.43581368, 0])
+            return pre_calc_f_ell[l]*phase
+
+    # If either of the above expressions are met the return statement is executed and the function ends.
+    # Otherwise, the function continues to calculate the general case.
+
+    gj = np.array([0, 0, np.pi / 2, 0, np.pi / 2, 0, 15 * np.pi / 32,
+                       0, 7 * np.pi / 16, 0, 105 * np.pi / 256, 0])
+    
     sum1 = 0.
     for m in range(0,l+1):
         sum2=0.
         for j in range(0,m+1):
-            sum2 += binom(m,j) * g(j) * np.sin(theta_k)**(j) * np.cos(theta_k)**(m-j) * I_x(j+gamma_b,m-j)
+            sum2 += binom(m,j) * gj[j] * np.sin(theta_k)**(j) * np.cos(theta_k)**(m-j) * I_x(j+gamma_b,m-j)
         sum1 += binom(l,m)*binom(0.5*(l+m-1.),l)*sum2
     return 2.**l * sum1*phase
 
@@ -214,16 +227,19 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
     #h_transf = HankelTransform(ell+0.5,300,0.01)
     # We initialise the class in setup as it only depends on predefined ell values
     
-    uk_l = np.zeros([z.size, msize, k_vec.size])
+    uk_l = np.zeros([zsize, msize, k_vec.size])
     
-    for jz in range(z.size):
+    for jz in range(zsize):
         for im in range(msize):
+            #The python lambda "anonymous function" is new to me so an explaination is in order:
+            #this line connects nfw_f to the executable function gamma_r_nfw_profile varying x and keeping the other parameters fixed
             nfw_f = lambda x: gamma_r_nfw_profile(x, r_s[jz,im], rvir[im], gamma_1h_amplitude[jz], gamma_b) * np.sqrt((x*np.pi)/2.0)
             uk_l[jz, im, :] = h_transf.transform(nfw_f, k_vec)[0] / (k_vec**0.5 * mnfw[jz,im])
             #best_h, result, best_N = hankel.get_h(nfw_f, ell+0.5, k_vec)
             #print(f'best_h = {best_h}, best_N={best_N}')
     
     return uk_l
+
 
 #------------------------------ uell -----------------------------------#
 
@@ -241,15 +257,14 @@ def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass
 #integral of the angular part in eq B8 (SB10) using the Legendre polynomials
 #assuming theta_e=theta, phi_e=phi (perfect radial alignment)
 
-def wkm_my_fell(uell, theta_k, phi_k, ell_max, gamma_b):
-    #nl = uell.shape[0]
+def wkm_f_ell(uell, theta_k, phi_k, ell_max, gamma_b):
     nz = uell.shape[1]
     nm = uell.shape[2]
     nk = uell.shape[3]
     
     sum_ell = np.zeros([nz,nm,nk])
     for ell in range(0,ell_max+1,2):
-        angular = another_fell(theta_k, phi_k, ell, gamma_b)
+        angular = calculate_f_ell(theta_k, phi_k, ell, gamma_b)
         c_ = np.real(angular)
         d_ = np.imag(angular)
         radial = (1j)**(ell) * (2.*ell + 1.) * uell[int(ell/2),:,:]
