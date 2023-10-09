@@ -53,7 +53,7 @@ for jz in range (5):
             plot_ratio_cl(ax[iz,jz],'shear_cl_gi',cl_base,iz,jz,'cyan','solid')
             plot_ratio_cl(ax[iz,jz],'shear_cl_ii',cl_base,iz,jz,'magenta','solid')
             ax[iz,jz].set_xscale('log')
-            ax[iz,jz].hlines(y=1.0, xmin=0, xmax=400000, linestyle='dotted', color='grey')
+            ax[iz,jz].hlines(y=1.0, xmin=0, xmax=3000, linestyle='dotted', color='grey')
             if iz==4:
                 ax[iz,jz].set_xlabel('$\ell$',fontsize=16)
             if jz==0:
