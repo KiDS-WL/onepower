@@ -87,7 +87,7 @@ def execute(block, config):
     uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max, h_transform)
     theta_k = np.pi/2.
     phi_k = 0.
-    wkm = wkm_f_ell(uell, theta_k, phi_k, ell_max, gamma_1h_slope)  #This has dimension [10,200,nk]
+    wkm = wkm_f_ell(uell, theta_k, phi_k, ell_max, gamma_1h_slope)  #This has low-res dimension [nz,nmass,nk]
 
     for jz in range(0,nz):
         block.put_grid( 'wkm', 'mass_%d'%jz+suffix, mass, 'k_h_%d'%jz+suffix, k, 'w_km_%d'%jz+suffix, wkm[jz,:,:])
