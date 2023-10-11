@@ -6,19 +6,20 @@
 
 # The module also includes an option to compute the halo bias from Tinker+10.
 
-import warnings
+
 from cosmosis.datablock import names, option_section
+import warnings
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.integrate import simps, solve_ivp, quad
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 import astropy.units as u
-from scipy.integrate import simps, solve_ivp, quad
-from hmf import MassFunction
 from halomod import bias as bias_func
 from halomod.concentration import make_colossus_cm
 from halomod import concentration as conc_func
 from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
+from hmf import MassFunction
 import hmf.halos.mass_definitions as md
 import hmf.cosmology.growth_factor as gf
 
@@ -155,66 +156,79 @@ def Dv_Mead(a, Om, f_nu, g, G):
     return Dv_Mead * Dv0 * (1.0 + 0.763*f_nu)
     
 
-# We have a collection of commonly used pre-defined block section names.
-# If none of the names here is relevant for your calculation you can use any
-# string you want instead.
-cosmo_names = 'cosmological_parameters'
+# cosmological parameters section name in block
+cosmo_names = names.cosmological_parameters
 
 def setup(options):
-    #This function is called once per processor per chain.
-    #It is a chance to read any fixed options from the configuration file,
-    #load any data, or do any calculations that are fixed once.
 
+    # Read in from hmf_and_hbf section of the ini file
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
-    nmass = options[option_section, 'nmass']
-
-    zmin = options[option_section, 'zmin']
-    zmax = options[option_section, 'zmax']
-    nz = options[option_section, 'nz']
-    z_vec = np.linspace(zmin, zmax, nz)
-    
+    nmass        = options[option_section, 'nmass']
     dlog10m = (log_mass_max-log_mass_min)/nmass
+
+    zmin  = options[option_section, 'zmin']
+    zmax  = options[option_section, 'zmax']
+    nz    = options[option_section, 'nz']
+    z_vec = np.linspace(zmin, zmax, nz)
+
+    # Type of mass definition for Haloes
+    mdef_model = options[option_section, 'mdef_model']
+    # Over density threshold
+    overdensity = options[option_section, 'overdensity']
+    # Concentration mass relation model
+    cm_model = options[option_section, 'cm_model']
+    # critical density contrast
+    delta_c = options[option_section, 'delta_c']
+    # Linear halo bias model
+    bias_model = options[option_section, 'bias_model']
+    mdef_params = {} if mdef_model in ['SOVirial'] else {'overdensity':overdensity}
     
-    # most general astropy cosmology initialisation, gets updated as sampler runs with camb provided cosmology parameters.
+    # most general astropy cosmology initialisation, 
+    # gets updated as sampler runs with camb provided cosmology parameters.
     # setting some values to generate instance
     initialise_cosmo=Flatw0waCDM(
         H0=100., Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
-    mdef_model = options[option_section, 'mdef_model']
-    overdensity = options[option_section, 'overdensity']
-    delta_c = options[option_section, 'delta_c']
-    mdef_params = {} if mdef_model in ['SOVirial'] else {'overdensity':overdensity}
-    
+
+    # Growth Factor from hmf
     gf._GrowthFactor.supported_cosmos = (FlatLambdaCDM, Flatw0waCDM, LambdaCDM)
-    mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
-					  hmf_model=options[option_section, 'hmf_model'], mdef_model=mdef_model, mdef_params=mdef_params, transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False, lnk_min=-18.0, lnk_max=18.0)
-    # This mf parameters that are fixed here now need to be read from the ini files! Need to make sure camb is not called when initialising the mf!
+    # Halo Mass function from hmf
+    mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, 
+                        Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
+                        hmf_model=options[option_section, 'hmf_model'],
+                        mdef_model=mdef_model, mdef_params=mdef_params, 
+                        transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False, 
+                        lnk_min=-18.0, lnk_max=18.0)
+    # This mf parameters that are fixed here now need to be read from the ini files! 
+    # Need to make sure camb is not called when initialising the mf!
     #print( mf.cosmo)
-    
+
+    # Array of halo masses 
     mass = mf.m
-    
-    check_mead = options.has_value(option_section, 'use_mead2020_corrections')
-    if check_mead:
-        use_mead = options[option_section, 'use_mead2020_corrections']
-        if use_mead == 'mead2020':
-            mead_correction = 'nofeedback'
-        elif use_mead == 'mead2020_feedback':
-            mead_correction = 'feedback'
-        elif use_mead == 'fit_feedback':
-            mead_correction = 'fit'
+
+
+    # Option to set similar corrections to HMcode2020
+    # MA question: What do these different options do? It doesn't look like there is a difference between them.
+    use_mead = options.get_string(option_section, 'use_mead2020_corrections',default='No')
+    if use_mead == 'mead2020':
+        mead_correction = 'nofeedback'
+    elif use_mead == 'mead2020_feedback':
+        mead_correction = 'feedback'
+    elif use_mead == 'fit_feedback':
+        mead_correction = 'fit'
     else:
         mead_correction = None
 
-    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, options[option_section, 'cm_model'], mdef_model, overdensity, delta_c, options[option_section, 'bias_model'], mead_correction
+    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, cm_model, mdef_model, overdensity, delta_c, bias_model, mead_correction
 
 
 def execute(block, config):
-    #This function is called every time you have a new sample of cosmological and other parameters.
-    #It is the main workhorse of the code. The block contains the parameters and results of any 
-    #earlier modules, and the config is what we loaded earlier.
 
+    # Read in the config as returned by setup
     log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, model_cm, mdef, overdensity, delta_c, bias_model, mead_correction = config
 
+    # astropy cosmology requires the CMB temprature as an input. 
+    # If it exists in the values file read it from there otherwise set to its default value
     try:
         tcmb = block[cosmo_names, 'TCMB']
     except:
@@ -222,19 +236,25 @@ def execute(block, config):
     # Update the cosmological parameters
     #this_cosmo.update(cosmo_params={'H0':block[cosmo_names, 'hubble'], 'Om0':block[cosmo_names, 'omega_m'], 'Ob0':block[cosmo_names, 'omega_b']})
     this_cosmo_run=Flatw0waCDM(
-        H0=block[cosmo_names, 'hubble'], Ob0=block[cosmo_names, 'omega_b'], Om0=block[cosmo_names, 'omega_m'], m_nu=block[cosmo_names, 'mnu'], Tcmb0=tcmb,
-    		w0=block[cosmo_names, 'w'], wa=block[cosmo_names, 'wa'])
+        H0=block[cosmo_names, 'hubble'], Ob0=block[cosmo_names, 'omega_b'],
+        Om0=block[cosmo_names, 'omega_m'], m_nu=block[cosmo_names, 'mnu'], Tcmb0=tcmb,
+    	w0=block[cosmo_names, 'w'], wa=block[cosmo_names, 'wa'] )
     ns = block[cosmo_names, 'n_s']
 
     # Note that CAMB does not return the sigma_8 at z=0, as it might seem from the documentation, but sigma_8(z),
     # so the user should always start from z=0
-    samplesig8 = block.has_value(cosmo_names, 'sigma_8_input')
-    if samplesig8:
-        sigma_8 = block[cosmo_names, 'sigma_8_input']
-    else:
-        sigma_8 = block[cosmo_names, 'sigma_8']
+
+    # MA: I think we can remove sigma_8_input. 
+    # samplesig8 = block.has_value(cosmo_names, 'sigma_8_input')
+    # if samplesig8:
+    #     sigma_8 = block[cosmo_names, 'sigma_8_input']
+    # else:
+    #     sigma_8 = block[cosmo_names, 'sigma_8']
+
+    sigma_8 = block[cosmo_names, 'sigma_8']
+
     
-    nmass_hmf = len(mf.m)
+    nmass_hmf = len(mass)
 
     dndlnmh = np.empty([nz, nmass_hmf])
     nu = np.empty([nz,nmass_hmf])
@@ -247,8 +267,10 @@ def execute(block, config):
     f_nu = np.empty([nz])
     h_z = np.empty([nz])
     conc = np.empty([nz,nmass_hmf])
+
     if mead_correction:
         growth = get_growth_interpolator(this_cosmo_run)
+
     for jz in range(0,nz):
         if mdef in ['SOVirial'] and mead_correction is None:
             delta_c_i = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_vec[jz])))
@@ -260,6 +282,7 @@ def execute(block, config):
                 warnings.filterwarnings('ignore', category=UserWarning)
                 # This dissables the warning from hmf is just telling us what we know
                 # hmf warns us that the mass conversion is not kosher, but how we calculate overdensities it is acually ok!
+                # MA: Can you explain why this is OK?
                 ajz = this_cosmo_run.scale_factor(z_vec[jz])
                 g = growth(ajz)
                 G = get_accumulated_growth(ajz, growth)
