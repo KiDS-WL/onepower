@@ -13,13 +13,15 @@ def setup(options):
     # load any data, or do any calculations that are fixed once.
     
     sampler_name = options['runtime', 'sampler']
-    bnl = options.get_bool(option_section, 'bnl', default=False)
+    keep_bnl = options.get_bool(option_section, 'keep_bnl', default=False)
     if sampler_name != 'test':
+        delete_bnl = False
+    elif keep_bnl == True:
         delete_bnl = False
     else:
         delete_bnl = True
     
-    return delete_bnl, bnl
+    return delete_bnl
 
 
 def execute(block, config):
@@ -27,11 +29,12 @@ def execute(block, config):
     # It is the main workhorse of the code. The block contains the parameters and results of any
     # earlier modules, and the config is what we loaded earlier.
 
-    delete_bnl, bnl = config
+    delete_bnl = config
     
-    if bnl == True:
+    if block.has_value('bnl', 'beta_interp'):
         if delete_bnl == True:
             block.replace_double_array_nd('bnl', 'beta_interp', np.array([0.0]))
+            print('Deleting the large beta_interp array. If you want to keep this set keep_bnl = True ')
         else:
             pass
     else:
