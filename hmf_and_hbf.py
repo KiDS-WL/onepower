@@ -1,12 +1,3 @@
-# Compute the HMF through the Steven Murray python package hmf
-# At the moment this module is ONLY designed to work in this particular pipeline
-# To wrap it properly in CosmoSIS more work is needed. It also requires a
-# permission from the authors -> I haven't contact them yet, so this must be
-# considered only for a private use.
-
-# The module also includes an option to compute the halo bias from Tinker+10.
-
-
 from cosmosis.datablock import names, option_section
 import warnings
 import numpy as np
@@ -23,12 +14,14 @@ from hmf import MassFunction
 import hmf.halos.mass_definitions as md
 import hmf.cosmology.growth_factor as gf
 
-    
-def concentration_colossus(block, cosmo, mass, z_vec, model, mdef, overdensity):
+import time
+
+
+def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
     # calculates concentration given halo mass, using the halomod model provided in config
-    # furthermore it converts to halomod instance to be used with the halomodel, consistenly with halo mass function
-    # and halo bias function
-    
+    # furthermore it converts to halomod instance to be used with the halomodel, 
+    # consistenly with halo mass function and halo bias function
+
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=UserWarning)
         # This dissables the warning from colossus that is just telling us what we know
@@ -36,12 +29,20 @@ def concentration_colossus(block, cosmo, mass, z_vec, model, mdef, overdensity):
         # as we do not use cosmology from it, but it requires it to setup the instance!
         this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
                      sigma8=block[cosmo_names, 'sigma_8'], ns=block[cosmo_names, 'n_s'])
+
                      
     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
     
-    c, ms = colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model,
+    # This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
+    # Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
+    tic = time.perf_counter()
+    c, ms = colossus_concentration.concentration(M=mass, z=z, mdef=mdef.colossus_name, model=model,
             range_return=True, range_warning=False)
+    toc = time.perf_counter()
+    print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
+
     c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
+
     
     return c_interp(mass)
     
@@ -192,13 +193,18 @@ def setup(options):
 
     # Growth Factor from hmf
     gf._GrowthFactor.supported_cosmos = (FlatLambdaCDM, Flatw0waCDM, LambdaCDM)
+
     # Halo Mass function from hmf
+    # tic = time.perf_counter()
+    # This is the slow part it take 1.58/1.67
     mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, 
                         Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
                         hmf_model=options[option_section, 'hmf_model'],
                         mdef_model=mdef_model, mdef_params=mdef_params, 
                         transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False, 
                         lnk_min=-18.0, lnk_max=18.0)
+    # toc = time.perf_counter()
+    # print(" Mass function: "+'%.4f' %(toc - tic)+ "s")
     # This mf parameters that are fixed here now need to be read from the ini files! 
     # Need to make sure camb is not called when initialising the mf!
     #print( mf.cosmo)
@@ -222,6 +228,11 @@ def setup(options):
     return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, cm_model, mdef_model, overdensity, delta_c, bias_model, mead_correction
 
 
+# tic = time.perf_counter()
+
+# toc = time.perf_counter()
+# print(" Mass function: "+'%.4f' %(toc - tic)+ "s")
+
 def execute(block, config):
 
     # Read in the config as returned by setup
@@ -241,18 +252,7 @@ def execute(block, config):
     	w0=block[cosmo_names, 'w'], wa=block[cosmo_names, 'wa'] )
     ns = block[cosmo_names, 'n_s']
 
-    # Note that CAMB does not return the sigma_8 at z=0, as it might seem from the documentation, but sigma_8(z),
-    # so the user should always start from z=0
-
-    # MA: I think we can remove sigma_8_input. 
-    # samplesig8 = block.has_value(cosmo_names, 'sigma_8_input')
-    # if samplesig8:
-    #     sigma_8 = block[cosmo_names, 'sigma_8_input']
-    # else:
-    #     sigma_8 = block[cosmo_names, 'sigma_8']
-
     sigma_8 = block[cosmo_names, 'sigma_8']
-
     
     nmass_hmf = len(mass)
 
@@ -271,6 +271,7 @@ def execute(block, config):
     if mead_correction:
         growth = get_growth_interpolator(this_cosmo_run)
 
+    # About 1.8 seconds for mf.update.About 7 seconds for concentration_colossus
     for jz in range(0,nz):
         if mdef in ['SOVirial'] and mead_correction is None:
             delta_c_i = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_vec[jz])))
@@ -281,8 +282,12 @@ def execute(block, config):
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=UserWarning)
                 # This dissables the warning from hmf is just telling us what we know
-                # hmf warns us that the mass conversion is not kosher, but how we calculate overdensities it is acually ok!
-                # MA: Can you explain why this is OK?
+                # hmf's internal way of calculating the overdensity and the collapse threshold are fixed. 
+                # When we use the mead correction we want to define the haloes using the virial definition, 
+                # To avoid conflicts we manually pass the overdensity and the collapse threshold, 
+                # but for that we need to set the mass definition to be "mean". 
+                # It then warns us that the value is not a native definition for the given halo mass function, 
+                # but will interpolate between the known ones (this is happening when one uses Tinker hmf for instance). 
                 ajz = this_cosmo_run.scale_factor(z_vec[jz])
                 g = growth(ajz)
                 G = get_accumulated_growth(ajz, growth)
@@ -296,7 +301,6 @@ def execute(block, config):
             delta_c_i = delta_c
             mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_i, mdef_params={'overdensity':overdensity_i})
             conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_i)
-            
         nu[jz] = mf.nu
         idx_neff = np.argmin(np.abs(mf.nu**0.5 - 1.0))
         sigma_var[jz] = mf.normalised_filter.sigma(8.0)
@@ -308,7 +312,7 @@ def execute(block, config):
         bias = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_i, delta_halo=overdensity_i, sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
         b_nu[jz] = bias.bias()
         f_nu[jz] = this_cosmo_run.Onu0/this_cosmo_run.Om0
-        
+
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnmh)
     block.put_double_array_1d('density', 'mean_density0', mean_density0) #(mean_density0/this_cosmo_run.Om0)*this_cosmo_run.Odm0)
     block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
