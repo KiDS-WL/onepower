@@ -13,9 +13,12 @@ from colossus.halo import concentration as colossus_concentration
 from hmf import MassFunction
 import hmf.halos.mass_definitions as md
 import hmf.cosmology.growth_factor as gf
+from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
 
 import time
 
+# cosmological parameters section name in block
+cosmo_params = names.cosmological_parameters
 
 def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
     # calculates concentration given halo mass, using the halomod model provided in config
@@ -28,7 +31,7 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
         # colossus warns us about massive neutrinos, but that is also ok
         # as we do not use cosmology from it, but it requires it to setup the instance!
         this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
-                     sigma8=block[cosmo_names, 'sigma_8'], ns=block[cosmo_names, 'n_s'])
+                     sigma8=block[cosmo_params, 'sigma_8'], ns=block[cosmo_params, 'n_s'])
 
                      
     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
@@ -109,6 +112,8 @@ def get_growth_interpolator(cosmo):
     g_interp = interp1d(a, g, kind='linear', assume_sorted=True)
     return g_interp
 
+
+# Mead corrections: See appendix A of 2009.01858
 def get_accumulated_growth(a, g):
     """
     Calculates the accumulated growth at scale factor 'a'
@@ -117,48 +122,55 @@ def get_accumulated_growth(a, g):
     z_init = 500.0
     a_init = 1.0/(1.0+z_init)
     
-    missing = g(a_init) # Integeral from 0 to ai of g(ai)/ai ~ g(ai) for ai << 1
+    # Eq A5 of Mead et al. 2021 (2009.01858). 
+    # We approximate the integral as g(a_init) for 0 to a_init<<0
+    missing = g(a_init)  
     G, _ = quad(lambda a: g(a)/a, a_init, a, limit=100) + missing
     return G
 
+
 def f_Mead(x, y, p0, p1, p2, p3):
+    # eq A3 of 2009.01858
     return p0 + p1*(1.0-x) + p2*(1.0-x)**2.0 + p3*(1.0-y)
+
 
 def dc_Mead(a, Om, f_nu, g, G):
     """
-    delta_c fitting function from Mead (2017; 1606.05345)
+    delta_c fitting function from Mead et al. 2021 (2009.01858)
     All input parameters should be evaluated as functions of a/z
     """
     
-    # See Appendix A of Mead (2017) for naming convention
+    # See Table A.1 of 2009.01858 for naming convention
     p10, p11, p12, p13 = -0.0069, -0.0208, 0.0312, 0.0021
     p20, p21, p22, p23 = 0.0001, -0.0647, -0.0417, 0.0646
     a1, a2 = 1, 0
-    
-    dc0 = (3.0/20.0)*(12.0*np.pi)**(2.0/3.0) # delta_c = ~1.686' EdS linear collapse threshold
+
     # Linear collapse threshold
+    # Eq A1 of 2009.01858
     dc_Mead = 1.0 + f_Mead(g/a, G/a, p10, p11, p12, p13)*np.log10(Om)**a1 + f_Mead(g/a, G/a, p20, p21, p22, p23)*np.log10(Om)**a2
+    # delta_c = ~1.686' EdS linear collapse threshold
+    dc0 = (3.0/20.0)*(12.0*np.pi)**(2.0/3.0) 
     return dc_Mead * dc0 * (1.0 - 0.041*f_nu)
 
 def Dv_Mead(a, Om, f_nu, g, G):
     """
-    Delta_v fitting function from Mead (2017; 1606.05345)
+    Delta_v fitting function from Mead et al. 2021 (2009.01858)
     All input parameters should be evaluated as functions of a/z
     """
     
-    # See Appendix A of Mead (2017) for naming convention
+    # See Table A.1 of 2009.01858 for naming convention
     p30, p31, p32, p33 = -0.79, -10.17, 2.51, 6.51
     p40, p41, p42, p43 = -1.89, 0.38, 18.8, -15.87
     a3, a4 = 1, 2
-    
-    Dv0 = 18.0*np.pi**2.0  # Delta_v = ~178, EdS halo virial overdensity
+   
     # Halo virial overdensity
+    # Eq A2 of 2009.01858
     Dv_Mead = 1.0 + f_Mead(g/a, G/a, p30, p31, p32, p33)*np.log10(Om)**a3 + f_Mead(g/a, G/a, p40, p41, p42, p43)*np.log10(Om)**a4
+    Dv0 = 18.0*np.pi**2.0  # Delta_v = ~178, EdS halo virial overdensity
     return Dv_Mead * Dv0 * (1.0 + 0.763*f_nu)
-    
 
-# cosmological parameters section name in block
-cosmo_names = names.cosmological_parameters
+
+
 
 def setup(options):
 
@@ -172,6 +184,12 @@ def setup(options):
     zmax  = options[option_section, 'zmax']
     nz    = options[option_section, 'nz']
     z_vec = np.linspace(zmin, zmax, nz)
+
+    # Profile
+    nk      = options[option_section, 'nk']
+    # currently we have only implmented NFW. 
+    profile = options.get_string(option_section, 'profile',default='nfw')
+    profile_value_name = options.get_string(option_section, 'profile_value_name',default='profile_parameters')
 
     # Type of mass definition for Haloes
     mdef_model = options[option_section, 'mdef_model']
@@ -219,36 +237,37 @@ def setup(options):
     else:
         mead_correction = None
 
-    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, cm_model, mdef_model, overdensity, delta_c, bias_model, mead_correction
+    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, cm_model, mdef_model, overdensity, delta_c, bias_model, mead_correction, nk, profile, profile_value_name
 
 def execute(block, config):
 
     # Read in the config as returned by setup
-    log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, model_cm, mdef, overdensity, delta_c, bias_model, mead_correction = config
+    log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, mass, mf, model_cm, mdef, overdensity, delta_c, bias_model, mead_correction, nk, profile, profile_value_name = config
 
     # astropy cosmology requires the CMB temprature as an input. 
     # If it exists in the values file read it from there otherwise set to its default value
     try:
-        tcmb = block[cosmo_names, 'TCMB']
+        tcmb = block[cosmo_params, 'TCMB']
     except:
         tcmb = 2.7255
 
     # Update the cosmological parameters
     this_cosmo_run=Flatw0waCDM(
-        H0=block[cosmo_names, 'hubble'], Ob0=block[cosmo_names, 'omega_b'],
-        Om0=block[cosmo_names, 'omega_m'], m_nu=block[cosmo_names, 'mnu'], Tcmb0=tcmb,
-    	w0=block[cosmo_names, 'w'], wa=block[cosmo_names, 'wa'] )
+        H0=block[cosmo_params, 'hubble'], Ob0=block[cosmo_params, 'omega_b'],
+        Om0=block[cosmo_params, 'omega_m'], m_nu=block[cosmo_params, 'mnu'], Tcmb0=tcmb,
+    	w0=block[cosmo_params, 'w'], wa=block[cosmo_params, 'wa'] )
 
-    ns = block[cosmo_names, 'n_s']
-    sigma_8 = block[cosmo_names, 'sigma_8']
+    ns      = block[cosmo_params, 'n_s']
+    sigma_8 = block[cosmo_params, 'sigma_8']
     
+    # initialise arrays
     nmass_hmf = len(mass)
-    dndlnmh   = np.empty([nz, nmass_hmf])
+    dndlnmh   = np.empty([nz,nmass_hmf])
     nu        = np.empty([nz,nmass_hmf])
     b_nu      = np.empty([nz,nmass_hmf])
     rho_halo  = np.empty([nz])
     neff      = np.empty([nz])
-    sigma_var = np.empty([nz])
+    sigma8_z  = np.empty([nz])
     f_nu      = np.empty([nz])
     h_z       = np.empty([nz])
     conc      = np.empty([nz,nmass_hmf])
@@ -259,12 +278,17 @@ def execute(block, config):
         growth = get_growth_interpolator(this_cosmo_run)
 
     # About 1.8 seconds for mf.update.About 7 seconds for concentration_colossus
+
+    # Loop over nz redshift bins
     for jz in range(0,nz):
         if mdef in ['SOVirial'] and mead_correction is None:
-            delta_c_i = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_vec[jz])))
-            mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_i)
-            overdensity_i = mf.halo_overdensity_mean
-            conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_i)
+            delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_vec[jz])))
+            # Update the cosmology for the halo mass function, this takes a little while the first time it is called
+            # Then it is faster becayse it only updates the redshift and the corresponding delta_c
+            mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z)
+            overdensity_z = mf.halo_overdensity_mean
+            # This is the slowest part currently
+            conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_z)
         elif mead_correction is not None:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=UserWarning)
@@ -276,30 +300,99 @@ def execute(block, config):
                 # so that it is compared to the mean density of the Universe rather than critical density. 
                 # hmf warns us that the value is not a native definition for the given halo mass function, 
                 # but will interpolate between the known ones (this is happening when one uses Tinker hmf for instance). 
-                ajz = this_cosmo_run.scale_factor(z_vec[jz])
-                g = growth(ajz)
-                G = get_accumulated_growth(ajz, growth)
-                delta_c_i = dc_Mead(ajz, this_cosmo_run.Om(z_vec[jz]), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
-                overdensity_i = 2*Dv_Mead(ajz, this_cosmo_run.Om(z_vec[jz]), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                a = this_cosmo_run.scale_factor(z_vec[jz])
+                g = growth(a)
+                G = get_accumulated_growth(a, growth)
+                delta_c_z = dc_Mead(a, this_cosmo_run.Om(z_vec[jz]), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                overdensity_z = 2*Dv_Mead(a, this_cosmo_run.Om(z_vec[jz]), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
                 mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
-                mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_i, mdef_params={'overdensity':overdensity_i}, mdef_model=mdef_mead)
-            conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef_mead, overdensity_i)
+                mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z}, mdef_model=mdef_mead)
+            conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef_mead, overdensity_z)
         else:
-            overdensity_i = overdensity
-            delta_c_i = delta_c
-            mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_i, mdef_params={'overdensity':overdensity_i})
-            conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_i)
-        nu[jz] = mf.nu
-        idx_neff = np.argmin(np.abs(mf.nu**0.5 - 1.0))
-        sigma_var[jz] = mf.normalised_filter.sigma(8.0)
-        neff[jz] = mf.n_eff[idx_neff]
-        dndlnmh[jz] = mf.dndlnm
-        mean_density0[jz] = mf.mean_density0
+            overdensity_z = overdensity
+            delta_c_z = delta_c
+            mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z})
+            conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_z)
+
+        #Peak height, mf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
+        nu[jz]        = mf.nu**0.5
+        dndlnmh[jz]   = mf.dndlnm
+        mean_density0[jz]  = mf.mean_density0
         mean_density_z[jz] = mf.mean_density
-        rho_halo[jz] = overdensity_i * mf.mean_density0
-        bias = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_i, delta_halo=overdensity_i, sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
+        rho_halo[jz]  = overdensity_z * mf.mean_density0
+        bias     = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_z, delta_halo=overdensity_z,
+                                                 sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
         b_nu[jz] = bias.bias()
         f_nu[jz] = this_cosmo_run.Onu0/this_cosmo_run.Om0
+
+        # These are only used for mead_corrections
+        # index of 
+        idx_neff      = np.argmin(np.abs(mf.nu - 1.0))
+        # effective power spectrum index at the collapse scale, 
+        # Question: n_eff is just used in the transition_smoothing module for mead_corrections. It is called n^eff_cc in table 2 of https://arxiv.org/pdf/2009.01858.pdf . But it doesn't explain what it is. Do we know if this is the correct one to use? 
+        neff[jz]      = mf.n_eff[idx_neff]
+        # Only used for mead_corrections
+        sigma8_z[jz] = mf.normalised_filter.sigma(8.0)
+
+###################################################################################################################
+    # Halo Profile
+
+    # get these from the values.ini file
+    norm_cen = block[profile_value_name, 'norm_cen']
+    norm_sat = block[profile_value_name, 'norm_sat']
+    eta_cen  = block[profile_value_name, 'eta_cen']
+    eta_sat  = block[profile_value_name, 'eta_sat']
+
+    if mead_correction == 'nofeedback':
+        norm_cen  = 1.0 #(5.196/3.85)#0.85*1.299
+        eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))
+    if mead_correction == 'feedback':
+        theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
+        norm_cen  = (((3.44 - 0.496*theta_agn) * 10.0**(z_vec*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
+        eta_cen   = (0.15 * (1.0+z_vec)**0.5)[:,np.newaxis]
+    
+    conc_cen = norm_cen * conc
+    conc_sat = norm_sat * conc
+    rvir_cen = radvir_from_mass(mass, rho_halo)
+    rvir_sat = radvir_from_mass(mass, rho_halo)
+    
+    r_s_cen  = scale_radius(rvir_cen, conc_cen) * nu**eta_cen
+    r_s_sat  = scale_radius(rvir_sat, conc_sat) * nu**eta_sat
+
+    # compute the Fourier-transform of the NFW profile (normalised to the mass of the halo)
+    #k = np.logspace(-2,1,200) # AD: inherit the range from Plin? That would avoid intepolations ...
+    k_vec_original = block['matter_power_lin', 'k_h']
+    k = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
+
+    # Allow for different profiles, 
+    # TODO: Look into pyhalomodel.
+    if profile == 'nfw':
+        u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen, mass)
+        u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
+    else:
+        warnings.warn('Currently the only prodile suported is "nfw". You have chosen '+profile+' which is not supported. Returning NFW results')
+        u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen, mass)
+        u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
+
+#  TODO: Clean these up. Put more of them into the same folder
+    block.put_grid('concentration_dm', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
+    block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)
+    block.put_grid('nfw_scale_radius_dm', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
+    block.put_grid('nfw_scale_radius_sat', 'z', z_vec, 'm_h', mass, 'rs', r_s_sat)
+    #block.put_grid('virial_radius', 'z', z, 'm_h', mass, 'rvir', rvir)
+    #print(rvir[0].shape)
+    block.put_double_array_1d('virial_radius', 'm_h', mass)
+    block.put_double_array_1d('virial_radius', 'rvir_dm', rvir_cen[0])
+    block.put_double_array_1d('virial_radius', 'rvir_sat', rvir_sat[0])
+
+
+    block.put_double_array_1d('fourier_nfw_profile', 'z', z_vec)
+    block.put_double_array_1d('fourier_nfw_profile', 'm_h', mass)
+    block.put_double_array_1d('fourier_nfw_profile', 'k_h', k)
+    block.put_double_array_nd('fourier_nfw_profile', 'ukm', u_dm_cen)
+    block.put_double_array_nd('fourier_nfw_profile', 'uksat', u_dm_sat)
+###################################################################################################################
+
 
     # density 
     block.put_double_array_1d('density', 'mean_density0', mean_density0) #(mean_density0/this_cosmo_run.Om0)*this_cosmo_run.Odm0)
@@ -309,9 +402,9 @@ def execute(block, config):
 
     # hmf
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnmh)
-    block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'nu', nu**0.5)
+    block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'nu', nu)
     block.put_double_array_1d('hmf', 'neff', neff)
-    block.put_double_array_1d('hmf', 'sigma_var', sigma_var)
+    block.put_double_array_1d('hmf', 'sigma8_z', sigma8_z)
 
     # halobias
     block.put_grid('halobias', 'z', z_vec, 'm_h', mass, 'b_hb', b_nu)
@@ -321,8 +414,8 @@ def execute(block, config):
 
     # cosmological parameters
     h_z = this_cosmo_run.H(z_vec).value/100.0
-    block.put_double_array_1d('cosmological_parameters', 'h_z', h_z)
-    block.put_double_array_1d('cosmological_parameters', 'fnu', f_nu)
+    block.put_double_array_1d(cosmo_params, 'h_z', h_z)
+    block.put_double_array_1d(cosmo_params, 'fnu', f_nu)
 
     return 0
 
