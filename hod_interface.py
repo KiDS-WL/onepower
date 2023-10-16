@@ -82,7 +82,9 @@ def setup(options):
         else:
             nbins = len(obs_min)
         
-        z_bins = np.array([np.linspace(zmin_i, zmax_i, nz) for zmin_i, zmax_i in zip(zmin, zmax)])
+        z_bins = np.array([np.linspace(zmin_i, zmax_i, nz, endpoint=True) for zmin_i, zmax_i in zip(zmin, zmax)])
+        #z_bins_tmp = np.array([np.linspace(zmin_i, zmax_i, nz+1, endpoint=True) for zmin_i, zmax_i in zip(zmin, zmax)])
+        #z_bins = np.array([(b[1:] + b[:-1])/2 for b in z_bins_tmp])
         log_obs_min = np.array([np.repeat(obs_min_i,nz) for obs_min_i in obs_min])
         log_obs_max = np.array([np.repeat(obs_max_i,nz) for obs_max_i in obs_max])
 
@@ -173,8 +175,8 @@ def execute(block, config):
 
     hod = HODpar(norm_c, 10.**log_ml_0, 10.**log_ml_1, g1, g2, scatter, norm_s, pivot, alpha_s, b0, b1, b2)
 
-    block.put_int('hod' + suffix0 + '_params', 'nbins', nbins)
-    block.put_bool('hod' + suffix0 + '_params', 'option', observables_z)
+    block.put_int('hod' + suffix0 + '_metadata', 'nbins', nbins)
+    block.put_bool('hod' + suffix0 + '_metadata', 'option', observables_z)
 
     #---- loading the halo mass function ----#
 
@@ -304,7 +306,7 @@ def execute(block, config):
     phi = phi_c + phi_s
     
     f_star = np.array([cf.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
-    block.put_grid('hod' + suffix0 + '_params', 'z', z_bins_one, 'mass', mass, 'f_star', f_star)
+    block.put_grid('hod' + suffix0 + '_metadata', 'z', z_bins_one, 'mass', mass, 'f_star', f_star)
     
     if observable_option and observable_mode == 'obs_onebin':
         obs_func_h = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
