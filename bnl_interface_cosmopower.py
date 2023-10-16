@@ -172,7 +172,7 @@ def execute(block, config):
         block.put_double_array_nd('bnl', 'beta_interp', beta_cosmopower)
     
     else:
-        block.put_bool('bnl', 'beta_interp', False)
+        block.put_double_array_nd('bnl', 'beta_interp', np.array([0.0]))
 
     return 0
 
