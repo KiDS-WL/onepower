@@ -38,11 +38,11 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
     
     # This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
     # MA: Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
-    tic = time.perf_counter()
+    #tic = time.perf_counter()
     c, ms = colossus_concentration.concentration(M=mass, z=z, mdef=mdef.colossus_name, model=model,
             range_return=True, range_warning=False)
-    toc = time.perf_counter()
-    print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
+    #toc = time.perf_counter()
+    #print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
 
     c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
 
