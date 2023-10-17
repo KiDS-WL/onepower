@@ -271,7 +271,7 @@ def execute(block, config):
     sigma8_z  = np.empty([nz])
     f_nu      = np.empty([nz])
     h_z       = np.empty([nz])
-    conc_old      = np.empty([nz,nmass_hmf])
+    #conc      = np.empty([nz,nmass_hmf])
     mean_density0  = np.empty([nz])
     mean_density_z = np.empty([nz])
     overdensity_z  = np.empty([nz])
@@ -295,7 +295,7 @@ def execute(block, config):
             overdensity_z[jz] = mf.halo_overdensity_mean
             mdef_conc = mdef
             # This is the slowest part currently
-            #conc_old[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_z[jz])
+            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_z[jz])
         elif mead_correction is not None:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=UserWarning)
@@ -315,13 +315,13 @@ def execute(block, config):
                 mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
                 mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, mdef_model=mdef_mead)
-            #conc_old[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef_mead, overdensity_z[jz])
+            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef_mead, overdensity_z[jz])
         else:
             overdensity_z[jz] = overdensity
             delta_c_z = delta_c
             mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]})
             mdef_conc = mdef
-            #conc_old[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_z[jz])
+            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_z[jz])
 
         #Peak height, mf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
         nu[jz]        = mf.nu**0.5
@@ -351,15 +351,6 @@ def execute(block, config):
     conc_func = interp1d(np.log10(z_conc+1.0), conc, axis=0, kind='cubic', fill_value='extrapolate', bounds_error=False)
     conc = conc_func(np.log10(z_vec+1.0))
     
-    """
-    print((conc-conc_old)/conc_old)
-    import matplotlib.pyplot as pl
-    for jz in range(0,nz):
-        pl.plot(mass, (conc_old[jz]-conc[jz]) / conc_old[jz], color='black')
-        #pl.plot(mass, conc[jz], color='red')
-    pl.xscale('log')
-    pl.show()
-    """
     ###################################################################################################################
     # Halo Profile
 
