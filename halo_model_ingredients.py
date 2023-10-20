@@ -228,7 +228,7 @@ def setup(options):
 
     # Option to set similar corrections to HMcode2020
     # MA question: What do these different options do? It doesn't look like there is a difference between them.
-    use_mead = options.get_string(option_section, 'use_mead2020_corrections',default='No')
+    use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
     if use_mead == 'mead2020':
         mead_correction = 'nofeedback'
     elif use_mead == 'mead2020_feedback':
