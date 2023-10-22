@@ -141,7 +141,7 @@ def execute(block, config):
         cached_bnl['num_calls'] = num_calls + 1
         block.put_double_array_nd('bnl', 'beta_interp', beta_interp)
     else:
-        block.put_bool('bnl', 'beta_interp', False)
+        block.put_double_array_nd('bnl', 'beta_interp', np.array([0.0]))
         
         
     return 0

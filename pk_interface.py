@@ -347,7 +347,7 @@ def execute(block, config):
             I_m_term = pk_lib.prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
             m_factor = pk_lib.prepare_matter_factor_grid(mass, mean_density0, u_dm)
         if (galaxy == True) or (alignment == True):
-            hod_bins = block[hod_section_name0 + '_params', 'nbins']
+            hod_bins = block[hod_section_name0 + '_metadata', 'nbins']
             for nb in range(0,hod_bins):
                 if hod_bins != 1:
                     hod_section_name = hod_section_name0 + '_{}'.format(nb+1)
@@ -390,7 +390,7 @@ def execute(block, config):
 
         if bnl == True:
             beta_interp = block.get_double_array_nd('bnl', 'beta_interp')
-            if beta_interp is False:
+            if beta_interp == np.array([0.0]):
                 raise ValueError('Non-linear halo bias module bnl not initialised!\n')
 
             
@@ -402,7 +402,7 @@ def execute(block, config):
             if mead_correction == 'feedback':
                 m_factor_1h_mm = pk_lib.prepare_matter_factor_grid_baryon(mass, mean_density0, u_dm, z_vec, block)
             elif mead_correction == 'fit':
-                fstar = load_fstar_mm(block, hod_section_name0 + '_params', z_vec, mass)
+                fstar = load_fstar_mm(block, hod_section_name0 + '_metadata', z_vec, mass)
                 m_factor_1h_mm = pk_lib.prepare_matter_factor_grid_baryon_fit(mass, mean_density0, u_dm, z_vec, fstar, block)
             else:
                 m_factor_1h_mm = m_factor.copy()
@@ -411,7 +411,7 @@ def execute(block, config):
                 I_NL_mm = pk_lib.prepare_I_NL(mass, mass, m_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
                 
         if (galaxy == True) or (alignment == True):
-            hod_bins = block[hod_section_name0 + '_params', 'nbins']
+            hod_bins = block[hod_section_name0 + '_metadata', 'nbins']
             
             for nb in range(0,hod_bins):
                 if hod_bins != 1:

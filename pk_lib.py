@@ -14,8 +14,8 @@ def one_halo_truncation(k_vec):
     return erf(k_vec/k_star)
     
 def one_halo_truncation_mead(k_vec, block):
-    sigma_var = (block['hmf', 'sigma_var'][:,np.newaxis])
-    k_star = 0.05618 * sigma_var**(-1.013)
+    sigma8_z = (block['hmf', 'sigma8_z'][:,np.newaxis])
+    k_star = 0.05618 * sigma8_z**(-1.013)
     return ((k_vec/k_star)**4.0)/(1.0 + (k_vec/k_star)**4.0)
 
 def two_halo_truncation(k_vec):
@@ -23,9 +23,9 @@ def two_halo_truncation(k_vec):
     return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
     
 def two_halo_truncation_mead(k_vec, block):
-    sigma_var = (block['hmf', 'sigma_var'][:,np.newaxis])
-    f = 0.2696 * sigma_var**(0.9403)
-    k_d = 0.05699 * sigma_var**(-1.089)
+    sigma8_z = (block['hmf', 'sigma8_z'][:,np.newaxis])
+    f = 0.2696 * sigma8_z**(0.9403)
+    k_d = 0.05699 * sigma8_z**(-1.089)
     nd = 2.853
     return 1.0 - (f*((k_vec/k_d)**nd)/(1.0 + (k_vec/k_d)**nd))
 
@@ -413,7 +413,7 @@ def poisson_func(block, type, mass_avg, k_vec, z_vec):
     return poisson_num
 
 # ---- POWER SPECTRA ----#
-
+# Mead correction transition smoothing, see Table 2 of https://arxiv.org/pdf/2009.01858.pdf
 def transition_smoothing(block, k_vec, one_halo, two_halo):
     delta_prefac = (k_vec**3.0)/(2.0*np.pi**2.0)
     alpha = (1.875 * (1.603**block['hmf', 'neff'][:,np.newaxis]))
