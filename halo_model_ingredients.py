@@ -178,7 +178,7 @@ def setup(options):
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
     nmass        = options[option_section, 'nmass']
-    dlog10m = (log_mass_max-log_mass_min)/nmass
+    dlog10m      = (log_mass_max-log_mass_min)/nmass
 
     zmin  = options[option_section, 'zmin']
     zmax  = options[option_section, 'zmax']
