@@ -189,6 +189,7 @@ def setup(options):
     nk      = options[option_section, 'nk']
     # currently we have only implmented NFW. 
     profile = options.get_string(option_section, 'profile',default='nfw')
+    profile = profile.lower()
     profile_value_name = options.get_string(option_section, 'profile_value_name',default='profile_parameters')
 
     # Type of mass definition for Haloes
@@ -370,7 +371,7 @@ def execute(block, config):
         u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen, mass)
         u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
     else:
-        warnings.warn('Currently the only prodile suported is "nfw". You have chosen '+profile+' which is not supported. Returning NFW results')
+        warnings.warn('Currently the only supported profile is "nfw". You have chosen '+profile+' which is not supported. Returning NFW results')
         u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen, mass)
         u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
 
