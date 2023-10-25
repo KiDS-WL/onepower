@@ -298,9 +298,10 @@ def execute(block, config):
                 obs_func_h[jz] = interp(obs_range_h)
                     
             #TODO: put this in a different section
-            block.put_grid(observable_section_name, 'z_bin_'+str(nb+1), z_bins[nb], 'obs_'+suffix, obs_range_h, 'obs_func_'+suffix, np.log(10.0)*obs_func_h*obs_range_h)
+            block.put_grid(observable_section_name, 'z_bin_'+str(nb+1), z_bins[nb], 'obs_val_'+suffix, obs_range_h, 'obs_func_'+suffix, np.log(10.0)*obs_func_h*obs_range_h)
             
-            
+    if save_observable:
+        block.put(observable_section_name,'observable_mode',observable_mode)
     # Calculating the full stellar mass fraction and if desired the observable function for one bin case
     nl_obs = 100
     nl_z = 15
@@ -320,24 +321,30 @@ def execute(block, config):
     phi = phi_c + phi_s
     
     # TODO: What is this one for? There is already f_start for the bins.
+    # The TO-DO in this lines needs explanation: f_star here is different then f_star calculate for each bin, 
+    # thus it needs to be saved differently. This one is used for the stellar mass contribution in Pmm, 
+    # so for baryonic feedback in cosmic shear and thus needs to be calculated for a wide range of halo masses, 
+    # unlike the other f_star which are for each stellar mass bin. I would keep the metadata block here 
+    # to save all the parameters not directly connected with "per bin" HODs and corresponding products.
     f_star = np.array([cf.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
-    block.put_grid(hod_section_name, 'z', z_bins_one, 'mass', mass, 'f_star', f_star)
+    block.put_grid(hod_section_name, 'z_extended', z_bins_one, 'mass_extended', mass, 'f_star_extended', f_star)
     
     if save_observable and observable_mode == 'obs_onebin':
         obs_func_h = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
 
         #TODO: put this in a different section
-        block.put_grid(observable_section_name, 'z_bin_'+str(nb+1), z_bins_one, 'obs_'+str(nb+1), obs_range_h[0], 'obs_func_'+str(nb+1),np.log(10.0)*obs_func_h*obs_range_h[0])
+        block.put_grid(observable_section_name, 'z_bin_'+str(nb+1), z_bins_one, 'obs_val_'+str(nb+1), obs_range_h[0], 'obs_func_'+str(nb+1),np.log(10.0)*obs_func_h*obs_range_h[0])
     
     
     #########################
     
-    # The following applies for a single computation of the Luminosity Function (at the z_median of the sample)
+    # The following applies for a single computation of the observable Function (at the z_median of the sample)
     
-    # Compute luminosity function: note that since the luminosity function is computed for a single value of z and
+    # Compute observable function: note that since the observable function is computed for a single value of z and
     # might have a different range in magnitudes with respect to the case of the hod section (independent
     # options), we decided to re-compute phi rather than interpolating on the previous one.
-    # At the moment, we assume the LF to be computed on the largest possible range of absolute magnitudes.
+    # At the moment, we assume the observable function is to be computed on the largest possible range 
+    # of absolute magnitudes.
     
     if save_observable and observable_mode == 'obs_zmed':
         #interpolate the hmf at the redshift where the luminosity function is evaluated
@@ -348,11 +355,12 @@ def execute(block, config):
         mass_dn_i, z_picked_i = np.meshgrid(mass_dn, z_picked)
         dn_dlnM_zmedian = f_mass_z_dn((mass_dn_i.T, z_picked_i.T)).T
     
+        # logspace values for the obervable values (e.g. stellar masses)
         obs_range = np.logspace(np.log10(obs_simps.min()), np.log10(obs_simps.max()), nobs)
     
         phi_c_lf = cf.cf_cen(obs_range[:,np.newaxis], mass, hod)
         phi_s_lf = cf.cf_sat(obs_range[:,np.newaxis], mass, hod)
-        phi_lf = phi_c_lf+phi_s_lf
+        phi_lf   = phi_c_lf+phi_s_lf
 
         obs_func = cf.obs_func(mass, phi_lf, dn_dlnM_zmedian)
             
@@ -372,10 +380,12 @@ def execute(block, config):
         
         #mr_obs = cf.convert_to_magnitudes(obs_range, abs_mag_sun)
 
-        #TODO: put this in a different section
-        block.put_double_array_1d(observable_section_name,'obs_med',obs_h)
+        # x value for the observable function (e.g. stellar masses)
+        block.put_double_array_1d(observable_section_name,'obs_val',obs_h)
         #block.put_double_array_1d('observable_function' + suffix,'obs_func_med',obs_func_h)
-        block.put_double_array_1d(observable_section_name,'obs_func_med',np.log(10.)*obs_func_h*obs_h)
+        # y*x value: the observable function (e.g. stellar mass function) times the observable value
+        block.put_double_array_1d(observable_section_name,'obs_func',np.log(10.)*obs_func_h*obs_h)
+        
 
         #Back to magnitudes
         # It doesn't mean anything if the observable is stellar mass!
@@ -387,7 +397,6 @@ def execute(block, config):
         #Characteristic luminosity of central galaxies
         obs_cen = cf.mor(mass, hod, norm_c)
 
-        #TODO: put this in a different section
         block.put_double_array_1d(observable_section_name,'halo_mass_med',mass)
         block.put_double_array_1d(observable_section_name,'obs_halo_mass_relation',obs_cen)
     
