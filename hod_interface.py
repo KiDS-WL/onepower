@@ -79,10 +79,10 @@ def setup(options):
     else:
 
         observables_z = False
-        obs_min = options[option_section, 'obs_min']
-        obs_max = options[option_section, 'obs_max']
-        zmin    = options[option_section, 'zmin']
-        zmax    = options[option_section, 'zmax']
+        obs_min = np.asarray([options[option_section, 'obs_min']]).flatten()
+        obs_max = np.asarray([options[option_section, 'obs_max']]).flatten()
+        zmin    = np.asarray([options[option_section, 'zmin']]).flatten()
+        zmax    = np.asarray([options[option_section, 'zmax']]).flatten()
         nz      = options[option_section, 'nz']
         
         # Check if the legth of obs_min, obs_max, zmin and zmax match.
@@ -125,8 +125,8 @@ def setup(options):
     # options are: "obs_z" or "obs_zmed" or "obs_onebin" depending if you want to calculate 
     # the observable function per each redshift or on the median one or per one big bin
     observable_mode   = options.get_string(option_section, 'observable_mode',"obs_z")
-    # TODO: Check if this is z_midian or if it is used in the other options
-    z_picked          = options.get_double(option_section, 'z_median',0.1)
+    # TODO: Check if this is z_median or if it is used in the other options
+    z_picked          = options.get_double(option_section, 'z_input',0.1)
 
 
     # per each redshift bin, the range of observables over which we can integrate the conditional function changes, 
@@ -347,7 +347,7 @@ def execute(block, config):
     # of absolute magnitudes.
     
     if save_observable and observable_mode == 'obs_zmed':
-        #interpolate the hmf at the redshift where the luminosity function is evaluated
+        #interpolate the hmf at the redshift where the observable function is evaluated
         #f_mass_z_dn = interp2d(mass_dn, z_bins, dndlnM)
         #dn_dlnM_zmedian = f_mass_z_dn(mass_dn, z_picked)
         

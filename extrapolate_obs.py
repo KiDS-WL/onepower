@@ -1,9 +1,8 @@
 """
-This module combines tomographic / stellar mass bins of the individually calculated C_ell
-Assumes that the C_ell calculated from corresponding galaxy-matter and galaxy-galaxy
-powerspectra are ordered according to the suffixes returned by the
-add_red_and_blue_power_spectra.py module
+This module combines tomographic / stellar mass bins of the individually calculated observables
 """
+
+# TODO: Add comment about the module. Variable names need to change to make it readable. 
 
 from cosmosis.datablock import names, option_section
 import numpy as np
@@ -13,14 +12,14 @@ from scipy.integrate import simps
 
 def load_and_extrapolate_obs(block, obs_section, suffix_in, x_ext, extrapolate_option):
 
-    x_obs = block[obs_section, 'obs_' + suffix_in]
-    if block.has_value(obs_section, 'z_bin_' + suffix_in):
-        z_obs = block[obs_section, 'z_bin_' + suffix_in]
-        obs_in = block[obs_section, 'obs_func_' + suffix_in]
+    x_obs = block[obs_section, 'obs_val' + suffix_in]
+    if block.has_value(obs_section, 'z_bin' + suffix_in):
+        z_obs = block[obs_section, 'z_bin' + suffix_in]
+        obs_in = block[obs_section, 'obs_func' + suffix_in]
         inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=1)
         obs_ext = inter_func(x_ext)
     else:
-        obs_in = block[obs_section, 'obs_func_' + suffix_in]
+        obs_in = block[obs_section, 'obs_func' + suffix_in]
         inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
         obs_ext = inter_func(x_ext)
         z_obs = None
@@ -38,28 +37,30 @@ def load_kernel(block, kernel_section, bin, z_ext, extrapolate_option):
 
 
 def setup(options):
-    #This function is called once per processor per chain.
-    #It is a chance to read any fixed options from the configuration file,
-    #load any data, or do any calculations that are fixed once.
 	
     config = {}
         
-    config['input_section_name'] = options.get_string(option_section, 'input_section_name')
-    config['output_section_name'] = options.get_string(option_section, 'output_section_name')
+    config['input_section_name']  = options.get_string(option_section, 'input_section_name',default='stellar_mass_function')
+    config['output_section_name'] = options.get_string(option_section, 'output_section_name', default='obs_out')
     
     if options.has_value(option_section, 'suffixes'):
-        config['suffixes'] = [str_val for str_val in str(options[option_section, 'suffixes']).split(',')]
-        config['nbins'] = len(config['suffixes'])
-        config['sample'] = options.get_string(option_section, 'sample')
+        config['suffixes'] = options[option_section, 'suffixes']
+        config['nbins']    = len(config['suffixes'])
+        config['sample']   = options.get_string(option_section, 'sample')
     else:
-        config['nbins'] = 1
-        config['sample'] = None
-        config['suffixes'] = ['med']
+        config['nbins']    = 1
+        config['sample']   = None
+        config['suffixes'] = ['']
         
-    config['obs_min'] = [np.float64(str_val) for str_val in str(options[option_section, 'obs_min']).split(',')]
-    config['obs_max'] = [np.float64(str_val) for str_val in str(options[option_section, 'obs_max']).split(',')]
-    config['n_obs'] = [int(str_val) for str_val in str(options[option_section, 'n_obs']).split(',')]
-    config['x_arr'] = []
+    config['obs_min'] = np.asarray([options[option_section, 'obs_min']]).flatten()
+    config['obs_max'] = np.asarray([options[option_section, 'obs_max']]).flatten()
+    config['n_obs']   = np.asarray([options[option_section, 'n_obs']]).flatten()
+
+    # Check if the legth of obs_min, obs_max, n_obs match
+    if not np.all(np.array([len(config['obs_min']), len(config['obs_max']), len(config['n_obs'])]) == len(config['suffixes'])):
+        raise Exception('Error: obs_min, obs_max, n_obs need to be of same length as the number of suffixes provided or equal to one.')
+
+    config['x_arr']   = []
     for i in range(config['nbins']):
         config['x_arr'].append(np.logspace(config['obs_min'][i], config['obs_max'][i], config['n_obs'][i]))
     
@@ -67,29 +68,29 @@ def setup(options):
 	
 
 def execute(block, config):
-    #This function is called every time you have a new sample of cosmological and other parameters.
-    #It is the main workhorse of the code. The block contains the parameters and results of any
-    #earlier modules, and the config is what we loaded earlier.
 	
-    input_section_name = config['input_section_name']
+    input_section_name  = config['input_section_name']
     output_section_name = config['output_section_name']
-    x_arr = config['x_arr']
+    x_arr    = config['x_arr']
     suffixes = config['suffixes']
-    
-    nbins = config['nbins']
+    nbins    = config['nbins']
+
+    # number of bins for the observable
     for i in range(nbins):
         z_obs, obs_ext = load_and_extrapolate_obs(block, input_section_name, suffixes[i], x_arr[i], 0.0)
-    
+    #                def load_and_extrapolate_obs(block, obs_section, suffix_in, x_ext, extrapolate_option):
+
         if z_obs is not None:
             # Load kernel if exists
+            print('in here')
             nz = load_kernel(block, config['sample'], i+1, z_obs, 0.0)
             # Integrate over n(z)
             obs_out = simps(nz[:,np.newaxis]*obs_ext, z_obs, axis=0)
         else:
             # Just use interpolated result at the median redshift for the output
             obs_out = obs_ext
-        block.put_double_array_1d(output_section_name, 'bin_{}'.format(i+1), obs_out)
-        block.put_double_array_1d(output_section_name, 'obs_{}'.format(i+1), x_arr[i])
+        block.put_double_array_1d(output_section_name, 'bin_'+str(i+1), obs_out)
+        block.put_double_array_1d(output_section_name, 'obs_'+str(i+1), x_arr[i])
     
     return 0
 
