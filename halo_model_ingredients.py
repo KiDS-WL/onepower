@@ -421,6 +421,7 @@ def execute(block, config):
     h_z = this_cosmo_run.H(z_vec).value/100.0
     block.put_double_array_1d(cosmo_params, 'h_z', h_z)
     block.put_double_array_1d(cosmo_params, 'fnu', f_nu)
+    block.put_double_array_1d(cosmo_params, 'z',z_vec)
 
     return 0
 
