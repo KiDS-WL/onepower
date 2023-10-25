@@ -145,7 +145,7 @@ def setup(options):
             obs_minz = log_obs_min[nb,jz]
             obs_maxz = log_obs_max[nb,jz]
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
-            print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
+            # print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
     
     return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name
 
@@ -242,7 +242,8 @@ def execute(block, config):
 
         # TODO: Is there a better way to do this?
         # Error happens here
-        print(n_sat)
+        print(n_sat.shape,z_bins[nb].shape,mass.shape)
+        exit()
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat'+str(nb+1), n_sat)
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_cen'+str(nb+1), n_cen)
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_tot'+str(nb+1), n_tot)
