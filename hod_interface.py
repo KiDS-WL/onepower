@@ -134,7 +134,13 @@ def setup(options):
             obs_minz = log_obs_min[nb,jz]
             obs_maxz = log_obs_max[nb,jz]
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
-            print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
+            # print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))\
+
+    print('')
+    print('')
+    print('z_bins.shape=',z_bins.shape)
+    print('')
+    print('')
     
     return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, observable_mode, suffix, suffix_params, observables_z
 
