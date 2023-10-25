@@ -26,4 +26,4 @@ zmax = 0.2 0.5
 Change the suffix names to be full names
 
 
-
+Combine hod outputs 

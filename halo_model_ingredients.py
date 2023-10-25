@@ -21,6 +21,7 @@ import time
 cosmo_params = names.cosmological_parameters
 
 # TODO: move all functions to another file maybe darkmatter_lib
+# TODO: concentration is saved into multiple folders. Check if these can be merged.
 
 def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
     # calculates concentration given halo mass, using the halomod model provided in config
