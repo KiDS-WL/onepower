@@ -121,14 +121,17 @@ def setup(options):
     #     'please, select the hod option too.')
 
     # TODO: check if these options make sense
-    save_observable   = options[option_section, 'save_observable']
+    save_observable   = options.get_bool(option_section, 'save_observable',True)
     # options are: "obs_z" or "obs_zmed" or "obs_onebin" depending if you want to calculate 
     # the observable function per each redshift or on the median one or per one big bin
-    observable_mode   = options[option_section, 'observable_mode']
-    z_picked          = options[option_section, 'z_median']
+    observable_mode   = options.get_string(option_section, 'observable_mode',"obs_z")
+    # TODO: Check if this is z_midian or if it is used in the other options
+    z_picked          = options.get_double(option_section, 'z_median',0.1)
 
-    # per each redshift bin, the range of observables over which we can integrate the conditional function changes, due to the
-    # flux lim of the survey. This means that per each redshift, we have a different observable values to be
+
+    # per each redshift bin, the range of observables over which we can integrate the conditional function changes, 
+    # due to the flux lim of the survey. 
+    # This means that per each redshift, we have a different observable values to be
     # employed in the log-simpson integration.
     # AD: For stellar masses it holds the same, but we can also employ this to construct more complex samples/bins. 
     # Can pick lower redshift limit for particulare stellar mass, etc...
@@ -220,8 +223,8 @@ def execute(block, config):
         # does not capture the passive evolution of galaxies, that has to be modelled in an independent way.
     
         # if hod_option:
-        n_sat = np.array([cf.compute_hod(obs_simps_z, phi_s_z) for obs_simps_z, phi_s_z in zip(obs_simps[nb], phi_s)])
-        n_cen = np.array([cf.compute_hod(obs_simps_z, phi_c_z) for obs_simps_z, phi_c_z in zip(obs_simps[nb], phi_c)])
+        n_sat  = np.array([cf.compute_hod(obs_simps_z, phi_s_z) for obs_simps_z, phi_s_z in zip(obs_simps[nb], phi_s)])
+        n_cen  = np.array([cf.compute_hod(obs_simps_z, phi_c_z) for obs_simps_z, phi_c_z in zip(obs_simps[nb], phi_c)])
         f_star = np.array([cf.compute_stellar_fraction(obs_simps_z, phi_z_i)/mass for obs_simps_z, phi_z_i in zip(obs_simps[nb], phi)])
 
         # TODO:check this
@@ -238,6 +241,8 @@ def execute(block, config):
         n_tot = n_cen + n_sat
 
         # TODO: Is there a better way to do this?
+        # Error happens here
+        print(n_sat)
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat'+str(nb+1), n_sat)
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_cen'+str(nb+1), n_cen)
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_tot'+str(nb+1), n_tot)
