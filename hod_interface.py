@@ -69,10 +69,10 @@ def setup(options):
         observables_z = True
         file_name     = options.get_string(option_section, 'observables_file')
         z_bins, obs_min, obs_max = load_data(file_name)
+        nz     = len(z_bins)
         log_obs_min = np.log10(obs_min)[np.newaxis,:]
         log_obs_max = np.log10(obs_max)[np.newaxis,:]
         z_bins = z_bins[np.newaxis,:]
-        nz     = len(z_bins)
         # number of bins in the observable, for example you might have divided your sample into 3 stellar mass bins
         # With a file input we are assuming that eveything is part of the same bin currently. 
         nbins  = 1
@@ -146,7 +146,7 @@ def setup(options):
             obs_maxz = log_obs_max[nb,jz]
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
             # print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
-    
+
     return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name
 
 
@@ -197,10 +197,10 @@ def execute(block, config):
     z_dn        = block['hmf','z']
     
     for nb in range(0,nbins):
-        # if nbins != 1:
-        #     suffix = suffix0 + '_{}'.format(nb+1)
-        # else:
-        #     suffix = suffix0
+        if nbins != 1:
+            suffix = str(nb+1)
+        else:
+            suffix = ''
             
         f_int_dndlnM = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
         mass_i, z_bins_i = np.meshgrid(mass, z_bins[nb], sparse=True)
@@ -241,13 +241,10 @@ def execute(block, config):
         n_tot = n_cen + n_sat
 
         # TODO: Is there a better way to do this?
-        # Error happens here
-        print(n_sat.shape,z_bins[nb].shape,mass.shape)
-        exit()
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat'+str(nb+1), n_sat)
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_cen'+str(nb+1), n_cen)
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_tot'+str(nb+1), n_tot)
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'f_star'+str(nb+1), f_star)
+        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat'+suffix, n_sat)
+        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_cen'+suffix, n_cen)
+        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_tot'+suffix, n_tot)
+        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'f_star'+suffix, f_star)
     
         numdens_cen = cf.compute_number_density(mass, n_cen, dndlnM)
         numdens_sat = cf.compute_number_density(mass, n_sat, dndlnM)
@@ -258,13 +255,12 @@ def execute(block, config):
         # compute average halo mass per bin
         mass_avg = cf.compute_avg_halo_mass(mass, n_cen, dndlnM)/numdens_cen
 
-        # save on datablock
-        block.put_double_array_1d(hod_section_name, 'number_density_cen'+str(nb+1), numdens_cen)
-        block.put_double_array_1d(hod_section_name, 'number_density_sat'+str(nb+1), numdens_sat)
-        block.put_double_array_1d(hod_section_name, 'number_density_tot'+str(nb+1), numdens_tot)
-        block.put_double_array_1d(hod_section_name, 'central_fraction'+str(nb+1), fraction_cen)
-        block.put_double_array_1d(hod_section_name, 'satellite_fraction'+str(nb+1), fraction_sat)
-        block.put_double_array_1d(hod_section_name, 'average_halo_mass'+str(nb+1), mass_avg)
+        block.put_double_array_1d(hod_section_name, 'number_density_cen'+suffix, numdens_cen)
+        block.put_double_array_1d(hod_section_name, 'number_density_sat'+suffix, numdens_sat)
+        block.put_double_array_1d(hod_section_name, 'number_density_tot'+suffix, numdens_tot)
+        block.put_double_array_1d(hod_section_name, 'central_fraction'+suffix, fraction_cen)
+        block.put_double_array_1d(hod_section_name, 'satellite_fraction'+suffix, fraction_sat)
+        block.put_double_array_1d(hod_section_name, 'average_halo_mass'+suffix, mass_avg)
         
         if galaxy_bias_option:
             #---- loading the halo bias function ----#
@@ -302,7 +298,7 @@ def execute(block, config):
                 obs_func_h[jz] = interp(obs_range_h)
                     
             #TODO: put this in a different section
-            block.put_grid(observable_section_name, 'z_bin_'+str(nb+1), z_bins[nb], 'obs_'+str(nb+1), obs_range_h, 'obs_func_'+str(nb+1), np.log(10.0)*obs_func_h*obs_range_h)
+            block.put_grid(observable_section_name, 'z_bin_'+str(nb+1), z_bins[nb], 'obs_'+suffix, obs_range_h, 'obs_func_'+suffix, np.log(10.0)*obs_func_h*obs_range_h)
             
             
     # Calculating the full stellar mass fraction and if desired the observable function for one bin case
