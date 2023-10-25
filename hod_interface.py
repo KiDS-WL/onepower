@@ -317,6 +317,7 @@ def execute(block, config):
     phi_s = cf.cf_sat(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod)
     phi = phi_c + phi_s
     
+    # TODO: What is this one for? There is already f_start for the bins.
     f_star = np.array([cf.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
     block.put_grid(hod_section_name, 'z', z_bins_one, 'mass', mass, 'f_star', f_star)
     

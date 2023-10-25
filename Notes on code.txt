@@ -22,8 +22,3 @@ Change the name of cf_lib.py
 
 zmin = 0.0 0.2 ;There is overlap in zmin and zmax will this be an issues
 zmax = 0.2 0.5
-
-Change the suffix names to be full names
-
-
-Combine hod outputs 
