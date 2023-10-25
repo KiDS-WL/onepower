@@ -19,6 +19,8 @@ def convert_to_magnitudes(L, abs_mag_sun):
 # ------------------------------------------#
 # 				HOD library					#
 #-------------------------------------------#
+
+# TODO change the names of some of these functions to make them more intuitive 
 def mor(mass, hod, norm) :
     # mor = mass - observable relation
     # (observable can be galaxy luminosity or stellar mass)

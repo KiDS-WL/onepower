@@ -20,6 +20,8 @@ import time
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
 
+# TODO: move all functions to another file maybe darkmatter_lib
+
 def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
     # calculates concentration given halo mass, using the halomod model provided in config
     # furthermore it converts to halomod instance to be used with the halomodel, 
@@ -169,6 +171,7 @@ def Dv_Mead(a, Om, f_nu, g, G):
     Dv0 = 18.0*np.pi**2.0  # Delta_v = ~178, EdS halo virial overdensity
     return Dv_Mead * Dv0 * (1.0 + 0.763*f_nu)
 
+# TODO:Move all the above functions into another file
 
 
 

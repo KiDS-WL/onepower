@@ -159,36 +159,34 @@ def setup(options):
 
 
 def execute(block, config):
-    #This function is called every time you have a new sample of cosmological and other parameters.
-    #It is the main workhorse of the code. The block contains the parameters and results of any 
-    #earlier modules, and the config is what we loaded earlier.
 
     obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, hod_option, galaxy_bias_option, observable_option, observable_mode, output_section_name, values_name, observables_z = config
 
-    #---- loading hod from the datablock ----#
-
-    # values_name = 'hod_parameters' + suffix_params
+    #---- loading hod value from the values.ini file ----#
     #centrals
-    norm_c   = block[values_name, 'norm_c']
-    log_ml_0 = block[values_name, 'log_ml_0']
-    log_ml_1 = block[values_name, 'log_ml_1']
-    g1       = block[values_name, 'g1']
-    g2       = block[values_name, 'g2']
-    scatter  = block[values_name, 'scatter']
+    norm_c   = block[values_name, 'norm_c'] # normalisation
+    log_ml_0 = block[values_name, 'log_ml_0'] #M_0
+    log_ml_1 = block[values_name, 'log_ml_1'] #M_1
+    g1       = block[values_name, 'g1'] # gamma_1
+    g2       = block[values_name, 'g2'] # gamma_2
+    scatter  = block[values_name, 'scatter'] # sigma_c
 
+    # TODO: check how this works
     if block.has_value(values_name, 'A_cen'):
         A_cen = block[values_name, 'A_cen']
     else:
         A_cen = None
 
     #satellites
-    norm_s   = block[values_name, 'norm_s']
-    pivot    = block[values_name, 'pivot']
-    alpha_s  = block[values_name, 'alpha_s']
-    b0 = block[values_name, 'b0']
+    norm_s   = block[values_name, 'norm_s'] # normalisation
+    alpha_s  = block[values_name, 'alpha_s'] # goes into the conditional stellar mass function Phi_sat(M*|M)
+    pivot    = block[values_name, 'pivot']  # pivot mass for the normalisation of the stellar mass function: ϕ∗s
+    # log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+    b0 = block[values_name, 'b0'] 
     b1 = block[values_name, 'b1']
     b2 = block[values_name, 'b2']
     
+    # TODO: check how this works
     if block.has_value(values_name, 'A_sat'):
         A_sat = block[values_name, 'A_sat']
     else:
@@ -200,7 +198,6 @@ def execute(block, config):
     block.put_bool(output_section_name, 'option', observables_z)
 
     #---- loading the halo mass function ----#
-
     dndlnM_grid = block['hmf','dndlnmh']
     mass_dn     = block['hmf','m_h']
     z_dn        = block['hmf','z']
