@@ -226,7 +226,9 @@ def execute(block, config):
                 n_sat = n_sat + delta_pop_s
     
             n_tot = n_cen + n_sat
-    
+            
+            print(n_sat.shape,z_bins[nb].shape,mass.shape)
+            exit()
             block.put_grid('hod' + suffix, 'z', z_bins[nb], 'mass', mass, 'n_sat', n_sat)
             block.put_grid('hod' + suffix, 'z', z_bins[nb], 'mass', mass, 'n_cen', n_cen)
             block.put_grid('hod' + suffix, 'z', z_bins[nb], 'mass', mass, 'n_tot', n_tot)
