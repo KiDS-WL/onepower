@@ -93,7 +93,8 @@ def setup(options):
         
         # Arrays using starting and end values of zmin and zmax 
         # TODO: Check if this is what we want
-        z_bins = np.array([np.linspace(zmin_i, zmax_i, nz, endpoint=True) for zmin_i, zmax_i in zip(zmin, zmax)])
+        z_bins = np.array([np.linspace(zmin_i, zmax_i, nz) for zmin_i, zmax_i in zip(zmin, zmax)])
+#       z_bins = np.array([np.linspace(zmin_i, zmax_i, nz, endpoint=True) for zmin_i, zmax_i in zip(zmin, zmax)])
         # This simply repeats the min and max values for the observables for all redshift bins
         log_obs_min = np.array([np.repeat(obs_min_i,nz) for obs_min_i in obs_min])
         log_obs_max = np.array([np.repeat(obs_max_i,nz) for obs_max_i in obs_max])
