@@ -277,7 +277,7 @@ def execute(block, config):
     
     downsample_factor = int(nz/nz_conc)
     z_conc = z_vec[::downsample_factor]
-    conc = np.empty_like(z_conc)
+    conc = np.empty([z_conc.size, nmass_hmf])
 
     if mead_correction:
         growth = get_growth_interpolator(this_cosmo_run)
