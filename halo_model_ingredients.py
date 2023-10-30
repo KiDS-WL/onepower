@@ -271,31 +271,30 @@ def execute(block, config):
     sigma8_z  = np.empty([nz])
     f_nu      = np.empty([nz])
     h_z       = np.empty([nz])
-    #conc      = np.empty([nz,nmass_hmf])
     mean_density0  = np.empty([nz])
     mean_density_z = np.empty([nz])
     overdensity_z  = np.empty([nz])
     
     downsample_factor = int(nz/nz_conc)
     z_conc = z_vec[::downsample_factor]
-    conc = np.empty([nz_conc,nmass_hmf])
+    conc = np.empty_like(z_conc)
 
     if mead_correction:
         growth = get_growth_interpolator(this_cosmo_run)
 
     # About 1.8 seconds for mf.update.About 7 seconds for concentration_colossus
 
-    # Loop over nz redshift bins
-    for jz in range(0,nz):
+    # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
+    for jz,z_iter in enumerate(z_vec):
         if mdef in ['SOVirial'] and mead_correction is None:
-            delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_vec[jz])))
+            delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter))
             # Update the cosmology for the halo mass function, this takes a little while the first time it is called
             # Then it is faster becayse it only updates the redshift and the corresponding delta_c
             mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z)
             overdensity_z[jz] = mf.halo_overdensity_mean
             mdef_conc = mdef
             # This is the slowest part currently
-            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_z[jz])
+            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_iter, model_cm, mdef, overdensity_z[jz])
         elif mead_correction is not None:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=UserWarning)
@@ -307,21 +306,21 @@ def execute(block, config):
                 # so that it is compared to the mean density of the Universe rather than critical density. 
                 # hmf warns us that the value is not a native definition for the given halo mass function, 
                 # but will interpolate between the known ones (this is happening when one uses Tinker hmf for instance). 
-                a = this_cosmo_run.scale_factor(z_vec[jz])
+                a = this_cosmo_run.scale_factor(z_iter)
                 g = growth(a)
                 G = get_accumulated_growth(a, growth)
-                delta_c_z = dc_Mead(a, this_cosmo_run.Om(z_vec[jz]), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
-                overdensity_z[jz] = 2*Dv_Mead(a, this_cosmo_run.Om(z_vec[jz]), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                delta_c_z = dc_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                overdensity_z[jz] = 2*Dv_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
                 mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
-                mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, mdef_model=mdef_mead)
-            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef_mead, overdensity_z[jz])
+                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, mdef_model=mdef_mead)
+            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_iter, model_cm, mdef_mead, overdensity_z[jz])
         else:
             overdensity_z[jz] = overdensity
             delta_c_z = delta_c
-            mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]})
+            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]})
             mdef_conc = mdef
-            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_vec[jz], model_cm, mdef, overdensity_z[jz])
+            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_iter, model_cm, mdef, overdensity_z[jz])
 
         #Peak height, mf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
         nu[jz]        = mf.nu**0.5
@@ -345,8 +344,8 @@ def execute(block, config):
     
     
     overdensity_conc = overdensity_z[::downsample_factor]
-    for jz in range(0,nz_conc):
-        conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_conc[jz], model_cm, mdef_conc, overdensity_conc[jz])
+    for i,z_iter in enumerate(z_conc):
+        conc[i,:] = concentration_colossus(block, this_cosmo_run, mass, z_iter, model_cm, mdef_conc, overdensity_conc[i])
     # Upsample concentration
     conc_func = interp1d(np.log10(z_conc+1.0), conc, axis=0, kind='cubic', fill_value='extrapolate', bounds_error=False)
     conc = conc_func(np.log10(z_vec+1.0))
