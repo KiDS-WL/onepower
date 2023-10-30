@@ -82,7 +82,7 @@ def setup(options):
         else:
             nbins = len(obs_min)
         
-        z_bins = np.array([np.linspace(zmin_i, zmax_i, nz, endpoint=True) for zmin_i, zmax_i in zip(zmin, zmax)])
+        z_bins = np.array([np.linspace(zmin_i, zmax_i, nz) for zmin_i, zmax_i in zip(zmin, zmax)])
         #z_bins_tmp = np.array([np.linspace(zmin_i, zmax_i, nz+1, endpoint=True) for zmin_i, zmax_i in zip(zmin, zmax)])
         #z_bins = np.array([(b[1:] + b[:-1])/2 for b in z_bins_tmp])
         log_obs_min = np.array([np.repeat(obs_min_i,nz) for obs_min_i in obs_min])
