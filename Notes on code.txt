@@ -1,0 +1,33 @@
+Notes on code: 
+
+hmf_and_hbf.py: This is now slower than CAMB.
+
+This section at the end of setup gives and error. Why is it written like this? 
+check_mead = options.has_value(option_section, 'use_mead2020_corrections')
+
+
+# This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
+    # z_vec is actually just a single z value. 
+    # Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
+    tic = time.perf_counter()
+    c, ms = colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model,
+            range_return=True, range_warning=False)
+    toc = time.perf_counter()
+    print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
+
+
+hod interface:
+
+Change the name of cf_lib.py
+
+zmin = 0.0 0.2 ;There is overlap in zmin and zmax will this be an issues
+zmax = 0.2 0.5
+
+
+Places where hod is read from the block:
+
+add_and_upsample.py
+
+pk_interface.py --> reads in hod_section_name
+
+extrapolate_obs suffixes and variable names.

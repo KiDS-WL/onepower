@@ -19,6 +19,8 @@ def convert_to_magnitudes(L, abs_mag_sun):
 # ------------------------------------------#
 # 				HOD library					#
 #-------------------------------------------#
+
+# TODO change the names of some of these functions to make them more intuitive 
 def mor(mass, hod, norm) :
     # mor = mass - observable relation
     # (observable can be galaxy luminosity or stellar mass)
@@ -28,7 +30,7 @@ def mor(mass, hod, norm) :
     mor = norm * (hod.ml_0*(mass/hod.ml_1)**hod.g_1)/(1.+(mass/hod.ml_1))**(hod.g_1-hod.g_2)
     return mor
 
-
+# TODO use a generic name for logM_12 as the pivot mass can take any value. 
 def phi_star(mass, hod):
     logM_12 = np.log10(mass) - hod.pivot
     log_phi_s = hod.b0 + hod.b1*logM_12 + hod.b2*(logM_12**2.)
