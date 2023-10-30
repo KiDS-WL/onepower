@@ -287,10 +287,10 @@ def execute(block, config):
     # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
     for jz,z_iter in enumerate(z_vec):
         if mdef in ['SOVirial'] and mead_correction is None:
-            delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter))
+            delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter)))
             # Update the cosmology for the halo mass function, this takes a little while the first time it is called
             # Then it is faster becayse it only updates the redshift and the corresponding delta_c
-            mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z)
+            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z)
             overdensity_z[jz] = mf.halo_overdensity_mean
             mdef_conc = mdef
         elif mead_correction is not None:
