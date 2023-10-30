@@ -293,8 +293,6 @@ def execute(block, config):
             mf.update(z=z_vec[jz], cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z)
             overdensity_z[jz] = mf.halo_overdensity_mean
             mdef_conc = mdef
-            # This is the slowest part currently
-            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_iter, model_cm, mdef, overdensity_z[jz])
         elif mead_correction is not None:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=UserWarning)
@@ -314,13 +312,12 @@ def execute(block, config):
                 mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
                 mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, mdef_model=mdef_mead)
-            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_iter, model_cm, mdef_mead, overdensity_z[jz])
         else:
             overdensity_z[jz] = overdensity
             delta_c_z = delta_c
             mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]})
             mdef_conc = mdef
-            #conc[jz,:] = concentration_colossus(block, this_cosmo_run, mass, z_iter, model_cm, mdef, overdensity_z[jz])
+    
 
         #Peak height, mf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
         nu[jz]        = mf.nu**0.5
