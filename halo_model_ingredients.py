@@ -276,7 +276,10 @@ def execute(block, config):
     overdensity_z  = np.empty([nz])
     
     downsample_factor = int(nz/nz_conc)
-    z_conc = z_vec[::downsample_factor]
+    if downsample_factor > 0 :
+        z_conc = z_vec[::downsample_factor]
+    else:
+        z_conc = z_vec
     conc = np.empty([z_conc.size, nmass_hmf])
 
     if mead_correction:
@@ -339,13 +342,20 @@ def execute(block, config):
         # Only used for mead_corrections
         sigma8_z[jz] = mf.normalised_filter.sigma(8.0)
     
+    downsample_factor = int(nz/nz_conc)
+    if downsample_factor > 0 :
+        overdensity_conc = overdensity_z[::downsample_factor]
+    else:
+        overdensity_conc = overdensity_z
     
-    overdensity_conc = overdensity_z[::downsample_factor]
     for i,z_iter in enumerate(z_conc):
         conc[i,:] = concentration_colossus(block, this_cosmo_run, mass, z_iter, model_cm, mdef_conc, overdensity_conc[i])
+   
     # Upsample concentration
-    conc_func = interp1d(np.log10(z_conc+1.0), conc, axis=0, kind='cubic', fill_value='extrapolate', bounds_error=False)
-    conc = conc_func(np.log10(z_vec+1.0))
+    if downsample_factor > 0 :
+        conc_func = interp1d(np.log10(z_conc+1.0), conc, axis=0, kind='cubic', fill_value='extrapolate', bounds_error=False)
+        conc = conc_func(np.log10(z_vec+1.0))
+    
     
     ###################################################################################################################
     # Halo Profile
