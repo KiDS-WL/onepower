@@ -28,6 +28,39 @@ Places where hod is read from the block:
 
 add_and_upsample.py
 
+First conflict:  File "/Users/masgari/Documents/CosmicShear/repos//halomodel_for_cosmosis/add_and_upsample.py", line 214, in execute
+    hod_bins_red = block['hod' + suffix0_red + '_metadata', 'nbins']
+                   ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+
 pk_interface.py --> reads in hod_section_name
 
 extrapolate_obs suffixes and variable names.
+
+Add default values for trans_1hto2h and poisson
+
+
+consistency took: 0.003 seconds
+camb took: 1.629 seconds
+extrapolate took: 0.033 seconds
+correlated_dz_priors took: 0.000 seconds
+load_nz_fits took: 0.000 seconds
+halo_model_ingredients took: 1.927 seconds
+hod_bright took: 0.027 seconds
+extrapolate_obs took: 0.000 seconds
+pk_red took: 0.004 seconds
+Total pipeline time: 3.62 seconds
+
+
+consistency took: 0.003 seconds
+camb took: 1.765 seconds
+extrapolate took: 0.034 seconds
+correlated_dz_priors took: 0.000 seconds
+load_nz_fits took: 0.000 seconds
+halo_model_ingredients took: 1.913 seconds
+hod_bright took: 0.031 seconds
+extrapolate_obs took: 0.000 seconds
+pk_red took: 0.004 seconds
+Total pipeline time: 3.75 seconds
+(No likelihoods required in ini file)

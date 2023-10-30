@@ -21,35 +21,44 @@ def convert_to_magnitudes(L, abs_mag_sun):
 #-------------------------------------------#
 
 # TODO change the names of some of these functions to make them more intuitive 
-def mor(mass, hod, norm) :
-    # mor = mass - observable relation
+# eqs 19 and 20 of D23: 2210.03110, M∗c(M) = M0(M/M1)^γ1 / [1 + (M/M1)]^(γ1−γ2) and M∗s(M) = 0.56 M∗c(M)
+# used to be mor
+def obs_star(mass, hod_par, norm) :
     # (observable can be galaxy luminosity or stellar mass)
     # returns the observable given halo mass. Assumed to be a double power law with characteristic
     # scale ml_1, normalisation ml_0 and slopes g_1 and g_2
     # We should generalise this (see GGL pipeline for ideas)
-    mor = norm * (hod.ml_0*(mass/hod.ml_1)**hod.g_1)/(1.+(mass/hod.ml_1))**(hod.g_1-hod.g_2)
+    mor = norm * hod_par.ml_0 * (mass/hod_par.ml_1)**hod_par.g_1/(1.+(mass/hod_par.ml_1))**(hod_par.g_1-hod_par.g_2)
     return mor
 
-# TODO use a generic name for logM_12 as the pivot mass can take any value. 
-def phi_star(mass, hod):
-    logM_12 = np.log10(mass) - hod.pivot
-    log_phi_s = hod.b0 + hod.b1*logM_12 + hod.b2*(logM_12**2.)
+# pivot mass used in eq 21 of D23: 2210.03110
+# using a bias expantion around the pivot mass
+# log[ϕ∗s(M)] = b0 + b1(log m13) ,m13 is logM_pivot, m13 = M/(hod_par.pivot M⊙ h−1), 
+def phi_star(mass, hod_par):
+    logM_pivot = np.log10(mass) - hod_par.pivot
+    log_phi_s = hod_par.b0 + hod_par.b1*logM_pivot + hod_par.b2*(logM_pivot**2.)
     return 10.**log_phi_s
-    
-    
-def cf_cen(obs, mass, hod):
+
+
+# eq 17 of D23: 2210.03110: Φc(M⋆|M) =1/[√(2π) ln(10) σ_c M⋆] exp[ -log(M⋆/M∗c)^2/ (2 σ_c^2) ]
+# used to be cf_cen
+def phi_cen(obs, mass, hod_par):
+    obs_c_star = obs_star(mass,hod_par,hod_par.norm_c)
+    phi_c = 1./(np.sqrt(2.*np.pi)* np.log(10)* hod_par.sigma_c*obs) * np.exp((-(np.log10(obs/obs_c_star))**2)/(2*hod_par.sigma_c**2.))
     # log10(e)/sqrt(2*pi) = 0.17325843097
-    # AD: keeping this approximation in, but considering to replace with the on the fly calculation
-    cf_c = np.log((0.17325843097/(hod.sigma_c))) +((-(np.log10(obs)-np.log10(mor(mass,hod,hod.norm_c)))**2.)/(2.*hod.sigma_c**2.)) - np.log(obs)
-    return np.exp(cf_c)
+    # cf_c = np.log((0.17325843097/(hod_par.sigma_c))) - np.log(obs) + ((-(np.log10(obs)-np.log10(obs_c_star))**2.)/(2.*hod_par.sigma_c**2.)) 
+    # return np.exp(cf_c)
+    return phi_c
 
-
-def cf_sat(obs, mass, hod):
-    obs_star = mor(mass, hod, hod.norm_s)
-    obs_tilde = obs/obs_star
-    phistar = phi_star(mass, hod)
-    cf_s = (phistar/obs_star)*(obs_tilde**(hod.alpha_star))*np.exp(-obs_tilde**2.)
-    return cf_s
+# eq 18 of D23: 2210.03110:
+# Φs(M⋆|M) =ϕ∗s/M∗s  (M⋆/M∗s)^α_s exp [−(M⋆/M∗s)^2], M*s is M∗s(M) = 0.56 M∗c(M) 
+# used to be cf_sat
+def phi_sat(obs, mass, hod_par):
+    obs_s_star = obs_star(mass, hod_par, hod_par.norm_s)
+    obs_tilde = obs/obs_s_star
+    phi_star_val = phi_star(mass, hod_par)
+    phi_s = (phi_star_val/obs_s_star)*(obs_tilde**(hod_par.alpha_star))*np.exp(-obs_tilde**2.)
+    return phi_s
 
 
 def obs_func(mass, phi_clf, dn_dlnM_normalised, axis=-1):

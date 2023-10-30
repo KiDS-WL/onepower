@@ -20,7 +20,7 @@
 
 from cosmosis.datablock import names, option_section
 import numpy as np
-import cf_lib as cf
+import hod_lib as hod
 from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
 
 cosmo = names.cosmological_parameters
@@ -186,7 +186,7 @@ def execute(block, config):
     else:
         A_sat = None
 
-    hod = HODpar(norm_c, 10.**log_ml_0, 10.**log_ml_1, g1, g2, scatter, norm_s, pivot, alpha_s, b0, b1, b2)
+    hod_par = HODpar(norm_c, 10.**log_ml_0, 10.**log_ml_1, g1, g2, scatter, norm_s, pivot, alpha_s, b0, b1, b2)
 
     block.put_int(hod_section_name, 'nbins', nbins)
     block.put_bool(hod_section_name, 'option', observables_z)
@@ -209,8 +209,8 @@ def execute(block, config):
         phi_c = np.empty([nz, nmass, nobs])
         phi_s = np.empty([nz, nmass, nobs])
         
-        phi_c = cf.cf_cen(obs_simps[nb,:,np.newaxis], mass[:,np.newaxis], hod)
-        phi_s = cf.cf_sat(obs_simps[nb,:,np.newaxis], mass[:,np.newaxis], hod)
+        phi_c = hod.phi_cen(obs_simps[nb,:,np.newaxis], mass[:,np.newaxis], hod_par)
+        phi_s = hod.phi_sat(obs_simps[nb,:,np.newaxis], mass[:,np.newaxis], hod_par)
         
         phi = phi_c + phi_s
 
@@ -223,9 +223,9 @@ def execute(block, config):
         # does not capture the passive evolution of galaxies, that has to be modelled in an independent way.
     
         # if hod_option:
-        n_sat  = np.array([cf.compute_hod(obs_simps_z, phi_s_z) for obs_simps_z, phi_s_z in zip(obs_simps[nb], phi_s)])
-        n_cen  = np.array([cf.compute_hod(obs_simps_z, phi_c_z) for obs_simps_z, phi_c_z in zip(obs_simps[nb], phi_c)])
-        f_star = np.array([cf.compute_stellar_fraction(obs_simps_z, phi_z_i)/mass for obs_simps_z, phi_z_i in zip(obs_simps[nb], phi)])
+        n_sat  = np.array([hod.compute_hod(obs_simps_z, phi_s_z) for obs_simps_z, phi_s_z in zip(obs_simps[nb], phi_s)])
+        n_cen  = np.array([hod.compute_hod(obs_simps_z, phi_c_z) for obs_simps_z, phi_c_z in zip(obs_simps[nb], phi_c)])
+        f_star = np.array([hod.compute_stellar_fraction(obs_simps_z, phi_z_i)/mass for obs_simps_z, phi_z_i in zip(obs_simps[nb], phi)])
 
         # TODO:check this
         # Assembly bias (using the decorated HOD formalism for concentration as a secondary parameter):
@@ -246,14 +246,14 @@ def execute(block, config):
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_tot'+suffix, n_tot)
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'f_star'+suffix, f_star)
     
-        numdens_cen = cf.compute_number_density(mass, n_cen, dndlnM)
-        numdens_sat = cf.compute_number_density(mass, n_sat, dndlnM)
+        numdens_cen = hod.compute_number_density(mass, n_cen, dndlnM)
+        numdens_sat = hod.compute_number_density(mass, n_sat, dndlnM)
 
         numdens_tot = numdens_cen + numdens_sat
         fraction_cen = numdens_cen/numdens_tot
         fraction_sat = numdens_sat/numdens_tot
         # compute average halo mass per bin
-        mass_avg = cf.compute_avg_halo_mass(mass, n_cen, dndlnM)/numdens_cen
+        mass_avg = hod.compute_avg_halo_mass(mass, n_cen, dndlnM)/numdens_cen
 
         block.put_double_array_1d(hod_section_name, 'number_density_cen'+suffix, numdens_cen)
         block.put_double_array_1d(hod_section_name, 'number_density_sat'+suffix, numdens_sat)
@@ -273,9 +273,9 @@ def execute(block, config):
             mass_i, z_bins_i  = np.meshgrid(mass, z_bins[nb], sparse=True)
             hbias = f_interp_halobias((mass_i.T,z_bins_i.T)).T
 
-            galaxybias_cen = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_cen, hbias, dndlnM)/numdens_tot
-            galaxybias_sat = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_sat, hbias, dndlnM)/numdens_tot
-            galaxybias_tot = cf.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
+            galaxybias_cen = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_cen, hbias, dndlnM)/numdens_tot
+            galaxybias_sat = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_sat, hbias, dndlnM)/numdens_tot
+            galaxybias_tot = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
             
             # TODO:Put these into a different section
             # block.put_double_array_1d('galaxy_bias' + suffix, 'galaxy_bias_centrals', galaxybias_cen)
@@ -290,7 +290,7 @@ def execute(block, config):
             obs_range_h = np.logspace(np.log10(obs_simps[nb].min()),np.log10(obs_simps[nb].max()), nl_obs)
             obs_func_h = np.empty([nz,nl_obs])
                 
-            obs_func_tmp = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dndlnM[:,:,np.newaxis], axis=-2)
+            obs_func_tmp = hod.obs_func(mass[np.newaxis,:,np.newaxis], phi, dndlnM[:,:,np.newaxis], axis=-2)
     
             # interpolate in L_obs to have a consistent grid
             for jz in range(0,nz):
@@ -316,8 +316,8 @@ def execute(block, config):
         obs_range_h[jz] = np.logspace(np.log10(obs_simps.min()),np.log10(obs_simps.max()), nl_obs)
     obs_func_h = np.empty([nl_z,nl_obs])
         
-    phi_c = cf.cf_cen(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod)
-    phi_s = cf.cf_sat(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod)
+    phi_c = hod.phi_cen(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod_par)
+    phi_s = hod.phi_sat(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod_par)
     phi = phi_c + phi_s
     
     # TODO: What is this one for? There is already f_start for the bins.
@@ -326,11 +326,11 @@ def execute(block, config):
     # so for baryonic feedback in cosmic shear and thus needs to be calculated for a wide range of halo masses, 
     # unlike the other f_star which are for each stellar mass bin. I would keep the metadata block here 
     # to save all the parameters not directly connected with "per bin" HODs and corresponding products.
-    f_star = np.array([cf.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
+    f_star = np.array([hod.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
     block.put_grid(hod_section_name, 'z_extended', z_bins_one, 'mass_extended', mass, 'f_star_extended', f_star)
     
     if save_observable and observable_mode == 'obs_onebin':
-        obs_func_h = cf.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
+        obs_func_h = hod.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
 
         #TODO: put this in a different section
         block.put_grid(observable_section_name, 'z_bin_'+str(nb+1), z_bins_one, 'obs_val_'+str(nb+1), obs_range_h[0], 'obs_func_'+str(nb+1),np.log(10.0)*obs_func_h*obs_range_h[0])
@@ -358,11 +358,11 @@ def execute(block, config):
         # logspace values for the obervable values (e.g. stellar masses)
         obs_range = np.logspace(np.log10(obs_simps.min()), np.log10(obs_simps.max()), nobs)
     
-        phi_c_lf = cf.cf_cen(obs_range[:,np.newaxis], mass, hod)
-        phi_s_lf = cf.cf_sat(obs_range[:,np.newaxis], mass, hod)
+        phi_c_lf = hod.phi_cen(obs_range[:,np.newaxis], mass, hod_par)
+        phi_s_lf = hod.phi_sat(obs_range[:,np.newaxis], mass, hod_par)
         phi_lf   = phi_c_lf+phi_s_lf
 
-        obs_func = cf.obs_func(mass, phi_lf, dn_dlnM_zmedian)
+        obs_func = hod.obs_func(mass, phi_lf, dn_dlnM_zmedian)
             
         # AD: CHECK THE h HERE!
         # AD: Should be without as the h is carried through in the first place!
@@ -378,7 +378,7 @@ def execute(block, config):
         obs_h = obs_range#/(h**2.) #note that the _h subscript avoids mixing h conventions while computing the clf_quantities
         obs_func_h = obs_func#*(h**5.)
         
-        #mr_obs = cf.convert_to_magnitudes(obs_range, abs_mag_sun)
+        #mr_obs = hod.convert_to_magnitudes(obs_range, abs_mag_sun)
 
         # x value for the observable function (e.g. stellar masses)
         block.put_double_array_1d(observable_section_name,'obs_val',obs_h)
@@ -395,7 +395,7 @@ def execute(block, config):
         #block.put_double_array_1d('observable_function' + suffix0,'obs_mr_med',Lf_in_mags)
 
         #Characteristic luminosity of central galaxies
-        obs_cen = cf.mor(mass, hod, norm_c)
+        obs_cen = hod.obs_star(mass, hod_par, norm_c)
 
         block.put_double_array_1d(observable_section_name,'halo_mass_med',mass)
         block.put_double_array_1d(observable_section_name,'obs_halo_mass_relation',obs_cen)
