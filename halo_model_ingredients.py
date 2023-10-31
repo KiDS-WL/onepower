@@ -329,6 +329,8 @@ def execute(block, config):
 
         #Peak height, mf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
         nu[jz]        = mf.nu**0.5
+        # The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
+        # dn(m)/ dln m eq1 of 1306.6721
         dndlnmh[jz]   = mf.dndlnm
         mean_density0[jz]  = mf.mean_density0
         mean_density_z[jz] = mf.mean_density
