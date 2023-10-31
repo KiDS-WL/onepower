@@ -28,11 +28,11 @@ cosmo = names.cosmological_parameters
 #--------------------------------------------------------------------------------#	
 
 class HODpar :
-    def __init__(self, norm_c, ml_0, ml_1, g1, g2, sigma_c, norm_s, pivot, alpha_star, b0, b1, b2):
+    def __init__(self, norm_c, Obs_0, m_1, g1, g2, sigma_c, norm_s, pivot, alpha_star, b0, b1, b2):
         #centrals
         self.norm_c = norm_c
-        self.ml_1 = ml_1
-        self.ml_0 = ml_0
+        self.m_1 = m_1
+        self.Obs_0 = Obs_0
         self.g_1 = g1
         self.g_2 = g2
         self.sigma_c = sigma_c
@@ -160,8 +160,8 @@ def execute(block, config):
     #---- loading hod value from the values.ini file ----#
     #centrals
     norm_c   = block[values_name, 'norm_c'] # normalisation
-    log_ml_0 = block[values_name, 'log_ml_0'] #M_0
-    log_ml_1 = block[values_name, 'log_ml_1'] #M_1
+    log_ml_0 = block[values_name, 'log_obs_0'] #O_0
+    log_ml_1 = block[values_name, 'log_m_1'] #M_1
     g1       = block[values_name, 'g1'] # gamma_1
     g2       = block[values_name, 'g2'] # gamma_2
     scatter  = block[values_name, 'scatter'] # sigma_c
