@@ -80,7 +80,7 @@ def obs_star(mass, hod_par, norm) :
     # (observable can be galaxy luminosity or stellar mass)
     # returns the observable given halo mass. Assumed to be a double power law with characteristic
     # scale m_1, normalisation m_0 and slopes g_1 and g_2
-    obs_star = norm * hod_par.O_0 * (mass/hod_par.m_1)**hod_par.g_1/(1.+(mass/hod_par.m_1))**(hod_par.g_1-hod_par.g_2)
+    obs_star = norm * hod_par.Obs_0 * (mass/hod_par.m_1)**hod_par.g_1/(1.+(mass/hod_par.m_1))**(hod_par.g_1-hod_par.g_2)
     return obs_star
 
 

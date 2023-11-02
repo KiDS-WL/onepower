@@ -65,7 +65,6 @@ def setup(options):
     # TODO: Check units of h
     # if file name is given then use it otherwise use values in the ini file # in units of L_sun/h2
     if options.has_value(option_section, 'observables_file'):
-
         observables_z = True
         file_name     = options.get_string(option_section, 'observables_file')
         z_bins, obs_min, obs_max = load_data(file_name)
@@ -77,7 +76,6 @@ def setup(options):
         # With a file input we are assuming that eveything is part of the same bin currently. 
         nbins  = 1
     else:
-
         observables_z = False
         obs_min = np.asarray([options[option_section, 'obs_min']]).flatten()
         obs_max = np.asarray([options[option_section, 'obs_max']]).flatten()
