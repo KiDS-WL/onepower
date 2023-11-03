@@ -213,7 +213,7 @@ def setup(options):
     p_gI_mc = options.get_bool(option_section, 'p_gI_mc',default=False)
     p_mI_mc = options.get_bool(option_section, 'p_mI_mc',default=False)
     p_II_mc = options.get_bool(option_section, 'p_II_mc',default=False)
-    bnl = options.get_bool(option_section, 'bnl',default=False)
+    bnl = options.get_bool(option_section, 'bnl', default=False)
     #interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl',default=False)
     check_mead = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
     poisson_type = options.get_string(option_section, 'poisson_type',default='')
