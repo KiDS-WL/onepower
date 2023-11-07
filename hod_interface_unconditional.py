@@ -117,8 +117,6 @@ def execute(block, config):
             n_cen.append(n_cen_1z)
             n_sat.append(n_sat_1z)
         
-
-
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat'+suffix, np.asarray(n_sat))
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_cen'+suffix, np.asarray(n_cen))
         block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_tot'+suffix, np.asarray(n_sat)+np.asarray(n_cen))

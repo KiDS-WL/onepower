@@ -22,6 +22,9 @@ zmin = 0.0 0.2 ;There is overlap in zmin and zmax will this be an issues
 zmax = 0.2 0.5
 
 
+HOD interface creates the exact same HOD for different z-bins. Why do we make copies of it? 
+block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat'+suffix, n_sat)
+
 Places where hod is read from the block:
 
 add_and_upsample.py
@@ -38,26 +41,4 @@ extrapolate_obs suffixes and variable names.
 Add default values for trans_1hto2h and poisson
 
 
-consistency took: 0.003 seconds
-camb took: 1.629 seconds
-extrapolate took: 0.033 seconds
-correlated_dz_priors took: 0.000 seconds
-load_nz_fits took: 0.000 seconds
-halo_model_ingredients took: 1.927 seconds
-hod_bright took: 0.027 seconds
-extrapolate_obs took: 0.000 seconds
-pk_red took: 0.004 seconds
-Total pipeline time: 3.62 seconds
-
-
-consistency took: 0.003 seconds
-camb took: 1.765 seconds
-extrapolate took: 0.034 seconds
-correlated_dz_priors took: 0.000 seconds
-load_nz_fits took: 0.000 seconds
-halo_model_ingredients took: 1.913 seconds
-hod_bright took: 0.031 seconds
-extrapolate_obs took: 0.000 seconds
-pk_red took: 0.004 seconds
-Total pipeline time: 3.75 seconds
-(No likelihoods required in ini file)
+Where are the outputs of extrapolate _obs used?
