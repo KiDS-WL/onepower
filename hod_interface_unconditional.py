@@ -49,7 +49,7 @@ def setup(options):
     z_bins = np.array([np.linspace(zmin_i, zmax_i, nz) for zmin_i, zmax_i in zip(zmin, zmax)])
 
     # Minimum and maximum halo masses in log10 space
-    # TODO: what are the units? 
+    # log-spaced mass in units of M_sun/h
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
     # number of halo mass bins

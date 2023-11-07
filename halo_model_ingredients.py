@@ -178,7 +178,8 @@ def Dv_Mead(a, Om, f_nu, g, G):
 
 def setup(options):
 
-    # Read in from hmf_and_hbf section of the ini file
+    # Read in from the halo_model_ingredients section of the ini file
+    # log-spaced mass in units of M_sun/h
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
     nmass        = options[option_section, 'nmass']
