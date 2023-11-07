@@ -34,16 +34,19 @@ def setup(options):
     # galaxy_bias_section_name = options.get_string(option_section, 'galaxy_bias_section_name','galaxy_bias').lower()
     # galaxy_bias_option = options[option_section, 'do_galaxy_linear_bias']
 
-    # zmin    = np.asarray([options[option_section, 'zmin']]).flatten()
-    # zmax    = np.asarray([options[option_section, 'zmax']]).flatten()
-    # nz      = options[option_section, 'nz']
+    zmin    = np.asarray([options[option_section, 'zmin']]).flatten()
+    zmax    = np.asarray([options[option_section, 'zmax']]).flatten()
+    nz      = options[option_section, 'nz']
     
     # Check if the legth of obs_min, obs_max, zmin and zmax match.
-    # if not np.all(np.array([len(zmin), len(zmax)]) == len(obs_min)):
-    #     raise Exception('Error:  zmin and zmax need to be of same length.')
+    if not (len(zmin) ==  len(zmax)):
+        raise Exception('Error:  zmin and zmax need to be of same length.')
+    else:
+        nbins = len(zmin)
     
     # Arrays using starting and end values of zmin and zmax 
-    # z_bins = np.array([np.linspace(zmin_i, zmax_i, nz) for zmin_i, zmax_i in zip(zmin, zmax)])
+    # TODO: currently doesn't have an effect on the HOD but kept here because of the dimentions needed in other parts of the code
+    z_bins = np.array([np.linspace(zmin_i, zmax_i, nz) for zmin_i, zmax_i in zip(zmin, zmax)])
 
     # Minimum and maximum halo masses in log10 space
     # TODO: what are the units? 
@@ -56,14 +59,14 @@ def setup(options):
     dlog10m = (log_mass_max-log_mass_min)/nmass
     mass    = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
-    return hod_section_name,values_name,hod_type,mass
+    return hod_section_name,values_name,hod_type,mass, z_bins, nbins
 
 
 
 
 def execute(block, config):
 
-    hod_section_name,values_name,hod_type,mass= config
+    hod_section_name,values_name,hod_type,mass, z_bins, nbins= config
 
     #---- loading hod value from the values.ini file ----#
     # check the parameter names in the hod section
@@ -93,11 +96,7 @@ def execute(block, config):
 
     # print(HOD)
     # print(hod_type)
-    n_cen, n_sat = halo.HOD_mean(mass, method=name, **HOD)
-    n_tot = n_cen + n_sat
-    # print(Nc)
-    # print(Ns)
-
+    n_cen_1z, n_sat_1z = halo.HOD_mean(mass, method=name, **HOD)
 # 
     block.put_int(hod_section_name, 'nbins', nbins)
 
@@ -107,33 +106,43 @@ def execute(block, config):
     z_dn        = block['hmf','z']
     
 
-    # for nb in range(0,nbins):
-    #     if nbins != 1:
-    #         suffix = str(nb+1)
-    #     else:
-    #         suffix = ''
-    # TODO: Check if n_sat and n_cen are the same as Nc and Ns
-    block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat', n_sat)
-    block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_cen', n_cen)
-    block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_tot', n_tot)
-    # block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'f_star', f_star)
+    for nb in range(0,nbins):
+        if nbins != 1:
+            suffix = str(nb+1)
+        else:
+            suffix = ''
+        n_sat =[]
+        n_cen =[]
+        for iz in range(len(z_bins[nb])):
+            n_cen.append(n_cen_1z)
+            n_sat.append(n_sat_1z)
+        
 
-    # What is this then?
-    numdens_cen = hod.compute_number_density(mass, n_cen, dndlnM)
-    numdens_sat = hod.compute_number_density(mass, n_sat, dndlnM)
 
-    numdens_tot = numdens_cen + numdens_sat
-    fraction_cen = numdens_cen/numdens_tot
-    fraction_sat = numdens_sat/numdens_tot
-    # compute average halo mass per bin
-    mass_avg = hod.compute_avg_halo_mass(mass, n_cen, dndlnM)/numdens_cen
+        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat'+suffix, np.asarray(n_sat))
+        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_cen'+suffix, np.asarray(n_cen))
+        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_tot'+suffix, np.asarray(n_sat)+np.asarray(n_cen))
 
-    block.put_double_array_1d(hod_section_name, 'number_density_cen'+suffix, numdens_cen)
-    block.put_double_array_1d(hod_section_name, 'number_density_sat'+suffix, numdens_sat)
-    block.put_double_array_1d(hod_section_name, 'number_density_tot'+suffix, numdens_tot)
-    block.put_double_array_1d(hod_section_name, 'central_fraction'+suffix, fraction_cen)
-    block.put_double_array_1d(hod_section_name, 'satellite_fraction'+suffix, fraction_sat)
-    block.put_double_array_1d(hod_section_name, 'average_halo_mass'+suffix, mass_avg)
+        # set interpolator for the halo mass function
+        f_int_dndlnM = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
+        mass_i, z_bins_i = np.meshgrid(mass, z_bins[nb], sparse=True)
+        dndlnM = f_int_dndlnM((mass_i.T, z_bins_i.T)).T
+        # Nx = int ⟨Nx|M⟩ n(M) dM
+        numdens_cen = hod.compute_number_density(mass, n_cen, dndlnM)
+        numdens_sat = hod.compute_number_density(mass, n_sat, dndlnM)
+
+        numdens_tot  = numdens_cen + numdens_sat
+        fraction_cen = numdens_cen/numdens_tot
+        fraction_sat = numdens_sat/numdens_tot
+        # compute average halo mass per bin
+        mass_avg = hod.compute_avg_halo_mass(mass, n_cen, dndlnM)/numdens_cen
+
+        block.put_double_array_1d(hod_section_name, 'number_density_cen'+suffix, numdens_cen)
+        block.put_double_array_1d(hod_section_name, 'number_density_sat'+suffix, numdens_sat)
+        block.put_double_array_1d(hod_section_name, 'number_density_tot'+suffix, numdens_tot)
+        block.put_double_array_1d(hod_section_name, 'central_fraction'+suffix, fraction_cen)
+        block.put_double_array_1d(hod_section_name, 'satellite_fraction'+suffix, fraction_sat)
+        block.put_double_array_1d(hod_section_name, 'average_halo_mass'+suffix, mass_avg)
         
         # if galaxy_bias_option:
         #     #---- loading the halo bias function ----#

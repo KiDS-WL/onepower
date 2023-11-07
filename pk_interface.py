@@ -425,6 +425,7 @@ def execute(block, config):
             
                 if galaxy == True:
                     # preparing the 1h term
+                    # TODO: check if Nsat and Ncen need to be in a grid with respect to z
                     c_factor = pk_lib.prepare_central_factor_grid(Ncen, numdencen, f_cen)
                     s_factor = pk_lib.prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_sat)
                     # preparing the 2h term

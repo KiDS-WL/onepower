@@ -18,8 +18,6 @@ check_mead = options.has_value(option_section, 'use_mead2020_corrections')
 
 hod interface:
 
-Change the name of cf_lib.py
-
 zmin = 0.0 0.2 ;There is overlap in zmin and zmax will this be an issues
 zmax = 0.2 0.5
 
@@ -31,7 +29,6 @@ add_and_upsample.py
 First conflict:  File "/Users/masgari/Documents/CosmicShear/repos//halomodel_for_cosmosis/add_and_upsample.py", line 214, in execute
     hod_bins_red = block['hod' + suffix0_red + '_metadata', 'nbins']
                    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 
 
 pk_interface.py --> reads in hod_section_name
