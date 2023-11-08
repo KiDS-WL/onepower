@@ -1,4 +1,41 @@
-# A new power spectrum module
+"""
+Calculates 3D power spectra using the halo model approach: 
+See section 2 of https://arxiv.org/pdf/2303.08752.pdf for details
+
+P_uv = P^2h_uv + P^1h_uv  (1)
+
+P^1h_uv (k) = int_0^infty dM Wu(M, k) Wv(M, k) n(M)  (2)
+
+P^2h_uv (k) = int_0^infty int_0^infty dM1 dM2 Phh(M1, M2, k) Wu(M1, k) Wv(M2, k) n(M1) n(M2)  (3)
+
+Wx are the profile of the fields, u and v, showing how they fit into haloes. 
+n(M) is the halo mass function, quantifying the number of haloes of each mass, M.
+Integrals are taking over halo mass. 
+
+The halo-halo power spectrum can be written as,
+
+Phh(M1,M2,k) = b(M1) b(M2) P^lin_mm(k) (1 + beta_nl(M1,M2,k)) (4)
+
+In the vanilla halo model the 2-halo term is usually simplified by assuming that haloes are linearly biased with respect to matter.
+This sets beta_nl to zero and effectively decouples the integrals in (3). Here we allow for both options to be calculated. 
+If you want the option with beta_nl the beta_nl modules has to be run before this module. 
+
+We truncate the 1-halo term so that it doesn't dominate at large scales.
+
+Linear matter power spectrum needs to be provided as well. The halo_model_ingredients and hod modules (for everything but mm) 
+need to be run before this. 
+
+Current power spectra that we predict are 
+mm: matter-matter
+gg: galaxy-galaxy
+gm: galaxy-matter
+
+II: intrinsic-intrinsic alignments
+gI: galaxy-intrinsic alignment
+mI: matter-intrinsic alignment
+"""
+
+# TODO: extend this so that it can accept any profile.
 
 # NOTE: no truncation (halo exclusion problem) applied!
 
@@ -48,26 +85,26 @@ cosmo = names.cosmological_parameters
 def setup(options):
 
     # Read in the minimum and maximum halo mass
-    # These are the same as the values that go into the halo model ingredients and the HOD sections
-    # TODO: what happens if they are not the same? Set default values?
+    # These are the same as the values that go into the halo model ingredients and the HOD sections, but they don't have to be.
+    # Interpolation is done if the mass binning and range doesn't match
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
     nmass = options[option_section, 'nmass']
     # log-spaced mass in units of M_sun/h
     dlog10m = (log_mass_max-log_mass_min)/nmass
-    mass = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
+    mass    = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
     #nmass_bnl = options[option_section, 'nmass_bnl']
     #mass_bnl = np.logspace(log_mass_min, log_mass_max, nmass_bnl) 
 
-    zmin = options[option_section, 'zmin']
-    zmax = options[option_section, 'zmax']
-    nz   = options[option_section, 'nz']
+    zmin  = options[option_section, 'zmin']
+    zmax  = options[option_section, 'zmax']
+    nz    = options[option_section, 'nz']
     z_vec = np.linspace(zmin, zmax, nz)
 
     nk = options[option_section, 'nk']
 
-    p_mm = options.get_bool(option_section, 'p_mm', default=False)
+    p_mm = options.get_bool(option_section, 'p_mm',default=False)
     p_gg = options.get_bool(option_section, 'p_gg',default=False)
     p_gm = options.get_bool(option_section, 'p_gm',default=False)
     p_gI = options.get_bool(option_section, 'p_gI',default=False)
@@ -77,14 +114,20 @@ def setup(options):
     p_gI_mc = options.get_bool(option_section, 'p_gI_mc',default=False)
     p_mI_mc = options.get_bool(option_section, 'p_mI_mc',default=False)
     p_II_mc = options.get_bool(option_section, 'p_II_mc',default=False)
-    bnl = options.get_bool(option_section, 'bnl',default=False)
+    # If True uses beta_nl
+    bnl     = options.get_bool(option_section, 'bnl',default=False)
     #interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl',default=False)
-    check_mead = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
-    poisson_type = options.get_string(option_section, 'poisson_type',default='')
-    point_mass = options.get_bool(option_section, 'point_mass',default=False)
+
+    # TODO: change this: generally not good practice to look into a difference section other than option_section.
+    # As names can change in the ini file.
+    check_mead    = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
+
+    poisson_type  = options.get_string(option_section, 'poisson_type',default='')
+    point_mass    = options.get_bool(option_section, 'point_mass',default=False)
     two_halo_only = options[option_section, 'two_halo_only']
 
     # initiate pipeline parameters
+    # TODO: Check what each of these does
     ia_lum_dep_centrals = False
     ia_lum_dep_satellites = False
     gravitational = False
@@ -95,16 +138,17 @@ def setup(options):
 
     # change to raise
     if (p_mI == True) and (p_mI_mc == True):
-        print('Select either p_mI = True or p_mI_mc = True, both compute the matter-intrinsic power spectrum. p_mI_mc is the implementation used in Fortuna et al. 2021 paper.')
-        sys.exit()
+        raise Exception('Select either p_mI = True or p_mI_mc = True, both compute the matter-intrinsic power spectrum. p_mI_mc is the implementation used in Fortuna et al. 2021 paper.')
+        # print('Select either p_mI = True or p_mI_mc = True, both compute the matter-intrinsic power spectrum. p_mI_mc is the implementation used in Fortuna et al. 2021 paper.')
+        # sys.exit()
         
     if (p_II == True) and (p_II_mc == True):
-        print('Select either p_II = True or p_II_mc = True, all compute the matter-intrinsic power spectrum. p_II_mc is the implementation used in Fortuna et al. 2021 paper.')
-        sys.exit()
+        raise Exception('Select either p_II = True or p_II_mc = True, all compute the matter-intrinsic power spectrum. p_II_mc is the implementation used in Fortuna et al. 2021 paper.')
+
         
     if (p_gI == True) and (p_gI_mc == True):
-        print('Select either p_gI = True or p_gI_mc = True, all compute the matter-intrinsic power spectrum. p_gI_mc i is the implementation used in Fortuna et al. 2020 paper.')
-        sys.exit()
+        raise Exception('Select either p_gI = True or p_gI_mc = True, all compute the matter-intrinsic power spectrum. p_gI_mc i is the implementation used in Fortuna et al. 2020 paper.')
+
 
 
     # TODO: what does the two halo only do? Do we need this?
@@ -123,7 +167,8 @@ def setup(options):
         suffix0 = '_' + name
     else:
         suffix0 = ''
-        
+    
+    # TODO: this has to be changed see comment above about check_mead
     if check_mead:
         use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
         if use_mead == 'mead2020':
@@ -149,7 +194,7 @@ def execute(block, config):
     mass, nmass, z_vec, nz, nk, p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_mc, p_mI_mc, p_II_mc, gravitational, galaxy, bnl, alignment, \
     ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, hod_section_name0, suffix0, mead_correction, point_mass, poisson_type = config
 
-
+    # TODO: This has the same length as nz but the same value in each element
     mean_density0 = block['density', 'mean_density0']
     
 
@@ -199,15 +244,15 @@ def execute(block, config):
     # load the halo mass and bias functions from the datablock
     dn_dlnm, b_dm = pk_lib.get_halo_functions(block, mass, z_vec)
     # prepare a grid for the navarro-frenk-white profile
-    u_dm, u_sat = pk_lib.compute_u_dm_grid(block, k_vec, mass, z_vec)
+    u_dm, u_sat  = pk_lib.compute_u_dm_grid(block, k_vec, mass, z_vec)
     
 
     if two_halo_only == True:
         # preparing the integrals:
         if gravitational == True:
-            A_term = pk_lib.prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0)
+            A_term   = pk_lib.prepare_A_term(mass, u_dm, b_dm, dn_dlnm, mean_density0)
             I_m_term = pk_lib.prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
-            m_factor = pk_lib.prepare_matter_factor_grid(mass, mean_density0, u_dm)
+            m_factor = pk_lib.matter_profile(mass, mean_density0, u_dm)
         if (galaxy == True) or (alignment == True):
             hod_bins = block[hod_section_name0 + '_metadata', 'nbins']
             for nb in range(0,hod_bins):
@@ -260,12 +305,12 @@ def execute(block, config):
         if gravitational == True:
             # the matter integral and factor
             I_m_term = pk_lib.prepare_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
-            m_factor = pk_lib.prepare_matter_factor_grid(mass, mean_density0, u_dm, block)
+            m_factor = pk_lib.matter_profile(mass, mean_density0, u_dm, block)
             if mead_correction == 'feedback':
-                m_factor_1h_mm = pk_lib.prepare_matter_factor_grid_baryon(mass, mean_density0, u_dm, z_vec, block)
+                m_factor_1h_mm = pk_lib.matter_profile_baryon(mass, mean_density0, u_dm, z_vec, block)
             elif mead_correction == 'fit':
                 fstar = load_fstar_mm(block, hod_section_name0 + '_metadata', z_vec, mass)
-                m_factor_1h_mm = pk_lib.prepare_matter_factor_grid_baryon_fit(mass, mean_density0, u_dm, z_vec, fstar, block)
+                m_factor_1h_mm = pk_lib.matter_profile_baryon_fit(mass, mean_density0, u_dm, z_vec, fstar, block)
             else:
                 m_factor_1h_mm = m_factor.copy()
                 
@@ -288,28 +333,31 @@ def execute(block, config):
                 if galaxy == True:
                     # preparing the 1h term
                     # TODO: check if Nsat and Ncen need to be in a grid with respect to z
-                    c_factor = pk_lib.prepare_central_factor_grid(Ncen, numdencen, f_cen)
-                    s_factor = pk_lib.prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_sat)
+                    # TODO: combine the functions for centrals and satellites.
+                    # Computes the profiles for centrals and satellites. These are the W_u(M,k) functions in Asgari, Mead, Heymans 2023: 2303.08752
+                    # Centrals are assumed to be in the centre of the halo, therefore no need for the normalised profile, U.
+                    profile_c = pk_lib.central_profile(Ncen, numdencen, f_cen)
+                    profile_s = pk_lib.satellite_profile(Nsat, numdensat, f_sat, u_sat)
                     # preparing the 2h term
-                    I_c_term = pk_lib.prepare_Ic_term(mass, c_factor, b_dm, dn_dlnm, nz, nk)
-                    I_s_term = pk_lib.prepare_Is_term(mass, s_factor, b_dm, dn_dlnm)
+                    I_c_term = pk_lib.prepare_Ic_term(mass, profile_c, b_dm, dn_dlnm, nz, nk)
+                    I_s_term = pk_lib.prepare_Is_term(mass, profile_s, b_dm, dn_dlnm)
                     
                     if mead_correction == 'fit' or point_mass == True:
                         # Include point mass and gas contribution to the GGL power spectrum, defined from HOD
                         # Maybe extend to input the mass per bin!
-                        m_factor_1h = pk_lib.prepare_matter_factor_grid_baryon_fit(mass, mean_density0, u_dm, z_vec, fstar, block)
+                        m_factor_1h = pk_lib.matter_profile_baryon_fit(mass, mean_density0, u_dm, z_vec, fstar, block)
                     else:
                         m_factor_1h = m_factor_1h_mm.copy()
                         
                     if bnl == True:
                         if p_gg == True:
-                            I_NL_cs = pk_lib.prepare_I_NL(mass, mass, c_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
-                            I_NL_ss = pk_lib.prepare_I_NL(mass, mass, s_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
-                            I_NL_cc = pk_lib.prepare_I_NL(mass, mass, c_factor, c_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            I_NL_cs = pk_lib.prepare_I_NL(mass, mass, profile_c, profile_s, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            I_NL_ss = pk_lib.prepare_I_NL(mass, mass, profile_s, profile_s, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            I_NL_cc = pk_lib.prepare_I_NL(mass, mass, profile_c, profile_c, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
     
                         if p_gm == True:
-                            I_NL_cm = pk_lib.prepare_I_NL(mass, mass, c_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
-                            I_NL_sm = pk_lib.prepare_I_NL(mass, mass, s_factor, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            I_NL_cm = pk_lib.prepare_I_NL(mass, mass, profile_c, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            I_NL_sm = pk_lib.prepare_I_NL(mass, mass, profile_s, m_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
                     
                 if alignment == True:
                     #IT commenting ia_lum_dep_centrals
@@ -345,32 +393,32 @@ def execute(block, config):
                             I_NL_ia_ss = pk_lib.prepare_I_NL(mass, mass, s_align_factor, s_align_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
                 
                         if p_gI == True:
-                            I_NL_ia_gc = pk_lib.prepare_I_NL(mass, mass, c_align_factor, c_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
-                            I_NL_ia_gs = pk_lib.prepare_I_NL(mass, mass, s_align_factor, s_factor, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            I_NL_ia_gc = pk_lib.prepare_I_NL(mass, mass, c_align_factor, profile_c, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            I_NL_ia_gs = pk_lib.prepare_I_NL(mass, mass, s_align_factor, profile_s, b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
                             
                 # compute the power spectra
                 if p_gg == True and bnl == False:
-                    pk_gg_1h, pk_gg_2h, pk_gg, bg_halo_model = pk_lib.compute_p_gg(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, I_c_term, I_s_term, mass_avg, poisson_type)
+                    pk_gg_1h, pk_gg_2h, pk_gg, bg_halo_model = pk_lib.compute_p_gg(block, k_vec, plin, z_vec, mass, dn_dlnm, profile_c, profile_s, I_c_term, I_s_term, mass_avg, poisson_type)
                     #block.put_grid('galaxy_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_1h)
                     #block.put_grid('galaxy_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_2h)
                     block.put_grid('galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg)
                     #block.put_grid('galaxy_linear_bias' + suffix, 'z', z_vec, 'k_h', k_vec, 'galaxybiastotal', bg_halo_model)
     
                 if p_gg == True and bnl == True:
-                    pk_gg_1h_bnl, pk_gg_2h_bnl, pk_gg_bnl, bg_halo_model_bnl = pk_lib.compute_p_gg_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, I_c_term, I_s_term, I_NL_cs, I_NL_cc, I_NL_ss, mass_avg, poisson_type)
+                    pk_gg_1h_bnl, pk_gg_2h_bnl, pk_gg_bnl, bg_halo_model_bnl = pk_lib.compute_p_gg_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, profile_c, profile_s, I_c_term, I_s_term, I_NL_cs, I_NL_cc, I_NL_ss, mass_avg, poisson_type)
                     #block.put_grid('galaxy_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_1h_bnl)
                     #block.put_grid('galaxy_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_2h_bnl)
                     block.put_grid('galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_bnl)
                     #block.put_grid('galaxy_linear_bias' + suffix, 'z', z_vec, 'k_h', k_vec, 'galaxybiastotal', bg_halo_model)
         
                 if p_gm == True and bnl == False:
-                    pk_1h, pk_2h, pk_tot = pk_lib.compute_p_gm(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, m_factor_1h, I_c_term, I_s_term, I_m_term)
+                    pk_1h, pk_2h, pk_tot = pk_lib.compute_p_gm(block, k_vec, plin, z_vec, mass, dn_dlnm, profile_c, profile_s, m_factor_1h, I_c_term, I_s_term, I_m_term)
                     #block.put_grid('matter_galaxy_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_1h)
                     #block.put_grid('matter_galaxy_power_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_2h)
                     block.put_grid('matter_galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
                 
                 if p_gm == True and bnl == True:
-                    pk_1h_bnl, pk_2h_bnl, pk_tot_bnl = pk_lib.compute_p_gm_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, s_factor, m_factor_1h, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm)
+                    pk_1h_bnl, pk_2h_bnl, pk_tot_bnl = pk_lib.compute_p_gm_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, profile_c, profile_s, m_factor_1h, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm)
                     #block.put_grid('matter_galaxy_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_1h)
                     #block.put_grid('matter_galaxy_power_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_2h)
                     block.put_grid('matter_galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot_bnl)
@@ -383,7 +431,7 @@ def execute(block, config):
                     #block.put_grid('intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_2h)
                     block.put_grid('intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
                 if p_gI == True and bnl == False:
-                    pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term)
+                    pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI(block, k_vec, plin, z_vec, mass, dn_dlnm, profile_c, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term)
                     block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
                 if p_mI == True and bnl == False:
                     pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor_1h, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term)
@@ -399,7 +447,7 @@ def execute(block, config):
                     #block.put_grid('intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_2h)
                     block.put_grid('intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_bnl)
                 if p_gI == True and bnl == True:
-                    pk_gI_1h_bnl, pk_gI_2h_bnl, pk_gI_bnl = pk_lib.compute_p_gI_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, c_factor, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, I_NL_ia_gc, I_NL_ia_gs)
+                    pk_gI_1h_bnl, pk_gI_2h_bnl, pk_gI_bnl = pk_lib.compute_p_gI_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, profile_c, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, I_NL_ia_gc, I_NL_ia_gs)
                     block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI_bnl)
                 if p_mI == True and bnl == True:
                     pk_mI_1h_bnl, pk_mI_2h_bnl, pk_mI_bnl = pk_lib.compute_p_mI_bnl(block, k_vec, plin, z_vec, mass, dn_dlnm, m_factor_1h, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, I_NL_ia_cm, I_NL_ia_sm)
@@ -415,7 +463,7 @@ def execute(block, config):
                     #block.put_grid('intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_2h)
                     block.put_grid('intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
                 if p_gI_mc == True:
-                    pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI_mc(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, c_factor, s_align_factor, I_c_term, alignment_amplitude_2h)
+                    pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI_mc(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, profile_c, s_align_factor, I_c_term, alignment_amplitude_2h)
                     block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
                 if p_mI_mc == True:
                     pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_mc(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, m_factor_1h, s_align_factor, alignment_amplitude_2h, f_cen)

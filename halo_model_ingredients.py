@@ -157,7 +157,7 @@ def dc_Mead(a, Om, f_nu, g, G):
 
 def Dv_Mead(a, Om, f_nu, g, G):
     """
-    Delta_v fitting function from Mead et al. 2021 (2009.01858)
+    Delta_v fitting function from Mead et al. 2021 (2009.01858), eq A.2
     All input parameters should be evaluated as functions of a/z
     """
     
@@ -275,6 +275,7 @@ def execute(block, config):
     rho_halo  = np.empty([nz])
     neff      = np.empty([nz])
     sigma8_z  = np.empty([nz])
+    # Fraction of neutrinos to total matter,  f_nu = Ω_nu /Ω_m
     f_nu      = np.empty([nz])
     h_z       = np.empty([nz])
     mean_density0  = np.empty([nz])
@@ -333,12 +334,15 @@ def execute(block, config):
         # The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
         # dn(m)/ dln m eq1 of 1306.6721
         dndlnmh[jz]   = mf.dndlnm
+        # TODO: This is the mean matter density at z=0, change to be just one value.
         mean_density0[jz]  = mf.mean_density0
+        # This is the redshift dependant mean density
         mean_density_z[jz] = mf.mean_density
         rho_halo[jz]  = overdensity_z[jz] * mf.mean_density0
         bias     = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_z, delta_halo=overdensity_z[jz],
                                                  sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
         b_nu[jz] = bias.bias()
+        # fraction of neutrinos to matter
         f_nu[jz] = this_cosmo_run.Onu0/this_cosmo_run.Om0
 
         # These are only used for mead_corrections
@@ -426,10 +430,13 @@ def execute(block, config):
 
 
     # density 
+    # These two do not depend on redshift so should only be saved as a single number
     block.put_double_array_1d('density', 'mean_density0', mean_density0) #(mean_density0/this_cosmo_run.Om0)*this_cosmo_run.Odm0)
-    block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
     block.put_double_array_1d('density', 'rho_crit', mean_density0/this_cosmo_run.Om0)
+    # These depend on redshift
+    block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
     block.put_double_array_1d('density', 'rho_halo', rho_halo)
+    block.put_double_array_1d('density', 'z', z_vec)
 
     # hmf
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnmh)
@@ -446,6 +453,7 @@ def execute(block, config):
     # cosmological parameters
     h_z = this_cosmo_run.H(z_vec).value/100.0
     block.put_double_array_1d(cosmo_params, 'h_z', h_z)
+    # f_nu = Omega_nu/Omega_m
     block.put_double_array_1d(cosmo_params, 'fnu', f_nu)
     block.put_double_array_1d(cosmo_params, 'z',z_vec)
 

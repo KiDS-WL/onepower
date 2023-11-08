@@ -48,16 +48,16 @@ def compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff):
 def get_halo_functions(block, mass, z_vec):
     
     # load the halo mass function
-    mass_hmf = block['hmf', 'm_h']
-    z_hmf = block['hmf', 'z']
+    mass_hmf    = block['hmf', 'm_h']
+    z_hmf       = block['hmf', 'z']
     dndlnmh_hmf = block['hmf', 'dndlnmh']
     # load the halobias
-    mass_hbf = block['halobias', 'm_h']
-    z_hbf = block['halobias', 'z']
+    mass_hbf     = block['halobias', 'm_h']
+    z_hbf        = block['halobias', 'z']
     halobias_hbf = block['halobias', 'b_hb']
     # interpolate all the quantities that enter in the integrals
     dn_dlnm = interpolate2d_dndlnm(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec)
-    b_dm = interpolate2d_halobias(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
+    b_dm    = interpolate2d_halobias(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
     
     return dn_dlnm, b_dm
     
@@ -128,8 +128,8 @@ def load_fstar_mm(block, section_name, z_vec, mass):
 # load the hod
 def load_hods(block, section_name, z_vec, mass):
     
-    m_hod = block[section_name, 'mass']
-    z_hod = block[section_name,  'z']
+    m_hod    = block[section_name, 'mass']
+    z_hod    = block[section_name,  'z']
     Ncen_hod = block[section_name, 'n_cen']
     Nsat_hod = block[section_name, 'n_sat']
     numdencen_hod = block[section_name, 'number_density_cen']
@@ -253,15 +253,7 @@ def fg(mass, fstar, theta_agn, z, block):
     f = ((block['cosmological_parameters', 'omega_b']/block['cosmological_parameters', 'omega_m']) - fstar) * (mass/mb)**2.0 / (1.0+(mass/mb)**2.0)
     return f
 
-def compute_matter_factor_baryon(mass, mean_density0, u_dm, z, block):
-    # Total matter profile from Mead2020 for baryonic feedback model
 
-    theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
-    
-    fstar = ((2.01 - 0.30*theta_agn)*0.01 * 10.0**(z*(0.409 + 0.0224*theta_agn))) / (0.75 * (1.0+z)**(1.0/6.0))
-    
-    return ((mass / mean_density0) * u_dm * ((block['cosmological_parameters', 'omega_c']/block['cosmological_parameters', 'omega_m']) + fg(mass, fstar, theta_agn, z, block))) + (fstar * (mass / mean_density0))
-    
     
     
 def fg_fit(mass, fstar, z, block):
@@ -272,7 +264,46 @@ def fg_fit(mass, fstar, z, block):
     f = ((block['cosmological_parameters', 'omega_b']/block['cosmological_parameters', 'omega_m']) - fstar) * (mass/mb)**2.0 / (1.0+(mass/mb)**2.0)
     return f
 
-def compute_matter_factor_baryon_fit(mass, mean_density0, u_dm, z, fstar, block):
+
+
+# This is the matter halo profile. Feedback can be included through u_dm
+# We lower the amplitude of W(M, k,z) in the one-halo term by the factor 1− fν , 
+# where fν = Ων /Ωm is the neutrino mass fraction, to account for the fact that
+# we assume that hot neutrinos cannot cluster in haloes and therefore
+# do not contribute power to the one-halo term. Therefore W(M, k → 0,z) = (1− fν )M/ρ¯ and has units of volume
+# This is the same as Mead et al. 2021
+def compute_matter_profile(mass, mean_density0, u_dm, block):
+    # f_nu = block[cosmo_params, 'omega_nu']/block[cosmo_params, 'omega_m']
+    # f_nu_arr = np.ones(len(mean_density0))*f_nu
+    return (mass / mean_density0) * u_dm * (1.0 - block['cosmological_parameters', 'fnu'][:,np.newaxis,np.newaxis])
+
+# eq 25 of 2009.01858
+# W(M, k) = [Ω_c/Ω_m+ fg(M)]W(M, k) + f∗ M/ρ¯
+# The parameter 0 < f∗ < Ω_b/Ω_m can be thought of as an effective halo stellar mass fraction.
+def compute_matter_profile_with_feedback(mass, mean_density0, u_dm, z, block):
+    # Total matter profile from Mead2020 for baryonic feedback model
+
+    theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
+    
+    fstar = ((2.01 - 0.30*theta_agn)*0.01 * 10.0**(z*(0.409 + 0.0224*theta_agn))) / (0.75 * (1.0+z)**(1.0/6.0))
+    # TODO: This is not lowering Wm by f_nu
+    return ((mass / mean_density0) * u_dm * ((block['cosmological_parameters', 'omega_c']/block['cosmological_parameters', 'omega_m']) + fg(mass, fstar, theta_agn, z, block))) + (fstar * (mass / mean_density0))
+
+# eq 25 of 2009.01858
+# W(M, k) = [Ω_c/Ω_m+ fg(M)]W(M, k) + f∗ M/ρ¯
+# The parameter 0 < f∗ < Ω_b/Ω_m can be thought of as an effective halo stellar mass fraction.
+# v2 is scaled by f_nu
+def compute_matter_profile_with_feedback_v2(mass, mean_density0, u_dm, z, block):
+    # Total matter profile from Mead2020 for baryonic feedback model
+
+    theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
+    
+    fstar = ((2.01 - 0.30*theta_agn)*0.01 * 10.0**(z*(0.409 + 0.0224*theta_agn))) / (0.75 * (1.0+z)**(1.0/6.0))
+    profile =  compute_matter_profile(mass, mean_density0, u_dm, block)
+    dm_to_matter_ratio = block['cosmological_parameters', 'omega_c']/block['cosmological_parameters', 'omega_m']
+    return (dm_to_matter_ratio + fg(mass, fstar, theta_agn, z, block)) * profile + (fstar * (mass / mean_density0))
+
+def compute_matter_profile_with_feedback_fit(mass, mean_density0, u_dm, z, fstar, block):
     # Total matter profile for a general baryonic feedback model
     # using f* from HOD/CSMF/CLF that also provides for point mass estimate when used in the
     # GGL power spectra
@@ -286,23 +317,26 @@ def compute_matter_factor_baryon_fit(mass, mean_density0, u_dm, z, fstar, block)
     return ((mass / mean_density0) * u_dm * ((block['cosmological_parameters', 'omega_c']/block['cosmological_parameters', 'omega_m']) + fg_fit(mass, fstar, z, block))) + (fstar * (mass / mean_density0))
 
 
-def compute_matter_factor(mass, mean_density0, u_dm, block):
-    return (mass / mean_density0) * u_dm * (1.0 - block['cosmological_parameters', 'fnu'][:,np.newaxis,np.newaxis])
+def compute_galaxy_profile(Ngal, mean_number_density, fraction, u_gal=None):
+    if u_gal == None:
+        # this is relevant for centrals
+        return fraction * Ngal / mean_number_density
+    else:
+        # This one for satellites
+        return fraction * Ngal * u_gal / mean_number_density
+
+# def compute_central_galaxy_profile(Ncen, numdenscen, f_c):
+#     return f_c * Ncen / numdenscen
+
+# def compute_satellite_galaxy_profile(Nsat, numdenssat, f_s, u_gal):
+#     return f_s * Nsat * u_gal / numdenssat
 
 
-def compute_central_galaxy_factor(Ncen, numdenscen, f_c):
-    return f_c * Ncen / numdenscen
-
-
-def compute_satellite_galaxy_factor(Nsat, numdenssat, f_s, u_gal):
-    return f_s * Nsat * u_gal / numdenssat
-
-
-def compute_central_galaxy_alignment_factor(scale_factor, growth_factor, f_c, C1, mass):
+def compute_central_galaxy_alignment_profile(scale_factor, growth_factor, f_c, C1, mass):
     return f_c * (C1  / growth_factor) * mass# * scale_factor**2.0
 
 
-def compute_satellite_galaxy_alignment_factor(Nsat, numdenssat, f_s, wkm_sat):
+def compute_satellite_galaxy_alignment_profile(Nsat, numdenssat, f_s, wkm_sat):
     return f_s * Nsat * wkm_sat / numdenssat
 
 
@@ -316,48 +350,55 @@ def compute_satellite_galaxy_alignment_factor_halo(Nsat, numdenssat, f_s, wkm_sa
 
 # Compute the grid in z, k, and M of the quantities described above
 # matter
-def prepare_matter_factor_grid(mass, mean_density0, u_dm, block):
-    m_factor = compute_matter_factor(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, block)
-    return m_factor
+def matter_profile(mass, mean_density0, u_dm, block):
+    profile = compute_matter_profile(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, block)
+    return profile
     
-def prepare_matter_factor_grid_baryon(mass, mean_density0, u_dm, z, block):
-    m_factor = compute_matter_factor_baryon(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, z[:, np.newaxis, np.newaxis], block)
-    return m_factor
+def matter_profile_baryon(mass, mean_density0, u_dm, z, block):
+    profile = compute_matter_profile_with_feedback(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, z[:, np.newaxis, np.newaxis], block)
+    return profile
     
-def prepare_matter_factor_grid_baryon_fit(mass, mean_density0, u_dm, z, fstar, block):
-    m_factor = compute_matter_factor_baryon_fit(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, z[:, np.newaxis, np.newaxis], fstar[:,np.newaxis,:], block)
-    return m_factor
+def matter_profile_baryon_fit(mass, mean_density0, u_dm, z, fstar, block):
+    profile = compute_matter_profile_with_feedback_fit(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, z[:, np.newaxis, np.newaxis], fstar[:,np.newaxis,:], block)
+    return profile
 
-# clustering - satellites
-def prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_gal):
-    s_factor = compute_satellite_galaxy_factor(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], u_gal)
-    return s_factor
+
+# # clustering - centrals
+# def central_profile(Ncen, numdencen, f_cen):
+#     profile = compute_central_galaxy_profile(Ncen, numdencen[:,np.newaxis], f_cen[:,np.newaxis])
+#     return profile
 
 # clustering - centrals
-def prepare_central_factor_grid(Ncen, numdencen, f_cen):
-    c_factor = compute_central_galaxy_factor(Ncen, numdencen[:,np.newaxis], f_cen[:,np.newaxis])
-    return c_factor
+def central_profile(Ncen, numdencen, f_cen):
+    profile = compute_galaxy_profile(Ncen, numdencen[:,np.newaxis], f_cen[:,np.newaxis])
+    return profile
+
+# clustering - satellites
+def satellite_profile(Nsat, numdensat, f_sat, u_gal):
+    profile = compute_galaxy_profile(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], u_gal)
+    return profile
+
 
 # alignment - satellites
-def prepare_satellite_alignment_factor_grid(Nsat, numdensat, f_sat, wkm):
+def satellite_alignment_profile(Nsat, numdensat, f_sat, wkm):
     """
     Prepare the grid in z, k and mass for the satellite alignment
     f_sat/n_sat N_sat gamma_hat(k,M)
     where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
     times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
     """
-    s_align_factor = compute_satellite_galaxy_alignment_factor(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1))
+    s_align_factor = compute_satellite_galaxy_alignment_profile(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1))
     return s_align_factor
     
 # alignment - centrals
-def prepare_central_alignment_factor_grid(mass, scale_factor, growth_factor, f_cen, C1):
+def central_alignment_profile(mass, scale_factor, growth_factor, f_cen, C1):
     """
     Prepare the grid in z, k and mass for the central alignment
     f_cen/n_cen N_cen gamma_hat(k,M)
     where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
     times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
     """
-    c_align_factor = compute_central_galaxy_alignment_factor(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :])
+    c_align_factor = compute_central_galaxy_alignment_profile(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :])
     return c_align_factor
     
 # alignment - centrals 2h: halo mass dependence

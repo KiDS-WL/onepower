@@ -112,7 +112,7 @@ def compute_hod(obs, phi_x):
 def compute_stellar_fraction(obs, phi_x):
     integral = simps(phi_x*obs, obs)
     return integral
-   
+
 # Total number of galaxies with the given HOD, e.g. central and satellite galaxies
 # This is an integral over the HOD and the halo mass function to remove the halo mass dependence. 
 # Nx = int ⟨Nx|M⟩ n(M) dM
