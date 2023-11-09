@@ -202,11 +202,16 @@ def execute(block, config):
     # AD: If we can avoid interpolation, then yes. Looking at load_modules.py, we could leave them there to have more utility code separated. 
     # Could call them utilities. Dunno
 
-    # load linear power spectrum
-    k_vec_original, plin_original, growth_factor_original, scale_factor_original = pk_lib.get_linear_power_spectrum(block, z_vec)
-    k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
+    # TODO: move all interpolations into this function
+    k_vec_original, plin_original = pk_lib.get_linear_power_spectrum(block, z_vec)
+    # load growth factor
+    k_vec_original,  growth_factor_original, scale_factor_original = pk_lib.get_growth_factor(block, z_vec)
+    # load nonlinear power spectrum
+    k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
     
-    # Marika: change this to avoid interpolation error.
+    # TODO: Why is k_vec defined? Why not just use k_vec_original?
+    k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
+
     plin_k_interp = interp1d(k_vec_original, plin_original, axis=1, fill_value='extrapolate')
     plin = plin_k_interp(k_vec)
     growth_factor_interp = interp1d(k_vec_original, growth_factor_original, axis=1, fill_value='extrapolate')
@@ -214,17 +219,13 @@ def execute(block, config):
     scale_factor_interp = interp1d(k_vec_original, scale_factor_original, axis=1, fill_value='extrapolate')
     scale_factor = scale_factor_interp(k_vec)
 
-    #k_interp = interp1d(k_vec, plin, axis=1)
-    #k_vec = np.logspace(np.log10(k_vec.min()), np.log10(k_vec.max()-1), nk)
-    #plin = k_interp(k_vec)
-
-    # load nonlinear power spectrum (halofit)
-    k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
+    # TODO: Why is k_vec defined? Why not just use k_vec_original?
     plin_k_interp = interp1d(k_nl, p_nl, axis=1, fill_value='extrapolate')
     pnl = plin_k_interp(k_vec)
+    # TODO: this shouldn't be replaced
     block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
     #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
-    
+
     # AD: avoid this! (Maybe needed for IA part ...)
     # compute the effective power spectrum, mixing the linear and nonlinear one:
     #
@@ -232,7 +233,9 @@ def execute(block, config):
     #
     t_eff = block['pk_parameters', 'trans_1hto2h']
 
-    pk_eff = pk_lib.compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff)
+    # TODO: do we need this? Does this need to do interpolation? both p_nl and plin are already interpolated
+    # pk_eff = pk_lib.compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff)
+    pk_eff = (1.-t_eff)*plin+t_eff*pnl
 
     # initialise the galaxy bias
     # bg = 1.0 # AD: ???

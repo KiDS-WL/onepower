@@ -30,3 +30,11 @@ mass    = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 for nb in range(0,nbins):
         mass_i, z_bins_i = np.meshgrid(mass, z_bins[nb], sparse=True)
         print(nb,mass_i,z_bins_i)
+
+
+# to multiply two arrays element by element do this:
+arr1 = np.array([1,2,3])
+arr2 = np.array([1,3,9,27])
+# elements are
+# ij: arr1[i]*arr2[j]
+arr_mult = arr1[:,np.newaxis]*arr2

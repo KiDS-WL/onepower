@@ -121,8 +121,17 @@ extrapolate_obs suffixes and variable names.
 Add default values for trans_1hto2h and poisson
 
 
+IMPORTANT!!!!
 
-
-
+# TODO: This is probably why the k_vec is change from the input from CAMB!
+def compute_u_dm_grid(block, k_vec, mass, z_vec):
+    z_udm    = block['fourier_nfw_profile', 'z']
+    mass_udm = block['fourier_nfw_profile', 'm_h']
+    k_udm    = block['fourier_nfw_profile', 'k_h']
+    u_dm     = block['fourier_nfw_profile', 'ukm']
+    u_sat    = block['fourier_nfw_profile', 'uksat']
+    if(k_vec!=k_udm):
+        raise Exception('The profile k values are different to the input k values.')
+    return u_dm,u_sat
 
 

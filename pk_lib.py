@@ -12,41 +12,53 @@ from darkmatter_lib import compute_u_dm, radvir_from_mass
 # Functions copied from the interface
 # -------------------------------------------------------------------------------------------------------------------- #
 
+def interpolate_in_z(input_grid, z_pl, z_vec):
+    f_interp = interp1d(z_pl, input_grid, axis=0)
+    interpolated_grid = f_interp(z_vec)
+    return interpolated_grid
+
+# Reads in linear matter power spectrum and growth factor
 def get_linear_power_spectrum(block, z_vec):
-    # AD: growth factor should be computed from camb/hmf directly, this way we can load Plin directly without this functions!
     k_vec = block['matter_power_lin', 'k_h']
-    z_pl = block['matter_power_lin', 'z']
-    matter_power_lin = block['matter_power_lin', 'p_k']
-    growth_factor_zlin = block['growth_parameters', 'd_z'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
-    scale_factor_zlin = block['growth_parameters', 'a'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
-    gf_interp = interp1d(z_pl, growth_factor_zlin, axis=0)
-    growth_factor = gf_interp(z_vec)
-    a_interp = interp1d(z_pl, scale_factor_zlin, axis=0)
-    scale_factor = a_interp(z_vec)
+    z_pl  = block['matter_power_lin', 'z']
+    matter_power_lin   = block['matter_power_lin', 'p_k']
     # interpolate in redshift
-    plin = interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec)
-    return k_vec, plin, growth_factor, scale_factor
+    plin = interpolate_in_z(matter_power_lin, z_pl, z_vec)
+    return k_vec, plin
+
+# Reads in linear matter power spectrum and growth factor
+def get_growth_factor(block, z_vec):
+    k_vec = block['matter_power_lin', 'k_h']
+    z_pl  = block['growth_parameters', 'z']
+    # reads in the growth factor and turns it into a 2D array that has this dimensions: len(z) x len(k)
+    # all columns are identical
+    growth_factor_zlin = block['growth_parameters', 'd_z'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
+    scale_factor_zlin  = block['growth_parameters', 'a'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
+    # interpolate in redshift
+    growth_factor = interpolate_in_z(growth_factor_zlin, z_pl, z_vec)
+    scale_factor  = interpolate_in_z(scale_factor_zlin, z_pl, z_vec)
+    return k_vec, growth_factor, scale_factor
     
 def get_nonlinear_power_spectrum(block, z_vec):
     k_nl = block['matter_power_nl', 'k_h']
     z_nl = block['matter_power_nl', 'z']
     matter_power_nl = block['matter_power_nl', 'p_k']
-    # this seems redundant
-    p_nl = interpolate1d_matter_power_lin(matter_power_nl, z_nl, z_vec)
+    p_nl = interpolate_in_z(matter_power_nl, z_nl, z_vec)
     return k_nl, p_nl
+
+# TODO: probably don't need this. 
+# def compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff):
+#     # interpolate
+#     #p_nl_interp = interp2d(k_nl, z_vec, p_nl)
+#     #pnl_int = p_nl_interp(k_vec, z_vec)
+#     p_nl_interp = RegularGridInterpolator((k_nl.T, z_vec.T), p_nl.T, bounds_error=False, fill_value=None)
+#     kk, zz = np.meshgrid(k_vec, z_vec, sparse=True)
+#     pnl_int = p_nl_interp((kk.T, zz.T)).T
+#     return (1.-t_eff)*plin+t_eff*pnl_int
+
     
-def compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff):
-    # interpolate
-    #p_nl_interp = interp2d(k_nl, z_vec, p_nl)
-    #pnl_int = p_nl_interp(k_vec, z_vec)
-    p_nl_interp = RegularGridInterpolator((k_nl.T, z_vec.T), p_nl.T, bounds_error=False, fill_value=None)
-    kk, zz = np.meshgrid(k_vec, z_vec, sparse=True)
-    pnl_int = p_nl_interp((kk.T, zz.T)).T
-    return (1.-t_eff)*plin+t_eff*pnl_int
-    
-    
+# loads and interpolates the halo mass function and linear halo bias in redshift and mass
 def get_halo_functions(block, mass, z_vec):
-    
     # load the halo mass function
     mass_hmf    = block['hmf', 'm_h']
     z_hmf       = block['hmf', 'z']
@@ -56,11 +68,21 @@ def get_halo_functions(block, mass, z_vec):
     z_hbf        = block['halobias', 'z']
     halobias_hbf = block['halobias', 'b_hb']
     # interpolate all the quantities that enter in the integrals
-    dn_dlnm = interpolate2d_dndlnm(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec)
-    b_dm    = interpolate2d_halobias(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
-    
+    dn_dlnm = interpolate2d_HM(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec)
+    b_dm    = interpolate2d_HM(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
     return dn_dlnm, b_dm
+
+# TODO: Check if this interpolation works well
+def interpolate2d_HM(input_grid, x_in, y_in, x_out, y_out, method = 'linear'):
+    #f_interp = interp2d(mass_hmf, z_hmf, dndlnmh_hmf)
+    #hmf_interpolated = f_interp(mass, z_vec)
+    f_interp = RegularGridInterpolator((x_in.T, y_in.T), input_grid.T,method=method, bounds_error=False, fill_value=None)
+    xx, yy = np.meshgrid(x_out, y_out, sparse=True)
+    interpolated = f_interp((xx.T, yy.T)).T
+    return interpolated
+
     
+
 # --------------------- #
 #  satellite alignment  #
 # --------------------- #
@@ -91,27 +113,6 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
     return wkm
 
 
-# interpolation routines
-def interpolate2d_dndlnm(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec):
-    #f_interp = interp2d(mass_hmf, z_hmf, dndlnmh_hmf)
-    #hmf_interpolated = f_interp(mass, z_vec)
-    f_interp = RegularGridInterpolator((mass_hmf.T, z_hmf.T), dndlnmh_hmf.T, bounds_error=False, fill_value=None)
-    mm, zz = np.meshgrid(mass, z_vec, sparse=True)
-    hmf_interpolated = f_interp((mm.T, zz.T)).T
-    return hmf_interpolated
-    
-def interpolate2d_halobias(halobias_hbf, mass_hbf, z_hbf, mass, z_vec):
-    #f_interp = interp2d(mass_hbf, z_hbf, halobias_hbf)
-    #hbf_interpolated = f_interp(mass, z_vec)
-    f_interp = RegularGridInterpolator((mass_hbf.T, z_hbf.T), halobias_hbf.T, bounds_error=False, fill_value=None)
-    mm, zz = np.meshgrid(mass, z_vec, sparse=True)
-    hbf_interpolated = f_interp((mm.T, zz.T)).T
-    return hbf_interpolated
-    
-def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
-    f_interp = interp1d(z_pl, matter_power_lin, axis=0)
-    pk_interpolated = f_interp(z_vec)
-    return pk_interpolated
     
 def load_fstar_mm(block, section_name, z_vec, mass):
     m_hod = block[section_name, 'mass']
@@ -928,14 +929,27 @@ def interp_udm(mass_udm, k_udm, udm_z, mass, k_vec):
     u_dm = interp_udm((mm.T, kk.T)).T
     return u_dm
 
+# TODO: Change the input from fourier_nfw_profile to read a given section name
+# done TODO: Why do we take the absolute value and why the reshaping? don't need these so removed them
+# TODO: k_vec,mass, z_vec are not used
+# Need to make sure that they are the same as what we have elsewhere
+# TODO: This is probably why the k_vec is change from the input from CAMB!
 def compute_u_dm_grid(block, k_vec, mass, z_vec):
-    z_udm = block['fourier_nfw_profile', 'z']
+    z_udm    = block['fourier_nfw_profile', 'z']
     mass_udm = block['fourier_nfw_profile', 'm_h']
-    k_udm = block['fourier_nfw_profile', 'k_h']
-    u_udm = block['fourier_nfw_profile', 'ukm']
-    u_usat = block['fourier_nfw_profile', 'uksat']
-    u_udm = np.reshape(u_udm, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
-    u_usat = np.reshape(u_usat, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
+    k_udm    = block['fourier_nfw_profile', 'k_h']
+    u_dm     = block['fourier_nfw_profile', 'ukm']
+    u_sat    = block['fourier_nfw_profile', 'uksat']
+    if(k_vec!=k_udm):
+        raise Exception('The profile k values are different to the input k values.')
+    return u_dm,u_sat
+
+
+    # print(u_udm.shape,u_usat.shape)
+    # u_udm    = np.reshape(u_udm, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
+    # u_usat   = np.reshape(u_usat, (np.size(z_udm),np.size(k_udm),np.size(mass_udm)))
+    # print(u_udm.shape,u_usat.shape)
+    # exit(1)
     # interpolate
     """
     # AD: Leaving this in for now if we need to revert back!
@@ -945,6 +959,8 @@ def compute_u_dm_grid(block, k_vec, mass, z_vec):
     u_dm = np.array([interp_udm(mass_udm, k_udm, udm_z, mass, k_vec) for udm_z in u_udm])
     u_sat = np.array([interp_udm(mass_udm, k_udm, usat_z, mass, k_vec) for usat_z in u_usat])
     #"""
-    u_dm = u_udm
-    u_sat = u_usat
-    return np.abs(u_dm), np.abs(u_sat)
+    # u_dm  = u_udm
+    # u_sat = u_usat
+    # print((u_udm<0).any(),(u_usat<0).any())
+    # exit(1)
+    # return np.abs(u_dm), np.abs(u_sat)
