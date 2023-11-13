@@ -250,10 +250,10 @@ def execute(block, config):
 
         # TODO: Is there a better way to do this? The z dependence doesn't do anything. They are exactly the same values.
         # Do we need the z dependence? 
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat'+suffix, n_sat)
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_cen'+suffix, n_cen)
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_tot'+suffix, n_tot)
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'f_star'+suffix, f_star)
+        block.put_grid(hod_section_name, 'z'+suffix, z_bins[nb], 'mass'+suffix, mass, 'n_sat'+suffix, n_sat)
+        block.put_grid(hod_section_name, 'z'+suffix, z_bins[nb], 'mass'+suffix, mass, 'n_cen'+suffix, n_cen)
+        block.put_grid(hod_section_name, 'z'+suffix, z_bins[nb], 'mass'+suffix, mass, 'n_tot'+suffix, n_tot)
+        block.put_grid(hod_section_name, 'z'+suffix, z_bins[nb], 'mass'+suffix, mass, 'f_star'+suffix, f_star)
     
         # Nx = int ⟨Nx|M⟩ n(M) dM
         numdens_cen = hod.compute_number_density(mass, n_cen, dndlnM)
@@ -289,10 +289,10 @@ def execute(block, config):
             galaxybias_tot = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
             
             # TODO:Put these into a different section
-            # block.put_double_array_1d('galaxy_bias' + suffix, 'galaxy_bias_centrals', galaxybias_cen)
-            # block.put_double_array_1d('galaxy_bias' + suffix, 'galaxy_bias_satellites', galaxybias_sat)
+            # block.put_double_array_1d(galaxy_bias_section_name + suffix, 'galaxy_bias_centrals', galaxybias_cen)
+            # block.put_double_array_1d(galaxy_bias_section_name + suffix, 'galaxy_bias_satellites', galaxybias_sat)
             # # this can be useful in case you want to use the constant bias module to compute p_gg
-            # block.put_double_array_1d('galaxy_bias' + suffix, 'b', galaxybias_tot)
+            # block.put_double_array_1d(galaxy_bias_section_name + suffix, 'b', galaxybias_tot)
     
         #######################################   OBSERVABLE FUNCTION   #############################################
     

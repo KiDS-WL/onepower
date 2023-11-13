@@ -134,4 +134,9 @@ def compute_u_dm_grid(block, k_vec, mass, z_vec):
         raise Exception('The profile k values are different to the input k values.')
     return u_dm,u_sat
 
+f_star definition doesn't match table 4 of hmcode2020 : 
+fstar = ((2.01 - 0.30*theta_agn)*0.01 * 10.0**(z*(0.409 + 0.0224*theta_agn))) / (0.75 * (1.0+z)**(1.0/6.0))
+the dinominator does not exist in the paper.
+
+
 
