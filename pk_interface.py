@@ -10,7 +10,7 @@ P^2h_uv (k) = int_0^infty int_0^infty dM1 dM2 Phh(M1, M2, k) Wu(M1, k) Wv(M2, k)
 
 Wx are the profile of the fields, u and v, showing how they fit into haloes. 
 n(M) is the halo mass function, quantifying the number of haloes of each mass, M.
-Integrals are taking over halo mass. 
+Integrals are taken over halo mass. 
 
 The halo-halo power spectrum can be written as,
 
@@ -51,6 +51,7 @@ import pk_lib
 import time
 
 cosmo = names.cosmological_parameters
+
 
 # TODO: change the name of this file and pk_lib file to make it clear what these do.
 
@@ -130,7 +131,7 @@ def setup(options):
     # TODO: Check what each of these does
     ia_lum_dep_centrals = False
     ia_lum_dep_satellites = False
-    gravitational = False
+    matter = False
     galaxy = False
     alignment = False
     hod_section_name = ''
@@ -154,7 +155,7 @@ def setup(options):
 
     # TODO: what does the two halo only do? Do we need this?
     if ((p_mm == True) or (p_gm == True) or (p_mI == True)):
-        gravitational = True
+        matter = True
     if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_mc == True) or (p_mI_mc == True) or (p_II_mc == True):
         galaxy = True
         hod_section_name = options[option_section, 'hod_section_name']
@@ -196,7 +197,7 @@ def setup(options):
 
     return mass, nmass, z_vec, nz, nk, \
            p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_mc, p_mI_mc, p_II_mc, \
-           gravitational, galaxy, bnl, alignment, \
+           matter, galaxy, bnl, alignment, \
            ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, hod_section_name, \
            mead_correction, point_mass, poisson_type, \
            pop_name
@@ -206,7 +207,7 @@ def execute(block, config):
 
     mass, nmass, z_vec, nz, nk, \
     p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_mc, p_mI_mc, p_II_mc, \
-    gravitational, galaxy, bnl, alignment, \
+    matter, galaxy, bnl, alignment, \
     ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, hod_section_name, \
     mead_correction, point_mass, poisson_type, \
     pop_name = config
@@ -275,8 +276,7 @@ def execute(block, config):
     # exit()
     # TODO: CHECK THESE later
     if two_halo_only == True:
-        # TODO: what is gravitatinal? Is it matter? 
-        if gravitational == True:
+        if matter == True:
             A_term   = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
             I_m_term = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
             matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm)
@@ -339,9 +339,9 @@ def execute(block, config):
         # TODO: check if this is needed for the IA section
         A_term = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
         # If matter auto or cross power spectra are set to True
-        if gravitational == True:
+        if matter == True:
             # 2h term integral for matter
-            I_m_term = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
+            I_m = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
             # f_nu = omega_nu/omega_m with the same length as redshift
             fnu = block['cosmological_parameters', 'fnu']
             # Matter halo profile
@@ -351,9 +351,9 @@ def execute(block, config):
                 omega_c    = block['cosmological_parameters', 'omega_c']
                 omega_m    = block['cosmological_parameters', 'omega_m']
                 log10T_AGN = block['halo_model_parameters', 'logT_AGN']
-                matter_profile_1h_mm = pk_lib.matter_profile_baryon(mass, mean_density0, u_dm, z_vec, omega_c, omega_m, omega_b, log10T_AGN)
+                matter_profile_1h_mm = pk_lib.matter_profile_with_feedback(mass, mean_density0, u_dm, z_vec, omega_c, omega_m, omega_b, log10T_AGN)
             elif mead_correction == 'stellar_fraction_from_observable_feedback':
-                # TODO: metadata does not exist change this
+                # Reads f_star_extended form the HOD section. Either need to use a conditional HOD to get this value or to put it in block some other way.
                 fstar = load_fstar_mm(block, hod_section_name, z_vec, mass)
                 matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_observable(mass, mean_density0, u_dm, z_vec, fstar, omega_c, omega_m, omega_b)
             else:
@@ -361,16 +361,21 @@ def execute(block, config):
                 
             if bnl == True:
                 # TODO: This one uses matter_profile not matter_profile_1h_mm. Shouldn't we use the same profile everywhere?
+                # Compare these
                 I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile, 
+                                    b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, 
+                                    z_vec, A_term, mean_density0, beta_interp)
+                I_NL_mm_1h = pk_lib.I_NL(mass, mass, matter_profile_1h_mm, matter_profile_1h_mm, 
                                     b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, 
                                     z_vec, A_term, mean_density0, beta_interp)
         
             if p_mm == True and bnl == False:
                 if mead_correction == 'nofeedback':
                     sigma8_z = block['hmf', 'sigma8_z']
+                    neff = block['hmf', 'neff']
                     pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_mead(k_vec, plin, z_vec, mass, 
                                                                             dn_dlnm, matter_profile_1h_mm, 
-                                                                            I_m_term, sigma8_z)
+                                                                            I_m_term, sigma8_z,neff)
                 else:
                     pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm(k_vec, plin, z_vec, mass, 
                                                                         dn_dlnm, matter_profile_1h_mm, I_m_term)
@@ -584,7 +589,7 @@ def execute(block, config):
                         mass, dn_dlnm, profile_c, s_align_profile, I_c_term, alignment_amplitude_2h)
                     block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
                 if p_mI_mc == True:
-                    pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_mc(block, k_vec, pk_eff, z_vec, 
+                    pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_mc(k_vec, pk_eff, z_vec, 
                         mass, dn_dlnm, matter_profile_1h, s_align_profile, alignment_amplitude_2h, f_cen)
                     #block.put_grid('matter_intrinsic_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_1h)
                     #block.put_grid('matter_intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)

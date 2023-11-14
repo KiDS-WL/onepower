@@ -11,16 +11,70 @@ from darkmatter_lib import compute_u_dm, radvir_from_mass
 
 # TODO: check simps integration
 
+"""
+Calculates 3D power spectra using the halo model approach: 
+See section 2 of https://arxiv.org/pdf/2303.08752.pdf for details
+
+P_uv = P^2h_uv + P^1h_uv  (1)
+
+P^1h_uv (k) = int_0^infty dM Wu(M, k) Wv(M, k) n(M)  (2)
+
+P^2h_uv (k) = int_0^infty int_0^infty dM1 dM2 Phh(M1, M2, k) Wu(M1, k) Wv(M2, k) n(M1) n(M2)  (3)
+
+Wx are the profile of the fields, u and v, showing how they fit into haloes. 
+n(M) is the halo mass function, quantifying the number of haloes of each mass, M.
+Integrals are taken over halo mass. 
+
+
+The halo-halo power spectrum can be written as,
+
+Phh(M1,M2,k) = b(M1) b(M2) P^lin_mm(k) (1 + beta_nl(M1,M2,k)) (4)
+
+In the vanilla halo model the 2-halo term is usually simplified by assuming that haloes are linearly biased with respect to matter.
+This sets beta_nl to zero and effectively decouples the integrals in (3). Here we allow for both options to be calculated. 
+If you want the option with beta_nl the beta_nl modules has to be run before this module. 
+
+Equation (3) then becomes:
+
+P^2h_uv (k) = P^lin_mm(k) * [I_u * I_v + I^NL_uv] (5)
+
+where I_u and I_v are defined as:
+
+I_x = int_0^infty dM b(M)  Wx(M, k) n(M) (6)
+
+and the integal over beta_nl is
+
+I^NL_uv = int_0^infty int_0^infty dM1 dM2 b(M1) b(M2) beta_nl(M1,M2,k) Wu(M1, k) Wv(M2, k) n(M1) n(M2)  (7)
+
+---------------------------------------------------------------------------------------------------------------------
+
+We truncate the 1-halo term so that it doesn't dominate at large scales.
+
+The linear matter power spectrum needs to be provided. 
+The halo_model_ingredients and hod modules (for everything but mm, unless you run 'stellar_fraction_from_observable_feedback' option) 
+need to be run before this. 
+
+Current power spectra that we predict are 
+mm: matter-matter
+gg: galaxy-galaxy
+gm: galaxy-matter
+
+II: intrinsic-intrinsic alignments
+gI: galaxy-intrinsic alignment
+mI: matter-intrinsic alignment
+"""
+
 # -------------------------------------------------------------------------------------------------------------------- #
-# Functions copied from the interface
+# Read in from block
 # -------------------------------------------------------------------------------------------------------------------- #
 
+# Interpolate in redshift
 def interpolate_in_z(input_grid, z_pl, z_vec):
     f_interp = interp1d(z_pl, input_grid, axis=0)
     interpolated_grid = f_interp(z_vec)
     return interpolated_grid
 
-# Reads in linear matter power spectrum and growth factor
+# Reads in linear matter power spectrum 
 def get_linear_power_spectrum(block, z_vec):
     k_vec = block['matter_power_lin', 'k_h']
     z_pl  = block['matter_power_lin', 'z']
@@ -29,7 +83,7 @@ def get_linear_power_spectrum(block, z_vec):
     plin = interpolate_in_z(matter_power_lin, z_pl, z_vec)
     return k_vec, plin
 
-# Reads in linear matter power spectrum and growth factor
+# Reads in the growth factor
 def get_growth_factor(block, z_vec):
     k_vec = block['matter_power_lin', 'k_h']
     z_pl  = block['growth_parameters', 'z']
@@ -41,7 +95,17 @@ def get_growth_factor(block, z_vec):
     growth_factor = interpolate_in_z(growth_factor_zlin, z_pl, z_vec)
     scale_factor  = interpolate_in_z(scale_factor_zlin, z_pl, z_vec)
     return k_vec, growth_factor, scale_factor
-    
+
+# TODO: check if we need this
+def load_growth_factor(block, z_vec):
+    z_gwf = block['growth_parameters', 'z']
+    D_gwf = block['growth_parameters', 'd_z']
+    f_interp = interp1d(z_gwf, D_gwf)
+    D_z = f_interp(z_vec)
+    return D_z
+
+
+# Reads in the non-linear matter power specturm
 def get_nonlinear_power_spectrum(block, z_vec):
     k_nl = block['matter_power_nl', 'k_h']
     z_nl = block['matter_power_nl', 'z']
@@ -66,7 +130,7 @@ def get_halo_functions(block, mass, z_vec):
     mass_hmf    = block['hmf', 'm_h']
     z_hmf       = block['hmf', 'z']
     dndlnmh_hmf = block['hmf', 'dndlnmh']
-    # load the halobias
+    # load the halo bias
     mass_hbf     = block['halobias', 'm_h']
     z_hbf        = block['halobias', 'z']
     halobias_hbf = block['halobias', 'b_hb']
@@ -84,26 +148,14 @@ def interpolate2d_HM(input_grid, x_in, y_in, x_out, y_out, method = 'linear'):
     interpolated = f_interp((xx.T, yy.T)).T
     return interpolated
 
-    
-
-# --------------------- #
-#  satellite alignment  #
-# --------------------- #
-
-def load_growth_factor(block, z_vec):
-    z_gwf = block['growth_parameters', 'z']
-    D_gwf = block['growth_parameters', 'd_z']
-    f_interp = interp1d(z_gwf, D_gwf)
-    D_z = f_interp(z_vec)
-    return D_z
-
+# TODO: check what this does
+# Need to go through the alignment module before fixing this
 def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
     # here I am assuming that the redshifts used in wkm_module and the pk_module match!
-    #print( 'entering get_satellite_alignment..')
     wkm = np.empty([z_vec.size, mass.size, k_vec.size])
     for jz in range(0,z_vec.size):
         wkm_tmp = block['wkm','w_km_%d'%jz + suffix]
-        k_wkm = block['wkm','k_h_%d'%jz+suffix]
+        k_wkm   = block['wkm','k_h_%d'%jz+suffix]
         mass_wkm = block['wkm','mass_%d'%jz+suffix]
         #w_interp2d = interp2d(k_wkm, mass_wkm, wkm_tmp, bounds_error=False)#, fill_value=0)
         w_interp2d = RegularGridInterpolator((k_wkm.T, mass_wkm.T), wkm_tmp.T, bounds_error=False, fill_value=None)#, fill_value=0)
@@ -115,9 +167,9 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
     #print( 'wkm.shape = ', wkm.shape)
     return wkm
 
-# load the hod
+# load the hod related values
+# TODO: check that this takes the correct values from the HOD section
 def load_hods(block, section_name, suffix, z_vec, mass):
-    
     m_hod    = block[section_name, 'mass'+suffix]
     z_hod    = block[section_name, 'z'+suffix]
     Ncen_hod = block[section_name, 'n_cen'+suffix]
@@ -155,138 +207,18 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     mass_avg = interp_mass_avg(z_vec)
     
     return Ncen, Nsat, numdencen, numdensat, f_c, f_s, mass_avg, fstar
-        
-def load_galaxy_fractions(filename, z_vec):
-    z_file, fraction_file = np.loadtxt(filename, unpack=True)
-    if np.allclose(z_file, z_vec, atol=1e-3):
-        return fraction_file
-    else:
-        print('The redshift of the input galaxy fractions do not match the ranges'
-            'set in the pipeline. Performing interpolation.')
-        gal_frac_interp = interp(z_vec, z_file, fraction_file)
-        print( gal_frac_interp)
-        return gal_frac_interp
 
-
-# 
-def one_halo_truncation(k_vec, k_star = 0.01):
-    #return 1.-np.exp(-(k_vec/k_star)**2.)
-    return erf(k_vec/k_star)
-    
-def one_halo_truncation_mead(k_vec, sigma8_in):
-    # sigma8_z = (block['hmf', 'sigma8_z'][:,np.newaxis])
-    sigma8_z = sigma8_in[:,np.newaxis]
-    k_star = 0.05618 * sigma8_z**(-1.013)
-    return ((k_vec/k_star)**4.0)/(1.0 + (k_vec/k_star)**4.0)
-
-def two_halo_truncation(k_vec,k_trunc=2.0):
-    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
-
-# eq 16 of 2009.01858
-# As long as nd > 0, the multiplicative term in square brackets is
-# unity for k << kd and (1 − f) for k >> kd.
-# This damping is used instead of the regular 2-halo term integrals
-def two_halo_truncation_mead(k_vec, sigma8_in):
-    sigma8_z = sigma8_in[:,np.newaxis]
-    f = 0.2696 * sigma8_z**(0.9403)
-    k_d = 0.05699 * sigma8_z**(-1.089)
-    nd = 2.853
-    k_frac = k_vec/k_d
-    return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
-
-def two_halo_truncation_ia(k_vec,k_trunc = 6.0):
-    return np.exp(-(k_vec/k_trunc)**2.)
- 
-def one_halo_truncation_ia(k_vec, k_star = 4.0):
-    return 1.-np.exp(-(k_vec/k_star)**2.) 
-
-# TODO: removed this as it is very simple
-# def compute_2h_term(plin, I1, I2):
-#     '''
-#     The 2h term of the power spectrum. All of the possible power spectra have the same structure at large scales:
-#     P_2h,XY (k,z) = P(k,z)_lin I_X(k,z) I_Y(k,z)
-#     where I_X and I_Y are integrals, specific for each quantity (with X, Y = {matter, galaxy} )
-#     :param plin: array 2d, linear power spectrum in input
-#     :param I1: array 2d
-#     :param I2: array 2d
-#     :return: array 2d
-#     '''
-#     return plin * I1 * I2
-
-def compute_1h_term(profile_u, profile_v, mass, dn_dlnm_z):
-    '''
-    The 1h term of the power spectrum. All of the possible power spectra have the same structure at small scales:
-    int W_u(k,z|M) W_v(k,z|M) n(M) dM
-    where u,v are our fields, e.g. matter, galaxy, intrinsic alignment
-    for example matter halo profile is: W_matter = (M/rho_m) U_matter(k,z|M)
-    :param profile_u: array 1d (nmass), the given W_u for fixed value of k and z
-    :param profile_v: array 1d (nmass), the given W_v for fixed value of k and z
-    :param mass: array 1d (nmass)
-    :param dn_dlnm_z: array 1d (nmass), the halo mass function at the given redshift z
-    :return: scalar, the integral along the mass axis
-    '''
-    integrand = profile_u * profile_v * dn_dlnm_z / mass
-    integral_1h = simps(integrand, mass)
-    return integral_1h
-
-
-# -------------------------------------------------------------------------------------------------------------------- #
-# Gass fraction
-# -------------------------------------------------------------------------------------------------------------------- #
-
-# Gass fraction 
-# Eq 24 of 2009.01858
-# fg(M) = [Ωb/Ωm− f∗] (M/Mb)^β/ (1 + (M/Mb)^β)
-# where fg is the halo gas fraction, the pre-factor in parenthesis is the
-# available gas reservoir, while Mb > 0 and β > 0 are fitted parameters. 
-# Haloes of M >> Mb are unaffected while those of M < Mb have
-# lost more than half of their gas
-def fg(mass, fstar, theta_agn, z, omega_b,omega_m, beta = 2):
-    # Gas fraction from Mead2020 for baryonic feedback model
-    # theta_agn = log10_TAGN - 7.8
-    # table 4 of 2009.01858, units of M_sun/h
-    mb = (10.0**(13.87 - 1.81*theta_agn) * 10.0**(z*(0.195*theta_agn - 0.108)))
-    baryon_to_matter_fraction = omega_b/omega_m
-    fg = (baryon_to_matter_fraction - fstar) * (mass/mb)**beta / (1.0+(mass/mb)**beta)
-    return fg
-
-# TODO: where does this come from?
-def fg_fit(mass, fstar, z, omega_b, omega_m):
-    # Gas fraction for a general baryonic feedback model
-    mb = 10**13.87#block['pk_parameters', 'm_b'] # free parameter.
-    baryon_to_matter_fraction = omega_b/omega_m
-    f = (baryon_to_matter_fraction - fstar) * (mass/mb)**2.0 / (1.0+(mass/mb)**2.0)
-    return f
-
-# -------------------------------------------------------------------------------------------------------------------- #
-# Stellar fraction
-# -------------------------------------------------------------------------------------------------------------------- #
-
-# Stellar fraction from table 4 and eq 26 of 2009.01858 (Mead et al. 2021)
-# f*(z) = f*_0 10^(z f*_z)
-def fs(log10T_AGN,z):
-    theta_agn = log10T_AGN - 7.8
-    fstar_0 = (2.01 - 0.30*theta_agn)*0.01
-    fstar_z = 0.409 + 0.0224*theta_agn
-    fstar = fstar_0 * 10.0**(z*fstar_z)
-    return fstar
-
-# load stellar fraction that is calculated with the Cacciato HOD
-def load_fstar_mm(block, section_name, z_vec, mass):
-    if block.has_value(section_name,'f_star_extended'):
-        f_star = block[section_name, 'f_star_extended']
-        m_hod  = block[section_name, 'mass_extended']
-        z_hod  = block[section_name, 'z_extended']
-    else:
-        raise ValueError('f_star_extended does NOT exist in ' + section_name+ \
-            '. You have asked for stellar_fraction_from_observable_feedback which needs this quantity.\
-            This is calculated as part of the hod_interface, if use_mead2020_corrections is set to stellar_fraction_from_observable_feedback. \
-            Note that if hod_interface_unconditional does not predict this quantity.' )
-    
-    interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=None)
-    mm, zz = np.meshgrid(mass, z_vec, sparse=True)
-    fstar = interp_fstar((mm.T, zz.T)).T
-    return fstar
+# TODO: unused, remove
+# def load_galaxy_fractions(filename, z_vec):
+#     z_file, fraction_file = np.loadtxt(filename, unpack=True)
+#     if np.allclose(z_file, z_vec, atol=1e-3):
+#         return fraction_file
+#     else:
+#         print('The redshift of the input galaxy fractions do not match the ranges'
+#             'set in the pipeline. Performing interpolation.')
+#         gal_frac_interp = interp(z_vec, z_file, fraction_file)
+#         print( gal_frac_interp)
+#         return gal_frac_interp
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # Profiles
@@ -296,9 +228,9 @@ with the name of the profile, e.g. matter_profile. These latter functions simply
 avoid loops and speed up the process"""
 
 
-# -------------------------------------------------------------------------------------------------------------------- #
+# ----------------#
 # Matter Profiles
-# -------------------------------------------------------------------------------------------------------------------- #
+# ----------------#
 
 # This is the matter halo profile. Feedback can be included through u_dm
 # We lower the amplitude of W(M, k,z) in the one-halo term by the factor 1− fν , 
@@ -385,9 +317,10 @@ def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, 
                                                         z[:, np.newaxis, np.newaxis], fstar[:,np.newaxis,:], omega_c, omega_m, omega_b)
     return profile
 
-# -------------------------------------------------------------------------------------------------------------------- #
+
+# ----------------#
 # Galaxy Profiles
-# -------------------------------------------------------------------------------------------------------------------- #
+# ----------------#
 
 def compute_galaxy_profile(Ngal, mean_number_density, fraction, u_gal=None):
     if u_gal is None:
@@ -413,9 +346,10 @@ def satellite_profile(Nsat, numdensat, f_sat, u_gal):
     profile = compute_galaxy_profile(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], u_gal)
     return profile
 
-# -------------------------------------------------------------------------------------------------------------------- #
+
+# ----------------#
 # Aignment Profiles
-# -------------------------------------------------------------------------------------------------------------------- #
+# ----------------#
 
 def compute_central_galaxy_alignment_profile(scale_factor, growth_factor, f_c, C1, mass):
     return f_c * (C1  / growth_factor) * mass# * scale_factor**2.0
@@ -480,6 +414,154 @@ def satellite_alignment_profile_grid_halo(Nsat, numdensat, f_sat, wkm, beta_sat,
     """
     s_align_factor = compute_satellite_galaxy_alignment_factor_halo(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1), beta_sat, mpivot, mass_avg[:,np.newaxis,np.newaxis])
     return s_align_factor
+
+
+# -------------------------------------------------------------------------------------------------------------------- #
+#  1 and 2 halo functions 
+# -------------------------------------------------------------------------------------------------------------------- #
+
+# 1-halo term truncation at large scales (small k), this uses the error function
+def one_halo_truncation(k_vec, k_star = 0.01):
+    #return 1.-np.exp(-(k_vec/k_star)**2.)
+    return erf(k_vec/k_star)
+
+def one_halo_truncation_ia(k_vec, k_star = 4.0):
+    return 1.-np.exp(-(k_vec/k_star)**2.) 
+
+# 1-halo term truncation in 2009.01858
+# eq 17 and table 2
+def one_halo_truncation_mead(k_vec, sigma8_in):
+    sigma8_z = sigma8_in[:,np.newaxis]
+    # One-halo term damping wavenumber
+    k_star = 0.05618 * sigma8_z**(-1.013) # h/Mpc
+    k_frac = k_vec/k_star
+    return (k_frac**4.0)/(1.0 + k_frac**4.0)
+
+# 2-halo term truncation at larger k-values
+# TODO: do we need this damping term?
+def two_halo_truncation(k_vec,k_trunc=2.0):
+    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
+
+def two_halo_truncation_ia(k_vec,k_trunc = 6.0):
+    return np.exp(-(k_vec/k_trunc)**2.)
+
+# TODO: We don't do eq 15 which dewiggles the linear power
+# eq 16 of 2009.01858
+# As long as nd > 0, the multiplicative term in square brackets is
+# unity for k << kd and (1 − f) for k >> kd.
+# This damping is used instead of the regular 2-halo term integrals
+def two_halo_truncation_mead(k_vec, sigma8_in):
+    sigma8_z = sigma8_in[:,np.newaxis]
+    f = 0.2696 * sigma8_z**(0.9403)
+    k_d = 0.05699 * sigma8_z**(-1.089)
+    nd = 2.853
+    k_frac = k_vec/k_d
+    return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
+
+
+# eq 23 and table 2 of 2009.01858
+# This smooths the transition between 1 and 2 halo terms. 
+# α = 1 would correspond to a standard transition. 
+# α < 1 smooths the transition while α > 1 sharpens it.
+# Delta^2(k) = k^3/(2 pi^2) P(k)
+# ∆^2_hmcode(k,z) = {[∆^2_2h(k,z)]^α +[∆^2_1h(k,z)]^α}^1/α
+def transition_smoothing(neff, k_vec, p_1h, p_2h):
+    delta_prefac = (k_vec**3.0)/(2.0*np.pi**2.0)
+    # alpha = (1.875 * (1.603**block['hmf', 'neff'][:,np.newaxis]))
+    alpha = (1.875 * (1.603**neff[:,np.newaxis]))
+    Delta_1h = delta_prefac * p_1h
+    Delta_2h = delta_prefac * p_2h
+    Delta_hmcode = (Delta_1h**alpha + Delta_2h**alpha)**(1.0/alpha)
+    return Delta_hmcode/delta_prefac
+
+
+def compute_1h_term(profile_u, profile_v, mass, dn_dlnm_z):
+    '''
+    The 1h term of the power spectrum. All of the possible power spectra have the same structure at small scales:
+    int W_u(k,z|M) W_v(k,z|M) n(M) dM
+    where u,v are our fields, e.g. matter, galaxy, intrinsic alignment
+    for example matter halo profile is: W_matter = (M/rho_m) U_matter(k,z|M)
+    :param profile_u: array 1d (nmass), the given W_u for fixed value of k and z
+    :param profile_v: array 1d (nmass), the given W_v for fixed value of k and z
+    :param mass: array 1d (nmass)
+    :param dn_dlnm_z: array 1d (nmass), the halo mass function at the given redshift z
+    :return: scalar, the integral along the mass axis
+    '''
+    integrand = profile_u * profile_v * dn_dlnm_z / mass
+    integral_1h = simps(integrand, mass)
+    return integral_1h
+
+# TODO: removed this as it is very simple
+# def compute_2h_term(plin, I1, I2):
+#     '''
+#     The 2h term of the power spectrum. All of the possible power spectra have the same structure at large scales:
+#     P_2h,XY (k,z) = P(k,z)_lin I_X(k,z) I_Y(k,z)
+#     where I_X and I_Y are integrals, specific for each quantity (with X, Y = {matter, galaxy} )
+#     :param plin: array 2d, linear power spectrum in input
+#     :param I1: array 2d
+#     :param I2: array 2d
+#     :return: array 2d
+#     '''
+#     return plin * I1 * I2
+
+# -------------------------------------------------------------------------------------------------------------------- #
+# Gass fraction
+# -------------------------------------------------------------------------------------------------------------------- #
+
+# Gass fraction 
+# Eq 24 of 2009.01858
+# fg(M) = [Ωb/Ωm− f∗] (M/Mb)^β/ (1 + (M/Mb)^β)
+# where fg is the halo gas fraction, the pre-factor in parenthesis is the
+# available gas reservoir, while Mb > 0 and β > 0 are fitted parameters. 
+# Haloes of M >> Mb are unaffected while those of M < Mb have
+# lost more than half of their gas
+def fg(mass, fstar, theta_agn, z, omega_b,omega_m, beta = 2):
+    # Gas fraction from Mead2020 for baryonic feedback model
+    # theta_agn = log10_TAGN - 7.8
+    # table 4 of 2009.01858, units of M_sun/h
+    mb = (10.0**(13.87 - 1.81*theta_agn) * 10.0**(z*(0.195*theta_agn - 0.108)))
+    baryon_to_matter_fraction = omega_b/omega_m
+    fg = (baryon_to_matter_fraction - fstar) * (mass/mb)**beta / (1.0+(mass/mb)**beta)
+    return fg
+
+# TODO: where does this come from?
+def fg_fit(mass, fstar, z, omega_b, omega_m):
+    # Gas fraction for a general baryonic feedback model
+    mb = 10**13.87#block['pk_parameters', 'm_b'] # free parameter.
+    baryon_to_matter_fraction = omega_b/omega_m
+    f = (baryon_to_matter_fraction - fstar) * (mass/mb)**2.0 / (1.0+(mass/mb)**2.0)
+    return f
+
+# -------------------------------------------------------------------------------------------------------------------- #
+# Stellar fraction
+# -------------------------------------------------------------------------------------------------------------------- #
+
+# Stellar fraction from table 4 and eq 26 of 2009.01858 (Mead et al. 2021)
+# f*(z) = f*_0 10^(z f*_z)
+def fs(log10T_AGN,z):
+    theta_agn = log10T_AGN - 7.8
+    fstar_0 = (2.01 - 0.30*theta_agn)*0.01
+    fstar_z = 0.409 + 0.0224*theta_agn
+    fstar = fstar_0 * 10.0**(z*fstar_z)
+    return fstar
+
+# load stellar fraction that is calculated with the Cacciato HOD
+def load_fstar_mm(block, section_name, z_vec, mass):
+    if block.has_value(section_name,'f_star_extended'):
+        f_star = block[section_name, 'f_star_extended']
+        m_hod  = block[section_name, 'mass_extended']
+        z_hod  = block[section_name, 'z_extended']
+    else:
+        raise ValueError('f_star_extended does NOT exist in ' + section_name+ \
+            '. You have asked for stellar_fraction_from_observable_feedback which needs this quantity.\
+            This is calculated as part of the hod_interface, if use_mead2020_corrections is set to stellar_fraction_from_observable_feedback. \
+            Note that if hod_interface_unconditional does not predict this quantity.' )
+    
+    interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=None)
+    mm, zz = np.meshgrid(mass, z_vec, sparse=True)
+    fstar = interp_fstar((mm.T, zz.T)).T
+    return fstar
+
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -667,6 +749,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
 
 
 ################################################################################################
+# TODO: go through the alignment module before fixing this 
 def compute_two_halo_alignment(block, suffix, growth_factor, mean_density0):
     """
     The IA amplitude at large scales, including the IA prefactors.
@@ -705,12 +788,7 @@ def poisson_func(block, type, mass_avg, k_vec, z_vec):
 
 ################################################################################################
 # ---- POWER SPECTRA ----#
-# Mead correction transition smoothing, see Table 2 of https://arxiv.org/pdf/2009.01858.pdf
-def transition_smoothing(block, k_vec, one_halo, two_halo):
-    delta_prefac = (k_vec**3.0)/(2.0*np.pi**2.0)
-    alpha = (1.875 * (1.603**block['hmf', 'neff'][:,np.newaxis]))
-    p_tot = (((delta_prefac * one_halo)**alpha + (delta_prefac * two_halo)**alpha)**(1.0/alpha))/delta_prefac
-    return p_tot
+
 
 # matter-matter
 def compute_p_mm(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term):
@@ -722,55 +800,58 @@ def compute_p_mm(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term):
     pk_mm_tot = pk_mm_1h + pk_mm_2h
     return pk_mm_1h, pk_mm_2h, pk_mm_tot
     
-def compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, I_NL_mm):
+def compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, I_NL_mm):
     # 2-halo term:
     pk_mm_2h = plin * I_m_term * I_m_term + plin*I_NL_mm
     # 1-halo term
-    pk_mm_1h = compute_1h_term(m_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
+    pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     # Total
     pk_mm_tot = pk_mm_1h + pk_mm_2h
-    #print('p_mm succesfully computed')
     return pk_mm_1h, pk_mm_2h, pk_mm_tot
     
-def compute_p_mm_mead(k_vec, plin, z_vec, mass, dn_dln_m, m_factor, I_m_term, sigma8_z):
+def compute_p_mm_mead(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, sigma8_z, neff):
     # 2-halo term:
     pk_mm_2h = plin * two_halo_truncation_mead(k_vec, sigma8_z)
     # 1-halo term
-    pk_mm_1h = compute_1h_term(m_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_mead(k_vec, sigma8_z)
+    pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_mead(k_vec, sigma8_z)
     # Total
-    pk_mm_tot = transition_smoothing(block, k_vec, pk_mm_1h, pk_mm_2h)
+    pk_mm_tot = transition_smoothing(neff, k_vec, pk_mm_1h, pk_mm_2h)
     return pk_mm_1h, pk_mm_2h, pk_mm_tot
 
+# ---------------------------------------------------------------------------------------------------------------------------------------
+
 # galaxy-galaxy power spectrum
-def compute_p_gg(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, mass_avg, poisson_type):
+# TODO: combine this with the next function, but add an option for beta_nl
+def compute_p_gg(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, central_profile, satellite_profile, I_c_term, I_s_term, mass_avg, poisson_type):
     #
-    # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
+    # p_tot = p_cs_1h + p_ss_1h + 2p_cs_2h + p_cc_2h
     #
     # 2-halo term:
-    pk_cs_2h = pk_lin * I_c_term * I_s_term * two_halo_truncation(k_vec)[np.newaxis,:]
     pk_cc_2h = pk_lin * I_c_term * I_c_term * two_halo_truncation(k_vec)[np.newaxis,:]
     pk_ss_2h = pk_lin * I_s_term * I_s_term * two_halo_truncation(k_vec)[np.newaxis,:]
-    # 1-halo term:
-    pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis,:], s_factor, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
-    pk_ss_1h = compute_1h_term(s_factor, s_factor, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
+    pk_cs_2h = pk_lin * I_c_term * I_s_term * two_halo_truncation(k_vec)[np.newaxis,:]
 
+    # 1-halo term:
+    # TODO: check that the satellite 1 halo term is correct (eq 22 of the review)
+    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], satellite_profile, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
+    pk_ss_1h = compute_1h_term(satellite_profile, satellite_profile, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
     
     # Total
     # AD: adding Poisson parameter to ph_ss_1h!
-    #poisson = block['pk_parameters', 'poisson']
+    # poisson = block['pk_parameters', 'poisson']
+    # TODO: check if we can remove block dependence here. Maybe read in the parameters separately.
     poisson = poisson_func(block, poisson_type, mass_avg, k_vec, z_vec)[:,np.newaxis]
-    pk_tot = 2.0*pk_cs_1h + poisson*pk_ss_1h + pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
-
-    # in case, save in the datablock
-    #block.put_grid('galaxy_cs_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cs_1h)
-    #block.put_grid('galaxy_ss_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_ss_1h)
+    pk_1h = 2.0*pk_cs_1h + poisson*pk_ss_1h
+    pk_2h = pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
+    pk_tot = pk_1h + pk_2h
 
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
-    #print('p_nn succesfully computed')
-    return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
+    # changed this to have the poisson parameter included
+    # return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
+    return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
 
-def compute_p_gg_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, I_c_term, I_s_term, I_NL_cs, I_NL_cc, I_NL_ss, mass_avg, poisson_type):
+def compute_p_gg_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, central_profile, satellite_profile, I_c_term, I_s_term, I_NL_cs, I_NL_cc, I_NL_ss, mass_avg, poisson_type):
     #
     # p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     #
@@ -780,30 +861,29 @@ def compute_p_gg_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
     pk_ss_2h = pk_lin * I_s_term * I_s_term + pk_lin*I_NL_ss
 
     # 1-halo term:
-    pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis,:], s_factor, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
-    pk_ss_1h = compute_1h_term(s_factor, s_factor, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
+    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], satellite_profile, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
+    pk_ss_1h = compute_1h_term(satellite_profile, satellite_profile, mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec)
 
     
-    # Total
-    # AD: adding Poisson parameter to ph_ss_1h!
-    #poisson = block['pk_parameters', 'poisson']
+
     poisson = poisson_func(block, poisson_type, mass_avg, k_vec, z_vec)[:,np.newaxis]
-    pk_tot = 2.0*pk_cs_1h + poisson*pk_ss_1h + pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
+    pk_1h = 2.0*pk_cs_1h + poisson*pk_ss_1h
+    pk_2h = pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
+    pk_tot = pk_1h + pk_2h
     
-    pk_tot_nbnl = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h - (pk_lin*I_NL_cc) + pk_ss_2h - (pk_lin*I_NL_ss) + (2. * pk_cs_2h) - (2. * pk_lin*I_NL_cs)
-
-    # in case, save in the datablock
-    #block.put_grid('galaxy_cs_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_cs_1h)
-    #block.put_grid('galaxy_ss_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_ss_1h)
+    # pk_tot_nbnl = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h - (pk_lin*I_NL_cc) + pk_ss_2h - (pk_lin*I_NL_ss) + (2. * pk_cs_2h) - (2. * pk_lin*I_NL_cs)
 
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
     #print('p_nn succesfully computed')
-    return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
+    # return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
+    return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
 
 
 # galaxy-matter power spectrum
-def compute_p_gm(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term):
+# TODO: combine these two together
+# TODO: should'nt the poisson parameter come into here as well?
+def compute_p_gm(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, central_profile, satellite_profile, matter_profile, I_c_term, I_s_term, I_m_term):
     #
     # p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
     #
@@ -811,13 +891,16 @@ def compute_p_gm(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor
     pk_cm_2h = pk_lin * I_c_term * I_m_term * two_halo_truncation(k_vec)[np.newaxis,:]
     pk_sm_2h = pk_lin * I_s_term * I_m_term * two_halo_truncation(k_vec)[np.newaxis,:]
     # 1-halo term
-    pk_cm_1h = compute_1h_term(c_factor[:,np.newaxis], m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
-    pk_sm_1h = compute_1h_term(s_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
-    pk_tot = pk_cm_1h + pk_sm_1h + pk_cm_2h + pk_sm_2h
-    #print('p_xgG succesfully computed')
-    return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
+    pk_cm_1h = compute_1h_term(central_profile[:,np.newaxis], matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
+    pk_sm_1h = compute_1h_term(satellite_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
+    pk_1h = pk_cm_1h + pk_sm_1h
+    pk_2h = pk_cm_2h + pk_sm_2h
+    pk_tot = pk_1h + pk_2h
+    # galaxy-matter linear bias
+    galaxy_matter_linear_bias = np.sqrt(I_c_term * I_m_term + I_s_term * I_m_term)
+    return pk_1h, pk_2h, pk_tot, galaxy_matter_linear_bias
 
-def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_factor, m_factor, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm):
+def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, central_profile, satellite_profile, matter_profile, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm):
     #
     # p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
     #
@@ -825,11 +908,12 @@ def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
     pk_cm_2h = pk_lin * I_c_term * I_m_term + pk_lin*I_NL_cm
     pk_sm_2h = pk_lin * I_s_term * I_m_term  + pk_lin*I_NL_sm
         # 1-halo term
-    pk_cm_1h = compute_1h_term(c_factor[:,np.newaxis], m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
-    pk_sm_1h = compute_1h_term(s_factor, m_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
+    pk_cm_1h = compute_1h_term(central_profile[:,np.newaxis], matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
+    pk_sm_1h = compute_1h_term(satellite_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     pk_tot = pk_cm_1h + pk_sm_1h + pk_cm_2h + pk_sm_2h
-    #print('p_xgG succesfully computed')
     return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
+
+
 
 #################################################
 #                                               #
@@ -837,38 +921,37 @@ def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, c_factor, s_fa
 #                                               #
 #################################################
 
-
 # galaxy-matter power spectrum
-def compute_p_mI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, m_factor, s_align_factor, alignment_amplitude_2h, f_gal):
+def compute_p_mI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, matter_profile, s_align_factor, alignment_amplitude_2h, f_gal):
     #
     # p_tot = p_sm_mI_1h + f_cen*p_cm_mI_2h + O(any other combination)
     #
     # 2-halo term:
-    pk_cm_2h = compute_p_mI_two_halo(block, k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    # pk_eff = (1.-t_eff)*plin+t_eff*pnl
+    pk_cm_2h = compute_p_mI_two_halo(k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     # 1-halo term
-    pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     # prepare the 1h term
     pk_tot = pk_sm_1h + pk_cm_2h
     return pk_sm_1h, pk_cm_2h, pk_tot
 
-def compute_p_mI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, m_factor, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term):
+def compute_p_mI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, matter_profile, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term):
     
-    pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    #pk_cm_1h = (-1.0) * compute_1h_term(m_factor, c_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    #pk_cm_1h = (-1.0) * compute_1h_term(matter_profile, c_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_sm_2h = (-1.0) * p_lin * I_m_term * I_s_align_term
     pk_cm_2h = (-1.0) * p_lin * I_m_term * I_c_align_term
     pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
     
     return pk_sm_1h, pk_cm_2h+pk_sm_2h, pk_tot
     
-def compute_p_mI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, m_factor, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, I_NL_ia_cm, I_NL_ia_sm):
+def compute_p_mI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, matter_profile, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, I_NL_ia_cm, I_NL_ia_sm):
     
-    pk_sm_1h = (-1.0) * compute_1h_term(m_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    #pk_cm_1h = (-1.0) * compute_1h_term(m_factor, c_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    #pk_cm_1h = (-1.0) * compute_1h_term(matter_profile, c_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_sm_2h = (-1.0) * p_lin * I_m_term * I_s_align_term - p_lin*(I_NL_ia_sm)
     pk_cm_2h = (-1.0) * p_lin * I_m_term * I_c_align_term - p_lin*(I_NL_ia_cm)
     pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
-    
     
     return pk_sm_1h, pk_cm_2h+pk_sm_2h, pk_tot
 
@@ -912,7 +995,7 @@ def compute_p_II_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_align_factor,
 
 # galaxy-intrinsic power spectrum
 #IT redefinition as dn_dln_m
-def compute_p_gI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_align_factor, I_c_term, alignment_amplitude_2h):
+def compute_p_gI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, central_profile, s_align_factor, I_c_term, alignment_amplitude_2h):
     #
     # p_tot = p_cs_gI_1h + (2?)*p_cc_gI_2h + O(p_ss_gI_1h) + O(p_cs_gI_2h)
     #
@@ -920,14 +1003,14 @@ def compute_p_gI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, c_factor, s_alig
     #IT Removed new_axis from alignment_amplitude_2h[:,np.newaxis] in the following line
     pk_cc_2h = -1.0 * p_eff * I_c_term * alignment_amplitude_2h[:,] * two_halo_truncation_ia(k_vec)[np.newaxis,:]
     # 1-halo term
-    pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     
     pk_tot = pk_cs_1h + pk_cc_2h
     return pk_cs_1h, pk_cc_2h, pk_tot
 
-def compute_p_gI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_factor, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term):
+def compute_p_gI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, central_profile, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term):
     
-    pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_cc_2h = p_lin * I_c_term * I_c_align_term
     pk_cs_2h = p_lin * I_c_term * I_s_align_term
 
@@ -935,9 +1018,9 @@ def compute_p_gI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_factor, c_align_f
     
     return pk_cs_1h, pk_cc_2h+pk_cs_2h, pk_tot
 
-def compute_p_gI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_factor, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, I_NL_ia_gc, I_NL_ia_gs):
+def compute_p_gI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, central_profile, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, I_NL_ia_gc, I_NL_ia_gs):
     
-    pk_cs_1h = compute_1h_term(c_factor[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_cc_2h = p_lin * I_c_term * I_c_align_term + p_lin*(I_NL_ia_gc)
     pk_cs_2h = p_lin * I_c_term * I_s_align_term + p_lin*(I_NL_ia_gs)
 
@@ -953,7 +1036,7 @@ def compute_p_gI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_factor, c_ali
 # AD: Leaving as it is!
 
 # galaxy-galaxy power spectrum
-def compute_p_gg_two_halo(block, k_vec, plin, z_vec, bg):
+def compute_p_gg_two_halo(k_vec, plin, z_vec, bg):
     #
     # p_tot = b_g**2 * p_lin
     #
@@ -962,7 +1045,7 @@ def compute_p_gg_two_halo(block, k_vec, plin, z_vec, bg):
 
 
 # galaxy-matter power spectrum
-def compute_p_gm_two_halo(block, k_vec, plin, z_vec, bg):
+def compute_p_gm_two_halo(k_vec, plin, z_vec, bg):
     #
     # p_tot = bg * plin
     #
@@ -971,17 +1054,14 @@ def compute_p_gm_two_halo(block, k_vec, plin, z_vec, bg):
 
 
 # galaxy-matter power spectrum
-def compute_p_mI_two_halo(block, k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h):
-    #
-    # p_tot = p_NLA
-    #
+def compute_p_mI_two_halo(k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h):
     # this is simply the Linear (or Nonlinear) Alignment Model, weighted by the central galaxy fraction
     pk_tot = f_gal[:,np.newaxis] * p_eff * alignment_amplitude_2h
     return pk_tot
 
 
 # galaxy-intrinsic power spectrum
-def compute_p_gI_two_halo(block, k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h, bg):
+def compute_p_gI_two_halo(k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h, bg):
     #
     # p_tot = bg * p_NLA
     #
@@ -990,20 +1070,20 @@ def compute_p_gI_two_halo(block, k_vec, p_eff, z_vec, f_gal, alignment_amplitude
 
 
 # intrinsic-intrinsic power spectrum
-def compute_p_II_two_halo(block, k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h_II):
+def compute_p_II_two_halo(k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h_II):
     pk_tot = (f_gal[:,np.newaxis] ** 2.) * p_eff * alignment_amplitude_2h_II
     return pk_tot
 
 #################################################
 
-
-def interp_udm(mass_udm, k_udm, udm_z, mass, k_vec):
-    #interp_udm = interp2d(mass_udm, k_udm, udm_z, kind='linear', bounds_error=False)
-    #u_dm = interp_udm(mass, k_vec)
-    interp_udm = RegularGridInterpolator((mass_udm.T, k_udm.T), udm_z.T, bounds_error=False, fill_value=None)
-    mm, kk = np.meshgrid(mass, k_vec, sparse=True)
-    u_dm = interp_udm((mm.T, kk.T)).T
-    return u_dm
+# TODO: unused remove
+# def interp_udm(mass_udm, k_udm, udm_z, mass, k_vec):
+#     #interp_udm = interp2d(mass_udm, k_udm, udm_z, kind='linear', bounds_error=False)
+#     #u_dm = interp_udm(mass, k_vec)
+#     interp_udm = RegularGridInterpolator((mass_udm.T, k_udm.T), udm_z.T, bounds_error=False, fill_value=None)
+#     mm, kk = np.meshgrid(mass, k_vec, sparse=True)
+#     u_dm = interp_udm((mm.T, kk.T)).T
+#     return u_dm
 
 # TODO: Change the input from fourier_nfw_profile to read a given section name
 # done TODO: Why do we take the absolute value and why the reshaping? don't need these so removed them
