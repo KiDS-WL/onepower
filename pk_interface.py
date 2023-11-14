@@ -390,7 +390,7 @@ def execute(block, config):
 
         if bnl == True:
             beta_interp = block.get_double_array_nd('bnl', 'beta_interp')
-            if beta_interp == np.array([0.0]):
+            if beta_interp.shape == np.array([0.0]).shape:
                 raise ValueError('Non-linear halo bias module bnl not initialised!\n')
 
             
