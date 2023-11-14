@@ -108,7 +108,7 @@ def execute(block, config):
 
     for nb in range(0,nbins):
         if nbins != 1:
-            suffix = str(nb+1)
+            suffix = '_'+str(nb+1)
         else:
             suffix = ''
         n_sat =[]
@@ -117,9 +117,9 @@ def execute(block, config):
             n_cen.append(n_cen_1z)
             n_sat.append(n_sat_1z)
         
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat'+suffix, np.asarray(n_sat))
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_cen'+suffix, np.asarray(n_cen))
-        block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_tot'+suffix, np.asarray(n_sat)+np.asarray(n_cen))
+        block.put_grid(hod_section_name, 'z'+suffix, z_bins[nb], 'mass'+suffix, mass, 'n_sat'+suffix, np.asarray(n_sat))
+        block.put_grid(hod_section_name, 'z'+suffix, z_bins[nb], 'mass'+suffix, mass, 'n_cen'+suffix, np.asarray(n_cen))
+        block.put_grid(hod_section_name, 'z'+suffix, z_bins[nb], 'mass'+suffix, mass, 'n_tot'+suffix, np.asarray(n_sat)+np.asarray(n_cen))
 
         # set interpolator for the halo mass function
         f_int_dndlnM = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)

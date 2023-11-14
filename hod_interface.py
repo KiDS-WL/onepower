@@ -204,7 +204,7 @@ def execute(block, config):
     
     for nb in range(0,nbins):
         if nbins != 1:
-            suffix = str(nb+1)
+            suffix = '_'+str(nb+1)
         else:
             suffix = ''
         # set interpolator for the halo mass function
@@ -309,7 +309,7 @@ def execute(block, config):
                 obs_func_h[jz] = interp(obs_range_h)
                     
             #TODO: put this in a different section
-            block.put_grid(observable_section_name, 'z_bin_'+str(nb+1), z_bins[nb], 'obs_val_'+suffix, obs_range_h, 'obs_func_'+suffix, np.log(10.0)*obs_func_h*obs_range_h)
+            block.put_grid(observable_section_name, 'z_bin'+suffix, z_bins[nb], 'obs_val'+suffix, obs_range_h, 'obs_func'+suffix, np.log(10.0)*obs_func_h*obs_range_h)
             
     if save_observable:
         block.put(observable_section_name,'observable_mode',observable_mode)
@@ -344,7 +344,7 @@ def execute(block, config):
         obs_func_h = hod.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
 
         #TODO: put this in a different section
-        block.put_grid(observable_section_name, 'z_bin_'+str(nb+1), z_bins_one, 'obs_val_'+str(nb+1), obs_range_h[0], 'obs_func_'+str(nb+1),np.log(10.0)*obs_func_h*obs_range_h[0])
+        block.put_grid(observable_section_name, 'z_bin'+suffix, z_bins_one, 'obs_val'+suffix, obs_range_h[0], 'obs_func'+suffix,np.log(10.0)*obs_func_h*obs_range_h[0])
     
     
     #########################

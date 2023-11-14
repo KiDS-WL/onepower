@@ -285,7 +285,7 @@ def execute(block, config):
             hod_bins = block[hod_section_name, 'nbins']
             for nb in range(0,hod_bins):
                 if hod_bins != 1:
-                    suffix = str(nb+1)
+                    suffix = '_'+ str(nb+1)
                 else:
                     suffix = ''
                 if galaxy == True:
@@ -400,7 +400,7 @@ def execute(block, config):
             
             for nb in range(0,hod_bins):
                 if hod_bins != 1:
-                    suffix = str(nb+1)
+                    suffix = '_'+str(nb+1)
                 else:
                     suffix = ''
                 #     # hod_section_name = hod_section_name0 + '_{}'.format(nb+1)
