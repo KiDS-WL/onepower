@@ -372,7 +372,7 @@ def execute(block, config):
             if p_mm == True and bnl == False:
                 if mead_correction == 'nofeedback':
                     sigma8_z = block['hmf', 'sigma8_z']
-                    neff = block['hmf', 'neff']
+                    neff     = block['hmf', 'neff']
                     pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_mead(k_vec, plin, z_vec, mass, 
                                                                             dn_dlnm, matter_profile_1h_mm, 
                                                                             I_m, sigma8_z,neff)
@@ -393,8 +393,6 @@ def execute(block, config):
                 #block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)
                 #block.put_grid('matter_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
                 block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot_bnl)
-
-
 
         if (galaxy == True) or (alignment == True):
             # TODO: metadata does not exist change this
@@ -422,8 +420,8 @@ def execute(block, config):
                     profile_c = pk_lib.central_profile(Ncen, numdencen, f_cen)
                     profile_s = pk_lib.satellite_profile(Nsat, numdensat, f_sat, u_sat)
                     # calculate the 2-halo integrals for centrals and satelites
-                    I_c_term = pk_lib.Ic_term(mass, profile_c, b_dm, dn_dlnm, nk)
-                    I_s_term = pk_lib.Is_term(mass, profile_s, b_dm, dn_dlnm)
+                    I_c = pk_lib.Ic_term(mass, profile_c, b_dm, dn_dlnm, nk)
+                    I_s = pk_lib.Is_term(mass, profile_s, b_dm, dn_dlnm)
                     
                     if mead_correction == 'stellar_fraction_from_observable_feedback' or point_mass == True:
                         # Include point mass and gas contribution to the GGL power spectrum, defined from HOD
@@ -507,7 +505,7 @@ def execute(block, config):
                 # compute the power spectra
                 if p_gg == True and bnl == False:
                     pk_gg_1h, pk_gg_2h, pk_gg, bg_halo_model = pk_lib.compute_p_gg(block, k_vec, plin, z_vec, 
-                                mass, dn_dlnm, profile_c, profile_s, I_c_term, I_s_term, mass_avg, poisson_type)
+                                mass, dn_dlnm, profile_c, profile_s, I_c, I_s, mass_avg, poisson_type)
                     #block.put_grid('galaxy_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_1h)
                     #block.put_grid('galaxy_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_2h)
                     block.put_grid('galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg)
@@ -515,7 +513,7 @@ def execute(block, config):
     
                 if p_gg == True and bnl == True:
                     pk_gg_1h_bnl, pk_gg_2h_bnl, pk_gg_bnl, bg_halo_model_bnl = pk_lib.compute_p_gg_bnl(block, k_vec, plin, z_vec, 
-                        mass, dn_dlnm, profile_c, profile_s, I_c_term, I_s_term, I_NL_cs, I_NL_cc, I_NL_ss, mass_avg, poisson_type)
+                        mass, dn_dlnm, profile_c, profile_s, I_c, I_s, I_NL_cs, I_NL_cc, I_NL_ss, mass_avg, poisson_type)
                     #block.put_grid('galaxy_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_1h_bnl)
                     #block.put_grid('galaxy_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_2h_bnl)
                     block.put_grid('galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_bnl)
@@ -523,14 +521,14 @@ def execute(block, config):
         
                 if p_gm == True and bnl == False:
                     pk_1h, pk_2h, pk_tot, galaxy_matter_linear_bias = pk_lib.compute_p_gm(block, k_vec, plin, z_vec, 
-                        mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c_term, I_s_term, I_m)
+                        mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c, I_s, I_m)
                     #block.put_grid('matter_galaxy_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_1h)
                     #block.put_grid('matter_galaxy_power_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_2h)
                     block.put_grid('matter_galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
                 
                 if p_gm == True and bnl == True:
                     pk_1h_bnl, pk_2h_bnl, pk_tot_bnl, galaxy_matter_linear_bias = pk_lib.compute_p_gm_bnl(block, k_vec, plin, z_vec, 
-                        mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c_term, I_s_term, I_m, I_NL_cm, I_NL_sm)
+                        mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c, I_s, I_m, I_NL_cm, I_NL_sm)
                     #block.put_grid('matter_galaxy_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_1h)
                     #block.put_grid('matter_galaxy_power_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_2h)
                     block.put_grid('matter_galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot_bnl)
@@ -545,7 +543,7 @@ def execute(block, config):
                     block.put_grid('intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
                 if p_gI == True and bnl == False:
                     pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI(block, k_vec, plin, z_vec, 
-                        mass, dn_dlnm, profile_c, c_align_profile, s_align_profile, I_c_term, I_c_align_term, I_s_align_term)
+                        mass, dn_dlnm, profile_c, c_align_profile, s_align_profile, I_c, I_c_align_term, I_s_align_term)
                     block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
                 if p_mI == True and bnl == False:
                     pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI(block, k_vec, plin, z_vec, 
@@ -565,7 +563,7 @@ def execute(block, config):
                     block.put_grid('intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_bnl)
                 if p_gI == True and bnl == True:
                     pk_gI_1h_bnl, pk_gI_2h_bnl, pk_gI_bnl = pk_lib.compute_p_gI_bnl(block, k_vec, plin, z_vec, 
-                        mass, dn_dlnm, profile_c, c_align_profile, s_align_profile, I_c_term, I_c_align_term, I_s_align_term, 
+                        mass, dn_dlnm, profile_c, c_align_profile, s_align_profile, I_c, I_c_align_term, I_s_align_term, 
                         I_NL_ia_gc, I_NL_ia_gs)
                     block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI_bnl)
                 if p_mI == True and bnl == True:
@@ -586,7 +584,7 @@ def execute(block, config):
                     block.put_grid('intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
                 if p_gI_mc == True:
                     pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI_mc(block, k_vec, pk_eff, z_vec, 
-                        mass, dn_dlnm, profile_c, s_align_profile, I_c_term, alignment_amplitude_2h)
+                        mass, dn_dlnm, profile_c, s_align_profile, I_c, alignment_amplitude_2h)
                     block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
                 if p_mI_mc == True:
                     pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_mc(k_vec, pk_eff, z_vec, 
