@@ -910,9 +910,12 @@ def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, central_profil
         # 1-halo term
     pk_cm_1h = compute_1h_term(central_profile[:,np.newaxis], matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
     pk_sm_1h = compute_1h_term(satellite_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec)[np.newaxis,:]
-    pk_tot = pk_cm_1h + pk_sm_1h + pk_cm_2h + pk_sm_2h
-    return pk_cm_1h+pk_sm_1h, pk_cm_2h+pk_cm_2h, pk_tot
-
+    pk_1h = pk_cm_1h + pk_sm_1h
+    pk_2h = pk_cm_2h + pk_sm_2h
+    pk_tot = pk_1h + pk_2h
+    # galaxy-matter linear bias
+    galaxy_matter_linear_bias = np.sqrt(I_c_term * I_m_term + I_s_term * I_m_term)
+    return pk_1h, pk_2h, pk_tot, galaxy_matter_linear_bias
 
 
 #################################################

@@ -278,7 +278,7 @@ def execute(block, config):
     if two_halo_only == True:
         if matter == True:
             A_term   = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
-            I_m_term = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
+            I_m = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
             matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm)
         if (galaxy == True) or (alignment == True):
             # TODO: Change where this is looking for things, as I have removed metadata
@@ -318,7 +318,7 @@ def execute(block, config):
             # this is not very useful as for the lensing power spectrum it is usually used halofit
             raise ValueError('pmm not implemented for the two-halo only option\n')
             # AD: Implement proper matter-matter term using the halo model here. We do not want to use halofit.
-            # compute_p_mm_new(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, matter_profile, I_m_term, nz, nk)
+            # compute_p_mm_new(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, matter_profile, I_m, nz, nk)
     
     # TODO: starting checks from here 
     else:
@@ -375,10 +375,10 @@ def execute(block, config):
                     neff = block['hmf', 'neff']
                     pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_mead(k_vec, plin, z_vec, mass, 
                                                                             dn_dlnm, matter_profile_1h_mm, 
-                                                                            I_m_term, sigma8_z,neff)
+                                                                            I_m, sigma8_z,neff)
                 else:
                     pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm(k_vec, plin, z_vec, mass, 
-                                                                        dn_dlnm, matter_profile_1h_mm, I_m_term)
+                                                                        dn_dlnm, matter_profile_1h_mm, I_m)
                 # save in the datablock
                 #block.put_grid('matter_1h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_1h)
                 #block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)
@@ -387,7 +387,7 @@ def execute(block, config):
                 
             if p_mm == True and bnl == True:
                 pk_mm_1h_bnl, pk_mm_2h_bnl, pk_mm_tot_bnl = pk_lib.compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dlnm, 
-                                                                                    matter_profile_1h_mm, I_m_term, I_NL_mm)
+                                                                                    matter_profile_1h_mm, I_m, I_NL_mm)
                 # save in the datablock
                 #block.put_grid('matter_1h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_1h)
                 #block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)
@@ -522,15 +522,15 @@ def execute(block, config):
                     #block.put_grid('galaxy_linear_bias' + suffix, 'z', z_vec, 'k_h', k_vec, 'galaxybiastotal', bg_halo_model)
         
                 if p_gm == True and bnl == False:
-                    pk_1h, pk_2h, pk_tot = pk_lib.compute_p_gm(block, k_vec, plin, z_vec, 
-                        mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c_term, I_s_term, I_m_term)
+                    pk_1h, pk_2h, pk_tot, galaxy_matter_linear_bias = pk_lib.compute_p_gm(block, k_vec, plin, z_vec, 
+                        mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c_term, I_s_term, I_m)
                     #block.put_grid('matter_galaxy_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_1h)
                     #block.put_grid('matter_galaxy_power_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_2h)
                     block.put_grid('matter_galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
                 
                 if p_gm == True and bnl == True:
-                    pk_1h_bnl, pk_2h_bnl, pk_tot_bnl = pk_lib.compute_p_gm_bnl(block, k_vec, plin, z_vec, 
-                        mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c_term, I_s_term, I_m_term, I_NL_cm, I_NL_sm)
+                    pk_1h_bnl, pk_2h_bnl, pk_tot_bnl, galaxy_matter_linear_bias = pk_lib.compute_p_gm_bnl(block, k_vec, plin, z_vec, 
+                        mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c_term, I_s_term, I_m, I_NL_cm, I_NL_sm)
                     #block.put_grid('matter_galaxy_power_1h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_1h)
                     #block.put_grid('matter_galaxy_power_2h', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_2h)
                     block.put_grid('matter_galaxy_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot_bnl)
@@ -549,7 +549,7 @@ def execute(block, config):
                     block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
                 if p_mI == True and bnl == False:
                     pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI(block, k_vec, plin, z_vec, 
-                        mass, dn_dlnm, matter_profile_1h, c_align_profile, s_align_profile, I_m_term, I_c_align_term, I_s_align_term)
+                        mass, dn_dlnm, matter_profile_1h, c_align_profile, s_align_profile, I_m, I_c_align_term, I_s_align_term)
                     #block.put_grid('matter_intrinsic_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_1h)
                     #block.put_grid('matter_intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)
                     block.put_grid('matter_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)
@@ -570,7 +570,7 @@ def execute(block, config):
                     block.put_grid('galaxy_intrinsic_power' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI_bnl)
                 if p_mI == True and bnl == True:
                     pk_mI_1h_bnl, pk_mI_2h_bnl, pk_mI_bnl = pk_lib.compute_p_mI_bnl(block, k_vec, plin, z_vec, 
-                        mass, dn_dlnm, matter_profile_1h, c_align_profile, s_align_profile, I_m_term, I_c_align_term, I_s_align_term, 
+                        mass, dn_dlnm, matter_profile_1h, c_align_profile, s_align_profile, I_m, I_c_align_term, I_s_align_term, 
                         I_NL_ia_cm, I_NL_ia_sm)
                     #block.put_grid('matter_intrinsic_power_1h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_1h)
                     #block.put_grid('matter_intrinsic_power_2h' + suffix, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)
