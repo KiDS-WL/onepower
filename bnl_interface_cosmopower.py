@@ -79,8 +79,8 @@ def setup(options):
     config['M_low'] = options[option_section, 'log_mass_min']
     config['len_Mvec'] = options[option_section, 'nmass']
     config['M_vec'] = np.logspace(config['M_low'], config['M_up'], config['len_Mvec'])
-    lower_limit = 10.0**11.875
-    upper_limit = 10.0**14.175
+    lower_limit = 10.0**12.0
+    upper_limit = 10.0**14.0
     config['M_vec'][config['M_vec'] < lower_limit] = lower_limit
     config['M_vec'][config['M_vec'] > upper_limit] = upper_limit
 
