@@ -1,0 +1,142 @@
+Notes on code: 
+
+halo_model_ingredients.py:
+
+This section at the end of setup gives and error. Why is it written like this? 
+check_mead = options.has_value(option_section, 'use_mead2020_corrections')
+
+
+# This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
+    # z_vec is actually just a single z value. 
+    # Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
+    tic = time.perf_counter()
+    c, ms = colossus_concentration.concentration(M=mass, z=z_vec, mdef=mdef.colossus_name, model=model,
+            range_return=True, range_warning=False)
+    toc = time.perf_counter()
+    print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
+
+
+hod interface:
+
+
+* HOD interface creates the exact same HOD for different z-bins. Why do we make copies of it? Is it because we want to allow for an option where the HOD is different for each redshift? It should be different if the stellar mass range is different for each bin. But the output HOD is calculated over a range of redshifts. 
+
+--> investigate this. 
+
+This is what I expect to have as output: 1 HOD per defined stellar mass and redshift block. Each HOD will only depend on halo Mass. We have suffixes for each HOD, but then within each there is also redshift dependence which is not really used. 
+
+Check how the HOD interfaces with Pk
+
+Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg, fstar = load_hods(block, hod_section_name, z_vec, mass)
+
+# load the hod
+def load_hods(block, section_name, z_vec, mass):
+    
+    m_hod    = block[section_name, 'mass']
+    z_hod    = block[section_name,  'z']
+    Ncen_hod = block[section_name, 'n_cen']
+    Nsat_hod = block[section_name, 'n_sat']
+    numdencen_hod = block[section_name, 'number_density_cen']
+    numdensat_hod = block[section_name, 'number_density_sat']
+    f_c_hod = block[section_name, 'central_fraction']
+    f_s_hod = block[section_name, 'satellite_fraction']
+    mass_avg_hod = block[section_name, 'average_halo_mass']
+    f_star = block[section_name, 'f_star']
+
+    interp_Ncen = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=0.0)
+    interp_Nsat = RegularGridInterpolator((m_hod.T, z_hod.T), Nsat_hod.T, bounds_error=False, fill_value=0.0)
+    interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=0.0)
+    # AD: Is extrapolation warranted here? Maybe make whole calculation on same grid/spacing/thingy!?
+    interp_numdencen = interp1d(z_hod, numdencen_hod, fill_value='extrapolate', bounds_error=False)
+    interp_numdensat = interp1d(z_hod, numdensat_hod, fill_value='extrapolate', bounds_error=False)
+    interp_f_c = interp1d(z_hod, f_c_hod, fill_value=0.0, bounds_error=False)
+    interp_f_s = interp1d(z_hod, f_s_hod, fill_value=0.0, bounds_error=False)
+    interp_mass_avg = interp1d(z_hod, mass_avg_hod, fill_value=0.0, bounds_error=False)
+
+    mm, zz = np.meshgrid(mass, z_vec, sparse=True)
+    Ncen = interp_Ncen((mm.T, zz.T)).T
+    Nsat = interp_Nsat((mm.T, zz.T)).T
+    fstar = interp_fstar((mm.T, zz.T)).T
+
+    numdencen = interp_numdencen(z_vec)
+    numdensat = interp_numdensat(z_vec)
+    f_c = interp_f_c(z_vec)
+    f_s = interp_f_s(z_vec)
+    mass_avg = interp_mass_avg(z_vec)
+    
+    return Ncen, Nsat, numdencen, numdensat, f_c, f_s, mass_avg, fstar
+
+Ncen, Nsat, fstar are grids of length len(mass) and len(z_vec). numdencen, numdensat, f_c and f_s are arrays of length len(z_vec)
+c_factor = pk_lib.prepare_central_factor_grid(Ncen, numdencen, f_cen)
+s_factor = pk_lib.prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_sat)
+
+# clustering - centrals
+def prepare_central_factor_grid(Ncen, numdencen, f_cen):
+    c_factor = compute_central_galaxy_factor(Ncen, numdencen[:,np.newaxis], f_cen[:,np.newaxis])
+    return c_factor
+
+
+central_galaxy_factor = f_c * Ncen / numdenscen  -> this is W_c(M,k), or the central galaxy profile
+satellite_galaxy_factor = f_s * Nsat * u_gal / numdenssat -> this is W_s(M,k), or the satellite galaxy profile
+
+def compute_central_galaxy_factor(Ncen, numdenscen, f_c):
+    return f_c * Ncen / numdenscen
+
+
+
+# clustering - satellites
+def prepare_satellite_factor_grid(Nsat, numdensat, f_sat, u_gal):
+    s_factor = compute_satellite_galaxy_factor(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], u_gal)
+    return s_factor
+
+def compute_satellite_galaxy_factor(Nsat, numdenssat, f_s, u_gal):
+    return f_s * Nsat * u_gal / numdenssat
+
+
+
+
+
+
+For now we can simply can one HOD and then bin it in stellar mass. 
+
+block.put_grid(hod_section_name, 'z', z_bins[nb], 'mass', mass, 'n_sat'+suffix, n_sat)
+
+
+
+
+
+Places where hod is read from the block:
+
+add_and_upsample.py
+
+First conflict:  File "/Users/masgari/Documents/CosmicShear/repos//halomodel_for_cosmosis/add_and_upsample.py", line 214, in execute
+    hod_bins_red = block['hod' + suffix0_red + '_metadata', 'nbins']
+                   ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+pk_interface.py --> reads in hod_section_name
+
+extrapolate_obs suffixes and variable names.
+
+Add default values for trans_1hto2h and poisson
+
+
+IMPORTANT!!!!
+
+# TODO: This is probably why the k_vec is change from the input from CAMB!
+def compute_u_dm_grid(block, k_vec, mass, z_vec):
+    z_udm    = block['fourier_nfw_profile', 'z']
+    mass_udm = block['fourier_nfw_profile', 'm_h']
+    k_udm    = block['fourier_nfw_profile', 'k_h']
+    u_dm     = block['fourier_nfw_profile', 'ukm']
+    u_sat    = block['fourier_nfw_profile', 'uksat']
+    if(k_vec!=k_udm):
+        raise Exception('The profile k values are different to the input k values.')
+    return u_dm,u_sat
+
+f_star definition doesn't match table 4 of hmcode2020 : 
+fstar = ((2.01 - 0.30*theta_agn)*0.01 * 10.0**(z*(0.409 + 0.0224*theta_agn))) / (0.75 * (1.0+z)**(1.0/6.0))
+the dinominator does not exist in the paper.
+
+
+

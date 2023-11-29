@@ -8,18 +8,19 @@ import astropy.units as u
 from halomod import bias as bias_func
 from halomod.concentration import make_colossus_cm
 from halomod import concentration as conc_func
-from colossus.cosmology import cosmology as colossus_cosmology
-from colossus.halo import concentration as colossus_concentration
 from hmf import MassFunction
 import hmf.halos.mass_definitions as md
 import hmf.cosmology.growth_factor as gf
 from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
-
+import halo_model_utility as hmu
+from colossus.cosmology import cosmology as colossus_cosmology
+from colossus.halo import concentration as colossus_concentration
 import time
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
 
+# TODO: concentration is saved into multiple folders. Check if these can be merged.
 def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
     # calculates concentration given halo mass, using the halomod model provided in config
     # furthermore it converts to halomod instance to be used with the halomodel, 
@@ -48,137 +49,17 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
 
     
     return c_interp(mass)
-    
-    
-def concentration_halomod(block, cosmo, mass, z, model, mdef, overdensity, mf, delta_c):
-    # calculates concentration given halo mass, using the halomod model provided in config
-    # furthermore it converts to halomod instance to be used with the halomodel, consistenly with halo mass function
-    # and halo bias function
-    mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
-    cm = getattr(conc_func, model)(cosmo=mf, filter0=mf.filter, delta_c=delta_c, mdef=mdef)
-    
-    c = cm.cm(mass, z)
-    return c
-    
-    
-# AD: Leaving in for now...
-def tinker_bias(nu, Delta=200., delta_c=1.686):
-    nu = nu**0.5
-    # Table 2, Tinker+2010
-    y = np.log10(Delta)
-    expvar = np.exp(-(4./y)**4.)
-    A = 1.+0.24*y*expvar
-    a = 0.44*y-0.88
-    B = 0.183
-    b = 1.5
-    C = 0.019+0.107*y+0.19*expvar
-    c = 2.4
-    # equation 6
-    bias = 1.-A*(nu**a)/(nu**a+delta_c**a) + B*nu**b + C*nu**c
-    return bias
-    
-def acceleration_parameter(cosmo, z):
-    return -0.5*(cosmo.Om(z) + (1.0 + 3.0*cosmo.w(z))*cosmo.Ode(z))
-    
-def get_growth_interpolator(cosmo):
-    """
-    Solve the linear growth ODE and returns an interpolating function for the solution
-    LCDM = True forces w = -1 and imposes flatness by modifying the dark-energy density
-    TODO: w dependence for initial conditions; f here is correct for w=0 only
-    TODO: Could use d_init = a(1+(w-1)/(w(6w-5))*(Om_w/Om_m)*a**-3w) at early times with w = w(a<<1)
-    """
-    #a_init = 1e-4
-    #z_init = (1.0/a_init) - 1.0
-    z_init = 500.0
-    a_init = 1.0/(1.0+z_init)
-
-    na = 129 # Number of scale factors used to construct interpolator
-    a = np.linspace(a_init, 1.0, na)
-    f = 1.0 - cosmo.Om(z_init) # Early mass density
-    d_init = a_init**(1.0 - ((3.0/5.0) * f))            # Initial condition (~ a_init; but f factor accounts for EDE-ish)
-    v_init = (1.0 - ((3.0/5.0) * f))*a_init**(-((3.0/5.0) * f)) # Initial condition (~ 1; but f factor accounts for EDE-ish)
-
-    y0 = (d_init, v_init)
-    def fun(ax, y):
-        d, v = y[0], y[1]
-        dxda = v
-        zx = (1.0/ax) - 1.0
-        fv = -(2.0 + acceleration_parameter(cosmo, zx)*cosmo.inv_efunc(zx)**2.0)*v/ax
-        fd = 1.5*cosmo.Om(zx)*d/ax**2
-        dvda = fv+fd
-        return dxda, dvda
-        
-    g = solve_ivp(fun, (a[0], a[-1]), y0, t_eval=a, atol=1e-8, rtol=1e-8, vectorized=True).y[0]
-    g_interp = interp1d(a, g, kind='linear', assume_sorted=True)
-    return g_interp
-
-
-# Mead corrections: See appendix A of 2009.01858
-def get_accumulated_growth(a, g):
-    """
-    Calculates the accumulated growth at scale factor 'a'
-    """
-    
-    z_init = 500.0
-    a_init = 1.0/(1.0+z_init)
-    
-    # Eq A5 of Mead et al. 2021 (2009.01858). 
-    # We approximate the integral as g(a_init) for 0 to a_init<<0
-    missing = g(a_init)  
-    G, _ = quad(lambda a: g(a)/a, a_init, a, limit=100) + missing
-    return G
-
-
-def f_Mead(x, y, p0, p1, p2, p3):
-    # eq A3 of 2009.01858
-    return p0 + p1*(1.0-x) + p2*(1.0-x)**2.0 + p3*(1.0-y)
-
-
-def dc_Mead(a, Om, f_nu, g, G):
-    """
-    delta_c fitting function from Mead et al. 2021 (2009.01858)
-    All input parameters should be evaluated as functions of a/z
-    """
-    
-    # See Table A.1 of 2009.01858 for naming convention
-    p10, p11, p12, p13 = -0.0069, -0.0208, 0.0312, 0.0021
-    p20, p21, p22, p23 = 0.0001, -0.0647, -0.0417, 0.0646
-    a1, a2 = 1, 0
-
-    # Linear collapse threshold
-    # Eq A1 of 2009.01858
-    dc_Mead = 1.0 + f_Mead(g/a, G/a, p10, p11, p12, p13)*np.log10(Om)**a1 + f_Mead(g/a, G/a, p20, p21, p22, p23)*np.log10(Om)**a2
-    # delta_c = ~1.686' EdS linear collapse threshold
-    dc0 = (3.0/20.0)*(12.0*np.pi)**(2.0/3.0) 
-    return dc_Mead * dc0 * (1.0 - 0.041*f_nu)
-
-def Dv_Mead(a, Om, f_nu, g, G):
-    """
-    Delta_v fitting function from Mead et al. 2021 (2009.01858)
-    All input parameters should be evaluated as functions of a/z
-    """
-    
-    # See Table A.1 of 2009.01858 for naming convention
-    p30, p31, p32, p33 = -0.79, -10.17, 2.51, 6.51
-    p40, p41, p42, p43 = -1.89, 0.38, 18.8, -15.87
-    a3, a4 = 1, 2
-   
-    # Halo virial overdensity
-    # Eq A2 of 2009.01858
-    Dv_Mead = 1.0 + f_Mead(g/a, G/a, p30, p31, p32, p33)*np.log10(Om)**a3 + f_Mead(g/a, G/a, p40, p41, p42, p43)*np.log10(Om)**a4
-    Dv0 = 18.0*np.pi**2.0  # Delta_v = ~178, EdS halo virial overdensity
-    return Dv_Mead * Dv0 * (1.0 + 0.763*f_nu)
-
 
 
 
 def setup(options):
 
-    # Read in from hmf_and_hbf section of the ini file
+    # Read in from the halo_model_ingredients section of the ini file
+    # log-spaced mass in units of M_sun/h
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
     nmass        = options[option_section, 'nmass']
-    dlog10m = (log_mass_max-log_mass_min)/nmass
+    dlog10m      = (log_mass_max-log_mass_min)/nmass
 
     zmin  = options[option_section, 'zmin']
     zmax  = options[option_section, 'zmax']
@@ -189,8 +70,9 @@ def setup(options):
     # Profile
     nk      = options[option_section, 'nk']
     # currently we have only implmented NFW. 
-    profile = options.get_string(option_section, 'profile',default='nfw')
-    profile_value_name = options.get_string(option_section, 'profile_value_name',default='profile_parameters')
+    profile = options.get_string(option_section, 'profile', default='nfw')
+    profile = profile.lower()
+    profile_value_name = options.get_string(option_section, 'profile_value_name', default='profile_parameters')
 
     # Type of mass definition for Haloes
     mdef_model = options[option_section, 'mdef_model']
@@ -207,8 +89,7 @@ def setup(options):
     # most general astropy cosmology initialisation, 
     # gets updated as sampler runs with camb provided cosmology parameters.
     # setting some values to generate instance
-    initialise_cosmo=Flatw0waCDM(
-        H0=100., Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
+    initialise_cosmo=Flatw0waCDM(H0=100., Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
 
     # Growth Factor from hmf
     gf._GrowthFactor.supported_cosmos = (FlatLambdaCDM, Flatw0waCDM, LambdaCDM)
@@ -225,19 +106,21 @@ def setup(options):
     # Array of halo masses 
     mass = mf.m
 
-
     # Option to set similar corrections to HMcode2020
-    # MA question: What do these different options do? It doesn't look like there is a difference between them.
+    # TODO: stellar_fraction_from_observable_feedback option is not used here
     use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
     if use_mead == 'mead2020':
         mead_correction = 'nofeedback'
     elif use_mead == 'mead2020_feedback':
-        mead_correction = 'feedback'
-    elif use_mead == 'fit_feedback':
-        mead_correction = 'fit'
+        mead_correction = 'hmcode2020_feedback'
+    elif use_mead == 'stellar_fraction_from_observable_feedback':
+        mead_correction = 'stellar_fraction_from_observable_feedback'
     else:
         mead_correction = None
 
+    # config ={}
+    # config['log_mass_min'] =log_mass_min
+    # config['log_mass_max'] =log_mass_max
     return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, nz_conc, mass, mf, cm_model, mdef_model, overdensity, delta_c, bias_model, mead_correction, nk, profile, profile_value_name
 
 def execute(block, config):
@@ -269,6 +152,7 @@ def execute(block, config):
     rho_halo  = np.empty([nz])
     neff      = np.empty([nz])
     sigma8_z  = np.empty([nz])
+    # Fraction of neutrinos to total matter,  f_nu = Ω_nu /Ω_m
     f_nu      = np.empty([nz])
     h_z       = np.empty([nz])
     mean_density0  = np.empty([nz])
@@ -309,9 +193,9 @@ def execute(block, config):
                 # but will interpolate between the known ones (this is happening when one uses Tinker hmf for instance). 
                 a = this_cosmo_run.scale_factor(z_iter)
                 g = growth(a)
-                G = get_accumulated_growth(a, growth)
-                delta_c_z = dc_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
-                overdensity_z[jz] = 2*Dv_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                G = hmu.get_accumulated_growth(a, growth)
+                delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                overdensity_z[jz] = 2.0 * hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
                 mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
                 mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, mdef_model=mdef_mead)
@@ -324,13 +208,18 @@ def execute(block, config):
 
         #Peak height, mf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
         nu[jz]        = mf.nu**0.5
+        # The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
+        # dn(m)/ dln m eq1 of 1306.6721
         dndlnmh[jz]   = mf.dndlnm
+        # TODO: This is the mean matter density at z=0, change to be just one value.
         mean_density0[jz]  = mf.mean_density0
+        # This is the redshift dependant mean density
         mean_density_z[jz] = mf.mean_density
         rho_halo[jz]  = overdensity_z[jz] * mf.mean_density0
         bias     = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_z, delta_halo=overdensity_z[jz],
                                                  sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
         b_nu[jz] = bias.bias()
+        # fraction of neutrinos to matter
         f_nu[jz] = this_cosmo_run.Onu0/this_cosmo_run.Om0
 
         # These are only used for mead_corrections
@@ -369,11 +258,12 @@ def execute(block, config):
     if mead_correction == 'nofeedback':
         norm_cen  = 1.0 #(5.196/3.85)#0.85*1.299
         eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))
-    if mead_correction == 'feedback':
+    if mead_correction == 'hmcode2020_feedback':
         theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
         norm_cen  = (((3.44 - 0.496*theta_agn) * 10.0**(z_vec*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
         eta_cen   = (0.15 * (1.0+z_vec)**0.5)[:,np.newaxis]
-    
+    # TODO: what happends if mead_correction is stellar_fraction_from_observable_feedback?
+
     conc_cen = norm_cen * conc
     conc_sat = norm_sat * conc
     rvir_cen = radvir_from_mass(mass, rho_halo)
@@ -393,7 +283,7 @@ def execute(block, config):
         u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen, mass)
         u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
     else:
-        warnings.warn('Currently the only prodile suported is "nfw". You have chosen '+profile+' which is not supported. Returning NFW results')
+        warnings.warn('Currently the only supported profile is "nfw". You have chosen '+profile+' which is not supported. Returning NFW results')
         u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen, mass)
         u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
 
@@ -418,10 +308,13 @@ def execute(block, config):
 
 
     # density 
+    # These two do not depend on redshift so should only be saved as a single number
     block.put_double_array_1d('density', 'mean_density0', mean_density0) #(mean_density0/this_cosmo_run.Om0)*this_cosmo_run.Odm0)
-    block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
     block.put_double_array_1d('density', 'rho_crit', mean_density0/this_cosmo_run.Om0)
+    # These depend on redshift
+    block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
     block.put_double_array_1d('density', 'rho_halo', rho_halo)
+    block.put_double_array_1d('density', 'z', z_vec)
 
     # hmf
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnmh)
@@ -438,7 +331,9 @@ def execute(block, config):
     # cosmological parameters
     h_z = this_cosmo_run.H(z_vec).value/100.0
     block.put_double_array_1d(cosmo_params, 'h_z', h_z)
+    # f_nu = Omega_nu/Omega_m
     block.put_double_array_1d(cosmo_params, 'fnu', f_nu)
+    block.put_double_array_1d(cosmo_params, 'z',z_vec)
 
     return 0
 
