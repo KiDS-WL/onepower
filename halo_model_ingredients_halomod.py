@@ -7,19 +7,77 @@ from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 import astropy.units as u
 from halomod.halo_model import DMHaloModel
 from halomod import bias as bias_func
-from halomod.concentration import make_colossus_cm
+from halomod.concentration import make_colossus_cm, CMRelation
 from halomod import concentration as conc_func
+from halomod.profiles import Profile, NFWInf
+import halomod.profiles as profile_classes
 from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
 from hmf import MassFunction
 import hmf.halos.mass_definitions as md
 import hmf.cosmology.growth_factor as gf
+from hmf.cosmology.cosmo import astropy_to_colossus
 from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
 
 import time
+from types import MethodType
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
+
+def get_modified_concentration(base):
+    class NormConc(base):
+        """
+        Additional normalisation to any concentration-mass relation.
+        """
+        _defaults = base._defaults
+        native_mdefs = base.native_mdefs
+        
+        def __init__(self, norm=1.0, sigma8=0.8, ns=1.0, **model_parameters):
+            self.norm = norm
+            self.sigma8 = sigma8
+            self.ns = ns
+            super(base, self).__init__(**model_parameters)
+            astropy_to_colossus(self.cosmo.cosmo, sigma8=self.sigma8, ns=self.ns)
+    
+        def cm(self, m, z):
+            c = base.cm(self, m, z)
+            c_interp = interp1d(m[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
+
+            return c_interp(m) * self.norm
+            
+    return NormConc
+    
+    
+def get_bloated_profile(base):
+    class BloatedNFW(base):
+        """
+        Additional bloating to scale radius for any profile as in Mead 2020.
+        Technically tested only for NFW without truncation
+        """
+        _defaults = base._defaults
+        _defaults.update({'eta_bloat':0.0, 'nu':1.0})
+        
+        def _rs_from_m(self, m, c=None, at_z=False):
+            """
+            Return the scale radius for a halo of mass m.
+    
+            Parameters
+            ----------
+            m : float
+                mass of the halo
+            c : float, default None
+                halo_concentration of the halo (if None, use cm_relation to get it).
+            """
+            
+            if c is None:
+                c = self.cm_relation(m)
+    
+            r = self.halo_mass_to_radius(m, at_z=at_z) * np.array(self.params['nu'])**self.params['eta_bloat']
+            return r / c
+            
+    return BloatedNFW
+
 
 def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
     # calculates concentration given halo mass, using the halomod model provided in config
@@ -50,33 +108,6 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
     
     return c_interp(mass)
     
-    
-def concentration_halomod(block, cosmo, mass, z, model, mdef, overdensity, mf, delta_c):
-    # calculates concentration given halo mass, using the halomod model provided in config
-    # furthermore it converts to halomod instance to be used with the halomodel, consistenly with halo mass function
-    # and halo bias function
-    mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
-    cm = getattr(conc_func, model)(cosmo=mf, filter0=mf.filter, delta_c=delta_c, mdef=mdef)
-    
-    c = cm.cm(mass, z)
-    return c
-    
-    
-# AD: Leaving in for now...
-def tinker_bias(nu, Delta=200., delta_c=1.686):
-    nu = nu**0.5
-    # Table 2, Tinker+2010
-    y = np.log10(Delta)
-    expvar = np.exp(-(4./y)**4.)
-    A = 1.+0.24*y*expvar
-    a = 0.44*y-0.88
-    B = 0.183
-    b = 1.5
-    C = 0.019+0.107*y+0.19*expvar
-    c = 2.4
-    # equation 6
-    bias = 1.-A*(nu**a)/(nu**a+delta_c**a) + B*nu**b + C*nu**c
-    return bias
     
 def acceleration_parameter(cosmo, z):
     return -0.5*(cosmo.Om(z) + (1.0 + 3.0*cosmo.w(z))*cosmo.Ode(z))
@@ -223,10 +254,11 @@ def setup(options):
                         transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False, 
                         lnk_min=-18.0, lnk_max=18.0,
                         bias_model=bias_model,
-                        halo_profile_model='NFWInf',
-                        #halo_profile_params={'norm':'m'},
+                        halo_profile_model='NFW',
                         halo_concentration_model=make_colossus_cm(cm_model))
-
+    #mf.cmz_relation
+    mf.update(halo_profile_model=get_bloated_profile(getattr(profile_classes, 'NFW')), halo_concentration_model=get_modified_concentration(make_colossus_cm(cm_model)))
+    #mf.cmz_relation # Need to initialise the classes
     # Array of halo masses 
     mass = mf.m
 
@@ -266,6 +298,19 @@ def execute(block, config):
     ns      = block[cosmo_params, 'n_s']
     sigma_8 = block[cosmo_params, 'sigma_8']
     
+    norm_cen = block[profile_value_name, 'norm_cen']
+    norm_sat = block[profile_value_name, 'norm_sat']
+    eta_cen  = block[profile_value_name, 'eta_cen']
+    eta_sat  = block[profile_value_name, 'eta_sat']
+    
+    if mead_correction == 'nofeedback':
+        norm_cen  = 1.0 #(5.196/3.85)#0.85*1.299
+        eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))
+    if mead_correction == 'feedback':
+        theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
+        norm_cen  = (((3.44 - 0.496*theta_agn) * 10.0**(z_vec*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
+        eta_cen   = (0.15 * (1.0+z_vec)**0.5)[:,np.newaxis]
+    
     # initialise arrays
     nmass_hmf = len(mass)
     dndlnmh   = np.empty([nz,nmass_hmf])
@@ -279,6 +324,14 @@ def execute(block, config):
     mean_density0  = np.empty([nz])
     mean_density_z = np.empty([nz])
     overdensity_z  = np.empty([nz])
+    u_dm_cen  = np.empty([nz,nk,nmass_hmf])
+    u_dm_sat  = np.empty([nz,nk,nmass_hmf])
+    conc_cen  = np.empty([nz,nmass_hmf])
+    conc_sat  = np.empty([nz,nmass_hmf])
+    r_s_cen   = np.empty([nz,nmass_hmf])
+    r_s_sat   = np.empty([nz,nmass_hmf])
+    rvir_cen  = np.empty([nz,nmass_hmf])
+    rvir_sat  = np.empty([nz,nmass_hmf])
     
     downsample_factor = int(nz/nz_conc)
     if downsample_factor > 0 :
@@ -291,6 +344,9 @@ def execute(block, config):
         growth = get_growth_interpolator(this_cosmo_run)
 
     # About 1.8 seconds for mf.update.About 7 seconds for concentration_colossus
+
+    k_vec_original = block['matter_power_lin', 'k_h']
+    k = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
 
     # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
     for jz,z_iter in enumerate(z_vec):
@@ -333,19 +389,12 @@ def execute(block, config):
         mean_density0[jz]  = mf.mean_density0
         mean_density_z[jz] = mf.mean_density
         rho_halo[jz]  = overdensity_z[jz] * mf.mean_density0
-        bias     = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_z, delta_halo=overdensity_z[jz],
-                                                 sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
-        print(bias.bias())
-        bias = mf.halo_bias
-        con = mf.cmz_relation
-        nfw = mf.halo_profile_ukm
-        nfw = nfw/nfw[0,:]
-        print(bias)
-        print(con)
-        print(nfw)
-        b_nu[jz] = bias#.bias()
+        #bias     = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_z, delta_halo=overdensity_z[jz],
+        #                                         sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
+        
+        b_nu[jz] = mf.halo_bias
         f_nu[jz] = this_cosmo_run.Onu0/this_cosmo_run.Om0
-
+    
         # These are only used for mead_corrections
         # index of 
         idx_neff      = np.argmin(np.abs(mf.nu - 1.0))
@@ -354,7 +403,24 @@ def execute(block, config):
         neff[jz]      = mf.n_eff[idx_neff]
         # Only used for mead_corrections
         sigma8_z[jz] = mf.normalised_filter.sigma(8.0)
+        
+        mf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz])}, halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
+        conc_cen[jz,:] = mf.cmz_relation
+        nfw_cen = mf.halo_profile.u(k, mf.m, norm='m', coord='k')
+        u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
+        r_s_cen[jz,:] = mf.halo_profile._rs_from_m(mf.m)
+        rvir_cen[jz,:] = mf.halo_profile.halo_mass_to_radius(mf.m)
+        
+        mf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz])}, halo_concentration_params={'norm':norm_sat, 'sigma8':sigma_8, 'ns':ns})
+        conc_sat[jz,:] = mf.cmz_relation
+        nfw_sat = mf.halo_profile.u(k, mf.m, norm='m', coord='k')
+        u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
+        r_s_sat[jz,:] = mf.halo_profile._rs_from_m(mf.m)
+        rvir_sat[jz,:] = mf.halo_profile.halo_mass_to_radius(mf.m)
+        
+        
     
+    """
     downsample_factor = int(nz/nz_conc)
     if downsample_factor > 0 :
         overdensity_conc = overdensity_z[::downsample_factor]
@@ -369,46 +435,37 @@ def execute(block, config):
         conc_func = interp1d(np.log10(z_conc+1.0), conc, axis=0, kind='cubic', fill_value='extrapolate', bounds_error=False)
         conc = conc_func(np.log10(z_vec+1.0))
     
-    print(conc[-1])
+    
+    
     ###################################################################################################################
     # Halo Profile
 
-    # get these from the values.ini file
-    norm_cen = block[profile_value_name, 'norm_cen']
-    norm_sat = block[profile_value_name, 'norm_sat']
-    eta_cen  = block[profile_value_name, 'eta_cen']
-    eta_sat  = block[profile_value_name, 'eta_sat']
-
-    if mead_correction == 'nofeedback':
-        norm_cen  = 1.0 #(5.196/3.85)#0.85*1.299
-        eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))
-    if mead_correction == 'feedback':
-        theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
-        norm_cen  = (((3.44 - 0.496*theta_agn) * 10.0**(z_vec*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
-        eta_cen   = (0.15 * (1.0+z_vec)**0.5)[:,np.newaxis]
-    
-    conc_cen = norm_cen * conc
-    conc_sat = norm_sat * conc
+    conc_cen0 = norm_cen * conc
+    conc_sat0 = norm_sat * conc
     rvir_cen = radvir_from_mass(mass, rho_halo)
     rvir_sat = radvir_from_mass(mass, rho_halo)
     
     r_s_cen  = scale_radius(rvir_cen, conc_cen) * nu**eta_cen
     r_s_sat  = scale_radius(rvir_sat, conc_sat) * nu**eta_sat
-
+    
     # compute the Fourier-transform of the NFW profile (normalised to the mass of the halo)
-    #k = np.logspace(-2,1,200) # AD: inherit the range from Plin? That would avoid intepolations ...
-    k_vec_original = block['matter_power_lin', 'k_h']
-    k = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
 
     # Allow for different profiles, 
     # TODO: Look into pyhalomodel.
     if profile == 'nfw':
-        u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen, mass)
-        u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
+        u_dm_cen0 = compute_u_dm(k, r_s_cen, conc_cen, mass)
+        u_dm_sat0 = compute_u_dm(k, r_s_sat, conc_sat, mass)
     else:
         warnings.warn('Currently the only prodile suported is "nfw". You have chosen '+profile+' which is not supported. Returning NFW results')
-        u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen, mass)
-        u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
+        u_dm_cen0 = compute_u_dm(k, r_s_cen, conc_cen, mass)
+        u_dm_sat0 = compute_u_dm(k, r_s_sat, conc_sat, mass)
+        
+    #print(nfw.shape, u_dm_cen[0,:,:].shape)
+    ratio_nfw = u_dm_cen/u_dm_cen0
+    print(ratio_nfw)
+    print(conc_cen/conc_cen0)
+    print(conc_sat/conc_sat0)
+    #"""
 
     #  TODO: Clean these up. Put more of them into the same folder
     block.put_grid('concentration_dm', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
