@@ -57,15 +57,23 @@ def setup(options):
     # TODO: Change the bining of the observable such that nbins can be larger than 1 if inputs are read through a file.
     
     # Read in input and output section names
+    # First lets check if we're calculating multiple HODs, for example one for red and one for blue galaxies
+    # This suffix will be the same for the input values and output sections
+    name = options.get_string(option_section, 'output_suffix', default='').lower()
+    if name != '':
+        suffix = '_' + name
+    else:
+        suffix = ''
+
     # output section name for HOD related outputs.
-    hod_section_name = options.get_string(option_section, 'hod_section_name','hod').lower()
+    hod_section_name = options.get_string(option_section, 'hod_section_name','hod'+suffix).lower()
     # where to read the values of parameters in the value.ini
-    values_name      = options.get_string(option_section, 'values_name','hod_parameters').lower()
+    values_name      = options.get_string(option_section, 'values_name','hod_parameters'+suffix).lower()
     # output section name for the observable related quantities.
-    observable_section_name  = options.get_string(option_section, 'observable_section_name','stellar_mass_function').lower()
+    observable_section_name  = options.get_string(option_section, 'observable_section_name','stellar_mass_function'+suffix).lower()
     # TODO: check where this is used and if we need it
     # output section name for galaxy bias
-    galaxy_bias_section_name = options.get_string(option_section, 'galaxy_bias_section_name','galaxy_bias').lower()
+    galaxy_bias_section_name = options.get_string(option_section, 'galaxy_bias_section_name','galaxy_bias'+suffix).lower()
 
     # TODO: Check units of h
     # if file name is given then use it otherwise use values in the ini file # in units of L_sun/h2

@@ -181,6 +181,7 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     mass_avg_hod = block[section_name, 'average_halo_mass'+suffix]
     f_star = block[section_name, 'f_star'+suffix]
     
+
     #interp_Ncen = interp2d(m_hod, z_hod, Ncen_hod)
     #interp_Nsat = interp2d(m_hod, z_hod, Nsat_hod)
     interp_Ncen  = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=0.0)
@@ -401,7 +402,7 @@ def central_alignment_profile_grid_halo(mass, scale_factor, growth_factor, f_cen
     where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
     times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
     """
-    c_align_factor = compute_central_galaxy_alignment_factor_halo(growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :], beta, mpivot, mass_avg[:,np.newaxis,np.newaxis])
+    c_align_factor = compute_central_galaxy_alignment_profile_halo(growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :], beta, mpivot, mass_avg[:,np.newaxis,np.newaxis])
     return c_align_factor
 
 # alignment - satellites 1h: halo mass dependence
@@ -412,7 +413,8 @@ def satellite_alignment_profile_grid_halo(Nsat, numdensat, f_sat, wkm, beta_sat,
     where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
     times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
     """
-    s_align_factor = compute_satellite_galaxy_alignment_factor_halo(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1), beta_sat, mpivot, mass_avg[:,np.newaxis,np.newaxis])
+
+    s_align_factor = compute_satellite_galaxy_alignment_profile_halo(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1), beta_sat, mpivot, mass_avg[:,np.newaxis,np.newaxis])
     return s_align_factor
 
 
@@ -624,7 +626,7 @@ def Ic_term(mass, profile_centrals, b_m, dn_dlnm, nk):
 
 def Ig_align_term(mass, profile_align, b_m, dn_dlnm, mean_density0, A_term):
     I_g_align = compute_Ig_term(profile_align, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
-    return I_align + A_term * profile_align[:,:,0] * mean_density0[:,np.newaxis] / mass[0]
+    return I_g_align + A_term * profile_align[:,:,0] * mean_density0[:,np.newaxis] / mass[0]
 
 ################################################################################################
 # uses eqs A.7 to A.10 fo Mead and Verde 2021, 2011.08858 to calculate the integral over beta_nl
