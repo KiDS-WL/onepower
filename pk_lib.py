@@ -624,7 +624,7 @@ def Ic_term(mass, profile_centrals, b_m, dn_dlnm, nk):
 
 def Ig_align_term(mass, profile_align, b_m, dn_dlnm, mean_density0, A_term):
     I_g_align = compute_Ig_term(profile_align, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
-    return I_align + A_term * profile_align[:,:,0] * mean_density0[:,np.newaxis] / mass[0]
+    return I_g_align + A_term * profile_align[:,:,0] * mean_density0[:,np.newaxis] / mass[0]
 
 ################################################################################################
 # uses eqs A.7 to A.10 fo Mead and Verde 2021, 2011.08858 to calculate the integral over beta_nl
