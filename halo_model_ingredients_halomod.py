@@ -247,7 +247,7 @@ def execute(block, config):
     conc = np.empty([z_conc.size, nmass_hmf])
 
     if mead_correction:
-        growth = get_growth_interpolator(this_cosmo_run)
+        growth = hmu.get_growth_interpolator(this_cosmo_run)
 
     # About 1.8 seconds for mf.update.About 7 seconds for concentration_colossus
 

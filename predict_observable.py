@@ -12,14 +12,14 @@ from scipy.integrate import simps
 
 def load_and_extrapolate_obs(block, obs_section, suffix_in, x_ext, extrapolate_option):
 
-    x_obs = block[obs_section, 'obs_val' + suffix_in]
-    if block.has_value(obs_section, 'z_bin' + suffix_in):
-        z_obs = block[obs_section, 'z_bin' + suffix_in]
-        obs_in = block[obs_section, 'obs_func' + suffix_in]
+    x_obs = block[obs_section, 'obs_val_' + suffix_in]
+    if block.has_value(obs_section, 'z_bin_' + suffix_in):
+        z_obs = block[obs_section, 'z_bin_' + suffix_in]
+        obs_in = block[obs_section, 'obs_func_' + suffix_in]
         inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=1)
         obs_ext = inter_func(x_ext)
     else:
-        obs_in = block[obs_section, 'obs_func' + suffix_in]
+        obs_in = block[obs_section, 'obs_func_' + suffix_in]
         inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
         obs_ext = inter_func(x_ext)
         z_obs = None
@@ -65,9 +65,9 @@ def setup(options):
         config['sample']   = None
         config['suffixes'] = ['med']
         
-    config['obs_min'] = np.asarray([options[option_section, 'obs_min']]).flatten()
-    config['obs_max'] = np.asarray([options[option_section, 'obs_max']]).flatten()
-    config['n_obs']   = np.asarray([options[option_section, 'n_obs']]).flatten()
+    config['obs_min'] = [np.float64(str_val) for str_val in str(options[option_section, 'obs_min']).split(',')]
+    config['obs_max'] = [np.float64(str_val) for str_val in str(options[option_section, 'obs_max']).split(',')]
+    config['n_obs'] = [int(str_val) for str_val in str(options[option_section, 'n_obs']).split(',')]
 
     # Check if the legth of obs_min, obs_max, n_obs match
     if not np.all(np.array([len(config['obs_min']), len(config['obs_max']), len(config['n_obs'])]) == len(config['suffixes'])):
@@ -92,8 +92,6 @@ def execute(block, config):
     # number of bins for the observable
     for i in range(nbins):
         z_obs, obs_ext = load_and_extrapolate_obs(block, input_section_name, suffixes[i], obs_arr[i], 0.0)
-    #                def load_and_extrapolate_obs(block, obs_section, suffix_in, x_ext, extrapolate_option):
-        print(z_obs)
         if z_obs is not None:
             # Load kernel if exists
             print('z_obs is not None')

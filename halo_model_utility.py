@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.interpolate import interp1d
+from scipy.integrate import simps, solve_ivp, quad
 
 # TODO: unused
 def concentration_halomod(cosmo, mass, z, model, mdef, overdensity, mf, delta_c):
