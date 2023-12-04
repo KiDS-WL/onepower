@@ -409,7 +409,7 @@ def execute(block, config):
     block.put_grid('halobias', 'z', z_vec, 'm_h', mass, 'b_hb', b_nu)
     
     # concentration
-    block.put_grid('concentration', 'z', z_vec, 'm_h', mass, 'c', conc)
+    #block.put_grid('concentration', 'z', z_vec, 'm_h', mass, 'c', conc)
 
     # cosmological parameters
     h_z = this_cosmo_run.H(z_vec).value/100.0
