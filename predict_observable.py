@@ -63,7 +63,7 @@ def setup(options):
     else:
         config['nbins']    = 1
         config['sample']   = None
-        config['suffixes'] = ['']
+        config['suffixes'] = ['med']
         
     config['obs_min'] = np.asarray([options[option_section, 'obs_min']]).flatten()
     config['obs_max'] = np.asarray([options[option_section, 'obs_max']]).flatten()
@@ -103,8 +103,8 @@ def execute(block, config):
         else:
             # Just use interpolated result at the median redshift for the output
             obs_out = obs_ext
-        block.put_double_array_1d(output_section_name, 'bin_'+str(i+1), obs_out)
-        block.put_double_array_1d(output_section_name, 'obs_'+str(i+1), obs_arr[i])
+        block.put_double_array_1d(output_section_name, 'bin_{}'.format(i+1), obs_out)
+        block.put_double_array_1d(output_section_name, 'obs_{}'.format(i+1), obs_arr[i])
     
     return 0
 

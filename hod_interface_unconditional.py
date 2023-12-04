@@ -108,7 +108,7 @@ def execute(block, config):
 
     for nb in range(0,nbins):
         if nbins != 1:
-            suffix = '_'+str(nb+1)
+            suffix = '_{}'.format(nb+1)
         else:
             suffix = ''
         n_sat =[]

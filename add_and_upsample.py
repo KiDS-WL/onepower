@@ -180,8 +180,8 @@ def execute(block, config):
     if any(option == 'extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
 
         #metadata has been removed
-        hod_bins_extrap = block['hod' + suffix0_extrap, 'nbins']
-        observables_z = block['hod' + suffix0_extrap, 'option']
+        hod_bins_extrap = block['hod', 'nbins' + suffix0_extrap]
+        observables_z = block['hod', 'option' + suffix0_extrap]
         
         if observables_z == True:
             extrapolate_option = 'extrapolate'
@@ -213,10 +213,10 @@ def execute(block, config):
         
         
     if any(option == 'add_and_extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
-        hod_bins_red = block['hod' + suffix0_red, 'nbins']
-        hod_bins_blue = block['hod' + suffix0_blue, 'nbins']
+        hod_bins_red = block['hod', 'nbins' + suffix0_red]
+        hod_bins_blue = block['hod', 'nbins' + suffix0_blue]
         
-        observables_z_red = block['hod' + suffix0_red, 'option']
+        observables_z_red = block['hod', 'option'  + suffix0_red]
         if observables_z_red == True:
             extrapolate_option = 'extrapolate'
         if observables_z_red == False:
