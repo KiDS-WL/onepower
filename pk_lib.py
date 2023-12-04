@@ -179,9 +179,12 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     f_c_hod = block[section_name, 'central_fraction'+suffix]
     f_s_hod = block[section_name, 'satellite_fraction'+suffix]
     mass_avg_hod = block[section_name, 'average_halo_mass'+suffix]
-    f_star = block[section_name, 'f_star'+suffix]
+    #If we're using an unconditional HOD, we need to define the stellar fraction with zeros
+    try:
+        f_star = block[section_name, 'f_star'+suffix]
+    except:
+        f_star = np.zeros((len(z_hod), len(m_hod)))  
     
-
     #interp_Ncen = interp2d(m_hod, z_hod, Ncen_hod)
     #interp_Nsat = interp2d(m_hod, z_hod, Nsat_hod)
     interp_Ncen  = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=0.0)
@@ -942,11 +945,15 @@ def compute_p_mI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, matter_profile, 
 
 def compute_p_mI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, matter_profile, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term):
     
-    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    #CCL does not include the one_halo_truncation_ia term
+    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) #* one_halo_truncation_ia(k_vec)[np.newaxis,:]
     #pk_cm_1h = (-1.0) * compute_1h_term(matter_profile, c_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_sm_2h = (-1.0) * p_lin * I_m_term * I_s_align_term
     pk_cm_2h = (-1.0) * p_lin * I_m_term * I_c_align_term
-    pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
+    #UNCOMMENT THIS - just temporary to compare 1h terms
+    pk_tot = pk_sm_1h #+ pk_cm_2h + pk_sm_2h
+    print('Is',I_s_align_term)
+    print('Ic',I_c_align_term)
     
     return pk_sm_1h, pk_cm_2h+pk_sm_2h, pk_tot
     
@@ -976,12 +983,13 @@ def compute_p_II_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, s_align_factor, 
 # Needs Poisson parameter as well!
 def compute_p_II(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_align_factor, s_align_factor, I_c_align_term, I_s_align_term):
     
-    pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) #* one_halo_truncation_ia(k_vec)[np.newaxis,:]
     #pk_cs_1h = compute_1h_term(c_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
     pk_ss_2h = p_lin * I_s_align_term * I_s_align_term
     pk_cc_2h = p_lin * I_c_align_term * I_c_align_term
     pk_cs_2h = p_lin * I_c_align_term * I_s_align_term
-    pk_tot = pk_ss_1h + pk_ss_2h + pk_cs_2h + pk_cc_2h
+    #UNCOMMENT THIS - just temporary to compare 1h terms
+    pk_tot = pk_ss_1h #+ pk_ss_2h + pk_cs_2h + pk_cc_2h
     
     return pk_ss_1h, pk_cc_2h+pk_cs_2h+pk_cs_2h, pk_tot
     
