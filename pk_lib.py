@@ -885,6 +885,7 @@ def compute_p_gg_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, central_profil
 # galaxy-matter power spectrum
 # TODO: combine these two together
 # TODO: should'nt the poisson parameter come into here as well?
+# AD: No, no poisson parameter here, it only enters the 1-halo s-s term.
 def compute_p_gm(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, central_profile, satellite_profile, matter_profile, I_c_term, I_s_term, I_m_term):
     #
     # p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
