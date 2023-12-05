@@ -133,7 +133,6 @@ def setup(options):
     if any(option == 'add_and_extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
         f_red_file = options[option_section, 'f_red_file']
         z_fred, f_red = np.loadtxt(f_red_file, unpack=True)
-        print(z_fred, f_red)
     else:
         print('Only extrapolating power spectra.')
         z_fred, f_red = None, None
@@ -183,8 +182,6 @@ def execute(block, config):
     
     if any(option == 'extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
 
-        print('hod_section_name_extrap', hod_section_name_extrap)
-        print('suffix0_extrap', suffix0_extrap)
         hod_bins_extrap = block[hod_section_name_extrap, 'nbins'+ suffix0_extrap]
         observables_z = block[hod_section_name_extrap, 'option'+ suffix0_extrap]
         
@@ -218,12 +215,7 @@ def execute(block, config):
         
         
     if any(option == 'add_and_extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
-        
-        print('hod_section_name_red', hod_section_name_red)
-        print('suffix0_red', suffix0_red)
-        print('hod_section_name_blue', hod_section_name_blue)
-        print('suffix0_blue', suffix0_blue)
-        
+
         hod_bins_red = block[hod_section_name_red, 'nbins'+ suffix0_red]
         hod_bins_blue = block[hod_section_name_blue, 'nbins'+ suffix0_blue]
         
