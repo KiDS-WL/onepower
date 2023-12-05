@@ -138,9 +138,13 @@ def setup(options):
         print('Only extrapolating power spectra.')
         z_fred, f_red = None, None
 
-    name_extrap = options.get_string(option_section, 'input_suffix_extrap', default='').lower()
-    name_red = options.get_string(option_section, 'input_suffix_red', default='').lower()
-    name_blue = options.get_string(option_section, 'input_suffix_blue', default='').lower()
+    hod_section_name_extrap = options.get_string(option_section, 'hod_section_name_extrap', default='hod_red').lower()
+    hod_section_name_red = options.get_string(option_section, 'hod_section_name_red', default='hod_red').lower()
+    hod_section_name_blue = options.get_string(option_section, 'hod_section_name_blue', default='hod_blue').lower()
+
+    name_extrap = options.get_string(option_section, 'input_suffix_extrap', default='red').lower()
+    name_red = options.get_string(option_section, 'input_suffix_red', default='red').lower()
+    name_blue = options.get_string(option_section, 'input_suffix_blue', default='blue').lower()
     if name_extrap != '':
         suffix_extrap = '_' + name_extrap
     else:
@@ -154,7 +158,7 @@ def setup(options):
     else:
         suffix_blue = ''
 			
-    return z_fred, f_red, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, suffix_extrap, suffix_red, suffix_blue
+    return z_fred, f_red, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, suffix_extrap, suffix_red, suffix_blue, hod_section_name_extrap, hod_section_name_red, hod_section_name_blue
 	
 
 def execute(block, config):
@@ -162,7 +166,7 @@ def execute(block, config):
     #It is the main workhorse of the code. The block contains the parameters and results of any
     #earlier modules, and the config is what we loaded earlier.
 	
-    z_fred_file, f_red_file, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, suffix0_extrap, suffix0_red, suffix0_blue = config
+    z_fred_file, f_red_file, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, suffix0_extrap, suffix0_red, suffix0_blue, hod_section_name_extrap, hod_section_name_red, hod_section_name_blue = config
 
     # load matter_power_nl k and z:
     z_lin = block['matter_power_lin', 'z']
@@ -179,9 +183,10 @@ def execute(block, config):
     
     if any(option == 'extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
 
-        #metadata has been removed
-        hod_bins_extrap = block['hod', 'nbins' + suffix0_extrap]
-        observables_z = block['hod', 'option' + suffix0_extrap]
+        print('hod_section_name_extrap', hod_section_name_extrap)
+        print('suffix0_extrap', suffix0_extrap)
+        hod_bins_extrap = block[hod_section_name_extrap, 'nbins'+ suffix0_extrap]
+        observables_z = block[hod_section_name_extrap, 'option'+ suffix0_extrap]
         
         if observables_z == True:
             extrapolate_option = 'extrapolate'
@@ -213,10 +218,16 @@ def execute(block, config):
         
         
     if any(option == 'add_and_extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
-        hod_bins_red = block['hod', 'nbins' + suffix0_red]
-        hod_bins_blue = block['hod', 'nbins' + suffix0_blue]
         
-        observables_z_red = block['hod', 'option'  + suffix0_red]
+        print('hod_section_name_red', hod_section_name_red)
+        print('suffix0_red', suffix0_red)
+        print('hod_section_name_blue', hod_section_name_blue)
+        print('suffix0_blue', suffix0_blue)
+        
+        hod_bins_red = block[hod_section_name_red, 'nbins'+ suffix0_red]
+        hod_bins_blue = block[hod_section_name_blue, 'nbins'+ suffix0_blue]
+        
+        observables_z_red = block[hod_section_name_red, 'option'+ suffix0_red]
         if observables_z_red == True:
             extrapolate_option = 'extrapolate'
         if observables_z_red == False:
