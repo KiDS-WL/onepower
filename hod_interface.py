@@ -90,10 +90,10 @@ def setup(options):
         # These are the values used to define the edges of the observable and redshift bins. 
         # They are used to create volume limites samples of the galaxies.
         # 1 or more values can be given for each min max value, as long as they are all the same length.
-        obs_min = np.array([np.float64(str_val) for str_val in str(options[option_section, 'obs_min']).split(',')])
-        obs_max = np.array([np.float64(str_val) for str_val in str(options[option_section, 'obs_max']).split(',')])
-        zmin = np.array([np.float64(str_val) for str_val in str(options[option_section, 'zmin']).split(',')])
-        zmax = np.array([np.float64(str_val) for str_val in str(options[option_section, 'zmax']).split(',')])
+        obs_min = np.asarray([options[option_section, 'obs_min']]).flatten()
+        obs_max = np.asarray([options[option_section, 'obs_max']]).flatten()
+        zmin = np.asarray([options[option_section, 'zmin']]).flatten()
+        zmax = np.asarray([options[option_section, 'zmax']]).flatten()
         # TODO: number of redshift bins used for ...
         nz      = options[option_section, 'nz']
         

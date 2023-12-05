@@ -97,7 +97,7 @@ def execute(block, config):
     # print(HOD)
     # print(hod_type)
     n_cen_1z, n_sat_1z = halo.HOD_mean(mass, method=name, **HOD)
-# 
+ 
     block.put_int(hod_section_name, 'nbins', nbins)
 
     #---- loading the halo mass function ----#

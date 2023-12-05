@@ -65,9 +65,9 @@ def setup(options):
         config['sample']   = None
         config['suffixes'] = ['med']
         
-    config['obs_min'] = [np.float64(str_val) for str_val in str(options[option_section, 'obs_min']).split(',')]
-    config['obs_max'] = [np.float64(str_val) for str_val in str(options[option_section, 'obs_max']).split(',')]
-    config['n_obs'] = [int(str_val) for str_val in str(options[option_section, 'n_obs']).split(',')]
+    config['obs_min'] = np.asarray([options[option_section, 'obs_min']]).flatten()
+    config['obs_max'] = np.asarray([options[option_section, 'obs_max']]).flatten()
+    config['n_obs'] = np.asarray([options[option_section, 'n_obs']]).flatten()
 
     # Check if the legth of obs_min, obs_max, n_obs match
     if not np.all(np.array([len(config['obs_min']), len(config['obs_max']), len(config['n_obs'])]) == len(config['suffixes'])):
