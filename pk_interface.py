@@ -298,7 +298,7 @@ def execute(block, config):
                     
                 if alignment == True:
                 #IT commented ia_lum_dep_centrals
-                    alignment_amplitude_2h, alignment_amplitude_2h_II = pk_lib.compute_two_halo_alignment(block, ia_section_name, growth_factor, mean_density0)
+                    alignment_amplitude_2h, alignment_amplitude_2h_II = pk_lib.compute_two_halo_alignment(block, pop_name, growth_factor, mean_density0)
                     
                 # compute the power spectra
                 if p_gg:
