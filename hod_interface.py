@@ -128,8 +128,8 @@ def setup(options):
     mass    = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
     # TODO: check if we need this
-    galaxy_bias_option = options[option_section, 'do_galaxy_linear_bias']
-
+    #It just outputs estimates of the linear bias for the HOD which isn't necessarily a bad thing?
+    galaxy_bias_option = options.get_bool(option_section, 'do_galaxy_linear_bias', False)
 
     save_observable   = options.get_bool(option_section, 'save_observable',True)
     # options are: "obs_z" or "obs_zmed" or "obs_onebin" depending if you want to calculate 
@@ -158,14 +158,14 @@ def setup(options):
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
             # print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
 
-    return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, suffix
+    return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, suffix
 
 
 
 
 def execute(block, config):
 
-    obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, suffix0 = config
+    obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, suffix0 = config
 
     #---- loading hod value from the values.ini file ----#
     #centrals
