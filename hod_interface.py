@@ -346,7 +346,7 @@ def execute(block, config):
         obs_func_h = hod.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
 
         #TODO: put this in a different section
-        block.put_grid(observable_section_name, 'z_bin_{}'.format(1), z_bins_one, 'obs_val_{}'.format(1), obs_range_h[0], 'obs_func_{}'.format(1), np.log(10.0)*obs_func_h*obs_range_h[0])
+        block.put_grid(observable_section_name, 'z_bin_1', z_bins_one, 'obs_val_1', obs_range_h[0], 'obs_func_1', np.log(10.0)*obs_func_h*obs_range_h[0])
     
     
     #########################
