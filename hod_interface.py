@@ -57,7 +57,7 @@ def setup(options):
     # TODO: Change the bining of the observable such that nbins can be larger than 1 if inputs are read through a file.
 
     # output section name for HOD related outputs.
-    hod_section_name = options.get_string(option_section, 'hod_section_name','hod').lower()
+    hod_section_name = options.get_string(option_section, 'hod_section_name').lower()
     # where to read the values of parameters in the value.ini
     values_name      = options.get_string(option_section, 'values_name','hod_parameters').lower()
     # output section name for the observable related quantities.
@@ -65,12 +65,7 @@ def setup(options):
     # TODO: check where this is used and if we need it
     # output section name for galaxy bias
     galaxy_bias_section_name = options.get_string(option_section, 'galaxy_bias_section_name','galaxy_bias').lower()
-    
-    output_suffix = options.get_string(option_section, 'output_suffix', default='').lower()
-    if output_suffix != '':
-        suffix = '_' + output_suffix
-    else:
-        suffix = ''
+
 
     # TODO: Check units of h
     # if file name is given then use it otherwise use values in the ini file # in units of L_sun/h2
@@ -107,14 +102,14 @@ def setup(options):
         # Arrays using starting and end values of zmin and zmax 
         # TODO: Check if this is what we want
         z_bins = np.array([np.linspace(zmin_i, zmax_i, nz) for zmin_i, zmax_i in zip(zmin, zmax)])
-#       z_bins = np.array([np.linspace(zmin_i, zmax_i, nz, endpoint=True) for zmin_i, zmax_i in zip(zmin, zmax)])
+        #z_bins = np.array([np.linspace(zmin_i, zmax_i, nz, endpoint=True) for zmin_i, zmax_i in zip(zmin, zmax)])
         # This simply repeats the min and max values for the observables for all redshift bins
         log_obs_min = np.array([np.repeat(obs_min_i,nz) for obs_min_i in obs_min])
         log_obs_max = np.array([np.repeat(obs_max_i,nz) for obs_max_i in obs_max])
 
     # read this from the ini file
     # number of bins used for defining observable functions, usually a larger number
-    nobs = options.get_int(option_section, 'nobs',200)
+    nobs = options.get_int(option_section, 'nobs', 200)
 
     # Minimum and maximum halo masses in log10 space
     # TODO: what are the units? M_sun/h ?
@@ -158,14 +153,14 @@ def setup(options):
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
             # print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
 
-    return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, suffix
+    return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name
 
 
 
 
 def execute(block, config):
 
-    obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, suffix0 = config
+    obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name = config
 
     #---- loading hod value from the values.ini file ----#
     #centrals
@@ -199,8 +194,8 @@ def execute(block, config):
 
     hod_par = HODpar(norm_c, 10.**log_ml_0, 10.**log_ml_1, g1, g2, scatter, norm_s, pivot, alpha_s, b0, b1, b2)
 
-    block.put_int(hod_section_name, 'nbins' + suffix0, nbins)
-    block.put_bool(hod_section_name, 'option' + suffix0, observables_z)
+    block.put_int(hod_section_name, 'nbins', nbins)
+    block.put_bool(hod_section_name, 'option', observables_z)
 
     #---- loading the halo mass function ----#
     dndlnM_grid = block['hmf','dndlnmh']
@@ -209,9 +204,9 @@ def execute(block, config):
     
     for nb in range(0,nbins):
         if nbins != 1:
-            suffix = suffix0 + '_{}'.format(nb+1)
+            suffix = '_{}'.format(nb+1)
         else:
-            suffix = suffix0
+            suffix = ''
             
         # set interpolator for the halo mass function
         f_int_dndlnM = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
@@ -295,10 +290,10 @@ def execute(block, config):
             galaxybias_tot = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
             
             # TODO:Put these into a different section
-            block.put_double_array_1d(galaxy_bias_section_name, 'galaxy_bias_centrals'+suffix, galaxybias_cen)
-            block.put_double_array_1d(galaxy_bias_section_name, 'galaxy_bias_satellites'+suffix, galaxybias_sat)
+            block.put_double_array_1d(hod_section_name, 'galaxy_bias_centrals'+suffix, galaxybias_cen)
+            block.put_double_array_1d(hod_section_name, 'galaxy_bias_satellites'+suffix, galaxybias_sat)
             # # this can be useful in case you want to use the constant bias module to compute p_gg
-            block.put_double_array_1d(galaxy_bias_section_name, 'b'+suffix, galaxybias_tot)
+            block.put_double_array_1d(hod_section_name, 'b'+suffix, galaxybias_tot)
     
         #######################################   OBSERVABLE FUNCTION   #############################################
     
@@ -343,6 +338,7 @@ def execute(block, config):
     # so for baryonic feedback in cosmic shear and thus needs to be calculated for a wide range of halo masses, 
     # unlike the other f_star which are for each stellar mass bin. I would keep the metadata block here 
     # to save all the parameters not directly connected with "per bin" HODs and corresponding products.
+    # AD: added suffix here in order to keep track of the right one if multiple hods used!
     f_star = np.array([hod.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
     block.put_grid(hod_section_name, 'z_extended', z_bins_one, 'mass_extended', mass, 'f_star_extended', f_star)
     

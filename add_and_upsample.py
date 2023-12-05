@@ -137,13 +137,14 @@ def setup(options):
         print('Only extrapolating power spectra.')
         z_fred, f_red = None, None
 
-    hod_section_name_extrap = options.get_string(option_section, 'hod_section_name_extrap', default='hod_red').lower()
-    hod_section_name_red = options.get_string(option_section, 'hod_section_name_red', default='hod_red').lower()
-    hod_section_name_blue = options.get_string(option_section, 'hod_section_name_blue', default='hod_blue').lower()
+    hod_section_name_extrap = options.get_string(option_section, 'hod_section_name_extrap').lower()
+    hod_section_name_red = options.get_string(option_section, 'hod_section_name_red').lower()
+    hod_section_name_blue = options.get_string(option_section, 'hod_section_name_blue').lower()
 
-    name_extrap = options.get_string(option_section, 'input_suffix_extrap', default='red').lower()
-    name_red = options.get_string(option_section, 'input_suffix_red', default='red').lower()
-    name_blue = options.get_string(option_section, 'input_suffix_blue', default='blue').lower()
+    name_extrap = options.get_string(option_section, 'input_power_suffix_extrap', default='red').lower()
+    name_red = options.get_string(option_section, 'input_power_suffix_red', default='red').lower()
+    name_blue = options.get_string(option_section, 'input_power_suffix_blue', default='blue').lower()
+    
     if name_extrap != '':
         suffix_extrap = '_' + name_extrap
     else:
@@ -182,8 +183,8 @@ def execute(block, config):
     
     if any(option == 'extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
 
-        hod_bins_extrap = block[hod_section_name_extrap, 'nbins'+ suffix0_extrap]
-        observables_z = block[hod_section_name_extrap, 'option'+ suffix0_extrap]
+        hod_bins_extrap = block[hod_section_name_extrap, 'nbins']
+        observables_z = block[hod_section_name_extrap, 'option']
         
         if observables_z == True:
             extrapolate_option = 'extrapolate'
@@ -216,10 +217,10 @@ def execute(block, config):
         
     if any(option == 'add_and_extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
 
-        hod_bins_red = block[hod_section_name_red, 'nbins'+ suffix0_red]
-        hod_bins_blue = block[hod_section_name_blue, 'nbins'+ suffix0_blue]
+        hod_bins_red = block[hod_section_name_red, 'nbins']
+        hod_bins_blue = block[hod_section_name_blue, 'nbins']
         
-        observables_z_red = block[hod_section_name_red, 'option'+ suffix0_red]
+        observables_z_red = block[hod_section_name_red, 'option']
         if observables_z_red == True:
             extrapolate_option = 'extrapolate'
         if observables_z_red == False:

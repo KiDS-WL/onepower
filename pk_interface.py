@@ -282,7 +282,7 @@ def execute(block, config):
             
         if (galaxy == True) or (alignment == True):
             # TODO: Change where this is looking for things, as I have removed metadata
-            hod_bins = block[hod_section_name, 'nbins' + pop_name]
+            hod_bins = block[hod_section_name, 'nbins']
             
             for nb in range(0,hod_bins):
                 if hod_bins != 1:
@@ -293,7 +293,7 @@ def execute(block, config):
                 if galaxy == True:
                     # load linear bias:
                     # TODO: change this to galaxy_bias_section_name
-                    bg = block[galaxy_bias_section_name, 'b' + suffix]
+                    bg = block[hod_section_name, 'b' + suffix]
                     if np.isscalar(bg): bg *= np.ones(nz)
                     
                 if alignment == True:
@@ -404,15 +404,17 @@ def execute(block, config):
 
         if (galaxy == True) or (alignment == True):
             # TODO: metadata does not exist change this
-            hod_bins = block[hod_section_name, 'nbins' + pop_name]
+            hod_bins = block[hod_section_name, 'nbins']
             
             for nb in range(0,hod_bins):
                 if hod_bins != 1:
                     suffix = pop_name + '_{}'.format(nb+1)
+                    suffix_hod = '_{}'.format(nb+1)
                 else:
                     suffix = pop_name
+                    suffix_hod = ''
                     
-                Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg, fstar = pk_lib.load_hods(block, hod_section_name, suffix, z_vec, mass)
+                Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg, fstar = pk_lib.load_hods(block, hod_section_name, suffix_hod, z_vec, mass)
             
                 if galaxy == True:
                     # preparing the 1h term
