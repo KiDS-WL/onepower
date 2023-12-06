@@ -34,10 +34,12 @@ def get_linear_power_spectrum(block, z_vec):
     plin = interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec)
     return k_vec, plin, growth_factor, scale_factor
     
+    
 def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
     f_interp = interp1d(z_pl, matter_power_lin, axis=0)
     pk_interpolated = f_interp(z_vec)
     return pk_interpolated
+
 
 def test_cosmo(cparam_in):
     # Returns the edge values for DarkQuest emulator if the values are outside the emulator range

@@ -5,29 +5,34 @@ def scalar_rvir(mass, rho_halo):
     return ((3. * mass) / (4. * np.pi * rho_halo)) ** (1. / 3.)
 
 
-# Virial radius associated with a given mass (depends on the definition of rho_halo)
 def radvir_from_mass(mass, rho_halo):
-    # mass : array1d or scalar. The mass of the halo in units of Msun/h
-    # rho_halo : array1d or scalar. The matter density of the halo. It can either be Delta x rho_m(z) or
-    #            Delta x rho_m(z=0) - where rho_m is the mean matter density of the Universe (evaluated at z or 0,
-    #            depending on the convention used in the model) - or be Delta x rho_c, or even the Delta_vir
+    """
+    Virial radius associated with a given mass (depends on the definition of rho_halo)
+    mass : array1d or scalar. The mass of the halo in units of Msun/h
+    rho_halo : array1d or scalar. The matter density of the halo. It can either be Delta x rho_m(z) or
+            Delta x rho_m(z=0) - where rho_m is the mean matter density of the Universe (evaluated at z or 0,
+            depending on the convention used in the model) - or be Delta x rho_c, or even the Delta_vir
+    """
     
     rvir = scalar_rvir(mass[np.newaxis,:],rho_halo[:,np.newaxis])
     return rvir
 
 
 def scale_radius(rvir, conc):
-    # rvir : array-1d or 2d, depending on the model definition ([nz,nmass] or simply [nmass]). The virial radius of the
-    #        halo, in units of Mpc/h
-    # conc : array-2d [nz,nmass]. The concentration of the halo, computed from one of the available fitting functions.
+    """
+    rvir : array-1d or 2d, depending on the model definition ([nz,nmass] or simply [nmass]). The virial radius of the
+            halo, in units of Mpc/h
+    conc : array-2d [nz,nmass]. The concentration of the halo, computed from one of the available fitting functions.
+    """
     r_s = rvir/conc
     return r_s
 
 
-# AD: check normalisations! On k->0 the u_dm should be 1!
-# Analytic Fourier transform of the Navarro-Frenk-White density profile
 def norm_fourier(x, c):
-    # Note: x = k*r_scale where r_scale= r200/c
+    """
+    Analytic Fourier transform of the Navarro-Frenk-White density profile
+    Note: x = k*r_scale where r_scale= r200/c
+    """
     si, ci = sici((1. + c) * x)
     si2, ci2 = sici(x)
     sinterm = np.sin(x) * (si - si2) - np.sin(c * x) / ((1 + c) * x)
@@ -38,12 +43,14 @@ def norm_fourier(x, c):
     return u_fourier
     
 
-# compute the analytic fourier-transform of the nfw profile
 def compute_u_dm(k_vec, rs, conc, mass):
-    # k : array-1d. The wave vector in units of h/Mpc
-    # rs : array-2d [nz,nmass]. The scale radius.
-    # c_dm : array-2d [nz,nmass]. The concentration of the halo as a function of redshift and mass.
-    # return: array-3d
+    """
+    compute the analytic fourier-transform of the nfw profile
+    k : array-1d. The wave vector in units of h/Mpc
+    rs : array-2d [nz,nmass]. The scale radius.
+    c_dm : array-2d [nz,nmass]. The concentration of the halo as a function of redshift and mass.
+    return: array-3d
+    """
     
     nz = np.size(conc, axis=0)
     nk = np.size(k_vec)

@@ -359,11 +359,11 @@ def execute(block, config):
                 omega_c    = block['cosmological_parameters', 'omega_c']
                 omega_m    = block['cosmological_parameters', 'omega_m']
                 log10T_AGN = block['halo_model_parameters', 'logT_AGN']
-                matter_profile_1h_mm = pk_lib.matter_profile_with_feedback(mass, mean_density0, u_dm, z_vec, omega_c, omega_m, omega_b, log10T_AGN)
+                matter_profile_1h_mm = pk_lib.matter_profile_with_feedback(mass, mean_density0, u_dm, z_vec, omega_c, omega_m, omega_b, log10T_AGN, fnu)
             elif mead_correction == 'fit':
                 # Reads f_star_extended form the HOD section. Either need to use a conditional HOD to get this value or to put it in block some other way.
                 fstar_mm = load_fstar_mm(block, hod_section_name, z_vec, mass)
-                matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_observable(mass, mean_density0, u_dm, z_vec, fstar_mm, omega_c, omega_m, omega_b)
+                matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_observable(mass, mean_density0, u_dm, z_vec, fstar_mm, omega_c, omega_m, omega_b, fnu)
             else:
                 matter_profile_1h_mm = matter_profile.copy()
                 

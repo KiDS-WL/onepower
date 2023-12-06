@@ -36,18 +36,6 @@ def load_kernel(block, kernel_section, bin, z_ext, extrapolate_option):
     return kernel_ext
 
 
-# ;extrapolates the observable (e.g. stellar mass function) for 
-# [extrapolate_obs]
-# file = %(HM_PATH)s/extrapolate_obs.py
-# input_section_name  = stellar_mass_function
-# output_section_name = smf_red
-# ;suffixes = 1 2
-# sample  = nz_lens
-# obs_min = 9.3 ;10.4
-# obs_max = 11.3 ;10.1 
-# n_obs = 12 ;6
-# ; Stellar mass ranges
-
 def setup(options):
 	
     config = {}

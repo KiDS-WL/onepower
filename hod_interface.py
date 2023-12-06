@@ -44,6 +44,7 @@ class HODpar :
         self.b1 = b1
         self.b2 = b2
 
+
 # Used for reading data from a text file.
 def load_data(file_name):
     z_data, min_magnitude, max_magnitude = np.loadtxt(file_name, usecols = (0,1,2), unpack=True, dtype=float)

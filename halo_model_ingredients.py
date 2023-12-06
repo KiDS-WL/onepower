@@ -22,10 +22,11 @@ cosmo_params = names.cosmological_parameters
 
 # TODO: concentration is saved into multiple folders. Check if these can be merged.
 def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
-    # calculates concentration given halo mass, using the halomod model provided in config
-    # furthermore it converts to halomod instance to be used with the halomodel, 
-    # consistenly with halo mass function and halo bias function
-
+    """
+    calculates concentration given halo mass, using the halomod model provided in config
+    furthermore it converts to halomod instance to be used with the halomodel,
+    consistenly with halo mass function and halo bias function
+    """
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=UserWarning)
         # This dissables the warning from colossus that is just telling us what we know
