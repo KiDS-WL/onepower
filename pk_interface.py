@@ -345,12 +345,13 @@ def execute(block, config):
         # TODO: check if this is needed for the IA section
         A_term = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
         
+        # f_nu = omega_nu/omega_m with the same length as redshift
+        fnu = block['cosmological_parameters', 'fnu']
+        
         # If matter auto or cross power spectra are set to True
         if matter == True:
             # 2h term integral for matter
             I_m = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
-            # f_nu = omega_nu/omega_m with the same length as redshift
-            fnu = block['cosmological_parameters', 'fnu']
             # Matter halo profile
             matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
             # TODO: Why is there a matter profile and a matter_profile_1h_mm?
@@ -434,9 +435,9 @@ def execute(block, config):
                         omega_c    = block['cosmological_parameters', 'omega_c']
                         omega_m    = block['cosmological_parameters', 'omega_m']
                         omega_b    = block['cosmological_parameters', 'omega_b']
-                        matter_profile_1h = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, 
+                        matter_profile_1h = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0,
                                                                                                         u_dm, z_vec, fstar, 
-                                                                                                        omega_c, omega_m, omega_b)
+                                                                                                        omega_c, omega_m, omega_b, fnu)
                     else:
                         matter_profile_1h = matter_profile_1h_mm.copy()
                         

@@ -239,7 +239,9 @@ def load_hods(block, section_name, suffix, z_vec, mass):
 # -------------------------------------------------------------------------------------------------------------------- #
 # Profiles
 # -------------------------------------------------------------------------------------------------------------------- #
-""" Each profile is calculated using a compute_*_profile function. But these functions are called through another function
+
+"""
+    Each profile is calculated using a compute_*_profile function. But these functions are called through another function
     with the name of the profile, e.g. matter_profile. These latter functions simply create extra axis for the numpy arrays to
     avoid loops and speed up the process
 """
@@ -297,7 +299,7 @@ def compute_matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, 
     # TODO: This is not lowering Wm by f_nu
     return Wm
 
-def matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m, omega_b, log10T_AGN):
+def matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m, omega_b, log10T_AGN, fnu):
     profile = compute_matter_profile_with_feedback(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis],
                                                     u_dm, z[:, np.newaxis, np.newaxis], omega_c, omega_m, omega_b,
                                                     log10T_AGN, fnu[:,np.newaxis,np.newaxis])
@@ -338,11 +340,12 @@ def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_de
     dm_to_matter_frac = omega_c/omega_m
     Wm_0 = mass / mean_density0
     f_gas_fit = fg_fit(mass, fstar, z, omega_b, omega_m)
-    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu)  + fstar * Wm_0
+    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu)  + fstar * Wm_0
+    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
     return Wm
 
-def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, fstar, omega_c, omega_m, omega_b):
-    profile = compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass[np.newaxis, np.newaxis, :], 
+def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, fstar, omega_c, omega_m, omega_b, fnu):
+    profile = compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass[np.newaxis, np.newaxis, :],
                                                         mean_density0[:, np.newaxis, np.newaxis], u_dm,
                                                         z[:, np.newaxis, np.newaxis], fstar[:,np.newaxis,:],
                                                         omega_c, omega_m, omega_b, fnu[:,np.newaxis,np.newaxis])
@@ -360,12 +363,6 @@ def compute_galaxy_profile(Ngal, mean_number_density, fraction, u_gal=None):
     else:
         # This one for satellites
         return fraction * Ngal * u_gal / mean_number_density
-
-# def compute_central_galaxy_profile(Ncen, numdenscen, f_c):
-#     return f_c * Ncen / numdenscen
-
-# def compute_satellite_galaxy_profile(Nsat, numdenssat, f_s, u_gal):
-#     return f_s * Nsat * u_gal / numdenssat
 
 # clustering - centrals
 def central_profile(Ncen, numdencen, f_cen):
@@ -397,10 +394,6 @@ def compute_central_galaxy_alignment_profile_halo(growth_factor, f_c, C1, mass, 
 def compute_satellite_galaxy_alignment_profile_halo(Nsat, numdenssat, f_s, wkm_sat, beta_sat, mpivot, mass_avg):
     return f_s * Nsat * wkm_sat / numdenssat * (mass_avg/mpivot)**beta_sat
 
-# # clustering - centrals
-# def central_profile(Ncen, numdencen, f_cen):
-#     profile = compute_central_galaxy_profile(Ncen, numdencen[:,np.newaxis], f_cen[:,np.newaxis])
-#     return profile
 
 # alignment - satellites
 def satellite_alignment_profile(Nsat, numdensat, f_sat, wkm):

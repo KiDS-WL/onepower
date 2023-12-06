@@ -20,8 +20,8 @@ def convert_to_magnitudes(L, abs_mag_sun):
 # ------------------------------------------#
 #    Conditional Observable Function (COF)  #
 #-------------------------------------------#
-''' 
-The conditional observable functions (COFs) tell us how many galaxies with the observed property O, exist in haloes of 
+"""
+The conditional observable functions (COFs) tell us how many galaxies with the observed property O, exist in haloes of
 mass M: Φ(O|M). 
 Integrating over the observable will give us the total number of galaxies in haloes of a given mass, the so-called
 Halo Occupation Distribution (HOD).
@@ -30,7 +30,7 @@ Note that the general mathematical form of the COFs might not hold for other obs
 COF is differnt for central and satellite galaxies. The total COF can be written as the sum of the two:
 Φ(O|M) = Φc(O|M) + Φs(O|M)  
 The halo mass dependence comes in through pivot observable values denoted by *, e.g. O∗c, O∗s 
-'''
+"""
 
 
 def phi_cen(obs, mass, hod_par):
