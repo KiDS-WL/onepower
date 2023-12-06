@@ -277,7 +277,6 @@ def execute(block, config):
         
         if galaxy_bias_option:
             #---- loading the halo bias function ----#
-            # TODO: Check where these come from
             mass_hbf     = block['halobias', 'm_h']
             z_hbf        = block['halobias', 'z']
             halobias_hbf = block['halobias', 'b_hb']

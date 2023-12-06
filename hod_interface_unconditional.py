@@ -142,9 +142,12 @@ def execute(block, config):
         block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat)
         block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg)
         
+        # AD: galaxy bias can be calculated in the same way as for the CSMF based hods, but not sure if needed at all.
+        # AD: I need to check how we can calculate the f_star using this hod's. I think it is possible, I remember seeing
+        # the equations in one of Alexie's papers.
+        
         # if galaxy_bias_option:
         #     #---- loading the halo bias function ----#
-        #     # TODO: Check where these come from
         #     mass_hbf     = block['halobias', 'm_h']
         #     z_hbf        = block['halobias', 'z']
         #     halobias_hbf = block['halobias', 'b_hb']
