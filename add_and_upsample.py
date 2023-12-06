@@ -109,7 +109,7 @@ def extrapolate_power(block, suffix_out, suffix_in, power_section, z_ext, k_ext,
     if changed_sign:
         pk_tot_ext=pk_tot_ext*-1
         
-    block.put_grid(pf'{power_section}{suffix_out}', 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
+    block.put_grid(f'{power_section}{suffix_out}', 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
  
  
 #--------------------------------------------------------------------------------#	
