@@ -12,14 +12,14 @@ from scipy.integrate import simps
 
 def load_and_extrapolate_obs(block, obs_section, suffix_in, x_ext, extrapolate_option):
 
-    x_obs = block[obs_section, 'obs_val_' + suffix_in]
-    if block.has_value(obs_section, 'z_bin_' + suffix_in):
-        z_obs = block[obs_section, 'z_bin_' + suffix_in]
-        obs_in = block[obs_section, 'obs_func_' + suffix_in]
+    x_obs = block[obs_section, f'obs_val_{suffix_in}']
+    if block.has_value(obs_section, f'z_bin_{suffix_in}'):
+        z_obs = block[obs_section, f'z_bin_{suffix_in}']
+        obs_in = block[obs_section, f'obs_func_{suffix_in}']
         inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=1)
         obs_ext = inter_func(x_ext)
     else:
-        obs_in = block[obs_section, 'obs_func_' + suffix_in]
+        obs_in = block[obs_section, f'obs_func_{suffix_in}']
         inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
         obs_ext = inter_func(x_ext)
         z_obs = None
@@ -29,7 +29,7 @@ def load_and_extrapolate_obs(block, obs_section, suffix_in, x_ext, extrapolate_o
 def load_kernel(block, kernel_section, bin, z_ext, extrapolate_option):
 
     z_obs = block[kernel_section, 'z']
-    obs_in = block[kernel_section, 'bin_{}'.format(bin)]
+    obs_in = block[kernel_section, f'bin_{bin}']
     inter_func = interp1d(z_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
     kernel_ext = inter_func(z_ext)
     
@@ -101,8 +101,8 @@ def execute(block, config):
         else:
             # Just use interpolated result at the median redshift for the output
             obs_out = obs_ext
-        block.put_double_array_1d(output_section_name, 'bin_{}'.format(i+1), obs_out)
-        block.put_double_array_1d(output_section_name, 'obs_{}'.format(i+1), obs_arr[i])
+        block.put_double_array_1d(output_section_name, f'bin_{i+1}', obs_out)
+        block.put_double_array_1d(output_section_name, f'obs_{i+1}', obs_arr[i])
     
     return 0
 

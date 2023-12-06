@@ -83,16 +83,16 @@ def execute(block, config):
             if block.has_value(values_name,param.lower()):
                 HOD[param] = block[values_name,param.lower()]
             else:
-                raise Exception('Error:  parameter '+param+' is needed for the Zheng HOD model')
+                raise Exception(f'Error:  parameter {param} is needed for the Zheng HOD model')
     elif hod_type == 'zhai':
         name =  'Zhai et al. (2017)'
         for param in parameters_zhai:
             if block.has_value(values_name,param.lower()):
                 HOD[param] = block[values_name,param.lower()]
             else:
-                raise Exception('Error:  parameter '+param+' is needed for the Zhai HOD model')
+                raise Exception(f'Error:  parameter {param} is needed for the Zhai HOD model')
     else:
-        raise Exception('Error:  not a supported HOD type. The value was: '+hod_type)
+        raise Exception(f'Error:  not a supported HOD type. The value was: {hod_type}')
 
     # print(HOD)
     # print(hod_type)
@@ -108,7 +108,7 @@ def execute(block, config):
 
     for nb in range(0,nbins):
         if nbins != 1:
-            suffix = '_{}'.format(nb+1)
+            suffix = f'_{nb+1}'
         else:
             suffix = ''
         n_sat =[]
@@ -117,9 +117,9 @@ def execute(block, config):
             n_cen.append(n_cen_1z)
             n_sat.append(n_sat_1z)
         
-        block.put_grid(hod_section_name, 'z'+suffix, z_bins[nb], 'mass'+suffix, mass, 'n_sat'+suffix, np.asarray(n_sat))
-        block.put_grid(hod_section_name, 'z'+suffix, z_bins[nb], 'mass'+suffix, mass, 'n_cen'+suffix, np.asarray(n_cen))
-        block.put_grid(hod_section_name, 'z'+suffix, z_bins[nb], 'mass'+suffix, mass, 'n_tot'+suffix, np.asarray(n_sat)+np.asarray(n_cen))
+        block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'n_sat{suffix}', np.asarray(n_sat))
+        block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'n_cen{suffix}', np.asarray(n_cen))
+        block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'n_tot{suffix}', np.asarray(n_sat)+np.asarray(n_cen))
 
         # set interpolator for the halo mass function
         f_int_dndlnM = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
@@ -135,12 +135,12 @@ def execute(block, config):
         # compute average halo mass per bin
         mass_avg = hod.compute_avg_halo_mass(mass, n_cen, dndlnM)/numdens_cen
 
-        block.put_double_array_1d(hod_section_name, 'number_density_cen'+suffix, numdens_cen)
-        block.put_double_array_1d(hod_section_name, 'number_density_sat'+suffix, numdens_sat)
-        block.put_double_array_1d(hod_section_name, 'number_density_tot'+suffix, numdens_tot)
-        block.put_double_array_1d(hod_section_name, 'central_fraction'+suffix, fraction_cen)
-        block.put_double_array_1d(hod_section_name, 'satellite_fraction'+suffix, fraction_sat)
-        block.put_double_array_1d(hod_section_name, 'average_halo_mass'+suffix, mass_avg)
+        block.put_double_array_1d(hod_section_name, f'number_density_cen{suffix}', numdens_cen)
+        block.put_double_array_1d(hod_section_name, f'number_density_sat{suffix}', numdens_sat)
+        block.put_double_array_1d(hod_section_name, f'number_density_tot{suffix}', numdens_tot)
+        block.put_double_array_1d(hod_section_name, f'central_fraction{suffix}', fraction_cen)
+        block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat)
+        block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg)
         
         # if galaxy_bias_option:
         #     #---- loading the halo bias function ----#

@@ -53,10 +53,10 @@ def test_cosmo(cparam_in):
 
     for i, (key, edges) in enumerate(cparam_range.items()):
         if cparam_in[0, i] < edges[0]:
-            print(str(cparam_in[0, i])+' is smaller than '+str(edges[0])+' of key: '+str(key))
+            print(f'{cparam_in[0, i]} is smaller than {edges[0]} of key: {key}')
             exit()
         if cparam_in[0, i] > edges[1]:
-            print(str(cparam_in[0, i])+' is larger than '+str(edges[0])+' of key: '+str(key))
+            print(f'{cparam_in[0, i]} is larger than {edges[0]} of key: {key}')
             exit()
 
 

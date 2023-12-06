@@ -154,9 +154,9 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
     # here I am assuming that the redshifts used in wkm_module and the pk_module match!
     wkm = np.empty([z_vec.size, mass.size, k_vec.size])
     for jz in range(0,z_vec.size):
-        wkm_tmp = block['wkm','w_km_%d'%jz + suffix]
-        k_wkm   = block['wkm','k_h_%d'%jz+suffix]
-        mass_wkm = block['wkm','mass_%d'%jz+suffix]
+        wkm_tmp = block[f'wkm','w_km_{jz}{suffix}']
+        k_wkm   = block[f'wkm','k_h_{jz}{suffix}']
+        mass_wkm = block[f'wkm','mass_{jz}{suffix}']
         #w_interp2d = interp2d(k_wkm, mass_wkm, wkm_tmp, bounds_error=False)#, fill_value=0)
         w_interp2d = RegularGridInterpolator((k_wkm.T, mass_wkm.T), wkm_tmp.T, bounds_error=False, fill_value=None)#, fill_value=0)
         #wkm_interpolated = w_interp2d((k_vec, mass))
@@ -170,16 +170,16 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
 # load the hod related values
 # TODO: check that this takes the correct values from the HOD section
 def load_hods(block, section_name, suffix, z_vec, mass):
-    m_hod    = block[section_name, 'mass'+suffix]
-    z_hod    = block[section_name, 'z'+suffix]
-    Ncen_hod = block[section_name, 'n_cen'+suffix]
-    Nsat_hod = block[section_name, 'n_sat'+suffix]
-    numdencen_hod = block[section_name, 'number_density_cen'+suffix]
-    numdensat_hod = block[section_name, 'number_density_sat'+suffix]
-    f_c_hod = block[section_name, 'central_fraction'+suffix]
-    f_s_hod = block[section_name, 'satellite_fraction'+suffix]
-    mass_avg_hod = block[section_name, 'average_halo_mass'+suffix]
-    f_star = block[section_name, 'f_star'+suffix]
+    m_hod    = block[section_name, f'mass{suffix}']
+    z_hod    = block[section_name, f'z{suffix}']
+    Ncen_hod = block[section_name, f'n_cen{suffix}']
+    Nsat_hod = block[section_name, f'n_sat{suffix}']
+    numdencen_hod = block[section_name, f'number_density_cen{suffix}']
+    numdensat_hod = block[section_name, f'number_density_sat{suffix}']
+    f_c_hod = block[section_name, f'central_fraction{suffix}']
+    f_s_hod = block[section_name, f'satellite_fraction{suffix}']
+    mass_avg_hod = block[section_name, f'average_halo_mass{suffix}']
+    f_star = block[section_name, f'f_star{suffix}']
     
 
     #interp_Ncen = interp2d(m_hod, z_hod, Ncen_hod)
@@ -554,8 +554,8 @@ def load_fstar_mm(block, section_name, z_vec, mass):
         m_hod  = block[section_name, 'mass_extended']
         z_hod  = block[section_name, 'z_extended']
     else:
-        raise ValueError('f_star_extended does NOT exist in ' + section_name+ \
-            '. You have asked for stellar_fraction_from_observable_feedback which needs this quantity.\
+        raise ValueError(f'f_star_extended does NOT exist in {section_name}. \
+            You have asked for stellar_fraction_from_observable_feedback which needs this quantity.\
             This is calculated as part of the hod_interface, if use_mead2020_corrections is set to stellar_fraction_from_observable_feedback. \
             Note that if hod_interface_unconditional does not predict this quantity.' )
     
@@ -768,8 +768,8 @@ def compute_two_halo_alignment(block, suffix, growth_factor, mean_density0):
     C1 = 5.e-14
     # load the 2h (effective) amplitude of the alignment signal from the data block. 
     # This already includes the luminosity dependence if set. Double array [nz].
-    alignment_gi = block['ia_large_scale_alignment' + suffix, 'alignment_gi']
-    #alignment_ii = block['ia_large_scale_alignment' + suffix, 'alignment_ii']
+    alignment_gi = block[f'ia_large_scale_alignment{suffix}', 'alignment_gi']
+    #alignment_ii = block[f'ia_large_scale_alignment{suffix}', 'alignment_ii']
     
     # Removing the loops!
     alignment_amplitude_2h = -alignment_gi[:,np.newaxis] * (C1 * mean_density0[:,np.newaxis] / growth_factor)

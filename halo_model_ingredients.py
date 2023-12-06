@@ -283,7 +283,7 @@ def execute(block, config):
         u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen, mass)
         u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
     else:
-        warnings.warn('Currently the only supported profile is "nfw". You have chosen '+profile+' which is not supported. Returning NFW results')
+        warnings.warn(f'Currently the only supported profile is "nfw". You have chosen {profile} which is not supported. Returning NFW results')
         u_dm_cen = compute_u_dm(k, r_s_cen, conc_cen, mass)
         u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
 
