@@ -134,7 +134,7 @@ def setup(options):
     matter = False
     galaxy = False
     alignment = False
-    hod_section_name = ''
+    hod_section_name = options.get_string(option_section, 'hod_section_name')
     f_red_cen_option = False
 
     # change to raise
@@ -158,7 +158,6 @@ def setup(options):
         matter = True
     if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_mc == True) or (p_mI_mc == True) or (p_II_mc == True):
         galaxy = True
-        hod_section_name = options[option_section, 'hod_section_name']
     if (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_mc == True) or (p_mI_mc == True) or (p_II_mc == True):
         alignment = True
 
@@ -169,29 +168,17 @@ def setup(options):
         pop_name = ''
     
     # TODO: this has to be changed see comment above about check_mead
-    # if check_mead:
-    #     use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
-    #     if use_mead == 'mead2020':
-    #         mead_correction = 'nofeedback'
-    #     elif use_mead == 'mead2020_feedback':
-    #         mead_correction = 'hmcode2020_feedback'
-    #     elif use_mead == 'stellar_fraction_from_observable_feedback':
-    #         mead_correction = 'stellar_fraction_from_observable_feedback'
-    #         if not options.has_value(option_section, 'hod_section_name'):
-    #             raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon \
-    #                              feedback one needs to provide the hod section name of used hod!')
-    #         hod_section_name = options[option_section, 'hod_section_name']
-    # else:
-    #     mead_correction = None
-
-
-    use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
-    if use_mead == 'mead2020':
-        mead_correction = 'nofeedback'
-    elif use_mead == 'mead2020_feedback':
-        mead_correction = 'feedback'
-    elif use_mead == 'fit_feedback':
-        mead_correction = 'fit'
+    if check_mead:
+        use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
+        if use_mead == 'mead2020':
+            mead_correction = 'nofeedback'
+        elif use_mead == 'mead2020_feedback':
+            mead_correction = 'feedback'
+        elif use_mead == 'fit_feedback':
+            mead_correction = 'fit'
+            if not options.has_value(option_section, 'hod_section_name'):
+                raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon \
+                                  feedback one needs to provide the hod section name of used hod!')
     else:
         mead_correction = None
 
@@ -347,6 +334,9 @@ def execute(block, config):
         
         # f_nu = omega_nu/omega_m with the same length as redshift
         fnu = block['cosmological_parameters', 'fnu']
+        omega_c = block['cosmological_parameters', 'omega_c']
+        omega_m = block['cosmological_parameters', 'omega_m']
+        omega_b = block['cosmological_parameters', 'omega_b']
         
         # If matter auto or cross power spectra are set to True
         if matter == True:
@@ -357,21 +347,19 @@ def execute(block, config):
             # TODO: Why is there a matter profile and a matter_profile_1h_mm?
             
             if mead_correction == 'feedback':
-                omega_c    = block['cosmological_parameters', 'omega_c']
-                omega_m    = block['cosmological_parameters', 'omega_m']
                 log10T_AGN = block['halo_model_parameters', 'logT_AGN']
                 matter_profile_1h_mm = pk_lib.matter_profile_with_feedback(mass, mean_density0, u_dm, z_vec, omega_c, omega_m, omega_b, log10T_AGN, fnu)
             elif mead_correction == 'fit':
                 # Reads f_star_extended form the HOD section. Either need to use a conditional HOD to get this value or to put it in block some other way.
-                fstar_mm = load_fstar_mm(block, hod_section_name, z_vec, mass)
-                matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_observable(mass, mean_density0, u_dm, z_vec, fstar_mm, omega_c, omega_m, omega_b, fnu)
+                fstar_mm = pk_lib.load_fstar_mm(block, hod_section_name, z_vec, mass)
+                matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z_vec, fstar_mm, omega_c, omega_m, omega_b, fnu)
             else:
                 matter_profile_1h_mm = matter_profile.copy()
                 
             if bnl == True:
                 # TODO: This one uses matter_profile not matter_profile_1h_mm. Shouldn't we use the same profile everywhere?
                 # AD: No, I_NL and 2-halo functions should use the mater_profile, no 1h! The corrections applied do not hold true for 2h regime!
-                I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile, 
+                I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile,
                                     b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, 
                                     z_vec, A_term, mean_density0, beta_interp)
         
@@ -379,11 +367,11 @@ def execute(block, config):
                 if mead_correction == 'nofeedback':
                     sigma8_z = block['hmf', 'sigma8_z']
                     neff     = block['hmf', 'neff']
-                    pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_mead(k_vec, plin, z_vec, mass, 
+                    pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_mead(k_vec, plin, z_vec, mass,
                                                                             dn_dlnm, matter_profile_1h_mm, 
                                                                             I_m, sigma8_z, neff)
                 else:
-                    pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm(k_vec, plin, z_vec, mass, 
+                    pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm(k_vec, plin, z_vec, mass,
                                                                         dn_dlnm, matter_profile_1h_mm, I_m)
                 # save in the datablock
                 #block.put_grid('matter_1h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_1h)
@@ -392,14 +380,14 @@ def execute(block, config):
                 block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
                 
             if p_mm == True and bnl == True:
-                pk_mm_1h_bnl, pk_mm_2h_bnl, pk_mm_tot_bnl = pk_lib.compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dlnm, 
+                pk_mm_1h_bnl, pk_mm_2h_bnl, pk_mm_tot_bnl = pk_lib.compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dlnm,
                                                                                     matter_profile_1h_mm, I_m, I_NL_mm)
                 # save in the datablock
                 #block.put_grid('matter_1h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_1h)
                 #block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)
                 #block.put_grid('matter_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
                 block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot_bnl)
-
+    
         if (galaxy == True) or (alignment == True):
             # TODO: metadata does not exist change this
             hod_bins = block[hod_section_name, 'nbins']
@@ -417,7 +405,7 @@ def execute(block, config):
                 if galaxy == True:
                     # preparing the 1h term
                     # TODO: check if Nsat and Ncen need to be in a grid with respect to z
-                    # Computes the profiles for centrals and satellites. 
+                    # Computes the profiles for centrals and satellites.
                     # These are the W_u(M,k) functions in Asgari, Mead, Heymans 2023: 2303.08752
                     # Centrals are assumed to be in the centre of the halo, therefore no need for the normalised profile, U.
                     profile_c = pk_lib.central_profile(Ncen, numdencen, f_cen)
@@ -429,9 +417,6 @@ def execute(block, config):
                     if mead_correction == 'fit' or point_mass == True:
                         # Include point mass and gas contribution to the GGL power spectrum, defined from HOD
                         # Maybe extend to input the mass per bin!
-                        omega_c    = block['cosmological_parameters', 'omega_c']
-                        omega_m    = block['cosmological_parameters', 'omega_m']
-                        omega_b    = block['cosmological_parameters', 'omega_b']
                         matter_profile_1h = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0,
                                                                                                         u_dm, z_vec, fstar, 
                                                                                                         omega_c, omega_m, omega_b, fnu)
@@ -442,15 +427,15 @@ def execute(block, config):
                         if p_gg == True:
                             I_NL_cs = pk_lib.I_NL(mass, mass, profile_c, profile_s, b_dm, b_dm,
                                 dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
-                            I_NL_ss = pk_lib.I_NL(mass, mass, profile_s, profile_s, b_dm, b_dm, 
+                            I_NL_ss = pk_lib.I_NL(mass, mass, profile_s, profile_s, b_dm, b_dm,
                                 dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
-                            I_NL_cc = pk_lib.I_NL(mass, mass, profile_c, profile_c, b_dm, b_dm, 
+                            I_NL_cc = pk_lib.I_NL(mass, mass, profile_c, profile_c, b_dm, b_dm,
                                 dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
     
                         if p_gm == True:
-                            I_NL_cm = pk_lib.I_NL(mass, mass, profile_c, matter_profile, b_dm, b_dm, 
+                            I_NL_cm = pk_lib.I_NL(mass, mass, profile_c, matter_profile, b_dm, b_dm,
                                 dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
-                            I_NL_sm = pk_lib.I_NL(mass, mass, profile_s, matter_profile, b_dm, b_dm, 
+                            I_NL_sm = pk_lib.I_NL(mass, mass, profile_s, matter_profile, b_dm, b_dm,
                                 dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
                     
                 if alignment == True:

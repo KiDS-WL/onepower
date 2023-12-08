@@ -300,7 +300,7 @@ def compute_matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, 
     return Wm
 
 def matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m, omega_b, log10T_AGN, fnu):
-    profile = compute_matter_profile_with_feedback(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis],
+    profile = compute_matter_profile_with_feedback_v2(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis],
                                                     u_dm, z[:, np.newaxis, np.newaxis], omega_c, omega_m, omega_b,
                                                     log10T_AGN, fnu[:,np.newaxis,np.newaxis])
     return profile
@@ -340,8 +340,8 @@ def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_de
     dm_to_matter_frac = omega_c/omega_m
     Wm_0 = mass / mean_density0
     f_gas_fit = fg_fit(mass, fstar, z, omega_b, omega_m)
-    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu)  + fstar * Wm_0
-    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
+    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu)  + fstar * Wm_0
+    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
     return Wm
 
 def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, fstar, omega_c, omega_m, omega_b, fnu):
@@ -569,7 +569,7 @@ def compute_1h_term(profile_u, profile_v, mass, dn_dlnm_z):
 # Gas fraction
 # -------------------------------------------------------------------------------------------------------------------- #
 
-def fg(mass, fstar, theta_agn, z, omega_b, omega_m, beta=2):
+def fg(mass, fstar, log10T_AGN, z, omega_b, omega_m, beta=2):
     """
     Gas fraction
     Eq 24 of 2009.01858
