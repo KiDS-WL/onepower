@@ -356,7 +356,7 @@ def execute(block, config):
             matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
             # TODO: Why is there a matter profile and a matter_profile_1h_mm?
             
-            if mead_correction == 'hmcode2020_feedback':
+            if mead_correction == 'feedback':
                 omega_c    = block['cosmological_parameters', 'omega_c']
                 omega_m    = block['cosmological_parameters', 'omega_m']
                 log10T_AGN = block['halo_model_parameters', 'logT_AGN']

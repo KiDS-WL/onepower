@@ -211,14 +211,6 @@ def execute(block, config):
     eta_cen  = block[profile_value_name, 'eta_cen']
     eta_sat  = block[profile_value_name, 'eta_sat']
     
-    if mead_correction == 'nofeedback':
-        norm_cen  = 1.0 #(5.196/3.85)#0.85*1.299
-        eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))
-    if mead_correction == 'feedback':
-        theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
-        norm_cen  = (((3.44 - 0.496*theta_agn) * 10.0**(z_vec*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
-        eta_cen   = (0.15 * (1.0+z_vec)**0.5)[:,np.newaxis]
-    
     # initialise arrays
     nmass_hmf = len(mass)
     dndlnmh   = np.empty([nz,nmass_hmf])
@@ -311,6 +303,14 @@ def execute(block, config):
         neff[jz]      = mf.n_eff[idx_neff]
         # Only used for mead_corrections
         sigma8_z[jz] = mf.normalised_filter.sigma(8.0)
+        
+        if mead_correction == 'nofeedback':
+            norm_cen  = 1.0 #(5.196/3.85)#0.85*1.299
+            eta_cen   = (0.1281 * sigma8_z[jz]**(-0.3644))
+        elif mead_correction == 'feedback':
+            theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
+            norm_cen  = (((3.44 - 0.496*theta_agn) * 10.0**(z_iter*(-0.0671 - 0.0371*theta_agn))) / 4.0)
+            eta_cen   = (0.15 * (1.0+z_iter)**0.5)
         
         mf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz])}, halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
         conc_cen[jz,:] = mf.cmz_relation
