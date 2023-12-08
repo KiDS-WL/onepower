@@ -280,7 +280,7 @@ def execute(block, config):
                 g = growth(a)
                 G = hmu.get_accumulated_growth(a, growth)
                 delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
-                overdensity_z[jz] = 2*hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                overdensity_z[jz] = 2.0 * hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
                 mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
                 mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, mdef_model=mdef_mead)

@@ -289,10 +289,10 @@ def compute_matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, 
     Table 4 and eq 26 of 2009.01858
     f*(z) = f*_0 10^(z f*_z)
     """
-    f_star = fs(log10T_AGN,z)
+    fstar = fs(log10T_AGN,z)
 
     dm_to_matter_frac = omega_c/omega_m
-    f_gas = fg(mass, fstar, theta_agn, z, omega_b, omega_m)
+    f_gas = fg(mass, fstar, log10T_AGN, z, omega_b, omega_m)
     Wm_0 = mass / mean_density0
     Wm =  (dm_to_matter_frac + f_gas)* Wm_0 * u_dm + fstar * Wm_0
 
@@ -314,10 +314,10 @@ def compute_matter_profile_with_feedback_v2(mass, mean_density0, u_dm, z, omega_
     The parameter 0 < f∗ < Ω_b/Ω_m can be thought of as an effective halo stellar mass fraction.
     """
 
-    f_star = fs(log10T_AGN,z)
+    fstar = fs(log10T_AGN,z)
 
     dm_to_matter_frac = omega_c/omega_m
-    f_gas = fg(mass, fstar, theta_agn, z, omega_b, omega_m)
+    f_gas = fg(mass, fstar, log10T_AGN, z, omega_b, omega_m)
     Wm_0 = mass / mean_density0
 
     Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
@@ -452,14 +452,46 @@ def satellite_alignment_profile_grid_halo(Nsat, numdensat, f_sat, wkm, beta_sat,
 #  1 and 2 halo functions
 # -------------------------------------------------------------------------------------------------------------------- #
 
-# 1-halo term truncation at large scales (small k), this uses the error function
-def one_halo_truncation(k_vec, k_star = 0.01):
+
+def one_halo_truncation(k_vec, k_trunc=0.1):
+    """
+    1-halo term truncation at large scales (small k)
+    """
+    k_frac = k_vec/k_trunc
+    return (k_frac**4.0)/(1.0 + k_frac**4.0)
+
+
+def two_halo_truncation(k_vec, k_trunc=2.0):
+    """
+    2-halo term truncation at larger k-values (large k)
+    """
+    #TO-DO: figure out what ad-hoc values for f and nd are!
+    #k_frac = k_vec/k_trunc
+    #return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
+    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
+
+
+def one_halo_truncation_old(k_vec, k_trunc = 0.1):
+    """
+    1-halo term truncation at large scales (small k), this uses the error function
+    """
     #return 1.-np.exp(-(k_vec/k_star)**2.)
-    return erf(k_vec/k_star)
+    return erf(k_vec/k_trunc)
 
 
-def one_halo_truncation_ia(k_vec, k_star = 4.0):
-    return 1.-np.exp(-(k_vec/k_star)**2.) 
+def two_halo_truncation_old(k_vec, k_trunc=2.0):
+    """
+    2-halo term truncation at larger k-values
+    """
+    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
+
+
+def one_halo_truncation_ia(k_vec, k_trunc=4.0):
+    return 1.-np.exp(-(k_vec/k_trunc)**2.)
+
+
+def two_halo_truncation_ia(k_vec, k_trunc=6.0):
+    return np.exp(-(k_vec/k_trunc)**2.)
 
 
 def one_halo_truncation_mead(k_vec, sigma8_in):
@@ -474,18 +506,6 @@ def one_halo_truncation_mead(k_vec, sigma8_in):
     k_frac = k_vec/k_star
     
     return (k_frac**4.0)/(1.0 + k_frac**4.0)
-
-
-def two_halo_truncation(k_vec,k_trunc=2.0):
-    """
-    2-halo term truncation at larger k-values
-    """
-    
-    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
-
-
-def two_halo_truncation_ia(k_vec,k_trunc = 6.0):
-    return np.exp(-(k_vec/k_trunc)**2.)
 
 
 def two_halo_truncation_mead(k_vec, sigma8_in):
@@ -549,7 +569,7 @@ def compute_1h_term(profile_u, profile_v, mass, dn_dlnm_z):
 # Gas fraction
 # -------------------------------------------------------------------------------------------------------------------- #
 
-def fg(mass, fstar, theta_agn, z, omega_b,omega_m, beta = 2):
+def fg(mass, fstar, theta_agn, z, omega_b, omega_m, beta=2):
     """
     Gas fraction
     Eq 24 of 2009.01858
@@ -563,7 +583,7 @@ def fg(mass, fstar, theta_agn, z, omega_b,omega_m, beta = 2):
         theta_agn = log10_TAGN - 7.8
     table 4 of 2009.01858, units of M_sun/h
     """
-
+    theta_agn = log10T_AGN - 7.8
     mb = (10.0**(13.87 - 1.81*theta_agn) * 10.0**(z*(0.195*theta_agn - 0.108)))
     baryon_to_matter_fraction = omega_b/omega_m
     fg = (baryon_to_matter_fraction - fstar) * (mass/mb)**beta / (1.0+(mass/mb)**beta)
@@ -744,6 +764,22 @@ def I_NL(mass_1, mass_2, factor_1, factor_2, bias_1, bias_2, dn_dlnm_1, dn_dlnm_
     I_NL = compute_I_NL_term(k_vec, z_vec, factor_1, factor_2, bias_1, bias_2, mass_1, mass_2, dn_dlnm_1, dn_dlnm_2, A, rho_mean, beta_interp)
     return I_NL
 
+    
+def low_k_truncation(k_vec):
+    """
+    Beta_nl low-k truncation
+    """
+    k_trunc = 0.01
+    return 1.0/(1.0+np.exp(-(10.0*(np.log10(k_vec/k_trunc)))))
+
+
+def high_k_truncation(k_vec):
+    """
+    Beta_nl high-k truncation
+    """
+    k_trunc = 10.0
+    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
+
 
 def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block):
     M1 = 10.0**log10M1
@@ -787,7 +823,7 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block):
                 Pk_hh0 = emulator.get_phh_mass(klin, M01, M02, z)
                 db = Pk_hh0/(b1*b2*Pk_klin) - 1.0
         
-                beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0
+                beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) * low_k_truncation(k) * high_k_truncation(k)
     
     return beta_func
     
@@ -802,7 +838,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     M = np.empty_like(z, dtype=object)
     k = np.empty_like(z, dtype=object)
     zc = z.copy()
-    zc[zc>=0.5] = 0.5
+    #zc[zc>=0.5] = 0.5
     for i,zi in enumerate(zc):
         # Fitting the upper mass limit to the box size constraints as a function of redshift. Not stable.
         #M_up = 14.7788 - 0.624468*zi
@@ -812,7 +848,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
         M_up = 14.0
         M_lo = 12.0
         M[i] = np.logspace(M_lo, M_up, lenM)# * 0.7 / block['cosmological_parameters', 'h0']
-        k[i] = np.logspace(-2.0, np.log10(0.35 * (0.7 / block['cosmological_parameters', 'h0'])), lenk) # Need to correct k for h parameter here.
+        k[i] = np.logspace(-3.0, np.log10(0.35 * (0.7 / block['cosmological_parameters', 'h0'])), lenk) # Need to correct k for h parameter here.
     #k = np.logspace(-2.0, 0.2, 50) #50)
     #beta_func = np.zeros((len(z), lenM, lenM, lenk))
     beta_nl_interp_i = np.empty(len(z), dtype=object)

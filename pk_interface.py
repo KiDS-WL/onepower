@@ -370,11 +370,8 @@ def execute(block, config):
                 
             if bnl == True:
                 # TODO: This one uses matter_profile not matter_profile_1h_mm. Shouldn't we use the same profile everywhere?
-                # Compare these
+                # AD: No, I_NL and 2-halo functions should use the mater_profile, no 1h! The corrections applied do not hold true for 2h regime!
                 I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile, 
-                                    b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, 
-                                    z_vec, A_term, mean_density0, beta_interp)
-                I_NL_mm_1h = pk_lib.I_NL(mass, mass, matter_profile_1h_mm, matter_profile_1h_mm, 
                                     b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, 
                                     z_vec, A_term, mean_density0, beta_interp)
         
@@ -384,7 +381,7 @@ def execute(block, config):
                     neff     = block['hmf', 'neff']
                     pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_mead(k_vec, plin, z_vec, mass, 
                                                                             dn_dlnm, matter_profile_1h_mm, 
-                                                                            I_m, sigma8_z,neff)
+                                                                            I_m, sigma8_z, neff)
                 else:
                     pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm(k_vec, plin, z_vec, mass, 
                                                                         dn_dlnm, matter_profile_1h_mm, I_m)
@@ -474,7 +471,7 @@ def execute(block, config):
                         beta_sat = block[f'ia_small_scale_alignment{pop_name}', 'beta_sat']
                         M_pivot  = block[f'ia_small_scale_alignment{pop_name}', 'M_pivot']
                         s_align_profile = pk_lib.satellite_alignment_profile_grid_halo(Nsat, numdensat, f_sat, wkm,
-                                                                                    beta_sat,  M_pivot , mass_avg)
+                                                                                    beta_sat,  M_pivot, mass_avg)
                     else:
                         s_align_profile = pk_lib.satellite_alignment_profile(Nsat, numdensat, f_sat, wkm)
                     if block[f'ia_large_scale_alignment{pop_name}', 'instance'] == 'halo_mass':
