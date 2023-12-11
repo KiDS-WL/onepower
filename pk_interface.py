@@ -364,7 +364,7 @@ def execute(block, config):
                                     z_vec, A_term, mean_density0, beta_interp)
         
             if p_mm == True and bnl == False:
-                if mead_correction == 'nofeedback':
+                if mead_correction != 'fit': # was == 'nofeedback'
                     sigma8_z = block['hmf', 'sigma8_z']
                     neff     = block['hmf', 'neff']
                     pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_mead(k_vec, plin, z_vec, mass,

@@ -626,7 +626,7 @@ def fs(log10T_AGN,z):
     fstar_z = 0.409 + 0.0224*theta_agn
     fstar = fstar_0 * 10.0**(z*fstar_z)
     
-    return fstar
+    return fstar # AD: If this is multiplied by 1.3 the contribution matches the HMcode2020. Odd.
 
 
 def load_fstar_mm(block, section_name, z_vec, mass):

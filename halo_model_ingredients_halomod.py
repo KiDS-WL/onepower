@@ -178,8 +178,8 @@ def setup(options):
         mead_correction = 'nofeedback'
     elif use_mead == 'mead2020_feedback':
         mead_correction = 'feedback'
-    elif use_mead == 'fit_feedback':
-        mead_correction = 'fit'
+    #elif use_mead == 'fit_feedback':
+    #    mead_correction = 'fit'
     else:
         mead_correction = None
 
@@ -310,7 +310,7 @@ def execute(block, config):
         elif mead_correction == 'feedback':
             theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
             norm_cen  = (((3.44 - 0.496*theta_agn) * 10.0**(z_iter*(-0.0671 - 0.0371*theta_agn))) / 4.0)
-            eta_cen   = 0.0
+            eta_cen   = (0.1281 * sigma8_z[jz]**(-0.3644))#0.0
         
         mf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz])}, halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
         conc_cen[jz,:] = mf.cmz_relation
