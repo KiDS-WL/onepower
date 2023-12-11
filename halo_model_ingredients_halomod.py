@@ -272,7 +272,7 @@ def execute(block, config):
                 g = growth(a)
                 G = hmu.get_accumulated_growth(a, growth)
                 delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
-                overdensity_z[jz] = 2.0 * hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
                 mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
                 mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, mdef_model=mdef_mead)
@@ -310,7 +310,7 @@ def execute(block, config):
         elif mead_correction == 'feedback':
             theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
             norm_cen  = (((3.44 - 0.496*theta_agn) * 10.0**(z_iter*(-0.0671 - 0.0371*theta_agn))) / 4.0)
-            eta_cen   = (0.15 * (1.0+z_iter)**0.5)
+            eta_cen   = 0.0
         
         mf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz])}, halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
         conc_cen[jz,:] = mf.cmz_relation
