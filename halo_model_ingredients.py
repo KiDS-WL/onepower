@@ -262,7 +262,7 @@ def execute(block, config):
     if mead_correction == 'feedback':
         theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
         norm_cen  = (((3.44 - 0.496*theta_agn) * 10.0**(z_vec*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
-        eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))#0.0
+        eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))
     # TODO: what happends if mead_correction is stellar_fraction_from_observable_feedback?
 
     conc_cen = norm_cen * conc
