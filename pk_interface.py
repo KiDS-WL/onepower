@@ -179,6 +179,8 @@ def setup(options):
             if not options.has_value(option_section, 'hod_section_name'):
                 raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon \
                                   feedback one needs to provide the hod section name of used hod!')
+        else:
+            mead_correction = None
     else:
         mead_correction = None
 

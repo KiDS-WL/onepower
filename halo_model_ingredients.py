@@ -141,6 +141,10 @@ def execute(block, config):
         H0=block[cosmo_params, 'hubble'], Ob0=block[cosmo_params, 'omega_b'],
         Om0=block[cosmo_params, 'omega_m'], m_nu=block[cosmo_params, 'mnu'], Tcmb0=tcmb,
     	w0=block[cosmo_params, 'w'], wa=block[cosmo_params, 'wa'] )
+     
+    #LCDMcosmo = FlatLambdaCDM(
+    #    H0=block[cosmo_params, 'hubble'], Ob0=block[cosmo_params, 'omega_b'],
+    #    Om0=block[cosmo_params, 'omega_m'], m_nu=block[cosmo_params, 'mnu'], Tcmb0=tcmb)
 
     ns      = block[cosmo_params, 'n_s']
     sigma_8 = block[cosmo_params, 'sigma_8']
@@ -169,6 +173,7 @@ def execute(block, config):
 
     if mead_correction:
         growth = hmu.get_growth_interpolator(this_cosmo_run)
+        #growth_LCDM = hmu.get_growth_interpolator(LCDMcosmo)
 
     # About 1.8 seconds for mf.update.About 7 seconds for concentration_colossus
 
@@ -197,6 +202,7 @@ def execute(block, config):
                 G = hmu.get_accumulated_growth(a, growth)
                 delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
                 overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                #dolag = (growth(LCDMcosmo.scale_factor(10.0))/growth_LCDM(LCDMcosmo.scale_factor(10.0)))*(growth_LCDM(a)/growth(a))
                 mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
                 mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, mdef_model=mdef_mead)
@@ -261,7 +267,7 @@ def execute(block, config):
         eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))
     if mead_correction == 'feedback':
         theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
-        norm_cen  = (((3.44 - 0.496*theta_agn) * 10.0**(z_vec*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
+        norm_cen  = (((3.44 - 0.496*theta_agn) * np.power(10.0, z_vec*(-0.0671 - 0.0371*theta_agn))) / 4.0)[:,np.newaxis]
         eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))
     # TODO: what happends if mead_correction is stellar_fraction_from_observable_feedback?
 

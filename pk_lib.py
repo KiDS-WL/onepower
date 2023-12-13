@@ -288,47 +288,32 @@ def compute_matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, 
     Total matter profile from Mead2020 for baryonic feedback model
     Table 4 and eq 26 of 2009.01858
     f*(z) = f*_0 10^(z f*_z)
+    
+    This profile does not have 1-fnu correction as that is already accounted for in  dm_to_matter_frac
     """
-    fstar = fs(log10T_AGN,z)
+    fstar = fs(log10T_AGN, z)
 
     dm_to_matter_frac = omega_c/omega_m
     f_gas = fg(mass, fstar, log10T_AGN, z, omega_b, omega_m)
     Wm_0 = mass / mean_density0
-    Wm =  (dm_to_matter_frac + f_gas)* Wm_0 * u_dm + fstar * Wm_0
-
-    # TODO: This is not lowering Wm by f_nu
+    #Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
+    Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
     return Wm
 
 def matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m, omega_b, log10T_AGN, fnu):
-    profile = compute_matter_profile_with_feedback_v2(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis],
+    profile = compute_matter_profile_with_feedback(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis],
                                                     u_dm, z[:, np.newaxis, np.newaxis], omega_c, omega_m, omega_b,
                                                     log10T_AGN, fnu[:,np.newaxis,np.newaxis])
     return profile
 
-
-def compute_matter_profile_with_feedback_v2(mass, mean_density0, u_dm, z, omega_c, omega_m, omega_b, log10T_AGN, fnu):
-    """
-    eq 25 of 2009.01858
-    matter profile including feedback as modelled by hmcode2020. v2 is scaled by f_nu
-    W(M, k) = [Ω_c/Ω_m+ fg(M)]W(M, k) + f∗ M/ρ¯
-    The parameter 0 < f∗ < Ω_b/Ω_m can be thought of as an effective halo stellar mass fraction.
-    """
-
-    fstar = fs(log10T_AGN,z)
-
-    dm_to_matter_frac = omega_c/omega_m
-    f_gas = fg(mass, fstar, log10T_AGN, z, omega_b, omega_m)
-    Wm_0 = mass / mean_density0
-
-    Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
-    
-    return Wm
 
 def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, fstar, omega_c, omega_m, omega_b, fnu):
     """
     Total matter profile for a general baryonic feedback model
     using f* from HOD/CSMF/CLF that also provides for point mass estimate when used in the
     GGL power spectra
+    
+    This profile does not have 1-fnu correction as that is already accounted for in  dm_to_matter_frac
     """
     
     #fstar = block['pk_parameters', 'fstar'] # For now specified by the point mass!
@@ -340,8 +325,8 @@ def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_de
     dm_to_matter_frac = omega_c/omega_m
     Wm_0 = mass / mean_density0
     f_gas_fit = fg_fit(mass, fstar, z, omega_b, omega_m)
-    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu)  + fstar * Wm_0
-    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
+    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
+    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
     return Wm
 
 def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, fstar, omega_c, omega_m, omega_b, fnu):
@@ -584,7 +569,7 @@ def fg(mass, fstar, log10T_AGN, z, omega_b, omega_m, beta=2):
     table 4 of 2009.01858, units of M_sun/h
     """
     theta_agn = log10T_AGN - 7.8
-    mb = (10.0**(13.87 - 1.81*theta_agn) * 10.0**(z*(0.195*theta_agn - 0.108)))
+    mb = np.power(10.0, 13.87 + 1.81*theta_agn) * np.power(10.0, z*(0.195*theta_agn - 0.108))
     baryon_to_matter_fraction = omega_b/omega_m
     fg = (baryon_to_matter_fraction - fstar) * (mass/mb)**beta / (1.0+(mass/mb)**beta)
     
@@ -624,9 +609,9 @@ def fs(log10T_AGN,z):
     theta_agn = log10T_AGN - 7.8
     fstar_0 = (2.01 - 0.30*theta_agn)*0.01
     fstar_z = 0.409 + 0.0224*theta_agn
-    fstar = fstar_0 * 10.0**(z*fstar_z)
+    fstar = fstar_0 * np.power(10.0, z*fstar_z)
     
-    return fstar # AD: If this is multiplied by 1.3 the contribution matches the HMcode2020. Odd.
+    return fstar
 
 
 def load_fstar_mm(block, section_name, z_vec, mass):
