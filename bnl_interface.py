@@ -30,7 +30,8 @@ def test_cosmo(cparam_in):
         if cparam_in[0, i] > edges[1]:
             cparam_out[0, i] = edges[1]
     return cparam_out
-
+ 
+ 
 def get_linear_power_spectrum(block, z_vec):
     # AD: growth factor should be computed from camb/hmf directly, this way we can load Plin directly without this functions!
     k_vec = block['matter_power_lin', 'k_h']
@@ -45,7 +46,8 @@ def get_linear_power_spectrum(block, z_vec):
     # interpolate in redshift
     plin = interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec)
     return k_vec, plin, growth_factor, scale_factor
-    
+     
+     
 def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
     f_interp = interp1d(z_pl, matter_power_lin, axis=0)
     pk_interpolated = f_interp(z_vec)

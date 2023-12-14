@@ -95,9 +95,9 @@ def setup(options):
                 pdf_tmp, _lum_bins = np.histogram(lum, bins=nlbins, density=True)
                 _dbin = (_lum_bins[-1]-_lum_bins[0])/(1.*nlbins)
                 bincen_centrals[i] = _lum_bins[0:-1]+0.5*_dbin
-                print('check norm: ', np.sum(pdf_tmp*np.diff(_lum_bins)))
+                print(f'check norm: {np.sum(pdf_tmp*np.diff(_lum_bins))}')
                 pdf_centrals[i] = pdf_tmp
-                print('check mean:', simps(pdf_centrals[i]*bincen_centrals[i], bincen_centrals[i])/np.mean(lum))
+                print(f'check mean: {simps(pdf_centrals[i]*bincen_centrals[i], bincen_centrals[i])/np.mean(lum)}')
             else:
                 pdf_centrals[i] = 0
                 
@@ -155,7 +155,7 @@ def setup(options):
             
     name = options.get_string(option_section, 'output_suffix', default='').lower()
     if name != '':
-        suffix = '_' + name
+        suffix = f'_{name}'
     else:
         suffix = ''
     
@@ -171,76 +171,76 @@ def execute(block, config):
 
     # First the Centrals
     # All options require the central 2-halo amplitude to be defined 
-    gamma_2h = block['intrinsic_alignment_parameters' + suffix, 'gamma_2h_amplitude']
+    gamma_2h = block[f'intrinsic_alignment_parameters{suffix}', 'gamma_2h_amplitude']
 
     if central_IA_depends_on == 'constant':
-        block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * np.ones(nz))
+        block.put_double_array_1d(f'ia_large_scale_alignment{suffix}', 'alignment_gi', gamma_2h * np.ones(nz))
         
     if central_IA_depends_on == 'luminosity':
         # Check that the user knows what they're doing:
-        if not block.has_value('intrinsic_alignment_parameters' + suffix, 'L_pivot'):
+        if not block.has_value(f'intrinsic_alignment_parameters{suffix}', 'L_pivot'):
             raise ValueError('You have chosen central luminosity scaling without providing a pivot luminosity parameter.  Include L_pivot. "\n ')
         
         # single-power law parameters
-        lpiv = block['intrinsic_alignment_parameters' + suffix, 'L_pivot']
-        beta = block['intrinsic_alignment_parameters' + suffix, 'beta']
+        lpiv = block[f'intrinsic_alignment_parameters{suffix}', 'L_pivot']
+        beta = block[f'intrinsic_alignment_parameters{suffix}', 'beta']
 
         # Then lets see whether user wants to implement a double power law based on what they've included in values.ini
-        if block.has_value('intrinsic_alignment_parameters' + suffix, 'beta_two'):
+        if block.has_value(f'intrinsic_alignment_parameters{suffix}', 'beta_two'):
             print('You have chosen to implement a double power law model for the luminosity dependence of the centrals')
-            beta_two = block['intrinsic_alignment_parameters' + suffix, 'beta_two']
+            beta_two = block[f'intrinsic_alignment_parameters{suffix}', 'beta_two']
             mean_lscaling = np.empty(nz)
             for i in range(0,nz):
                 mean_lscaling[i] = broken_powerlaw(lum_centrals[i], lum_pdf_z_centrals[i], gamma_2h, lpiv, beta, beta_two)
-            block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', mean_lscaling)
-        else: 
+            block.put_double_array_1d(f'ia_large_scale_alignment{suffix}', 'alignment_gi', mean_lscaling)
+        else:
             print('You have chosen to implement a single power law model for the luminosity dependence of the centrals')
             mean_lscaling = mean_L_L0_to_beta(lum_centrals, lum_pdf_z_centrals, lpiv, beta)
-            block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * mean_lscaling)
+            block.put_double_array_1d(f'ia_large_scale_alignment{suffix}', 'alignment_gi', gamma_2h * mean_lscaling)
         
     if central_IA_depends_on  == 'halo_mass':
 
         # Check that the user knows what they're doing:
-        if not block.has_value('intrinsic_alignment_parameters' + suffix, 'M_pivot'):
+        if not block.has_value(f'intrinsic_alignment_parameters{suffix}', 'M_pivot'):
             raise ValueError('You have chosen central halo-mass scaling without providing a pivot mass parameter.  Include M_pivot. "\n ')
         
-        mpiv = block.get_double('intrinsic_alignment_parameters' + suffix, 'M_pivot')
-        beta = block.get_double('intrinsic_alignment_parameters' + suffix, 'beta')
-        if block.has_value('intrinsic_alignment_parameters' + suffix, 'beta_two'):
+        mpiv = block.get_double(f'intrinsic_alignment_parameters{suffix}', 'M_pivot')
+        beta = block.get_double(f'intrinsic_alignment_parameters{suffix}', 'beta')
+        if block.has_value(f'intrinsic_alignment_parameters{suffix}', 'beta_two'):
             raise ValueError('A double power law model for the halo mass dependence of centrals has not been implemented.  Either remove beta_two from your parameter list or select central_IA_depends_on="luminosity"\n ')
         # Technically just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
-        block.put_double_array_1d('ia_large_scale_alignment' + suffix, 'alignment_gi', gamma_2h * np.ones(nz))
-        block.put_double('ia_large_scale_alignment' + suffix, 'M_pivot', mpiv)
-        block.put_double('ia_large_scale_alignment' + suffix, 'beta', beta)
+        block.put_double_array_1d(f'ia_large_scale_alignment{suffix}', 'alignment_gi', gamma_2h * np.ones(nz))
+        block.put_double(f'ia_large_scale_alignment{suffix}', 'M_pivot', mpiv)
+        block.put_double(f'ia_large_scale_alignment{suffix}', 'beta', beta)
     
     #Add instance information to block
-    block.put_string('ia_large_scale_alignment' + suffix, 'instance', central_IA_depends_on )
+    block.put_string(f'ia_large_scale_alignment{suffix}', 'instance', central_IA_depends_on )
         
     # Second the Satellites
     # All options require the satellite 1-halo amplitude to be defined 
-    gamma_1h = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude']
+    gamma_1h = block[f'intrinsic_alignment_parameters{suffix}', 'gamma_1h_amplitude']
     
     if satellite_IA_depends_on == 'constant':
-        block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * np.ones(nz))
+        block.put_double_array_1d(f'ia_small_scale_alignment{suffix}', 'alignment_1h', gamma_1h * np.ones(nz))
         
     if satellite_IA_depends_on == 'luminosity':
-        lpiv = block['intrinsic_alignment_parameters' + suffix, 'L_pivot']
-        beta_sat = block['intrinsic_alignment_parameters' + suffix, 'beta_sat']
-        gamma_1h = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude']
+        lpiv = block[f'intrinsic_alignment_parameters{suffix}', 'L_pivot']
+        beta_sat = block[f'intrinsic_alignment_parameters{suffix}', 'beta_sat']
+        gamma_1h = block[f'intrinsic_alignment_parameters{suffix}', 'gamma_1h_amplitude']
         mean_lscaling = mean_L_L0_to_beta(lum_satellites, lum_pdf_z_satellites, lpiv, beta_sat)
-        block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * mean_lscaling)
+        block.put_double_array_1d(f'ia_small_scale_alignment{suffix}', 'alignment_1h', gamma_1h * mean_lscaling)
         
     if satellite_IA_depends_on == 'halo_mass':
-        mpiv = block.get_double('intrinsic_alignment_parameters' + suffix, 'M_pivot')
-        beta_sat = block.get_double('intrinsic_alignment_parameters' + suffix, 'beta_sat')
-        gamma_1h = block.get_double('intrinsic_alignment_parameters' + suffix, 'gamma_1h_amplitude')
+        mpiv = block.get_double(f'intrinsic_alignment_parameters{suffix}', 'M_pivot')
+        beta_sat = block.get_double(f'intrinsic_alignment_parameters{suffix}', 'beta_sat')
+        gamma_1h = block.get_double(f'intrinsic_alignment_parameters{suffix}', 'gamma_1h_amplitude')
         # Technically just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
-        block.put_double_array_1d('ia_small_scale_alignment' + suffix, 'alignment_1h', gamma_1h * np.ones(nz))
-        block.put_double('ia_small_scale_alignment' + suffix, 'M_pivot', mpiv)
-        block.put_double('ia_small_scale_alignment' + suffix, 'beta_sat', beta_sat)
+        block.put_double_array_1d(f'ia_small_scale_alignment{suffix}', 'alignment_1h', gamma_1h * np.ones(nz))
+        block.put_double(f'ia_small_scale_alignment{suffix}', 'M_pivot', mpiv)
+        block.put_double(f'ia_small_scale_alignment{suffix}', 'beta_sat', beta_sat)
 
     #Add instance information to block
-    block.put_string('ia_small_scale_alignment' + suffix, 'instance', satellite_IA_depends_on)
+    block.put_string(f'ia_small_scale_alignment{suffix}', 'instance', satellite_IA_depends_on)
 
     return 0
     

@@ -34,10 +34,12 @@ def get_linear_power_spectrum(block, z_vec):
     plin = interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec)
     return k_vec, plin, growth_factor, scale_factor
     
+    
 def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
     f_interp = interp1d(z_pl, matter_power_lin, axis=0)
     pk_interpolated = f_interp(z_vec)
     return pk_interpolated
+
 
 def test_cosmo(cparam_in):
     # Returns the edge values for DarkQuest emulator if the values are outside the emulator range
@@ -53,10 +55,10 @@ def test_cosmo(cparam_in):
 
     for i, (key, edges) in enumerate(cparam_range.items()):
         if cparam_in[0, i] < edges[0]:
-            print(str(cparam_in[0, i])+' is smaller than '+str(edges[0])+' of key: '+str(key))
+            print(f'{cparam_in[0, i]} is smaller than {edges[0]} of key: {key}')
             exit()
         if cparam_in[0, i] > edges[1]:
-            print(str(cparam_in[0, i])+' is larger than '+str(edges[0])+' of key: '+str(key))
+            print(f'{cparam_in[0, i]} is larger than {edges[0]} of key: {key}')
             exit()
 
 
@@ -79,8 +81,12 @@ def setup(options):
     config['M_low'] = options[option_section, 'log_mass_min']
     config['len_Mvec'] = options[option_section, 'nmass']
     config['M_vec'] = np.logspace(config['M_low'], config['M_up'], config['len_Mvec'])
+    lower_limit = 10.0**12.0
+    upper_limit = 10.0**14.0
+    config['M_vec'][config['M_vec'] < lower_limit] = lower_limit
+    config['M_vec'][config['M_vec'] > upper_limit] = upper_limit
 
-    config['k_vec'] = np.logspace(np.log10(1e-2), np.log10(1.0), num=1000)
+    config['k_vec'] = np.logspace(np.log10(1e-3), np.log10(100.0), num=1000)
     config['len_kvec'] = len(config['k_vec'])
 
     bnl = options.get_bool(option_section, 'bnl', default=False)
@@ -109,8 +115,8 @@ def get_cosmopower_inputs(block, z_vec, len_zvec, len_Mvec, M_vec):
         for j in range(len_Mvec):
             for k in range(len_Mvec):
                 z_list.append(z_vec[i])
-                log10M1_list.append(M_vec[j])
-                log10M2_list.append(M_vec[k])
+                log10M1_list.append(np.log10(M_vec[j]))
+                log10M2_list.append(np.log10(M_vec[k]))
     # AD: Just thinking out loud, is this creating a set of all combinations?
     # This must be easier to do with itertools...
 
@@ -124,15 +130,15 @@ def get_cosmopower_inputs(block, z_vec, len_zvec, len_Mvec, M_vec):
     test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
 
     params_bnl = {'obh2':ombh2*np.ones_like(z_list),
-          'omch2': omch2*np.ones_like(z_list),
-          'omega_lambda': omega_lambda*np.ones_like(z_list),
-          'logAs': np.log(10**10*A_s)*np.ones_like(z_list),
-          'ns': n_s*np.ones_like(z_list),
-          'w': w*np.ones_like(z_list),
-          'z': z_list,
-          'logM1': log10M1_list,
-          'logM2': log10M2_list
-           }
+                  'omch2': omch2*np.ones_like(z_list),
+                  'omega_lambda': omega_lambda*np.ones_like(z_list),
+                  'logAs': np.log(10**10*A_s)*np.ones_like(z_list),
+                  'ns': n_s*np.ones_like(z_list),
+                  'w': w*np.ones_like(z_list),
+                  'z': z_list,
+                  'logM1': log10M1_list,
+                  'logM2': log10M2_list
+                  }
 
     return params_bnl
 
@@ -147,6 +153,30 @@ def execute(block, config):
         params_bnl = get_cosmopower_inputs(block, config['z_vec'], config['len_zvec'], config['len_Mvec'], config['M_vec'])
         bnl_functions = bnl_emulator.predictions_np(params_bnl).reshape(config['len_zvec'], config['len_Mvec'], config['len_Mvec'], config['len_kvec'])
         print('bnl read from emulator, creating 3D array')
+        """
+        # Test to see what exactly was emulated
+        import matplotlib.pyplot as pl
+        params_all = np.load('/net/home/fohlen13/dvornik/bnl_training/outputs/train_betanl_parameter.npz')
+        center_params = {'obh2': [np.mean(params_all['obh2'])],
+                          'omch2': [np.mean(params_all['omch2'])],
+                          'omega_lambda': [np.mean(params_all['omega_lambda'])],
+                          'logAs': [np.mean(params_all['logAs'])],
+                          'ns': [np.mean(params_all['ns'])],
+                          'w': [np.mean(params_all['w'])],
+                          'z': [np.mean(params_all['z'])],
+                          'logM1': [np.mean(params_all['logM1'])],
+                          'logM2': [np.mean(params_all['logM2'])],
+                            }
+        print(center_params)
+        beta_center = np.load('/net/home/fohlen13/dvornik/bnl_training/bnl_vectors/bnl_center_vector_'+str(0)+'.npz')#np.load('/net/home/fohlen13/dvornik/bnl_training/outputs/beta_nl_func_center.npz')['beta_func'][0]
+        beta_center_emu = bnl_emulator.predictions_np(center_params)
+        pl.plot(config['k_vec'], beta_center['beta_func'][0])
+        pl.plot(config['k_vec'], beta_center_emu[0])
+        pl.xscale('log')
+        pl.show()
+        quit()
+        #"""
+        
         if use_specific_k_modes:
         
             # load linear power spectrum
@@ -154,18 +184,12 @@ def execute(block, config):
             k_new = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=config['nk'])
             
             bnl_functions_new = np.zeros(shape=(config['len_zvec'], config['len_Mvec'], config['len_Mvec'], len(k_new)))
+            std_bnl = np.std(bnl_functions, axis=(0,1,2))
+            mean_bnl = np.mean(bnl_functions, axis=(0,1,2))
             
-            for i in range(config['len_zvec']):
-                for j in range(config['len_Mvec']):
-                    for k in range(config['len_Mvec']):
-                        #bnl_spline = CubicSpline(config['k_vec'], bnl_functions[i][j][k])
-                        idx = np.where(np.abs(bnl_functions[i][j][k]) < 10.0) # We need to check for extreme outliers again! Probably need re-training
-                        try:
-                            bnl_spline = interp1d(config['k_vec'][idx], bnl_functions[i][j][k][idx], fill_value=0.0, bounds_error=False)
-                            bnl_functions_new[i][j][k] = bnl_spline(k_new)
-                        except:
-                            bnl_functions_new[i][j][k] = np.zeros_like(k_new)
-            
+            # Can call axis in the interp1d function to avoid loops!
+            bnl_spline = interp1d(np.log10(config['k_vec']), bnl_functions, axis=-1, fill_value=0.0, bounds_error=False)
+            bnl_functions_new = bnl_spline(np.log10(k_new))
             beta_cosmopower = bnl_functions_new
         else:
             beta_cosmopower = bnl_functions

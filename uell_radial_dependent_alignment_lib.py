@@ -116,9 +116,12 @@ def legendre_coefficients(l,m):
     # note that scipy.special.legendre returns an array with the coefficients of the legendre polynomials
     return legendre(l)[m]
 
-# Computes the angular part of the satellite intrinsic shear field,
-# Eq. (C8) in `Fortuna et al. 2021 <https://arxiv.org/abs/2003.02700>`
+
 def calculate_f_ell(theta_k, phi_k, l, gamma_b):
+    """
+    Computes the angular part of the satellite intrinsic shear field,
+    Eq. (C8) in `Fortuna et al. 2021 <https://arxiv.org/abs/2003.02700>`
+    """
 
     phase = np.cos(2.*phi_k) + 1j*np.sin(2.*phi_k)
 
@@ -243,9 +246,12 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
 
 #------------------------------ uell -----------------------------------#
 
-# create a 4dim array containing u_ell as a function of l,z,m and k
-# uell[l,z,m,k]
 def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass, ell_max, h_transf):
+    """
+    create a 4dim array containing u_ell as a function of l,z,m and k
+    uell[l,z,m,k]
+    """
+    
     # AD: This is just adding another loop in ell around the above function. Might want to combine...
     uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile_notrunc, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il, h_transf[i]) for i,il in enumerate(range(0,ell_max+1,2))]
     return np.array(uell_ia)
