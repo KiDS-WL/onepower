@@ -96,7 +96,7 @@ def get_growth_factor(block, z_vec):
     scale_factor  = interpolate_in_z(scale_factor_zlin, z_pl, z_vec)
     return k_vec, growth_factor, scale_factor
 
-# TODO: check if we need this
+
 def load_growth_factor(block, z_vec):
     z_gwf = block['growth_parameters', 'z']
     D_gwf = block['growth_parameters', 'd_z']
@@ -148,58 +148,66 @@ def interpolate2d_HM(input_grid, x_in, y_in, x_out, y_out, method = 'linear'):
     interpolated = f_interp((xx.T, yy.T)).T
     return interpolated
 
-# TODO: check what this does
+
+# TODO: check what this does, keep this comment for later
+# TODO: add a check for z_vec and k_vec 
 # Need to go through the alignment module before fixing this
 def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
+    """
+    Loads and interpolates the wkm profiles needed for calculating the IA power spectra
+    """
+    
     # here I am assuming that the redshifts used in wkm_module and the pk_module match!
     wkm = np.empty([z_vec.size, mass.size, k_vec.size])
+    
     for jz in range(0,z_vec.size):
-        wkm_tmp = block['wkm','w_km_%d'%jz + suffix]
-        k_wkm   = block['wkm','k_h_%d'%jz+suffix]
-        mass_wkm = block['wkm','mass_%d'%jz+suffix]
-        #w_interp2d = interp2d(k_wkm, mass_wkm, wkm_tmp, bounds_error=False)#, fill_value=0)
-        w_interp2d = RegularGridInterpolator((k_wkm.T, mass_wkm.T), wkm_tmp.T, bounds_error=False, fill_value=None)#, fill_value=0)
-        #wkm_interpolated = w_interp2d((k_vec, mass))
+        wkm_tmp  = block['wkm',f'w_km_{jz}{suffix}']
+        k_wkm    = block['wkm',f'k_h_{jz}{suffix}']
+        mass_wkm = block['wkm',f'mass_{jz}{suffix}']
+        
+        w_interp2d = RegularGridInterpolator((k_wkm.T, mass_wkm.T), wkm_tmp.T, bounds_error=False, fill_value=None)
         kk, mm = np.meshgrid(k_vec, mass, sparse=True)
         wkm_interpolated = w_interp2d((kk.T, mm.T)).T
-        #print 'wkm_interp.shape = ', wkm_interpolated.shape
         wkm[jz] = wkm_interpolated
-    #print( 'wkm.shape = ', wkm.shape)
+    
     return wkm
 
-# load the hod related values
+
+
 # TODO: check that this takes the correct values from the HOD section
 def load_hods(block, section_name, suffix, z_vec, mass):
-    m_hod    = block[section_name, 'mass'+suffix]
-    z_hod    = block[section_name, 'z'+suffix]
-    Ncen_hod = block[section_name, 'n_cen'+suffix]
-    Nsat_hod = block[section_name, 'n_sat'+suffix]
-    numdencen_hod = block[section_name, 'number_density_cen'+suffix]
-    numdensat_hod = block[section_name, 'number_density_sat'+suffix]
-    f_c_hod = block[section_name, 'central_fraction'+suffix]
-    f_s_hod = block[section_name, 'satellite_fraction'+suffix]
-    mass_avg_hod = block[section_name, 'average_halo_mass'+suffix]
-    f_star = block[section_name, 'f_star'+suffix]
+    """
+    Loads and interpolates the hod quantities to match the
+    calculation of power spectra
+    """
     
-    #interp_Ncen = interp2d(m_hod, z_hod, Ncen_hod)
-    #interp_Nsat = interp2d(m_hod, z_hod, Nsat_hod)
+    m_hod    = block[section_name, f'mass{suffix}']
+    z_hod    = block[section_name, f'z{suffix}']
+    Ncen_hod = block[section_name, f'n_cen{suffix}']
+    Nsat_hod = block[section_name, f'n_sat{suffix}']
+    numdencen_hod = block[section_name, f'number_density_cen{suffix}']
+    numdensat_hod = block[section_name, f'number_density_sat{suffix}']
+    f_c_hod = block[section_name, f'central_fraction{suffix}']
+    f_s_hod = block[section_name, f'satellite_fraction{suffix}']
+    mass_avg_hod = block[section_name, f'average_halo_mass{suffix}']
+    f_star = block[section_name, f'f_star{suffix}']
+    
     interp_Ncen  = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=0.0)
     interp_Nsat  = RegularGridInterpolator((m_hod.T, z_hod.T), Nsat_hod.T, bounds_error=False, fill_value=0.0)
     interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=0.0)
+    
     # AD: Is extrapolation warranted here? Maybe make whole calculation on same grid/spacing/thingy!?
     interp_numdencen = interp1d(z_hod, numdencen_hod, fill_value='extrapolate', bounds_error=False)
     interp_numdensat = interp1d(z_hod, numdensat_hod, fill_value='extrapolate', bounds_error=False)
     interp_f_c = interp1d(z_hod, f_c_hod, fill_value=0.0, bounds_error=False)
     interp_f_s = interp1d(z_hod, f_s_hod, fill_value=0.0, bounds_error=False)
     interp_mass_avg = interp1d(z_hod, mass_avg_hod, fill_value=0.0, bounds_error=False)
-    #Ncen = interp_Ncen(mass, z_vec)
-    #Nsat = interp_Nsat(mass, z_vec)
+    
     mm, zz = np.meshgrid(mass, z_vec, sparse=True)
     Ncen  = interp_Ncen((mm.T, zz.T)).T
     Nsat  = interp_Nsat((mm.T, zz.T)).T
     fstar = interp_fstar((mm.T, zz.T)).T
-    #print ('z_hod', z_hod)
-    #print ('z_vec', z_vec)
+    
     numdencen = interp_numdencen(z_vec)
     numdensat = interp_numdensat(z_vec)
     f_c = interp_f_c(z_vec)
@@ -630,7 +638,6 @@ def Ig_align_term(mass, profile_align, b_m, dn_dlnm, mean_density0, A_term):
 # uses eqs A.7 to A.10 fo Mead and Verde 2021, 2011.08858 to calculate the integral over beta_nl
 def compute_I_NL_term(k, z, W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_mean, B_NL_k_z):
 
-# TODO: what does this do?
     if len(W_1.shape) < 3:
         W_1 = W_1[:,np.newaxis,:]
     if len(W_2.shape) < 3:
@@ -640,7 +647,7 @@ def compute_I_NL_term(k, z, W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_
     W_2 = np.transpose(W_2, [0,2,1])
     
     # Takes the integral over mass_1
-    # TODO: check that these integrals do the correct thing
+    # TODO: check that these integrals do the correct thing, keep this TODO
     integrand_M1 = B_NL_k_z * W_1[:,:,np.newaxis,:] * b_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] / mass_1[np.newaxis,:,np.newaxis,np.newaxis]
     integral_M1 = simps(integrand_M1, mass_1, axis=1)
 
@@ -648,7 +655,7 @@ def compute_I_NL_term(k, z, W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_
     I_22 = simps(integrand_M2, mass_2, axis=1)
     
 
-    # TODO: Compare this with pyhalomodel
+    # TODO: Compare this with pyhalomodel, keep this TODO
     I_11 = B_NL_k_z[:,0,0,:] * ((A**2.0) * W_1[:,0,:] * W_2[:,0,:] * (rho_mean[:,np.newaxis]**2.0)) / (mass_1[0] * mass_2[0])
     
     integrand_12 = B_NL_k_z[:,:,0,:] * W_2[:,:,:] * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
