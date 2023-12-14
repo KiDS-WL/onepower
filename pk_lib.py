@@ -160,6 +160,9 @@ def interpolate2d_HM(input_grid, x_in, y_in, x_out, y_out, method = 'linear'):
     return interpolated
 
 
+
+# TODO: check what this does, keep this comment for later
+# TODO: add a check for z_vec and k_vec 
 # Need to go through the alignment module before fixing this
 def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
     """
@@ -170,18 +173,21 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
     wkm = np.empty([z_vec.size, mass.size, k_vec.size])
     
     for jz in range(0,z_vec.size):
-        wkm_tmp = block[f'wkm','w_km_{jz}{suffix}']
-        k_wkm   = block[f'wkm','k_h_{jz}{suffix}']
-        mass_wkm = block[f'wkm','mass_{jz}{suffix}']
+
+        wkm_tmp  = block['wkm',f'w_km_{jz}{suffix}']
+        k_wkm    = block['wkm',f'k_h_{jz}{suffix}']
+        mass_wkm = block['wkm',f'mass_{jz}{suffix}']
         
-        w_interp2d = RegularGridInterpolator((k_wkm.T, mass_wkm.T), wkm_tmp.T, bounds_error=False, fill_value=None)#, fill_value=0)
+        w_interp2d = RegularGridInterpolator((k_wkm.T, mass_wkm.T), wkm_tmp.T, bounds_error=False, fill_value=None)
+        
         kk, mm = np.meshgrid(k_vec, mass, sparse=True)
         wkm_interpolated = w_interp2d((kk.T, mm.T)).T
         wkm[jz] = wkm_interpolated
     
     return wkm
 
-# load the hod related values
+
+
 # TODO: check that this takes the correct values from the HOD section
 def load_hods(block, section_name, suffix, z_vec, mass):
     """
@@ -717,13 +723,16 @@ def compute_I_NL_term(k, z, W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_
     W_1 = np.transpose(W_1, [0,2,1])
     W_2 = np.transpose(W_2, [0,2,1])
     
-    
+
+    # Takes the integral over mass_1
+    # TODO: check that these integrals do the correct thing, keep this TODO
     integrand_M1 = B_NL_k_z * W_1[:,:,np.newaxis,:] * b_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] / mass_1[np.newaxis,:,np.newaxis,np.newaxis]
     integral_M1 = simps(integrand_M1, mass_1, axis=1)
 
     integrand_M2 = integral_M1 * W_2 * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
     I_22 = simps(integrand_M2, mass_2, axis=1)
     
+    # TODO: Compare this with pyhalomodel, keep this TODO
 
     I_11 = B_NL_k_z[:,0,0,:] * ((A**2.0) * W_1[:,0,:] * W_2[:,0,:] * (rho_mean[:,np.newaxis]**2.0)) / (mass_1[0] * mass_2[0])
     
