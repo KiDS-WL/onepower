@@ -15,6 +15,28 @@ def concentration_halomod(cosmo, mass, z, model, mdef, overdensity, mf, delta_c)
     c = cm.cm(mass, z)
     return c
     
+
+def get_halo_collapse_redshifts(M, z, dc, g, cosmo, mf):
+    """
+    Calculate halo collapse redshifts according to the Bullock et al. (2001) prescription
+    """
+    from scipy.optimize import root_scalar
+    gamma = 0.01
+    a = cosmo.scale_factor(z)
+    zf = np.zeros_like(M)
+    for iM, _M in enumerate(M):
+        Mc = gamma*_M
+        Rc = mf.filter.mass_to_radius(Mc, mf.mean_density0)
+        sigma = mf.normalised_filter.sigma(Rc)
+        fac = g(a)*dc/sigma
+        if fac >= g(a):
+            af = a # These haloes formed 'in the future'
+        else:
+            af_root = lambda af: g(af)-fac
+            af = root_scalar(af_root, bracket=(1e-3, 1.)).root
+        zf[iM] = -1.0+1.0/af
+    return zf
+    
     
 def acceleration_parameter(cosmo, z):
     return -0.5*(cosmo.Om(z) + (1.0 + 3.0*cosmo.w(z))*cosmo.Ode(z))
@@ -69,8 +91,12 @@ def get_growth_interpolator(cosmo):
     Om = cosmo.Om0
     Ode = cosmo.Ode0
     Ok = cosmo.Ok0
-    w0 = cosmo.w0
-    wa = cosmo.wa
+    try:
+        w0 = cosmo.w0
+        wa = cosmo.wa
+    except:
+        w0 = -1.0
+        wa = 0.0
     na = 129 # Number of scale factors used to construct interpolator
     a = np.linspace(a_init, 1., na)
     f = 1.-_Omega_m(a_init, Om, Ode, Ok, w0, wa) # Early mass density

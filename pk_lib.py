@@ -144,10 +144,15 @@ def get_halo_functions(block, mass, z_vec):
     halobias_hbf = block['halobias', 'b_hb']
     
     # interpolate all the quantities that enter in the integrals
-    dn_dlnm = interpolate2d_HM(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec)
-    b_dm    = interpolate2d_HM(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
+    #dn_dlnm = interpolate2d_HM(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec)
+    #b_dm    = interpolate2d_HM(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
     
-    return dn_dlnm, b_dm
+    if((mass_hmf!=mass).any()):
+        raise Exception('The mass values are different to the input mass values.')
+    if((z_hmf!=z_vec).any()):
+        raise Exception('The redshift values are different to the input redshift values.')
+    
+    return dndlnmh_hmf, halobias_hbf#dn_dlnm, b_dm
 
 
 # TODO: Check if this interpolation works well
@@ -600,14 +605,14 @@ def fg_fit(mass, fstar, z, omega_b, omega_m):
 # -------------------------------------------------------------------------------------------------------------------- #
 
 
-def fs(log10T_AGN,z):
+def fs(log10T_AGN, z):
     """
     Stellar fraction from table 4 and eq 26 of 2009.01858 (Mead et al. 2021)
     f*(z) = f*_0 10^(z f*_z)
     """
     
     theta_agn = log10T_AGN - 7.8
-    fstar_0 = (2.01 - 0.30*theta_agn)*0.01
+    fstar_0 = (2.01 - 0.3*theta_agn)*0.01
     fstar_z = 0.409 + 0.0224*theta_agn
     fstar = fstar_0 * np.power(10.0, z*fstar_z)
     
@@ -925,8 +930,7 @@ def compute_p_mm_mead(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_te
     pk_mm_tot = transition_smoothing(neff, k_vec, pk_mm_1h, pk_mm_2h)
     
     return pk_mm_1h, pk_mm_2h, pk_mm_tot
-
-
+   
 
 # galaxy-galaxy power spectrum
 # TODO: combine this with the next function, but add an option for beta_nl

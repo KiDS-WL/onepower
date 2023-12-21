@@ -7,7 +7,7 @@ from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 import astropy.units as u
 from halomod.halo_model import DMHaloModel
 from halomod import bias as bias_func
-from halomod.concentration import make_colossus_cm, CMRelation
+from halomod.concentration import make_colossus_cm, CMRelation, Bullock01
 from halomod import concentration as conc_func
 from halomod.profiles import Profile, NFWInf
 import halomod.profiles as profile_classes
@@ -148,10 +148,10 @@ def setup(options):
     # gets updated as sampler runs with camb provided cosmology parameters.
     # setting some values to generate instance
     initialise_cosmo=Flatw0waCDM(
-        H0=100., Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
+        H0=100.0, Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
 
     # Growth Factor from hmf
-    gf._GrowthFactor.supported_cosmos = (FlatLambdaCDM, Flatw0waCDM, LambdaCDM)
+    #gf._GrowthFactor.supported_cosmos = (FlatLambdaCDM, Flatw0waCDM, LambdaCDM)
 
     # Halo Mass function from hmf
     # This is the slow part it take 1.58/1.67
@@ -159,14 +159,15 @@ def setup(options):
                         Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
                         hmf_model=options[option_section, 'hmf_model'],
                         mdef_model=mdef_model, mdef_params=mdef_params, 
-                        transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False, 
-                        lnk_min=-18.0, lnk_max=18.0,
+                        transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False,
+                        growth_model='CambGrowth',
+                        lnk_min=-18.0, lnk_max=18.0, dlnk=0.001,
                         bias_model=bias_model,
                         halo_profile_model='NFW',
                         halo_concentration_model=make_colossus_cm(cm_model))
-    #mf.cmz_relation
+    
     mf.update(halo_profile_model=get_bloated_profile(getattr(profile_classes, 'NFW')), halo_concentration_model=get_modified_concentration(make_colossus_cm(cm_model)))
-    #mf.cmz_relation # Need to initialise the classes
+    mf.cmz_relation
     # Array of halo masses 
     mass = mf.m
 
@@ -181,7 +182,7 @@ def setup(options):
     #elif use_mead == 'fit_feedback':
     #    mead_correction = 'fit'
     else:
-        mead_correction = None
+        mead_correction = True#None
 
     return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, nz_conc, mass, mf, cm_model, mdef_model, overdensity, delta_c, bias_model, mead_correction, nk, profile, profile_value_name
 
@@ -200,7 +201,7 @@ def execute(block, config):
     # Update the cosmological parameters
     this_cosmo_run=Flatw0waCDM(
         H0=block[cosmo_params, 'hubble'], Ob0=block[cosmo_params, 'omega_b'],
-        Om0=block[cosmo_params, 'omega_m'], m_nu=block[cosmo_params, 'mnu'], Tcmb0=tcmb,
+        Om0=block[cosmo_params, 'omega_m'], m_nu=[block[cosmo_params, 'mnu'], 0, 0], Tcmb0=tcmb,
     	w0=block[cosmo_params, 'w'], wa=block[cosmo_params, 'wa'] )
 
     #LCDMcosmo = FlatLambdaCDM(
@@ -312,29 +313,63 @@ def execute(block, config):
         sigma8_z[jz] = mf.normalised_filter.sigma(8.0)
         
         if mead_correction == 'nofeedback':
-            norm_cen  = 1.0 #(5.196/3.85)#0.85*1.299
+            norm_cen  = 5.196#/3.85#1.0#(5.196/3.85) #0.85*1.299
             eta_cen   = 0.1281 * sigma8_z[jz]**(-0.3644)
+            
+            zf = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, mf)
+            conc_cen[jz,:] = norm_cen * (1.0+zf)/(1.0+z_iter)
+            conc_sat[jz,:] = norm_sat * (1.0+zf)/(1.0+z_iter)
+            
+            mf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run})
+            nfw_cen = mf.halo_profile.u(k, mf.m, c=conc_cen[jz,:], norm='m', coord='k')
+            u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
+            r_s_cen[jz,:] = mf.halo_profile._rs_from_m(mf.m)
+            rvir_cen[jz,:] = mf.halo_profile.halo_mass_to_radius(mf.m)
+        
+            mf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run})
+            nfw_sat = mf.halo_profile.u(k, mf.m, c=conc_sat[jz,:], norm='m', coord='k')
+            u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
+            r_s_sat[jz,:] = mf.halo_profile._rs_from_m(mf.m)
+            rvir_sat[jz,:] = mf.halo_profile.halo_mass_to_radius(mf.m)
+            
+            
         elif mead_correction == 'feedback':
             theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
-            norm_cen  = ((3.44 - 0.496*theta_agn) * np.power(10.0, z_iter*(-0.0671 - 0.0371*theta_agn))) / 4.0
+            norm_cen  = ((3.44 - 0.496*theta_agn) * np.power(10.0, z_iter*(-0.0671 - 0.0371*theta_agn)))  / 0.75
             eta_cen   = 0.1281 * sigma8_z[jz]**(-0.3644)
+            
+            zf = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, mf)
+            conc_cen[jz,:] = norm_cen * (1.0+zf)/(1.0+z_iter)
+            conc_sat[jz,:] = norm_sat * (1.0+zf)/(1.0+z_iter)
+            
+            mf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
+            nfw_cen = mf.halo_profile.u(k, mf.m, c=conc_cen[jz,:], norm='m', coord='k')
+            u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
+            r_s_cen[jz,:] = mf.halo_profile._rs_from_m(mf.m)
+            rvir_cen[jz,:] = mf.halo_profile.halo_mass_to_radius(mf.m)
         
-        mf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz])}, halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
-        conc_cen[jz,:] = mf.cmz_relation
-        nfw_cen = mf.halo_profile.u(k, mf.m, norm='m', coord='k')
-        u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
-        r_s_cen[jz,:] = mf.halo_profile._rs_from_m(mf.m)
-        rvir_cen[jz,:] = mf.halo_profile.halo_mass_to_radius(mf.m)
+            mf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, halo_concentration_params={'norm':norm_sat, 'sigma8':sigma_8, 'ns':ns})
+            nfw_sat = mf.halo_profile.u(k, mf.m, c=conc_sat[jz,:], norm='m', coord='k')
+            u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
+            r_s_sat[jz,:] = mf.halo_profile._rs_from_m(mf.m)
+            rvir_sat[jz,:] = mf.halo_profile.halo_mass_to_radius(mf.m)
         
-        mf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz])}, halo_concentration_params={'norm':norm_sat, 'sigma8':sigma_8, 'ns':ns})
-        conc_sat[jz,:] = mf.cmz_relation
-        nfw_sat = mf.halo_profile.u(k, mf.m, norm='m', coord='k')
-        u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
-        r_s_sat[jz,:] = mf.halo_profile._rs_from_m(mf.m)
-        rvir_sat[jz,:] = mf.halo_profile.halo_mass_to_radius(mf.m)
+        else:
+            mf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
+            conc_cen[jz,:] = mf.cmz_relation
+            nfw_cen = mf.halo_profile.u(k, mf.m, c=conc_cen[jz,:], norm='m', coord='k')
+            u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
+            r_s_cen[jz,:] = mf.halo_profile._rs_from_m(mf.m)
+            rvir_cen[jz,:] = mf.halo_profile.halo_mass_to_radius(mf.m)
+        
+            mf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, halo_concentration_params={'norm':norm_sat, 'sigma8':sigma_8, 'ns':ns})
+            conc_sat[jz,:] = mf.cmz_relation
+            nfw_sat = mf.halo_profile.u(k, mf.m, c=conc_sat[jz,:], norm='m', coord='k')
+            u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
+            r_s_sat[jz,:] = mf.halo_profile._rs_from_m(mf.m)
+            rvir_sat[jz,:] = mf.halo_profile.halo_mass_to_radius(mf.m)
         
         
-    
     """
     downsample_factor = int(nz/nz_conc)
     if downsample_factor > 0 :
