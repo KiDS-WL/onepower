@@ -335,7 +335,7 @@ def execute(block, config):
             
         elif mead_correction == 'feedback':
             theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
-            norm_cen  = ((3.44 - 0.496*theta_agn) * np.power(10.0, z_iter*(-0.0671 - 0.0371*theta_agn)))  / 0.75
+            norm_cen  = ((3.44 - 0.496*theta_agn) * np.power(10.0, z_iter*(-0.0671 - 0.0371*theta_agn)))  #/ 0.75
             eta_cen   = 0.1281 * sigma8_z[jz]**(-0.3644)
             
             zf = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, mf)

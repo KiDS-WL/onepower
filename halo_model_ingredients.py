@@ -93,7 +93,7 @@ def setup(options):
     initialise_cosmo=Flatw0waCDM(H0=100., Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
 
     # Growth Factor from hmf
-    gf._GrowthFactor.supported_cosmos = (FlatLambdaCDM, Flatw0waCDM, LambdaCDM)
+    #gf._GrowthFactor.supported_cosmos = (FlatLambdaCDM, Flatw0waCDM, LambdaCDM)
 
     # Halo Mass function from hmf
     # This is the slow part it take 1.58/1.67
@@ -101,7 +101,8 @@ def setup(options):
                         Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
                         hmf_model=options[option_section, 'hmf_model'],
                         mdef_model=mdef_model, mdef_params=mdef_params, 
-                        transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False, 
+                        transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False,
+                        growth_model='CambGrowth',
                         lnk_min=-18.0, lnk_max=18.0)
 
     # Array of halo masses 
