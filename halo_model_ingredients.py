@@ -17,6 +17,9 @@ from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
 import time
 
+#This stays or goes depending on whether we want to keep using the CCL version of the halo mass function
+import pyccl as ccl 
+
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
 
@@ -85,6 +88,9 @@ def setup(options):
     # Linear halo bias model
     bias_model = options[option_section, 'bias_model']
     mdef_params = {} if mdef_model in ['SOVirial'] else {'overdensity':overdensity}
+
+    #Choice of code to define Halo Mass Function
+    hmf_code = options[option_section, 'hmf_code']   #Options are CCL, HMF
     
     # most general astropy cosmology initialisation, 
     # gets updated as sampler runs with camb provided cosmology parameters.
@@ -103,8 +109,8 @@ def setup(options):
                         transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False, 
                         lnk_min=-18.0, lnk_max=18.0)
 
-    # Array of halo masses 
-    mass = mf.m
+    # Array of halo masses - equally spaced in logM
+    mass = mf.m   
 
     # Option to set similar corrections to HMcode2020
     # TODO: stellar_fraction_from_observable_feedback option is not used here
@@ -121,12 +127,12 @@ def setup(options):
     # config ={}
     # config['log_mass_min'] =log_mass_min
     # config['log_mass_max'] =log_mass_max
-    return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, nz_conc, mass, mf, cm_model, mdef_model, overdensity, delta_c, bias_model, mead_correction, nk, profile, profile_value_name
+    return log_mass_min, log_mass_max, nmass, z_vec, nz, nz_conc, mass, mf, cm_model, mdef_model, overdensity, delta_c, bias_model, hmf_code, mead_correction, nk, profile, profile_value_name
 
 def execute(block, config):
 
     # Read in the config as returned by setup
-    log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, nz_conc, mass, mf, model_cm, mdef, overdensity, delta_c, bias_model, mead_correction, nk, profile, profile_value_name = config
+    log_mass_min, log_mass_max, nmass, z_vec, nz, nz_conc, mass, mf, model_cm, mdef, overdensity, delta_c, bias_model, hmf_code, mead_correction, nk, profile, profile_value_name = config
 
     # astropy cosmology requires the CMB temprature as an input. 
     # If it exists in the values file read it from there otherwise set to its default value
@@ -143,7 +149,7 @@ def execute(block, config):
 
     ns      = block[cosmo_params, 'n_s']
     sigma_8 = block[cosmo_params, 'sigma_8']
-    
+
     # initialise arrays
     nmass_hmf = len(mass)
     dndlnmh   = np.empty([nz,nmass_hmf])
@@ -205,12 +211,27 @@ def execute(block, config):
             mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]})
             mdef_conc = mdef
     
+        # What code do you want to use to define the halo mass function
+        if hmf_code == 'CCL':
+            #halo_model_ingredients took: 2.503 seconds
+            cosmo_ccl = ccl.Cosmology(Omega_c=block[cosmo_params, 'omega_m']-block[cosmo_params, 'omega_b'], 
+                                      Omega_b=block[cosmo_params, 'omega_b'], h=block[cosmo_params, 'h0'], 
+                                      sigma8=block[cosmo_params, 'sigma_8'], n_s=block[cosmo_params, 'n_s'])
+            # Here we use a mass definition with Delta = 200 times the matter density,
+            hmd_200m = ccl.halos.MassDef200m
+            # the Tinker 2010 halo mass function,   This is dmdlog10M
+            nM = ccl.halos.MassFuncTinker10(mass_def=hmd_200m)
+            h = block[cosmo_params, 'h0']
+            dndlnmh[jz] = nM(cosmo_ccl, mass, 1/(1+z_iter)) /(h**3*np.log(10))
+        else:   
+            # halo_model_ingredients took: 0.613 seconds
+            # The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
+            # dn(m)/ dln m eq1 of 1306.6721
+            dndlnmh[jz]   = mf.dndlnm 
 
         #Peak height, mf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
         nu[jz]        = mf.nu**0.5
-        # The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
-        # dn(m)/ dln m eq1 of 1306.6721
-        dndlnmh[jz]   = mf.dndlnm
+
         # TODO: This is the mean matter density at z=0, change to be just one value.
         mean_density0[jz]  = mf.mean_density0
         # This is the redshift dependant mean density
@@ -292,10 +313,8 @@ def execute(block, config):
     block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)
     block.put_grid('nfw_scale_radius_dm', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
     block.put_grid('nfw_scale_radius_sat', 'z', z_vec, 'm_h', mass, 'rs', r_s_sat)
-    #block.put_grid('virial_radius', 'z', z, 'm_h', mass, 'rvir', rvir)
-    #print(rvir[0].shape)
     block.put_double_array_1d('virial_radius', 'm_h', mass)
-    block.put_double_array_1d('virial_radius', 'rvir_dm', rvir_cen[0])
+    block.put_double_array_1d('virial_radius', 'rvir_dm', rvir_cen[0])  #rvir doesn't change with z, hence no z-dimension
     block.put_double_array_1d('virial_radius', 'rvir_sat', rvir_sat[0])
 
 
