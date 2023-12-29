@@ -72,15 +72,14 @@ on rho_s.
 
 The integral over j_l(kr) is a Hankel transform that we implement using the hankel.py module.
 
-We use the transform j_nu(x) = \sqrt(\pi/(2x)) J_(nu + 0.5) (x)
+We use the relationship between spherical to normal bessel functions: j_nu(kr) = \sqrt(\pi/(2kr)) J_(nu + 0.5) (kr)
 
-with x = kr and thus the integral over dx becomes an integral over dr k, i.e.
+The Hankel transform is the implemented in the hankel.py module
+ht = [HankelTransform(ell+0.5,N,h)  (where N and h are sensitivity settings)
 
-\int dx f(x) J_nu(x) => \int dx/k x^2/k^2 u_l(x/k, M) \sqrt(\pi/(2x)) J_(l+0.5)
+F = ht.transform(f,k) calculates int f(r) J_(ell+0.5)(kr) r dr
 
-thus: f(x) = x^2 u_l(x/k,M) \sqrt(\pi/(2x))
-
-and then we divide everything by k^3.
+f(r) =\sqrt(r \pi / 2k) gamma_1h_amplitude (r/rvir)**b \rho_NFW(r,M) / M_NFW
 
 ---
 
@@ -97,9 +96,6 @@ satellite.
 import numpy as np
 from scipy.integrate import simps
 from scipy.special import legendre, binom
-#from hankel import HankelTransform
-#import hankel
-
 
 #-----------------------------------------------------------------------#
 #                           Angular parts                               #
@@ -139,7 +135,6 @@ def calculate_f_ell(theta_k, phi_k, l, gamma_b):
 
     # If either of the above expressions are met the return statement is executed and the function ends.
     # Otherwise, the function continues to calculate the general case.
-
     gj = np.array([0, 0, np.pi / 2, 0, np.pi / 2, 0, 15 * np.pi / 32,
                        0, 7 * np.pi / 16, 0, 105 * np.pi / 256, 0])
     
@@ -224,10 +219,18 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
     zsize = np.size(z)
     mnfw = mass_nfw(r_s, c)
 
-    #h_transf = HankelTransform(ell+0.5,300,0.01)
-    # We initialise the class in setup as it only depends on predefined ell values
+    #h_transf = HankelTransform(ell+0.5,N_hankel,pi/N_hankel)
+    #Note even though ell is not used in this function, h_transf depends on ell
+    #We initialise the class in setup as it only depends on predefined ell values
     
     uk_l = np.zeros([zsize, msize, k_vec.size])
+
+    #Note: I experimented coding the use of Simpson integration for where the Bessel function is flat 
+    #and then switching to the Hankel transform for where the Bessel function oscillates.
+    #This is more accurate than using the Hankel transform for all k values with lower accuracy 
+    #settings, but it's slower than using the Hankel transform for all k values.
+    #It's also difficult to decide how to define the transition between the two methods.
+    #Given that low-k accuracy is unimportant for IA, I've decided to use the Hankel transform for all k values.
     
     for jz in range(zsize):
         for im in range(msize):
@@ -235,9 +238,6 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
             #this line connects nfw_f to the executable function gamma_r_nfw_profile varying x and keeping the other parameters fixed
             nfw_f = lambda x: gamma_r_nfw_profile(x, r_s[jz,im], rvir[im], gamma_1h_amplitude[jz], gamma_b) * np.sqrt((x*np.pi)/2.0)
             uk_l[jz, im, :] = h_transf.transform(nfw_f, k_vec)[0] / (k_vec**0.5 * mnfw[jz,im])
-            #best_h, result, best_N = hankel.get_h(nfw_f, ell+0.5, k_vec)
-            #print(f'best_h = {best_h}, best_N={best_N}')
-    
     return uk_l
 
 
@@ -246,7 +246,6 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
 # create a 4dim array containing u_ell as a function of l,z,m and k
 # uell[l,z,m,k]
 def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass, ell_max, h_transf):
-    # AD: This is just adding another loop in ell around the above function. Might want to combine...
     uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile_notrunc, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il, h_transf[i]) for i,il in enumerate(range(0,ell_max+1,2))]
     return np.array(uell_ia)
 
@@ -267,9 +266,12 @@ def wkm_f_ell(uell, theta_k, phi_k, ell_max, gamma_b):
         angular = calculate_f_ell(theta_k, phi_k, ell, gamma_b)
         c_ = np.real(angular)
         d_ = np.imag(angular)
-        radial = (1j)**(ell) * (2.*ell + 1.) * uell[int(ell/2),:,:]
+        radial = (1j)**(ell) * (2.*ell + 1.) * uell[int(ell/2),:,:,:]
         a_ = np.real(radial)
         b_ = np.imag(radial)
         sum_ell = sum_ell + (a_*c_ - b_*d_)  + 1j*(a_*d_ + b_*c_)
-                
+
     return np.sqrt(np.real(sum_ell)**2.+np.imag(sum_ell)**2.)
+
+#Note CCL only calculates the real parts of w(k|m)f_ell and doesn't take the absolute value....
+#which means you'll get negative values for wkm in CCL: they take the absolute value later.
