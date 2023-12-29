@@ -32,16 +32,24 @@ def setup(options):
         suffix = '_' + name
     else:
         suffix = ''
-
-    #TODO - is 6 enough?
-    ell_max = 6
-    # WARNING: the function calculate_f_ell is only valid for ell_max <= 11
-    # If you want to increase ell_max, you need to extend the function
-
-    #TODO: what are these numbers in the Hankel transform?    
+  
+    # CCL and Fortuna use ell_max=6.  SB10 uses ell_max = 2.  
+    # Higher/lower increases/decreases accuracy but slows/speeds the code
+    ell_max = options.get_int(option_section, 'ell_max', default=6)
+    #if ell_max > 11 then return a warning and stop
+    if ell_max > 11:
+        raise ValueError("Please reduce ell_max<11 or update ia_radial_interface.py")
+    
     # initialise Hankel transform
-    h_transform = [HankelTransform(ell+0.5,300,0.01) for ell in range(0,ell_max+1,2)]
-    # integration step size and number of r-bins to be reviewed! We might want to have more precise evaluation!
+    #HankelTransform(nu, # The order of the bessel function
+    #                N,  # Number of steps in the integration
+    #                h   # Proxy for "size" of steps in integration)
+    # We've used hankel.get_h to set h, N is then h=pi/N, finding best_h = 0.05, best_N=62
+    #If you want perfect agreement with CCL use: N=50000, h=0.00006 (VERY SLOW!!)
+
+    N_hankel = options.get_int(option_section, 'N_hankel', default=350)
+    h_hankel = np.pi/N_hankel
+    h_transform = [HankelTransform(ell+0.5,N_hankel,h_hankel) for ell in range(0,ell_max+1,2)]
 
     return k_vec, nmass, suffix, h_transform, ell_max
 
@@ -56,8 +64,8 @@ def execute(block, config):
     gamma_1h_slope = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_radial_slope']
     # This already contains the luminosity dependence if there
     gamma_1h_amplitude = block['ia_small_scale_alignment' + suffix, 'alignment_1h']
-    # Also load the redshift dimension #TODO: can this be optimised?
-    z = block['concentration_dm', 'z'] #This dimension/resolution here has been set by the nz in hmf_and_hbf.py
+    # Also load the redshift dimension 
+    z = block['concentration_dm', 'z'] #This dimension/resolution here has been set by the nz in halo_model_ingredients.py
     nz=np.size(z)
 
     # Now I want to load the high resolution halo parameters calculated with the halo model module
@@ -66,22 +74,32 @@ def execute(block, config):
     # perfectly match the user input value - just as close as possible
 
     mass_halo = block['concentration_dm', 'm_h']    
-    nmass_halo = np.size(mass_halo) #The dimension/resolution here has been set by the nmass in hmf_and_hbf.py
-    downsample_factor = int(nmass_halo/nmass_setup)  
-    mass= mass_halo[::downsample_factor]      
-
+    nmass_halo = np.size(mass_halo) #The dimension/resolution here has been set by the nmass in halo_model_ingredients.py
     c_halo = block['concentration_dm', 'c']  #This has dimension nz,nmass_halo
-    c = c_halo[:,::downsample_factor]
-
     r_s_halo = block['nfw_scale_radius_dm', 'rs'] #This has dimension nz,nmass_halo
-    r_s = r_s_halo[:,::downsample_factor]
+    rvir_halo = block['virial_radius', 'rvir_dm'] #This has dimension nmass_halo : rvir doesn't change with z, hence no z-dimension
 
-    rvir_halo = block['virial_radius', 'rvir_dm'] #This has dimension nmass_halo  #TODO:  why no redshift dimension?
-    rvir = rvir_halo[::downsample_factor]
+    if nmass_halo < nmass_setup:
+        raise ValueError("The halo mass resolution is too low for the radial IA calculation. Please increase nmass when you run halo_model_ingredients.py")
+    elif nmass_halo == nmass_setup:
+        mass = mass_halo
+        c = c_halo
+        r_s = r_s_halo
+        rvir = rvir_halo
+    else:
+        downsample_factor = int(nmass_halo/nmass_setup)
+        mass= mass_halo[::downsample_factor]
+        c = c_halo[:,::downsample_factor]
+        r_s = r_s_halo[:,::downsample_factor]
+        rvir = rvir_halo[::downsample_factor]
+        # and we need to make sure that the highest mass is included to avoid extrapolation issues
+        if mass[-1] != mass_halo[-1]:
+            mass = np.append(mass, mass_halo[-1])
+            c = np.concatenate((c,np.atleast_2d(c_halo[:,-1]).T),axis=1)
+            r_s = np.concatenate((r_s, np.atleast_2d(r_s_halo[:,-1]).T), axis=1) #Make sure we include the highest scale radius in there
+            rvir = np.append(rvir, rvir_halo[-1]) #Make sure we have the highest virial radius in there
 
     k=k_setup
-
-    #ell_max = 6
     # uell[l,z,m,k]
     # AD: THIS FUNCTION IS THE SLOWEST PART!
     uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max, h_transform)
