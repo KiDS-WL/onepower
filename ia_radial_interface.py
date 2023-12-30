@@ -29,7 +29,7 @@ def setup(options):
     # Are we calculating the alignment for say red or blue galaxies?
     name = options.get_string(option_section, 'output_suffix', default='').lower()
     if name != '':
-        suffix = '_' + name
+        suffix = f'_{name}'
     else:
         suffix = ''
   
@@ -61,9 +61,9 @@ def execute(block, config):
     k_setup, nmass_setup, suffix, h_transform, ell_max = config
 
     # Load slope of the power law that describes the satellite alignment
-    gamma_1h_slope = block['intrinsic_alignment_parameters' + suffix, 'gamma_1h_radial_slope']
+    gamma_1h_slope = block[f'intrinsic_alignment_parameters{suffix}', 'gamma_1h_radial_slope']
     # This already contains the luminosity dependence if there
-    gamma_1h_amplitude = block['ia_small_scale_alignment' + suffix, 'alignment_1h']
+    gamma_1h_amplitude = block[f'ia_small_scale_alignment{suffix}', 'alignment_1h']
     # Also load the redshift dimension 
     z = block['concentration_dm', 'z'] #This dimension/resolution here has been set by the nz in halo_model_ingredients.py
     nz=np.size(z)
@@ -108,8 +108,8 @@ def execute(block, config):
     wkm = wkm_f_ell(uell, theta_k, phi_k, ell_max, gamma_1h_slope)  #This has low-res dimension [nz,nmass,nk]
 
     for jz in range(0,nz):
-        block.put_grid( 'wkm', 'mass_%d'%jz+suffix, mass, 'k_h_%d'%jz+suffix, k, 'w_km_%d'%jz+suffix, wkm[jz,:,:])
-    block.put_double_array_1d('wkm', 'z'+suffix, z)
+        block.put_grid( 'wkm', f'mass_{jz}{suffix}', mass, f'k_h_{jz}{suffix}', k, f'w_km_{jz}{suffix}', wkm[jz,:,:])
+    block.put_double_array_1d('wkm', f'z{suffix}', z)
 
     return 0
 

@@ -1,10 +1,14 @@
 import numpy as np
+from scipy.interpolate import interp1d
+from scipy.integrate import simps, solve_ivp, quad
 
 # TODO: unused
 def concentration_halomod(cosmo, mass, z, model, mdef, overdensity, mf, delta_c):
-    # calculates concentration given halo mass, using the halomod model provided in config
-    # furthermore it converts to halomod instance to be used with the halomodel, consistenly with halo mass function
-    # and halo bias function
+    """
+    calculates concentration given halo mass, using the halomod model provided in config
+    furthermore it converts to halomod instance to be used with the halomodel, consistenly with halo mass function
+    and halo bias function
+    """
     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
     cm = getattr(conc_func, model)(cosmo=mf, filter0=mf.filter, delta_c=delta_c, mdef=mdef)
     
@@ -12,24 +16,9 @@ def concentration_halomod(cosmo, mass, z, model, mdef, overdensity, mf, delta_c)
     return c
     
     
-# TODO: unused
-def tinker_bias(nu, Delta=200., delta_c=1.686):
-    nu = nu**0.5
-    # Table 2, Tinker+2010
-    y = np.log10(Delta)
-    expvar = np.exp(-(4./y)**4.)
-    A = 1.+0.24*y*expvar
-    a = 0.44*y-0.88
-    B = 0.183
-    b = 1.5
-    C = 0.019+0.107*y+0.19*expvar
-    c = 2.4
-    # equation 6
-    bias = 1.-A*(nu**a)/(nu**a+delta_c**a) + B*nu**b + C*nu**c
-    return bias
-    
 def acceleration_parameter(cosmo, z):
     return -0.5*(cosmo.Om(z) + (1.0 + 3.0*cosmo.w(z))*cosmo.Ode(z))
+    
     
 def get_growth_interpolator(cosmo):
     """
@@ -102,6 +91,7 @@ def dc_Mead(a, Om, f_nu, g, G):
     # delta_c = ~1.686' EdS linear collapse threshold
     dc0 = (3.0/20.0)*(12.0*np.pi)**(2.0/3.0) 
     return dc_Mead * dc0 * (1.0 - 0.041*f_nu)
+
 
 def Dv_Mead(a, Om, f_nu, g, G):
     """
