@@ -159,7 +159,28 @@ def interpolate2d_HM(input_grid, x_in, y_in, x_out, y_out, method = 'linear'):
     
     return interpolated
 
+def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
+    """
+    Loads and interpolates the wkm profiles needed for calculating the IA power spectra
+    """
+    # here I am assuming that the redshifts used in wkm_module and the pk_module match!
+    wkm = np.empty([z_vec.size, mass.size, k_vec.size])
 
+    for jz in range(0,z_vec.size):
+
+        wkm_tmp  = block['wkm',f'w_km_{jz}{suffix}']
+        k_wkm    = block['wkm',f'k_h_{jz}{suffix}']
+        mass_wkm = block['wkm',f'mass_{jz}{suffix}']
+
+        #CH: I've tested different approaches here and find interpolating log(w(k|m)/k^2) provides the best accuracy
+        #given a low-resolution grid in logk and logm.
+        lg_w_interp2d = RegularGridInterpolator((np.log10(k_wkm).T, np.log10(mass_wkm).T), np.log10(wkm_tmp/k_wkm**2).T, bounds_error=False, fill_value=None)
+        
+        lgkk, lgmm = np.meshgrid(np.log10(k_vec), np.log10(mass), sparse=True)
+        lg_wkm_interpolated = lg_w_interp2d((lgkk.T, lgmm.T)).T
+        wkm[jz] = 10**(lg_wkm_interpolated)*k_vec**2
+
+    return wkm
 
 def load_hods(block, section_name, suffix, z_vec, mass):
     """
