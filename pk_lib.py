@@ -112,17 +112,6 @@ def get_nonlinear_power_spectrum(block, z_vec):
     matter_power_nl = block['matter_power_nl', 'p_k']
     p_nl = interpolate_in_z(matter_power_nl, z_nl, z_vec)
     return k_nl, p_nl
-
-# TODO: probably don't need this. 
-# def compute_effective_power_spectrum(k_vec, plin, k_nl, p_nl, z_vec, t_eff):
-#     # interpolate
-#     #p_nl_interp = interp2d(k_nl, z_vec, p_nl)
-#     #pnl_int = p_nl_interp(k_vec, z_vec)
-#     p_nl_interp = RegularGridInterpolator((k_nl.T, z_vec.T), p_nl.T, bounds_error=False, fill_value=None)
-#     kk, zz = np.meshgrid(k_vec, z_vec, sparse=True)
-#     pnl_int = p_nl_interp((kk.T, zz.T)).T
-#     return (1.-t_eff)*plin+t_eff*pnl_int
-
     
 # loads and interpolates the halo mass function and linear halo bias in redshift and mass
 def get_halo_functions(block, mass, z_vec):
@@ -147,25 +136,6 @@ def interpolate2d_HM(input_grid, x_in, y_in, x_out, y_out, method = 'linear'):
     xx, yy = np.meshgrid(x_out, y_out, sparse=True)
     interpolated = f_interp((xx.T, yy.T)).T
     return interpolated
-
-# TODO: check what this does
-# Need to go through the alignment module before fixing this
-def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
-    # here I am assuming that the redshifts used in wkm_module and the pk_module match!
-    wkm = np.empty([z_vec.size, mass.size, k_vec.size])
-    for jz in range(0,z_vec.size):
-        wkm_tmp = block['wkm','w_km_%d'%jz + suffix]
-        k_wkm   = block['wkm','k_h_%d'%jz+suffix]
-        mass_wkm = block['wkm','mass_%d'%jz+suffix]
-        #w_interp2d = interp2d(k_wkm, mass_wkm, wkm_tmp, bounds_error=False)#, fill_value=0)
-        w_interp2d = RegularGridInterpolator((k_wkm.T, mass_wkm.T), wkm_tmp.T, bounds_error=False, fill_value=None)#, fill_value=0)
-        #wkm_interpolated = w_interp2d((k_vec, mass))
-        kk, mm = np.meshgrid(k_vec, mass, sparse=True)
-        wkm_interpolated = w_interp2d((kk.T, mm.T)).T
-        #print 'wkm_interp.shape = ', wkm_interpolated.shape
-        wkm[jz] = wkm_interpolated
-    #print( 'wkm.shape = ', wkm.shape)
-    return wkm
 
 # load the hod related values
 # TODO: check that this takes the correct values from the HOD section
@@ -430,7 +400,8 @@ def one_halo_truncation(k_vec, k_star = 0.01):
     #return 1.-np.exp(-(k_vec/k_star)**2.)
     return erf(k_vec/k_star)
 
-def one_halo_truncation_ia(k_vec, k_star = 4.0):
+def one_halo_truncation_ia(k_vec, k_star):
+    #k_star=4.0 as default following Fortuna et al
     return 1.-np.exp(-(k_vec/k_star)**2.) 
 
 # 1-halo term truncation in 2009.01858
@@ -447,7 +418,8 @@ def one_halo_truncation_mead(k_vec, sigma8_in):
 def two_halo_truncation(k_vec,k_trunc=2.0):
     return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
-def two_halo_truncation_ia(k_vec,k_trunc = 6.0):
+def two_halo_truncation_ia(k_vec,k_trunc):
+    #k_trunc=6.0 as default following Fortuna et al
     return np.exp(-(k_vec/k_trunc)**2.)
 
 # TODO: We don't do eq 15 which dewiggles the linear power
@@ -930,37 +902,30 @@ def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, central_profil
 #################################################
 
 # galaxy-matter power spectrum
-def compute_p_mI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, matter_profile, s_align_factor, alignment_amplitude_2h, f_gal):
+def compute_p_mI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, matter_profile, s_align_factor, alignment_amplitude_2h, f_gal, one_halo_ktrunc, two_halo_ktrunc):
     #
     # p_tot = p_sm_mI_1h + f_cen*p_cm_mI_2h + O(any other combination)
     #
     # 2-halo term:
     # pk_eff = (1.-t_eff)*plin+t_eff*pnl
-    pk_cm_2h = compute_p_mI_two_halo(k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cm_2h = compute_p_mI_two_halo(k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h) * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis,:]
     # 1-halo term
-    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     # prepare the 1h term
     pk_tot = pk_sm_1h + pk_cm_2h
     return pk_sm_1h, pk_cm_2h, pk_tot
 
-def compute_p_mI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, matter_profile, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term):
-    
-    #CCL does not include the one_halo_truncation_ia term
-    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) #* one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    #pk_cm_1h = (-1.0) * compute_1h_term(matter_profile, c_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+def compute_p_mI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, matter_profile, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, one_halo_ktrunc):
+    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_sm_2h = (-1.0) * p_lin * I_m_term * I_s_align_term
     pk_cm_2h = (-1.0) * p_lin * I_m_term * I_c_align_term
-    #UNCOMMENT THIS - just temporary to compare 1h terms
-    pk_tot = pk_sm_1h #+ pk_cm_2h + pk_sm_2h
-    print('Is',I_s_align_term)
-    print('Ic',I_c_align_term)
+    pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
     
     return pk_sm_1h, pk_cm_2h+pk_sm_2h, pk_tot
     
-def compute_p_mI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, matter_profile, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, I_NL_ia_cm, I_NL_ia_sm):
+def compute_p_mI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, matter_profile, c_align_factor, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, I_NL_ia_cm, I_NL_ia_sm, one_halo_ktrunc):
     
-    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    #pk_cm_1h = (-1.0) * compute_1h_term(matter_profile, c_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_sm_2h = (-1.0) * p_lin * I_m_term * I_s_align_term - p_lin*(I_NL_ia_sm)
     pk_cm_2h = (-1.0) * p_lin * I_m_term * I_c_align_term - p_lin*(I_NL_ia_cm)
     pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
@@ -969,35 +934,34 @@ def compute_p_mI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, matter_profile,
 
 
 # intrinsic-intrinsic power spectrum
-def compute_p_II_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, s_align_factor, alignment_amplitude_2h_II, f_gal):
+def compute_p_II_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, s_align_factor, alignment_amplitude_2h_II, f_gal, one_halo_ktrunc, two_halo_ktrunc):
     #
     # p_tot = p_ss_II_1h + p_cc_II_2h + O(p_sc_II_1h) + O(p_cs_II_2h)
     #
     # 2-halo term: This is simply the Linear Alignment Model weighted by the central galaxy fraction
-    pk_cc_2h = compute_p_II_two_halo(block, k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h_II) * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cc_2h = compute_p_II_two_halo(k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h_II) * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis,:]
     # 1-halo term
-    pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_tot = pk_ss_1h + pk_cc_2h
     return pk_ss_1h, pk_cc_2h, pk_tot
 
 # Needs Poisson parameter as well!
-def compute_p_II(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_align_factor, s_align_factor, I_c_align_term, I_s_align_term):
-    
-    pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) #* one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    #pk_cs_1h = compute_1h_term(c_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+def compute_p_II(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_align_factor, s_align_factor, I_c_align_term, I_s_align_term, one_halo_ktrunc):
+   
+    pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
+    #pk_cs_1h = compute_1h_term(c_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_ss_2h = p_lin * I_s_align_term * I_s_align_term
     pk_cc_2h = p_lin * I_c_align_term * I_c_align_term
     pk_cs_2h = p_lin * I_c_align_term * I_s_align_term
-    #UNCOMMENT THIS - just temporary to compare 1h terms
-    pk_tot = pk_ss_1h #+ pk_ss_2h + pk_cs_2h + pk_cc_2h
+    pk_tot = pk_ss_1h + pk_cc_2h + pk_ss_2h + pk_cs_2h
     
     return pk_ss_1h, pk_cc_2h+pk_cs_2h+pk_cs_2h, pk_tot
     
 # Needs Poisson parameter as well!
-def compute_p_II_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_align_factor, s_align_factor, I_c_align_term, I_s_align_term, I_NL_ia_cc, I_NL_ia_cs, I_NL_ia_ss):
+def compute_p_II_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_align_factor, s_align_factor, I_c_align_term, I_s_align_term, I_NL_ia_cc, I_NL_ia_cs, I_NL_ia_ss, one_halo_ktrunc):
     
-    pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
-    #pk_cs_1h = compute_1h_term(c_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
+    #pk_cs_1h = compute_1h_term(c_align_factor, s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_ss_2h = p_lin * I_s_align_term * I_s_align_term + p_lin*I_NL_ia_ss
     pk_cc_2h = p_lin * I_c_align_term * I_c_align_term + p_lin*I_NL_ia_cc
     pk_cs_2h = p_lin * I_c_align_term * I_s_align_term + p_lin*I_NL_ia_cs
@@ -1008,22 +972,22 @@ def compute_p_II_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_align_factor,
 
 # galaxy-intrinsic power spectrum
 #IT redefinition as dn_dln_m
-def compute_p_gI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, central_profile, s_align_factor, I_c_term, alignment_amplitude_2h):
+def compute_p_gI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, central_profile, s_align_factor, I_c_term, alignment_amplitude_2h, one_halo_ktrunc, two_halo_ktrunc):
     #
     # p_tot = p_cs_gI_1h + (2?)*p_cc_gI_2h + O(p_ss_gI_1h) + O(p_cs_gI_2h)
     #
     # 2-halo term:
     #IT Removed new_axis from alignment_amplitude_2h[:,np.newaxis] in the following line
-    pk_cc_2h = -1.0 * p_eff * I_c_term * alignment_amplitude_2h[:,] * two_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cc_2h = -1.0 * p_eff * I_c_term * alignment_amplitude_2h[:,] * two_halo_truncation_ia(k_vec,two_halo_ktrunc)[np.newaxis,:]
     # 1-halo term
-    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     
     pk_tot = pk_cs_1h + pk_cc_2h
     return pk_cs_1h, pk_cc_2h, pk_tot
 
-def compute_p_gI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, central_profile, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term):
+def compute_p_gI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, central_profile, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, one_halo_ktrunc):
     
-    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_cc_2h = p_lin * I_c_term * I_c_align_term
     pk_cs_2h = p_lin * I_c_term * I_s_align_term
 
@@ -1031,9 +995,9 @@ def compute_p_gI(block, k_vec, p_lin, z_vec, mass, dn_dln_m, central_profile, c_
     
     return pk_cs_1h, pk_cc_2h+pk_cs_2h, pk_tot
 
-def compute_p_gI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, central_profile, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, I_NL_ia_gc, I_NL_ia_gs):
+def compute_p_gI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, central_profile, c_align_factor, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, I_NL_ia_gc, I_NL_ia_gs, one_halo_ktrunc):
     
-    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec)[np.newaxis,:]
+    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_cc_2h = p_lin * I_c_term * I_c_align_term + p_lin*(I_NL_ia_gc)
     pk_cs_2h = p_lin * I_c_term * I_s_align_term + p_lin*(I_NL_ia_gs)
 
