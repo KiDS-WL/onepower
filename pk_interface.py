@@ -127,6 +127,11 @@ def setup(options):
     point_mass    = options.get_bool(option_section, 'point_mass',default=False)
     two_halo_only = options[option_section, 'two_halo_only']
 
+    #Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
+    #and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
+    one_halo_ktrunc = options.get_double(option_section,'one_halo_ktrunc',default=4.0) # h/Mpc
+    two_halo_ktrunc = options.get_double(option_section,'two_halo_ktrunc',default=6.0) # h/Mpc
+
     # initiate pipeline parameters
     # TODO: Check what each of these does
     ia_lum_dep_centrals = False
@@ -154,7 +159,7 @@ def setup(options):
 
 
     # TODO: what does the two halo only do? Do we need this?
-    if ((p_mm == True) or (p_gm == True) or (p_mI == True)):
+    if ((p_mm == True) or (p_gm == True) or (p_mI == True) or (p_mI_mc == True)):
         matter = True
     if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_mc == True) or (p_mI_mc == True) or (p_II_mc == True):
         galaxy = True
@@ -187,19 +192,16 @@ def setup(options):
     return mass, nmass, z_vec, nz, nk, \
            p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_mc, p_mI_mc, p_II_mc, \
            matter, galaxy, bnl, alignment, \
-           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, hod_section_name, \
-           mead_correction, point_mass, poisson_type, \
-           pop_name
-
+           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, one_halo_ktrunc, two_halo_ktrunc,\
+           hod_section_name, mead_correction, point_mass, poisson_type, pop_name
 
 def execute(block, config):
 
     mass, nmass, z_vec, nz, nk, \
     p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_mc, p_mI_mc, p_II_mc, \
     matter, galaxy, bnl, alignment, \
-    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, hod_section_name, \
-    mead_correction, point_mass, poisson_type, \
-    pop_name = config
+    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only, one_halo_ktrunc, two_halo_ktrunc,\
+    hod_section_name, mead_correction, point_mass, poisson_type, pop_name = config
 
     # TODO: This has the same length as nz but the same value in each element
     mean_density0 = block['density', 'mean_density0']
@@ -226,13 +228,15 @@ def execute(block, config):
     scale_factor = scale_factor_interp(k_vec)
 
     # TODO: Why is k_vec defined? Why not just use k_vec_original?
-    plin_k_interp = interp1d(k_nl, p_nl, axis=1, fill_value='extrapolate')
-    pnl = plin_k_interp(k_vec)
+    p_nonlin_k_interp = interp1d(k_nl, p_nl, axis=1, fill_value='extrapolate')
+    pnl = p_nonlin_k_interp(k_vec)
     # TODO: this shouldn't be replaced
     block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
     #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
 
     # AD: avoid this! (Maybe needed for IA part ...)
+    # CH:  It's not needed for the IA part: 
+    # TODO:  is this needed for the galaxy power spectra???
     # compute the effective power spectrum, mixing the linear and nonlinear one:
     #
     # (1.-t_eff)*plin + t_eff*p_nl
@@ -568,19 +572,19 @@ def execute(block, config):
                 # Intrinsic aligment power spectra (implementation from Maria Cristina - 2h = LA/NLA mixture)
                 if p_II_mc == True:
                     pk_II_1h, pk_II_2h, pk_II = pk_lib.compute_p_II_mc(block, k_vec, pk_eff, z_vec, 
-                        mass, dn_dlnm, s_align_profile, alignment_amplitude_2h_II, f_cen)
+                        mass, dn_dlnm, s_align_profile, alignment_amplitude_2h_II, f_cen, one_halo_ktrunc, two_halo_ktrunc)
                     #block.put_grid(f'intrinsic_power_1h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_1h)
                     #block.put_grid(f'intrinsic_power_2h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_2h)
                     block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
                 if p_gI_mc == True:
                     pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI_mc(block, k_vec, pk_eff, z_vec, 
-                        mass, dn_dlnm, profile_c, s_align_profile, I_c, alignment_amplitude_2h)
+                        mass, dn_dlnm, profile_c, s_align_profile, I_c, alignment_amplitude_2h, one_halo_ktrunc, two_halo_ktrunc)
                     block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
                 if p_mI_mc == True:
-                    pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_mc(k_vec, pk_eff, z_vec, 
-                        mass, dn_dlnm, matter_profile_1h, s_align_profile, alignment_amplitude_2h, f_cen)
-                    #block.put_grid(f'matter_intrinsic_power_1h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_1h)
-                    #block.put_grid(f'matter_intrinsic_power_2h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)
+                    pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_mc(block, k_vec, pk_eff, z_vec, 
+                        mass, dn_dlnm, matter_profile_1h, s_align_profile, alignment_amplitude_2h, f_cen, one_halo_ktrunc, two_halo_ktrunc)
+                    #block.put_grid(f'matter_intrinsic_power_1h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI_1h)
+                    #block.put_grid(f'matter_intrinsic_power_2h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI_2h)
                     block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)
                 
     return 0
