@@ -128,9 +128,8 @@ def setup(options):
 
     # Profile
     nk      = options[option_section, 'nk']
-    # currently we have only implmented NFW. 
-    profile = options.get_string(option_section, 'profile',default='nfw')
-    profile_value_name = options.get_string(option_section, 'profile_value_name',default='profile_parameters')
+    profile = options.get_string(option_section, 'profile', default='NFW')
+    profile_value_name = options.get_string(option_section, 'profile_value_name', default='profile_parameters')
 
     # Type of mass definition for Haloes
     mdef_model = options[option_section, 'mdef_model']
@@ -163,10 +162,10 @@ def setup(options):
                         growth_model='CambGrowth',
                         lnk_min=-18.0, lnk_max=18.0, dlnk=0.001,
                         bias_model=bias_model,
-                        halo_profile_model='NFW',
+                        halo_profile_model=profile,
                         halo_concentration_model=make_colossus_cm(cm_model))
     
-    mf.update(halo_profile_model=get_bloated_profile(getattr(profile_classes, 'NFW')), halo_concentration_model=get_modified_concentration(make_colossus_cm(cm_model)))
+    mf.update(halo_profile_model=get_bloated_profile(getattr(profile_classes, profile)), halo_concentration_model=get_modified_concentration(make_colossus_cm(cm_model)))
     mf.cmz_relation
     # Array of halo masses 
     mass = mf.m

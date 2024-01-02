@@ -17,8 +17,6 @@ from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
 import time
 
-#This stays or goes depending on whether we want to keep using the CCL version of the halo mass function
-import pyccl as ccl 
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
@@ -91,7 +89,7 @@ def setup(options):
     mdef_params = {} if mdef_model in ['SOVirial'] else {'overdensity':overdensity}
 
     #Choice of code to define Halo Mass Function
-    hmf_code = options[option_section, 'hmf_code']   #Options are CCL, HMF
+    hmf_code = options.get_string(option_section, 'hmf_code', default='HMF')   #Options are CCL, HMF
     
     # most general astropy cosmology initialisation, 
     # gets updated as sampler runs with camb provided cosmology parameters.
@@ -224,6 +222,8 @@ def execute(block, config):
     
         # What code do you want to use to define the halo mass function
         if hmf_code == 'CCL':
+            #This stays or goes depending on whether we want to keep using the CCL version of the halo mass function
+            import pyccl as ccl
             #halo_model_ingredients took: 2.503 seconds
             cosmo_ccl = ccl.Cosmology(Omega_c=block[cosmo_params, 'omega_m']-block[cosmo_params, 'omega_b'], 
                                       Omega_b=block[cosmo_params, 'omega_b'], h=block[cosmo_params, 'h0'], 
