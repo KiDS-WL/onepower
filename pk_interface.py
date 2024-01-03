@@ -174,7 +174,7 @@ def setup(options):
 
         
     if (p_gI == True) and (p_gI_fortuna == True):
-        raise Exception('Select either p_gI = True or p_gI_fortuna = True, all compute the matter-intrinsic power spectrum. p_gI_fortuna i is the implementation used in Fortuna et al. 2020 paper.')
+        raise Exception('Select either p_gI = True or p_gI_fortuna = True, all compute the matter-intrinsic power spectrum. p_gI_fortuna i is the implementation used in Fortuna et al. 2021 paper.')
 
 
 
