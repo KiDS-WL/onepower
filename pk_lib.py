@@ -1065,8 +1065,16 @@ def compute_p_gm_bnl(block, k_vec, pk_lin, z_vec, mass, dn_dln_m, central_profil
 #                                               #
 #################################################
 
+"""
+TO-DO: For the IA powerspectra that are not the implementation of Fortuna et al., we need to reconsider the
+1-halo and 2-halo truncations:
+    - generally truncate the 1-halo terms at smaller k (can be done from the config)
+    - do not truncate the 2-halo terms (can also be done from the config)
+    - use a different functional form, for instance the Mead et al. 2020 as in other power spectra above!
+"""
+
 # galaxy-matter power spectrum
-def compute_p_mI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, matter_profile, s_align_factor, alignment_amplitude_2h, f_gal, one_halo_ktrunc, two_halo_ktrunc):
+def compute_p_mI_fortuna(block, k_vec, p_eff, z_vec, mass, dn_dln_m, matter_profile, s_align_factor, alignment_amplitude_2h, f_gal, one_halo_ktrunc, two_halo_ktrunc):
     """
     p_tot = p_sm_mI_1h + f_cen*p_cm_mI_2h + O(any other combination)
     """
@@ -1111,7 +1119,7 @@ def compute_p_mI_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, matter_profile,
 
 
 # intrinsic-intrinsic power spectrum
-def compute_p_II_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, s_align_factor, alignment_amplitude_2h_II, f_gal, one_halo_ktrunc, two_halo_ktrunc):
+def compute_p_II_fortuna(block, k_vec, p_eff, z_vec, mass, dn_dln_m, s_align_factor, alignment_amplitude_2h_II, f_gal, one_halo_ktrunc, two_halo_ktrunc):
     """
     p_tot = p_ss_II_1h + p_cc_II_2h + O(p_sc_II_1h) + O(p_cs_II_2h)
     """
@@ -1159,7 +1167,7 @@ def compute_p_II_bnl(block, k_vec, p_lin, z_vec, mass, dn_dln_m, c_align_factor,
 
 # galaxy-intrinsic power spectrum
 #IT redefinition as dn_dln_m
-def compute_p_gI_mc(block, k_vec, p_eff, z_vec, mass, dn_dln_m, central_profile, s_align_factor, I_c_term, alignment_amplitude_2h, one_halo_ktrunc, two_halo_ktrunc):
+def compute_p_gI_fortuna(block, k_vec, p_eff, z_vec, mass, dn_dln_m, central_profile, s_align_factor, I_c_term, alignment_amplitude_2h, one_halo_ktrunc, two_halo_ktrunc):
     """
     p_tot = p_cs_gI_1h + (2?)*p_cc_gI_2h + O(p_ss_gI_1h) + O(p_cs_gI_2h)
     """

@@ -122,7 +122,7 @@ def setup(options):
     #elif use_mead == 'fit_feedback':
     #    mead_correction = 'fit'
     else:
-        mead_correction = True#None
+        mead_correction = None
 
     # config ={}
     # config['log_mass_min'] =log_mass_min

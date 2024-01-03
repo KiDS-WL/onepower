@@ -45,7 +45,7 @@ import numpy as np
 from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
 from collections import OrderedDict
 
-import math
+import numbers
 import pk_lib
 
 import time
@@ -83,6 +83,28 @@ cosmo = names.cosmological_parameters
 # poisson_type = scalar
 # point_mass = True
 
+
+def get_string_or_none(options, name, default):
+    """
+    A helper function to return a number or None explicitly from config files
+    """
+    if options.has_value(option_section, name):
+        test_param = options.get(option_section, name)
+        if isinstance(test_param, numbers.Number):
+            param = options.get_double(option_section, name, default)
+        if isinstance(test_param, str):
+            str_in = options.get_string(option_section, name)
+            if str_in == 'None':
+                param = None
+    else:
+        param = options.get_double(option_section, name, default)
+
+    if not isinstance(param, (numbers.Number, type(None))):
+        raise ValueError(f'Parameter {name} is not an instance of a number or NoneType!')
+    
+    return param
+
+
 def setup(options):
 
     # Read in the minimum and maximum halo mass
@@ -112,9 +134,9 @@ def setup(options):
     p_mI = options.get_bool(option_section, 'p_mI', default=False)
     p_II = options.get_bool(option_section, 'p_II', default=False)
     # TODO: these are the IA power as in Fortuna et al. 2021. Change the name.
-    p_gI_mc = options.get_bool(option_section, 'p_gI_mc', default=False)
-    p_mI_mc = options.get_bool(option_section, 'p_mI_mc', default=False)
-    p_II_mc = options.get_bool(option_section, 'p_II_mc', default=False)
+    p_gI_fortuna = options.get_bool(option_section, 'p_gI_fortuna', default=False)
+    p_mI_fortuna = options.get_bool(option_section, 'p_mI_fortuna', default=False)
+    p_II_fortuna = options.get_bool(option_section, 'p_II_fortuna', default=False)
     # If True uses beta_nl
     bnl     = options.get_bool(option_section, 'bnl', default=False)
     #interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl',default=False)
@@ -125,57 +147,43 @@ def setup(options):
 
     poisson_type  = options.get_string(option_section, 'poisson_type', default='')
     point_mass    = options.get_bool(option_section, 'point_mass', default=False)
-    two_halo_only = options[option_section, 'two_halo_only']
+    two_halo_only = options.get_bool(option_section, 'two_halo_only', default=False)
 
     #Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
     #and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
-    one_halo_ktrunc_ia = options.get_double(option_section, 'one_halo_ktrunc_ia', default=4.0) # h/Mpc
-    two_halo_ktrunc_ia = options.get_double(option_section, 'two_halo_ktrunc_ia', default=6.0) # h/Mpc
+    one_halo_ktrunc_ia = get_string_or_none(options, 'one_halo_ktrunc_ia', default=4.0) # h/Mpc or None
+    two_halo_ktrunc_ia = get_string_or_none(options, 'two_halo_ktrunc_ia', default=6.0) # h/Mpc or None
     # General truncation of non-IA terms:
-    one_halo_ktrunc = options.get_double(option_section, 'one_halo_ktrunc', default=0.1) # h/Mpc
-    two_halo_ktrunc = options.get_double(option_section, 'two_halo_ktrunc', default=2.0) # h/Mpc
-    # if None, then truncations are turned off:
-    if one_halo_ktrunc == 'None':
-        one_halo_ktrunc = None
-    if one_halo_ktrunc_ia == 'None':
-        one_halo_ktrunc_ia = None
-    if two_halo_ktrunc == 'None':
-        two_halo_ktrunc = None
-    if two_halo_ktrunc_ia == 'None':
-        two_halo_ktrunc_ia = None
-
+    one_halo_ktrunc = get_string_or_none(options, 'one_halo_ktrunc', default=0.1) # h/Mpc or None
+    two_halo_ktrunc = get_string_or_none(options, 'two_halo_ktrunc', default=2.0) # h/Mpc or None
+    
     # initiate pipeline parameters
-    # TODO: Check what each of these does
-    ia_lum_dep_centrals = False
-    ia_lum_dep_satellites = False
     matter = False
     galaxy = False
     alignment = False
+    
     hod_section_name = options.get_string(option_section, 'hod_section_name')
-    f_red_cen_option = False
 
-    # change to raise
-    #  TODO: change the name of *_mc to something more descriptive
-    if (p_mI == True) and (p_mI_mc == True):
-        raise Exception('Select either p_mI = True or p_mI_mc = True, both compute the matter-intrinsic power spectrum. p_mI_mc is the implementation used in Fortuna et al. 2021 paper.')
-        # print('Select either p_mI = True or p_mI_mc = True, both compute the matter-intrinsic power spectrum. p_mI_mc is the implementation used in Fortuna et al. 2021 paper.')
+    if (p_mI == True) and (p_mI_fortuna == True):
+        raise Exception('Select either p_mI = True or p_mI_fortuna = True, both compute the matter-intrinsic power spectrum. p_mI_fortuna is the implementation used in Fortuna et al. 2021 paper.')
+        # print('Select either p_mI = True or p_mI_fortuna = True, both compute the matter-intrinsic power spectrum. p_mI_fortuna is the implementation used in Fortuna et al. 2021 paper.')
         # sys.exit()
         
-    if (p_II == True) and (p_II_mc == True):
-        raise Exception('Select either p_II = True or p_II_mc = True, all compute the matter-intrinsic power spectrum. p_II_mc is the implementation used in Fortuna et al. 2021 paper.')
+    if (p_II == True) and (p_II_fortuna == True):
+        raise Exception('Select either p_II = True or p_II_fortuna = True, all compute the matter-intrinsic power spectrum. p_II_fortuna is the implementation used in Fortuna et al. 2021 paper.')
 
         
-    if (p_gI == True) and (p_gI_mc == True):
-        raise Exception('Select either p_gI = True or p_gI_mc = True, all compute the matter-intrinsic power spectrum. p_gI_mc i is the implementation used in Fortuna et al. 2020 paper.')
+    if (p_gI == True) and (p_gI_fortuna == True):
+        raise Exception('Select either p_gI = True or p_gI_fortuna = True, all compute the matter-intrinsic power spectrum. p_gI_fortuna i is the implementation used in Fortuna et al. 2020 paper.')
 
 
 
     # TODO: what does the two halo only do? Do we need this?
-    if ((p_mm == True) or (p_gm == True) or (p_mI == True) or (p_mI_mc == True)):
+    if ((p_mm == True) or (p_gm == True) or (p_mI == True) or (p_mI_fortuna == True)):
         matter = True
-    if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_mc == True) or (p_mI_mc == True) or (p_II_mc == True):
+    if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
         galaxy = True
-    if (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_mc == True) or (p_mI_mc == True) or (p_II_mc == True):
+    if (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
         alignment = True
 
     population_name = options.get_string(option_section, 'output_suffix', default='').lower()
@@ -202,18 +210,16 @@ def setup(options):
         mead_correction = None
 
     return mass, nmass, z_vec, nz, nk, \
-           p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_mc, p_mI_mc, p_II_mc, \
-           matter, galaxy, bnl, alignment, \
-           ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only,\
+           p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_fortuna, p_mI_fortuna, p_II_fortuna, \
+           matter, galaxy, bnl, alignment, two_halo_only,\
            one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
            hod_section_name, mead_correction, point_mass, poisson_type, pop_name
 
 def execute(block, config):
 
     mass, nmass, z_vec, nz, nk, \
-    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_mc, p_mI_mc, p_II_mc, \
-    matter, galaxy, bnl, alignment, \
-    ia_lum_dep_centrals, ia_lum_dep_satellites, two_halo_only,\
+    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_fortuna, p_mI_fortuna, p_II_fortuna, \
+    matter, galaxy, bnl, alignment, two_halo_only,\
     one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
     hod_section_name, mead_correction, point_mass, poisson_type, pop_name = config
 
@@ -249,11 +255,12 @@ def execute(block, config):
 
     # AD: Only used in Fortuna et al. implementation of IA power spectra
     # compute the effective power spectrum, mixing the linear and nonlinear one:
+    # Defaullt in Fortuna et al. is the non-linear power spectrum, so t_eff defaults to 0
     #
-    # (1.-t_eff)*plin + t_eff*p_nl
+    # (1.-t_eff)*pnl + t_eff*plin
     #
-    t_eff = block['pk_parameters', 'trans_1hto2h']
-    pk_eff = (1.-t_eff)*plin+t_eff*pnl
+    t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
+    pk_eff = (1.-t_eff)*pnl + t_eff*plin
 
     # If the two_halo_only option is set True, then only the linear regime is computed and the linear bias is used (either computed by the
     # hod module or passed in the value	file (same structure as for the constant bias module)
@@ -268,9 +275,6 @@ def execute(block, config):
     # TODO: check that mean_density for A should be mean_density at redshift zero.
     # A_term       = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
     
-    # bg = block[f'galaxy_bias{suffix}', 'b']
-    # print(bg)
-    # exit()
     # TODO: CHECK THESE later
     if two_halo_only == True:
         if matter == True:
@@ -295,7 +299,6 @@ def execute(block, config):
                     if np.isscalar(bg): bg *= np.ones(nz)
                     
                 if alignment == True:
-                #IT commented ia_lum_dep_centrals
                     alignment_amplitude_2h, alignment_amplitude_2h_II = pk_lib.compute_two_halo_alignment(block, pop_name, growth_factor, mean_density0)
                     
                 # compute the power spectra
@@ -452,7 +455,6 @@ def execute(block, config):
                                 dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
                     
                 if alignment == True:
-                    #IT commenting ia_lum_dep_centrals
                     # AD: Will probably be removed after some point when we get all the Bnl terms for IA added!
                     alignment_amplitude_2h, alignment_amplitude_2h_II, C1 = pk_lib.compute_two_halo_alignment(block, pop_name,
                                                                                                 growth_factor, mean_density0)
@@ -577,18 +579,18 @@ def execute(block, config):
                 
                 
                 # Intrinsic aligment power spectra (implementation from Maria Cristina - 2h = LA/NLA mixture)
-                if p_II_mc == True:
-                    pk_II_1h, pk_II_2h, pk_II = pk_lib.compute_p_II_mc(block, k_vec, pk_eff, z_vec, 
+                if p_II_fortuna == True:
+                    pk_II_1h, pk_II_2h, pk_II = pk_lib.compute_p_II_fortuna(block, k_vec, pk_eff, z_vec,
                         mass, dn_dlnm, s_align_profile, alignment_amplitude_2h_II, f_cen, one_halo_ktrunc_ia, two_halo_ktrunc_ia)
                     #block.put_grid(f'intrinsic_power_1h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_1h)
                     #block.put_grid(f'intrinsic_power_2h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_2h)
                     block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
-                if p_gI_mc == True:
-                    pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI_mc(block, k_vec, pk_eff, z_vec, 
+                if p_gI_fortuna == True:
+                    pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI_fortuna(block, k_vec, pk_eff, z_vec,
                         mass, dn_dlnm, profile_c, s_align_profile, I_c, alignment_amplitude_2h, one_halo_ktrunc_ia, two_halo_ktrunc_ia)
                     block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
-                if p_mI_mc == True:
-                    pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_mc(block, k_vec, pk_eff, z_vec, 
+                if p_mI_fortuna == True:
+                    pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_fortuna(block, k_vec, pk_eff, z_vec,
                         mass, dn_dlnm, matter_profile_1h, s_align_profile, alignment_amplitude_2h, f_cen, one_halo_ktrunc_ia, two_halo_ktrunc_ia)
                     #block.put_grid(f'matter_intrinsic_power_1h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI_1h)
                     #block.put_grid(f'matter_intrinsic_power_2h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI_2h)

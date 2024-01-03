@@ -181,7 +181,7 @@ def setup(options):
     #elif use_mead == 'fit_feedback':
     #    mead_correction = 'fit'
     else:
-        mead_correction = True#None
+        mead_correction = None
 
     return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, nz_conc, mass, mf, cm_model, mdef_model, overdensity, delta_c, bias_model, mead_correction, nk, profile, profile_value_name
 
