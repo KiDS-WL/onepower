@@ -10,6 +10,7 @@ from halomod.concentration import make_colossus_cm
 from halomod import concentration as conc_func
 from hmf import MassFunction
 import hmf.halos.mass_definitions as md
+from hmf.halos.mass_definitions import SphericalOverdensity
 import hmf.cosmology.growth_factor as gf
 from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
 import halo_model_utility as hmu
@@ -17,9 +18,30 @@ from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
 import time
 
+from astropy.cosmology import Planck15
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
+
+
+class SOVirial_Mead(SphericalOverdensity):
+    """
+    SOVirial overdensity definition from Mead et al. 2020
+    """
+    _defaults = {"overdensity": 200}
+        
+    def halo_density(self, z=0, cosmo=Planck15):
+        """The density of haloes under this definition."""
+        return self.params["overdensity"] * self.mean_density(z, cosmo)
+        
+    @property
+    def colossus_name(self):
+        return "200c"#"vir"
+            
+    def __str__(self):
+        """Describe the halo definition in standard notation."""
+        return "SOVirial"
+
 
 # TODO: concentration is saved into multiple folders. Check if these can be merged.
 def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
@@ -104,8 +126,9 @@ def setup(options):
     mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, 
                         Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
                         hmf_model=options[option_section, 'hmf_model'],
-                        mdef_model=mdef_model, mdef_params=mdef_params, 
-                        transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False,
+                        mdef_model=mdef_model, mdef_params=mdef_params,
+                        transfer_model='CAMB', transfer_params={'kmax':1e2, 'extrapolate_with_eh':True},
+                        delta_c=delta_c, disable_mass_conversion=False,
                         growth_model='CambGrowth',
                         lnk_min=-18.0, lnk_max=18.0)
 
@@ -144,7 +167,7 @@ def execute(block, config):
     # Update the cosmological parameters
     this_cosmo_run=Flatw0waCDM(
         H0=block[cosmo_params, 'hubble'], Ob0=block[cosmo_params, 'omega_b'],
-        Om0=block[cosmo_params, 'omega_m'], m_nu=[block[cosmo_params, 'mnu'], 0, 0], Tcmb0=tcmb,
+        Om0=block[cosmo_params, 'omega_m'], m_nu=[0, 0, block[cosmo_params, 'mnu']], Tcmb0=tcmb,
     	w0=block[cosmo_params, 'w'], wa=block[cosmo_params, 'wa'] )
      
     #LCDMcosmo = FlatLambdaCDM(
@@ -206,12 +229,13 @@ def execute(block, config):
                 a = this_cosmo_run.scale_factor(z_iter)
                 g = growth(a)
                 G = hmu.get_accumulated_growth(a, growth)
-                delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
-                overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
+                overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
                 #dolag = (growth(LCDMcosmo.scale_factor(10.0))/growth_LCDM(LCDMcosmo.scale_factor(10.0)))*(growth_LCDM(a)/growth(a))
-                mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
+                mdef_mead = SOVirial_Mead#'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
-                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, mdef_model=mdef_mead)
+                mf.ERROR_ON_BAD_MDEF = False
+                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  mdef_params={'overdensity':overdensity_z[jz]}, disable_mass_conversion=True)
                 if mead_correction in ['feedback', 'nofeedback']:
                     zf[jz,:] = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, mf)
         else:
@@ -294,7 +318,7 @@ def execute(block, config):
         
     if mead_correction == 'feedback':
         theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
-        norm_cen  = ((3.44 - 0.496*theta_agn) * np.power(10.0, z_vec*(-0.0671 - 0.0371*theta_agn)))[:,np.newaxis] # /4.0
+        norm_cen  = ((5.196/4.0) * (3.44 - 0.496*theta_agn) * np.power(10.0, z_vec*(-0.0671 - 0.0371*theta_agn)))[:,np.newaxis]
         eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))
         conc = (1.0+zf)/(1.0+z_vec[:,np.newaxis])
     # TODO: what happends if mead_correction is stellar_fraction_from_observable_feedback?

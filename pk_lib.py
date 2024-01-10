@@ -306,8 +306,8 @@ def compute_matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, 
     dm_to_matter_frac = omega_c/omega_m
     f_gas = fg(mass, fstar, log10T_AGN, z, omega_b, omega_m)
     Wm_0 = mass / mean_density0
-    #Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
-    Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
+    Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
+    #Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
     return Wm
 
 def matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m, omega_b, log10T_AGN, fnu):
@@ -335,8 +335,8 @@ def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_de
     dm_to_matter_frac = omega_c/omega_m
     Wm_0 = mass / mean_density0
     f_gas_fit = fg_fit(mass, fstar, z, omega_b, omega_m)
-    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
-    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
+    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
+    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
     return Wm
 
 def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, fstar, omega_c, omega_m, omega_b, fnu):

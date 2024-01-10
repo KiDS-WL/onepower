@@ -88,8 +88,8 @@ def get_growth_interpolator(cosmo):
     TODO: Could use d_init = a(1+(w-1)/(w(6w-5))*(Om_w/Om_m)*a**-3w) at early times with w = w(a<<1)
     """
     a_init = 1e-4
-    Om = cosmo.Om0
-    Ode = cosmo.Ode0
+    Om = cosmo.Om0 + cosmo.Onu0
+    Ode = 1.0 - Om
     Ok = cosmo.Ok0
     try:
         w0 = cosmo.w0
