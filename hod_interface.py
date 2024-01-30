@@ -62,13 +62,19 @@ def setup(options):
     # where to read the values of parameters in the value.ini
     values_name      = options.get_string(option_section, 'values_name','hod_parameters').lower()
     # output section name for the observable related quantities.
-    observable_section_name  = options.get_string(option_section, 'observable_section_name','stellar_mass_function').lower()
+    observable_section_name  = options.get_string(option_section, 'observable_section_name', default='stellar_mass_function').lower()
     # TODO: check where this is used and if we need it
     # output section name for galaxy bias
-    galaxy_bias_section_name = options.get_string(option_section, 'galaxy_bias_section_name','galaxy_bias').lower()
+    galaxy_bias_section_name = options.get_string(option_section, 'galaxy_bias_section_name', default='galaxy_bias').lower()
 
 
-    # TODO: Check units of h
+    # Checks units of h
+    observable_h_unit = options.get_string(option_section, 'observable_h_unit', default='1/h').lower()
+    valid_units = ['1/h', '1/h^2']
+    if not observable_h_unit in valid_units:
+        raise Exception('Currently supported h factors in obserable are {valid_units}')
+
+    
     # if file name is given then use it otherwise use values in the ini file # in units of L_sun/h2
     if options.has_value(option_section, 'observables_file'):
         observables_z = True
@@ -154,14 +160,14 @@ def setup(options):
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
             # print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
 
-    return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name
+    return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, observable_h_unit, valid_units
 
 
 
 
 def execute(block, config):
 
-    obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name = config
+    obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, observable_h_unit, valid_units = config
 
     #---- loading hod value from the values.ini file ----#
     #centrals
@@ -236,6 +242,8 @@ def execute(block, config):
         
         # f_star = int_{O_low}^{O_high} Φx(O|M) O dO
         f_star = np.array([hod.compute_stellar_fraction(obs_simps_z, phi_z_i)/mass for obs_simps_z, phi_z_i in zip(obs_simps[nb], phi)])
+        if observable_h_unit == valid_units[1]:
+            f_star = f_star * block['cosmological_parameters', 'h0']
 
         # TODO:check this
         # Assembly bias (using the decorated HOD formalism for concentration as a secondary parameter):
@@ -339,8 +347,10 @@ def execute(block, config):
     # unlike the other f_star which are for each stellar mass bin. I would keep the metadata block here 
     # to save all the parameters not directly connected with "per bin" HODs and corresponding products.
     # AD: added suffix here in order to keep track of the right one if multiple hods used!
-    f_star = np.array([hod.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
-    block.put_grid(hod_section_name, 'z_extended', z_bins_one, 'mass_extended', mass, 'f_star_extended', f_star)
+    f_star_mm = np.array([hod.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
+    if observable_h_unit == valid_units[1]:
+        f_star_mm = f_star_mm * block['cosmological_parameters', 'h0']
+    block.put_grid(hod_section_name, 'z_extended', z_bins_one, 'mass_extended', mass, 'f_star_extended', f_star_mm)
     
     if save_observable and observable_mode == 'obs_onebin':
         obs_func_h = hod.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
