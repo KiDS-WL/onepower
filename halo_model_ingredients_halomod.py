@@ -2,26 +2,28 @@ from cosmosis.datablock import names, option_section
 import warnings
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.integrate import simps, solve_ivp, quad
-from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
-import astropy.units as u
+# from scipy.integrate import simps, solve_ivp, quad
+# from astropy.cosmology import FlatLambdaCDM, LambdaCDM
+from astropy.cosmology import Flatw0waCDM
+# import astropy.units as u
 from halomod.halo_model import DMHaloModel
-from halomod import bias as bias_func
-from halomod.concentration import make_colossus_cm, CMRelation, Bullock01
-from halomod import concentration as conc_func
-from halomod.profiles import Profile, NFWInf
+# from halomod import bias as bias_func
+from halomod.concentration import make_colossus_cm
+# from halomod.concentration import CMRelation, Bullock01
+# from halomod import concentration as conc_func
+# from halomod.profiles import Profile, NFWInf
 import halomod.profiles as profile_classes
 import halo_model_utility as hmu
 from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
-from hmf import MassFunction
+# from hmf import MassFunction
 import hmf.halos.mass_definitions as md
-import hmf.cosmology.growth_factor as gf
+# import hmf.cosmology.growth_factor as gf
 from hmf.cosmology.cosmo import astropy_to_colossus
-from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
+# from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
 
-import time
-from types import MethodType
+# import time
+# from types import MethodType
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
@@ -187,8 +189,12 @@ def setup(options):
 
 def execute(block, config):
 
+    # TODO: some of these are not used later
     # Read in the config as returned by setup
-    log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, nz_conc, mass, mf, model_cm, mdef, overdensity, delta_c, bias_model, mead_correction, nk, profile, profile_value_name = config
+    log_mass_min, log_mass_max, nmass, dlog10m, \
+    z_vec, nz, nz_conc, mass, mf, model_cm, mdef, \
+    overdensity, delta_c, bias_model, mead_correction, \
+    nk, profile, profile_value_name = config
 
     # astropy cosmology requires the CMB temprature as an input. 
     # If it exists in the values file read it from there otherwise set to its default value
@@ -242,6 +248,7 @@ def execute(block, config):
         z_conc = z_vec[::downsample_factor]
     else:
         z_conc = z_vec
+    # TODO: This is not used later
     conc = np.empty([z_conc.size, nmass_hmf])
 
     if mead_correction:
@@ -253,6 +260,7 @@ def execute(block, config):
     k_vec_original = block['matter_power_lin', 'k_h']
     k = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
 
+    # TODO: mdef_conc not used later
     # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
     for jz,z_iter in enumerate(z_vec):
         if mdef in ['SOVirial'] and mead_correction is None:
