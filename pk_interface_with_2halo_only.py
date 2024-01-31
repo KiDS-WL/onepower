@@ -278,6 +278,71 @@ def execute(block, config):
     # TODO: check that mean_density for A should be mean_density at redshift zero.
     # A_term       = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
     
+    # Commented this out for now, because it doesn't work and has variables that are not defined. 
+    # We can bring it back if needed
+    # if two_halo_only == True:
+    #     if matter == True:
+    #         # Accounts for the missing low mass haloes in the integrals for the 2h term.
+    #         # Assumes all missing mass is in haloes of mass M_min.
+    #         # This is calculated separately for each redshift
+    #         # TODO: check if this is needed for the IA section
+    #         A_term = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
+    #         I_m = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
+
+    #         # f_nu = omega_nu/omega_m with the same length as redshift
+    #         fnu     = block['cosmological_parameters', 'fnu']
+    #         omega_c = block['cosmological_parameters', 'omega_c']
+    #         omega_m = block['cosmological_parameters', 'omega_m']
+    #         omega_b = block['cosmological_parameters', 'omega_b']
+
+    #         matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
+            
+    #     if (galaxy == True) or (alignment == True):
+    #         # TODO: Change where this is looking for things, as I have removed metadata
+    #         hod_bins = block[hod_section_name, 'nbins']
+            
+    #         for nb in range(0,hod_bins):
+    #             if hod_bins != 1:
+    #                 suffix = f'{pop_name}_{nb+1}'
+    #             else:
+    #                 suffix = f'{pop_name}'
+                    
+    #             if galaxy == True:
+    #                 # load linear bias:
+    #                 # TODO: change this to galaxy_bias_section_name
+    #                 bg = block[galaxy_bias_section_name, f'b{suffix}']
+    #                 if np.isscalar(bg): bg *= np.ones(nz)
+                    
+    #             if alignment == True:
+    #                 alignment_amplitude_2h, alignment_amplitude_2h_II = pk_lib.compute_two_halo_alignment(block, pop_name, growth_factor, mean_density0)
+                    
+    #             # compute the power spectra
+    #             if p_gg:
+    #                 pk_gg = pk_lib.compute_p_gg_two_halo(block, k_vec, pk_eff, z_vec, bg)
+    #                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg)
+    #             if p_gm:
+    #                 pk_gm = pk_lib.compute_p_gm_two_halo(block, k_vec, pk_eff, z_vec, bg)
+    #                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm)
+    #             if p_mI:
+    #                 #print('pGI...')
+    #                 pk_mI = pk_lib.compute_p_mI_two_halo(block, k_vec, pk_eff, z_vec, f_red_cen, alignment_amplitude_2h)
+    #                 block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)
+    #             if p_gI:
+    #                 pk_gI = pk_lib.compute_p_gI_two_halo(block, k_vec, pk_eff, z_vec, f_red_cen, alignment_amplitude_2h, bg)
+    #                 block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
+    #             if p_II:
+    #                 #print('pII...')
+    #                 pk_II = pk_lib.compute_p_II_two_halo(block, k_vec, pk_eff, z_vec, f_red_cen, alignment_amplitude_2h_II)
+    #                 block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
+                    
+    #     if p_mm:
+    #         # this is not very useful as for the lensing power spectrum it is usually used halofit
+    #         raise ValueError('pmm not implemented for the two-halo only option\n')
+    #         # AD: Implement proper matter-matter term using the halo model here. We do not want to use halofit.
+    #         # compute_p_mm_new(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, matter_profile, I_m, nz, nk)
+
+    # else:
+    
     # TODO: Check beta_interp
     # Add the non-linear P_hh to the 2h term
     if bnl == True:
