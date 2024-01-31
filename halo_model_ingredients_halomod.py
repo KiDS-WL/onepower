@@ -28,7 +28,7 @@ from astropy.cosmology import Planck15
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
 
-
+warnings.filterwarnings('ignore', category=UserWarning, module='colossus')
 
 class SOVirial_Mead(SphericalOverdensity):
     """
@@ -42,7 +42,7 @@ class SOVirial_Mead(SphericalOverdensity):
         
     @property
     def colossus_name(self):
-        return "200c"#"vir"
+        return "200c"
             
     def __str__(self):
         """Describe the halo definition in standard notation."""
@@ -62,8 +62,10 @@ def get_modified_concentration(base):
             self.norm = norm
             self.sigma8 = sigma8
             self.ns = ns
-            super(base, self).__init__(**model_parameters)
-            astropy_to_colossus(self.cosmo.cosmo, sigma8=self.sigma8, ns=self.ns)
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=UserWarning)
+                super(base, self).__init__(**model_parameters)
+                astropy_to_colossus(self.cosmo.cosmo, sigma8=self.sigma8, ns=self.ns)
     
         def cm(self, m, z):
             c = base.cm(self, m, z)
@@ -182,7 +184,7 @@ def setup(options):
                         Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
                         hmf_model=options[option_section, 'hmf_model'],
                         mdef_model=mdef_model, mdef_params=mdef_params,
-                        transfer_model='CAMB', transfer_params={'kmax':1e2, 'extrapolate_with_eh':True},
+                        transfer_model='CAMB',
                         delta_c=delta_c, disable_mass_conversion=False,
                         growth_model='CambGrowth',
                         lnk_min=-18.0, lnk_max=18.0, dlnk=0.001,
@@ -280,6 +282,9 @@ def execute(block, config):
 
     k_vec_original = block['matter_power_lin', 'k_h']
     k = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
+    
+    transfer_k = block['matter_power_transfer_func', 'k_h']
+    transfer_func = block['matter_power_transfer_func', 't_k']
 
     # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
     for jz,z_iter in enumerate(z_vec):
@@ -287,19 +292,19 @@ def execute(block, config):
             delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter)))
             # Update the cosmology for the halo mass function, this takes a little while the first time it is called
             # Then it is faster becayse it only updates the redshift and the corresponding delta_c
-            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z)
+            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
             overdensity_z[jz] = mf.halo_overdensity_mean
             mdef_conc = mdef
         elif mead_correction is not None:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=UserWarning)
                 # This disables the warning from hmf is just telling us what we know
-                # hmf's internal way of calculating the overdensity and the collapse threshold are fixed. 
-                # When we use the mead correction we want to define the haloes using the virial definition. 
-                # To avoid conflicts we manually pass the overdensity and the collapse threshold, 
-                # but for that we need to set the mass definition to be "mean", 
-                # so that it is compared to the mean density of the Universe rather than critical density. 
-                # hmf warns us that the value is not a native definition for the given halo mass function, 
+                # hmf's internal way of calculating the overdensity and the collapse threshold are fixed.
+                # When we use the mead correction we want to define the haloes using the virial definition.
+                # To avoid conflicts we manually pass the overdensity and the collapse threshold,
+                # but for that we need to set the mass definition to be "mean",
+                # so that it is compared to the mean density of the Universe rather than critical density.
+                # hmf warns us that the value is not a native definition for the given halo mass function,
                 # but will interpolate between the known ones (this is happening when one uses Tinker hmf for instance).
                 
                 a = this_cosmo_run.scale_factor(z_iter)
@@ -311,11 +316,11 @@ def execute(block, config):
                 mdef_mead = SOVirial_Mead#'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
                 mf.ERROR_ON_BAD_MDEF = False
-                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  mdef_params={'overdensity':overdensity_z[jz]}, disable_mass_conversion=True)
+                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  mdef_params={'overdensity':overdensity_z[jz]}, disable_mass_conversion=True, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
         else:
             overdensity_z[jz] = overdensity
             delta_c_z = delta_c
-            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]})
+            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
             mdef_conc = mdef
         
         #Peak height, mf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}

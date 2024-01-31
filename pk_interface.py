@@ -280,7 +280,7 @@ def execute(block, config):
         if matter == True:
             A_term   = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
             I_m = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
-            matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm)
+            matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, np.zeros_like(z_vec))
             
         if (galaxy == True) or (alignment == True):
             # TODO: Change where this is looking for things, as I have removed metadata
@@ -357,7 +357,7 @@ def execute(block, config):
             # 2h term integral for matter
             I_m = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
             # Matter halo profile
-            matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
+            matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, np.zeros_like(fnu))
             # TODO: Why is there a matter profile and a matter_profile_1h_mm?
             
             if mead_correction == 'feedback':
@@ -368,7 +368,7 @@ def execute(block, config):
                 fstar_mm = pk_lib.load_fstar_mm(block, hod_section_name, z_vec, mass)
                 matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z_vec, fstar_mm, omega_c, omega_m, omega_b, fnu)
             else:
-                matter_profile_1h_mm = matter_profile.copy()
+                matter_profile_1h_mm = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
                 
             if bnl == True:
                 # TODO: This one uses matter_profile not matter_profile_1h_mm. Shouldn't we use the same profile everywhere?

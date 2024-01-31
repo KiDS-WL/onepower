@@ -52,7 +52,8 @@ def test_cosmo(cparam_in):
 
     cparam_in = cparam_in.reshape(1, 6)
     cparam_out = np.copy(cparam_in)
-
+    
+    """
     for i, (key, edges) in enumerate(cparam_range.items()):
         if cparam_in[0, i] < edges[0]:
             print(f'{cparam_in[0, i]} is smaller than {edges[0]} of key: {key}')
@@ -60,7 +61,13 @@ def test_cosmo(cparam_in):
         if cparam_in[0, i] > edges[1]:
             print(f'{cparam_in[0, i]} is larger than {edges[0]} of key: {key}')
             exit()
-
+    """
+    for i, (key, edges) in enumerate(cparam_range.items()):
+        if cparam_in[0, i] < edges[0]:
+            cparam_out[0, i] = edges[0]
+        if cparam_in[0, i] > edges[1]:
+            cparam_out[0, i] = edges[1]
+    return (*cparam_out.T, )
 
 def setup(options):
 
@@ -127,12 +134,14 @@ def get_cosmopower_inputs(block, z_vec, len_zvec, len_Mvec, M_vec):
     n_s = block['cosmological_parameters', 'n_s']
     w = block['cosmological_parameters', 'w']
 
-    test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
+    #test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
+    ombh2, omch2, omega_lambda, lnAs, n_w, w = test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
 
     params_bnl = {'obh2':ombh2*np.ones_like(z_list),
                   'omch2': omch2*np.ones_like(z_list),
                   'omega_lambda': omega_lambda*np.ones_like(z_list),
-                  'logAs': np.log(10**10*A_s)*np.ones_like(z_list),
+                  #'logAs': np.log(10**10*A_s)*np.ones_like(z_list),
+                  'logAs': lnAs*np.ones_like(z_list),
                   'ns': n_s*np.ones_like(z_list),
                   'w': w*np.ones_like(z_list),
                   'z': z_list,
@@ -184,15 +193,20 @@ def execute(block, config):
             k_new = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=config['nk'])
             
             bnl_functions_new = np.zeros(shape=(config['len_zvec'], config['len_Mvec'], config['len_Mvec'], len(k_new)))
-            std_bnl = np.std(bnl_functions, axis=(0,1,2))
-            mean_bnl = np.mean(bnl_functions, axis=(0,1,2))
             
             # Can call axis in the interp1d function to avoid loops!
             bnl_spline = interp1d(np.log10(config['k_vec']), bnl_functions, axis=-1, fill_value=0.0, bounds_error=False)
             bnl_functions_new = bnl_spline(np.log10(k_new))
-            beta_cosmopower = bnl_functions_new
+            beta_cosmopower = bnl_functions_new# * low_k_truncation(k_new) * high_k_truncation(k_new)# / ((1.0+config['z_vec'])**1.0)[:,np.newaxis,np.newaxis,np.newaxis]# * high_k_truncation(k_new)
         else:
             beta_cosmopower = bnl_functions
+            
+        beta_cosmopower = np.transpose(beta_cosmopower, [0,3,1,2])
+        beta_cosmopower_u = np.triu(beta_cosmopower, 0)
+        beta_cosmopower_l = np.triu(beta_cosmopower, 1)
+        beta_cosmopower = beta_cosmopower_u + np.transpose(beta_cosmopower_l, [0,1,3,2])
+        beta_cosmopower = np.transpose(beta_cosmopower, [0,2,3,1])
+            
         block.put_double_array_nd('bnl', 'beta_interp', beta_cosmopower)
     
     else:
@@ -200,4 +214,17 @@ def execute(block, config):
 
     return 0
 
+def high_k_truncation(k_vec):
+    """
+    Beta_nl high-k truncation
+    """
+    from scipy.special import erf
+    k_trunc = 1.0
+    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
+def low_k_truncation(k_vec):
+    """
+    Beta_nl low-k truncation
+    """
+    k_trunc = 0.1
+    return 1.0/(1.0+np.exp(-(10.0*(np.log10(k_vec/k_trunc)))))

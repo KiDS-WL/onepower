@@ -36,7 +36,7 @@ class SOVirial_Mead(SphericalOverdensity):
         
     @property
     def colossus_name(self):
-        return "200c"#"vir"
+        return "200c"
             
     def __str__(self):
         """Describe the halo definition in standard notation."""
@@ -58,8 +58,10 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
         this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
                      sigma8=block[cosmo_params, 'sigma_8'], ns=block[cosmo_params, 'n_s'])
 
-                     
-    mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
+    if isinstance(mdef, str):
+        mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
+    else:
+        mdef = SOVirial_Mead(overdensity=overdensity)
     
     # This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
     # MA: Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
@@ -127,7 +129,7 @@ def setup(options):
                         Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
                         hmf_model=options[option_section, 'hmf_model'],
                         mdef_model=mdef_model, mdef_params=mdef_params,
-                        transfer_model='CAMB', transfer_params={'kmax':1e2, 'extrapolate_with_eh':True},
+                        transfer_model='CAMB',
                         delta_c=delta_c, disable_mass_conversion=False,
                         growth_model='CambGrowth',
                         lnk_min=-18.0, lnk_max=18.0)
@@ -176,6 +178,9 @@ def execute(block, config):
 
     ns      = block[cosmo_params, 'n_s']
     sigma_8 = block[cosmo_params, 'sigma_8']
+    
+    transfer_k = block['matter_power_transfer_func', 'k_h']
+    transfer_func = block['matter_power_transfer_func', 't_k']
 
     # initialise arrays
     nmass_hmf = len(mass)
@@ -212,7 +217,7 @@ def execute(block, config):
             delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter)))
             # Update the cosmology for the halo mass function, this takes a little while the first time it is called
             # Then it is faster becayse it only updates the redshift and the corresponding delta_c
-            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z)
+            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
             overdensity_z[jz] = mf.halo_overdensity_mean
             mdef_conc = mdef
         elif mead_correction is not None:
@@ -235,13 +240,13 @@ def execute(block, config):
                 mdef_mead = SOVirial_Mead#'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
                 mf.ERROR_ON_BAD_MDEF = False
-                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  mdef_params={'overdensity':overdensity_z[jz]}, disable_mass_conversion=True)
+                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  mdef_params={'overdensity':overdensity_z[jz]}, disable_mass_conversion=True, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
                 if mead_correction in ['feedback', 'nofeedback']:
                     zf[jz,:] = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, mf)
         else:
             overdensity_z[jz] = overdensity
             delta_c_z = delta_c
-            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]})
+            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
             mdef_conc = mdef
     
         # What code do you want to use to define the halo mass function
