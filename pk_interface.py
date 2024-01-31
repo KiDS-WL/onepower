@@ -244,29 +244,24 @@ def execute(block, config):
     # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
     plin= pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
 
-    # AD: Only used in Fortuna et al. implementation of IA power spectra
-    # compute the effective power spectrum, mixing the linear and nonlinear one:
-    # Defaullt in Fortuna et al. is the non-linear power spectrum, so t_eff defaults to 0
+    # Only used in Fortuna et al. 2021 implementation of IA power spectra
+    # computes the effective power spectrum, mixing the linear and nonlinear ones:
+    # Defaullt in Fortuna et al. 2021 is the non-linear power spectrum, so t_eff defaults to 0
     #
     # (1.-t_eff)*pnl + t_eff*plin
     #
-    # non-linear matter power spectrum. 
     # load nonlinear power spectrum
     k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
     pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
     t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
     pk_eff = (1.-t_eff)*pnl + t_eff*plin
 
-    # If the two_halo_only option is set to True, then only the linear regime is computed and the linear bias is used 
-    # (either computed by the hod module or passed in the value	file (same structure as for the constant bias module)
-    # Otherwise, compute the full power spectra (including the small scales)
-
+    # TODO: Read mass from the ingredients
     # load the halo mass and bias functions from the datablock
     dn_dlnm, b_dm = pk_lib.get_halo_functions(block, mass, z_vec)
     # Reads in the Fourier transform of the normalised dark matter halo profile 
     u_dm, u_sat  = pk_lib.get_normalised_profile(block, k_vec, mass, z_vec)
     
-    # TODO: Check beta_interp
     # Add the non-linear P_hh to the 2h term
     if bnl == True:
         # Reads beta_nl from the block
