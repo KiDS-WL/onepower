@@ -232,34 +232,17 @@ def execute(block, config):
 
     mean_density0 = block['density', 'mean_density0'] *np.ones(len(z_vec))
 
-    # TODO: Marika: Change this bit to read in k_vec and pk from the block directly. Get growth from camb
-    # AD: If we can avoid interpolation, then yes. Looking at load_modules.py, we could leave them there to have more utility code separated. 
-    # Could call them utilities. Dunno
-
-    # TODO: move all interpolations into this function
     # Interpolates in z only
     k_vec_original, plin_original = pk_lib.get_linear_power_spectrum(block, z_vec)
-    # load growth factor
-    k_vec_original,  growth_factor_original, scale_factor_original = pk_lib.get_growth_factor(block, z_vec)
-    # load nonlinear power spectrum
-    k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
-    
+
     # We have to redefine k_vec because of halo profile
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
 
+    # load growth factor and scale factor
+    growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec,k_vec)
+    
     # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
     plin= pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
-
-    growth_factor_interp = interp1d(k_vec_original, growth_factor_original, axis=1, fill_value='extrapolate')
-    growth_factor = growth_factor_interp(k_vec)
-
-    # The scale factor is used in the alignment model
-    scale_factor_interp = interp1d(k_vec_original, scale_factor_original, axis=1, fill_value='extrapolate')
-    scale_factor = scale_factor_interp(k_vec)
-
-    # AD: The following two lines only used for testing, need to be removed later on!
-    # block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
-    #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
 
     # AD: Only used in Fortuna et al. implementation of IA power spectra
     # compute the effective power spectrum, mixing the linear and nonlinear one:
@@ -268,6 +251,8 @@ def execute(block, config):
     # (1.-t_eff)*pnl + t_eff*plin
     #
     # non-linear matter power spectrum. 
+    # load nonlinear power spectrum
+    k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
     pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
     t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
     pk_eff = (1.-t_eff)*pnl + t_eff*plin

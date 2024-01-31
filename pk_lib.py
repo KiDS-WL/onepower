@@ -96,25 +96,23 @@ def get_linear_power_spectrum(block, z_vec):
     return k_vec, plin
 
 # Reads in the growth factor
-def get_growth_factor(block, z_vec):
+def get_growth_factor(block, z_vec, k_vec):
     """
     Loads and interpolates the growth factor
     and scale factor
     """
-    
-    k_vec = block['matter_power_lin', 'k_h']
-    z_pl  = block['growth_parameters', 'z']
+    z_in  = block['growth_parameters', 'z']
     
     # reads in the growth factor and turns it into a 2D array that has this dimensions: len(z) x len(k)
     # all columns are identical
     growth_factor_in  = block['growth_parameters', 'd_z']
-    growth_factor = interpolate_in_z(growth_factor_in, z_pl, z_vec)
+    growth_factor = interpolate_in_z(growth_factor_in, z_in, z_vec)
     growth_factor = growth_factor.flatten()[:,np.newaxis] * np.ones(k_vec.size)
  
     scale_factor  = 1./(1.+z_vec)
-    scale_factor = scale_factor.flatten()[:,np.newaxis] * np.ones(k_vec.size)
+    scale_factor  = scale_factor.flatten()[:,np.newaxis] * np.ones(k_vec.size)
     
-    return k_vec, growth_factor, scale_factor
+    return growth_factor, scale_factor
 
 
 def get_nonlinear_power_spectrum(block, z_vec):
