@@ -163,9 +163,9 @@ def execute(block, config):
     neff      = np.empty([nz])
     sigma8_z  = np.empty([nz])
     # Fraction of neutrinos to total matter,  f_nu = Ω_nu /Ω_m
-    f_nu      = np.empty([nz])
+    # f_nu      = np.empty([nz])
     h_z       = np.empty([nz])
-    mean_density0  = np.empty([nz])
+    # mean_density0  = np.empty([nz])
     mean_density_z = np.empty([nz])
     overdensity_z  = np.empty([nz])
     
@@ -243,26 +243,29 @@ def execute(block, config):
         #Peak height, mf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
         nu[jz]        = mf.nu**0.5
 
-        # TODO: This is the mean matter density at z=0, change to be just one value.
-        mean_density0[jz]  = mf.mean_density0
         # This is the redshift dependant mean density
         mean_density_z[jz] = mf.mean_density
         rho_halo[jz]  = overdensity_z[jz] * mf.mean_density0
         bias     = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_z, delta_halo=overdensity_z[jz],
                                                  sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
         b_nu[jz] = bias.bias()
-        # fraction of neutrinos to matter
-        f_nu[jz] = this_cosmo_run.Onu0/this_cosmo_run.Om0
-
+        
         # These are only used for mead_corrections
         # index of 
         idx_neff      = np.argmin(np.abs(mf.nu - 1.0))
         # effective power spectrum index at the collapse scale, 
-        # Question: n_eff is just used in the transition_smoothing module for mead_corrections. It is called n^eff_cc in table 2 of https://arxiv.org/pdf/2009.01858.pdf . But it doesn't explain what it is. Do we know if this is the correct one to use? 
+        # TODO: n_eff is just used in the transition_smoothing module for mead_corrections. 
+        # It is called n^eff_cc in table 2 of https://arxiv.org/pdf/2009.01858.pdf . 
+        # But it doesn't explain what it is. Do we know if this is the correct one to use? 
         neff[jz]      = mf.n_eff[idx_neff]
         # Only used for mead_corrections
         sigma8_z[jz] = mf.normalised_filter.sigma(8.0)
-    
+
+    # TODO: This is the mean matter density at z=0, change to be just one value.
+    mean_density0 = mf.mean_density0
+    # fraction of neutrinos to matter
+    f_nu = this_cosmo_run.Onu0/this_cosmo_run.Om0
+
     downsample_factor = int(nz/nz_conc)
     if downsample_factor > 0 :
         overdensity_conc = overdensity_z[::downsample_factor]
@@ -342,8 +345,10 @@ def execute(block, config):
 
     # density 
     # These two do not depend on redshift so should only be saved as a single number
-    block.put_double_array_1d('density', 'mean_density0', mean_density0) #(mean_density0/this_cosmo_run.Om0)*this_cosmo_run.Odm0)
-    block.put_double_array_1d('density', 'rho_crit', mean_density0/this_cosmo_run.Om0)
+    block['density', 'mean_density0'] = mean_density0 
+    block['density', 'rho_crit'] = mean_density0/this_cosmo_run.Om0
+
+
     # These depend on redshift
     block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
     block.put_double_array_1d('density', 'rho_halo', rho_halo)
@@ -365,7 +370,7 @@ def execute(block, config):
     h_z = this_cosmo_run.H(z_vec).value/100.0
     block.put_double_array_1d(cosmo_params, 'h_z', h_z)
     # f_nu = Omega_nu/Omega_m
-    block.put_double_array_1d(cosmo_params, 'fnu', f_nu)
+    block[cosmo_params, 'fnu'] = f_nu
     block.put_double_array_1d(cosmo_params, 'z',z_vec)
 
     return 0

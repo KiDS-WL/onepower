@@ -108,8 +108,7 @@ def get_string_or_none(options, name, default):
     
     return param
 
-
-# TODO: f_red_cen not defined
+##############################################################################################################################
 
 def setup(options):
 
@@ -145,13 +144,9 @@ def setup(options):
     # If True uses beta_nl
     bnl     = options.get_bool(option_section, 'bnl', default=False)
 
-    # TODO: change this: generally not good practice to look into a different section other than option_section.
-    # Since names can change in the ini file.
-    check_mead    = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
 
     poisson_type  = options.get_string(option_section, 'poisson_type', default='')
     point_mass    = options.get_bool(option_section, 'point_mass', default=False)
-    two_halo_only = options.get_bool(option_section, 'two_halo_only', default=False)
 
     # Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
     # and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
@@ -170,19 +165,27 @@ def setup(options):
     hod_section_name = options.get_string(option_section, 'hod_section_name')
 
     if (p_mI == True) and (p_mI_fortuna == True):
-        raise Exception('Select either p_mI = True or p_mI_fortuna = True, both compute the matter-intrinsic power spectrum. p_mI_fortuna is the implementation used in Fortuna et al. 2021 paper.')
+        raise Exception('Select either p_mI = True or p_mI_fortuna = True, \
+                        both compute the matter-intrinsic power spectrum. \
+                        p_mI_fortuna is the implementation used in Fortuna et al. 2021 paper.')
         
     if (p_II == True) and (p_II_fortuna == True):
-        raise Exception('Select either p_II = True or p_II_fortuna = True, all compute the matter-intrinsic power spectrum. p_II_fortuna is the implementation used in Fortuna et al. 2021 paper.')
+        raise Exception('Select either p_II = True or p_II_fortuna = True, \
+                        all compute the matter-intrinsic power spectrum. \
+                        p_II_fortuna is the implementation used in Fortuna et al. 2021 paper.')
         
     if (p_gI == True) and (p_gI_fortuna == True):
-        raise Exception('Select either p_gI = True or p_gI_fortuna = True, all compute the matter-intrinsic power spectrum. p_gI_fortuna i is the implementation used in Fortuna et al. 2021 paper.')
+        raise Exception('Select either p_gI = True or p_gI_fortuna = True, \
+                        all compute the matter-intrinsic power spectrum. \
+                        p_gI_fortuna i is the implementation used in Fortuna et al. 2021 paper.')
 
     if ((p_mm == True) or (p_gm == True) or (p_mI == True) or (p_mI_fortuna == True)):
         matter = True
-    if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
+    if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or \
+        (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
         galaxy = True
-    if (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
+    if (p_gI == True) or (p_mI == True) or (p_II == True) or \
+        (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
         alignment = True
 
     population_name = options.get_string(option_section, 'output_suffix', default='').lower()
@@ -191,9 +194,14 @@ def setup(options):
     else:
         pop_name = ''
     
-    # TODO: this has to be changed see comment above about check_mead
+
+    # TODO: Check that moving use_mead doesn't couse a conflict
+    # change this: generally not good practice to look into a different section other than option_section.
+    # Since names can change in the ini file. For now moved it to this section
+    # check_mead    = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
+    check_mead    = options.has_value(option_section, 'use_mead2020_corrections')
     if check_mead:
-        use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
+        use_mead = options[option_section, 'use_mead2020_corrections']
         if use_mead == 'mead2020':
             mead_correction = 'nofeedback'
         elif use_mead == 'mead2020_feedback':
@@ -275,9 +283,6 @@ def execute(block, config):
     # Reads in the Fourier transform of the normalised dark matter halo profile 
     u_dm, u_sat  = pk_lib.get_normalised_profile(block, k_vec, mass, z_vec)
     
-    # TODO: check that mean_density for A should be mean_density at redshift zero.
-    # A_term       = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
-    
     # TODO: Check beta_interp
     # Add the non-linear P_hh to the 2h term
     if bnl == True:
@@ -294,10 +299,11 @@ def execute(block, config):
     # Assumes all missing mass is in haloes of mass M_min.
     # This is calculated separately for each redshift
     # TODO: check if this is needed for the IA section
+    # TODO: check that mean_density for A should be mean_density at redshift zero.
     A_term = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
     
     # f_nu = omega_nu/omega_m with the same length as redshift
-    fnu     = block['cosmological_parameters', 'fnu']
+    fnu     = block['cosmological_parameters', 'fnu'] * np.ones(len(z_vec))
     omega_c = block['cosmological_parameters', 'omega_c']
     omega_m = block['cosmological_parameters', 'omega_m']
     omega_b = block['cosmological_parameters', 'omega_b']

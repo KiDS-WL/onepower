@@ -223,9 +223,9 @@ def execute(block, config):
     hod_section_name, mead_correction, point_mass, poisson_type, pop_name = config
 
     # TODO: This has the same length as nz but the same value in each element
-    mean_density0 = block['density', 'mean_density0']
+    mean_density0 = block['density', 'mean_density0'] * np.ones(len(z_vec))
 
-    # Marika: Change this bit to read in k_vec and pk from the block directly. Get growth from camb
+    # TODO: Marika: Change this bit to read in k_vec and pk from the block directly. Get growth from camb
     # AD: If we can avoid interpolation, then yes. Looking at load_modules.py, we could leave them there to have more utility code separated. 
     # Could call them utilities. Dunno
 
