@@ -40,15 +40,19 @@ mI: matter-intrinsic alignment
 # NOTE: no truncation (halo exclusion problem) applied!
 
 from cosmosis.datablock import names, option_section
-import sys
+
 import numpy as np
-from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
-from collections import OrderedDict
+from scipy.interpolate import interp1d
+
+# from scipy.interpolate import interp2d, RegularGridInterpolator
+# from collections import OrderedDict
+# import sys
+# import time
 
 import numbers
 import pk_lib
 
-import time
+
 
 cosmo = names.cosmological_parameters
 
@@ -105,20 +109,20 @@ def get_string_or_none(options, name, default):
     return param
 
 
+# TODO: f_red_cen not defined
+
 def setup(options):
 
     # Read in the minimum and maximum halo mass
     # These are the same as the values that go into the halo model ingredients and the HOD sections, but they don't have to be.
     # Interpolation is done if the mass binning and range doesn't match
+    # TODO: check that interpolation is done
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
     nmass = options[option_section, 'nmass']
     # log-spaced mass in units of M_sun/h
     dlog10m = (log_mass_max-log_mass_min)/nmass
     mass    = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
-
-    #nmass_bnl = options[option_section, 'nmass_bnl']
-    #mass_bnl = np.logspace(log_mass_min, log_mass_max, nmass_bnl) 
 
     zmin  = options[option_section, 'zmin']
     zmax  = options[option_section, 'zmax']
@@ -133,24 +137,25 @@ def setup(options):
     p_gI = options.get_bool(option_section, 'p_gI', default=False)
     p_mI = options.get_bool(option_section, 'p_mI', default=False)
     p_II = options.get_bool(option_section, 'p_II', default=False)
-    # TODO: these are the IA power as in Fortuna et al. 2021. Change the name.
+
+    # These are the IA power as in Fortuna et al. 2021: Truncated NLA at high k + 1-halo term 
     p_gI_fortuna = options.get_bool(option_section, 'p_gI_fortuna', default=False)
     p_mI_fortuna = options.get_bool(option_section, 'p_mI_fortuna', default=False)
     p_II_fortuna = options.get_bool(option_section, 'p_II_fortuna', default=False)
     # If True uses beta_nl
     bnl     = options.get_bool(option_section, 'bnl', default=False)
-    #interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl',default=False)
 
-    # TODO: change this: generally not good practice to look into a difference section other than option_section.
-    # As names can change in the ini file.
+    # TODO: change this: generally not good practice to look into a different section other than option_section.
+    # Since names can change in the ini file.
     check_mead    = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
 
     poisson_type  = options.get_string(option_section, 'poisson_type', default='')
     point_mass    = options.get_bool(option_section, 'point_mass', default=False)
     two_halo_only = options.get_bool(option_section, 'two_halo_only', default=False)
 
-    #Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
-    #and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
+    # Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
+    # and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
+    # The user can change these values.
     one_halo_ktrunc_ia = get_string_or_none(options, 'one_halo_ktrunc_ia', default=4.0) # h/Mpc or None
     two_halo_ktrunc_ia = get_string_or_none(options, 'two_halo_ktrunc_ia', default=6.0) # h/Mpc or None
     # General truncation of non-IA terms:
@@ -166,19 +171,13 @@ def setup(options):
 
     if (p_mI == True) and (p_mI_fortuna == True):
         raise Exception('Select either p_mI = True or p_mI_fortuna = True, both compute the matter-intrinsic power spectrum. p_mI_fortuna is the implementation used in Fortuna et al. 2021 paper.')
-        # print('Select either p_mI = True or p_mI_fortuna = True, both compute the matter-intrinsic power spectrum. p_mI_fortuna is the implementation used in Fortuna et al. 2021 paper.')
-        # sys.exit()
         
     if (p_II == True) and (p_II_fortuna == True):
         raise Exception('Select either p_II = True or p_II_fortuna = True, all compute the matter-intrinsic power spectrum. p_II_fortuna is the implementation used in Fortuna et al. 2021 paper.')
-
         
     if (p_gI == True) and (p_gI_fortuna == True):
         raise Exception('Select either p_gI = True or p_gI_fortuna = True, all compute the matter-intrinsic power spectrum. p_gI_fortuna i is the implementation used in Fortuna et al. 2021 paper.')
 
-
-
-    # TODO: what does the two halo only do? Do we need this?
     if ((p_mm == True) or (p_gm == True) or (p_mI == True) or (p_mI_fortuna == True)):
         matter = True
     if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
@@ -217,6 +216,7 @@ def setup(options):
 
 def execute(block, config):
 
+    # TODO: nmass not used
     mass, nmass, z_vec, nz, nk, \
     p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_fortuna, p_mI_fortuna, p_II_fortuna, \
     matter, galaxy, bnl, alignment, two_halo_only,\
@@ -237,20 +237,24 @@ def execute(block, config):
     # load nonlinear power spectrum
     k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
     
+    # TODO: Check if we can avoid redefining k_vec
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
 
+    # TODO: Check this extrapolation. Normally log-linear extrapolation works better with power spectra
     plin_k_interp = interp1d(k_vec_original, plin_original, axis=1, fill_value='extrapolate')
     plin = plin_k_interp(k_vec)
+
     growth_factor_interp = interp1d(k_vec_original, growth_factor_original, axis=1, fill_value='extrapolate')
     growth_factor = growth_factor_interp(k_vec)
+
+    # The scale factor is use in the alignment model
     scale_factor_interp = interp1d(k_vec_original, scale_factor_original, axis=1, fill_value='extrapolate')
     scale_factor = scale_factor_interp(k_vec)
 
-    
-    p_nonlin_k_interp = interp1d(k_nl, p_nl, axis=1, fill_value='extrapolate')
-    pnl = p_nonlin_k_interp(k_vec)
+   
+
     # AD: The following two lines only used for testing, need to be removed later on!
-    block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
+    # block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
     #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
 
     # AD: Only used in Fortuna et al. implementation of IA power spectra
@@ -259,18 +263,20 @@ def execute(block, config):
     #
     # (1.-t_eff)*pnl + t_eff*plin
     #
+    # non-linear matter power spectrum. 
+    p_nonlin_k_interp = interp1d(k_nl, p_nl, axis=1, fill_value='extrapolate')
+    pnl = p_nonlin_k_interp(k_vec)
     t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
     pk_eff = (1.-t_eff)*pnl + t_eff*plin
 
-    # If the two_halo_only option is set True, then only the linear regime is computed and the linear bias is used (either computed by the
-    # hod module or passed in the value	file (same structure as for the constant bias module)
+    # If the two_halo_only option is set to True, then only the linear regime is computed and the linear bias is used 
+    # (either computed by the hod module or passed in the value	file (same structure as for the constant bias module)
     # Otherwise, compute the full power spectra (including the small scales)
 
     # load the halo mass and bias functions from the datablock
     dn_dlnm, b_dm = pk_lib.get_halo_functions(block, mass, z_vec)
-    # prepare a grid for the navarro-frenk-white profile
-    #TODO: see the comments for this function in pk_lib
-    u_dm, u_sat  = pk_lib.compute_u_dm_grid(block, k_vec, mass, z_vec)
+    # Reads in the Fourier transform of the normalised dark matter halo profile 
+    u_dm, u_sat  = pk_lib.get_normalised_profile(block, k_vec, mass, z_vec)
     
     # TODO: check that mean_density for A should be mean_density at redshift zero.
     # A_term       = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
