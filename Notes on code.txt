@@ -138,5 +138,5 @@ f_star definition doesn't match table 4 of hmcode2020 :
 fstar = ((2.01 - 0.30*theta_agn)*0.01 * 10.0**(z*(0.409 + 0.0224*theta_agn))) / (0.75 * (1.0+z)**(1.0/6.0))
 the dinominator does not exist in the paper.
 
-
+Next thing to check is IA. 
 

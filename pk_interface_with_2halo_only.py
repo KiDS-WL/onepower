@@ -108,7 +108,8 @@ def get_string_or_none(options, name, default):
     
     return param
 
-##############################################################################################################################
+
+# TODO: f_red_cen not defined
 
 def setup(options):
 
@@ -144,9 +145,13 @@ def setup(options):
     # If True uses beta_nl
     bnl     = options.get_bool(option_section, 'bnl', default=False)
 
+    # TODO: change this: generally not good practice to look into a different section other than option_section.
+    # Since names can change in the ini file.
+    check_mead    = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
 
     poisson_type  = options.get_string(option_section, 'poisson_type', default='')
     point_mass    = options.get_bool(option_section, 'point_mass', default=False)
+    two_halo_only = options.get_bool(option_section, 'two_halo_only', default=False)
 
     # Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
     # and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
@@ -165,27 +170,19 @@ def setup(options):
     hod_section_name = options.get_string(option_section, 'hod_section_name')
 
     if (p_mI == True) and (p_mI_fortuna == True):
-        raise Exception('Select either p_mI = True or p_mI_fortuna = True, \
-                        both compute the matter-intrinsic power spectrum. \
-                        p_mI_fortuna is the implementation used in Fortuna et al. 2021 paper.')
+        raise Exception('Select either p_mI = True or p_mI_fortuna = True, both compute the matter-intrinsic power spectrum. p_mI_fortuna is the implementation used in Fortuna et al. 2021 paper.')
         
     if (p_II == True) and (p_II_fortuna == True):
-        raise Exception('Select either p_II = True or p_II_fortuna = True, \
-                        all compute the matter-intrinsic power spectrum. \
-                        p_II_fortuna is the implementation used in Fortuna et al. 2021 paper.')
+        raise Exception('Select either p_II = True or p_II_fortuna = True, all compute the matter-intrinsic power spectrum. p_II_fortuna is the implementation used in Fortuna et al. 2021 paper.')
         
     if (p_gI == True) and (p_gI_fortuna == True):
-        raise Exception('Select either p_gI = True or p_gI_fortuna = True, \
-                        all compute the matter-intrinsic power spectrum. \
-                        p_gI_fortuna i is the implementation used in Fortuna et al. 2021 paper.')
+        raise Exception('Select either p_gI = True or p_gI_fortuna = True, all compute the matter-intrinsic power spectrum. p_gI_fortuna i is the implementation used in Fortuna et al. 2021 paper.')
 
     if ((p_mm == True) or (p_gm == True) or (p_mI == True) or (p_mI_fortuna == True)):
         matter = True
-    if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or \
-        (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
+    if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
         galaxy = True
-    if (p_gI == True) or (p_mI == True) or (p_II == True) or \
-        (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
+    if (p_gI == True) or (p_mI == True) or (p_II == True) or (p_gI_fortuna == True) or (p_mI_fortuna == True) or (p_II_fortuna == True):
         alignment = True
 
     population_name = options.get_string(option_section, 'output_suffix', default='').lower()
@@ -194,14 +191,9 @@ def setup(options):
     else:
         pop_name = ''
     
-
-    # TODO: Check that moving use_mead doesn't couse a conflict
-    # change this: generally not good practice to look into a different section other than option_section.
-    # Since names can change in the ini file. For now moved it to this section
-    # check_mead    = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
-    check_mead    = options.has_value(option_section, 'use_mead2020_corrections')
+    # TODO: this has to be changed see comment above about check_mead
     if check_mead:
-        use_mead = options[option_section, 'use_mead2020_corrections']
+        use_mead = options['hmf_and_halo_bias', 'use_mead2020_corrections']
         if use_mead == 'mead2020':
             mead_correction = 'nofeedback'
         elif use_mead == 'mead2020_feedback':
@@ -230,38 +222,128 @@ def execute(block, config):
     one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
     hod_section_name, mead_correction, point_mass, poisson_type, pop_name = config
 
-    mean_density0 = block['density', 'mean_density0'] *np.ones(len(z_vec))
+    # TODO: This has the same length as nz but the same value in each element
+    mean_density0 = block['density', 'mean_density0'] * np.ones(len(z_vec))
 
-    # Interpolates in z only
+    # TODO: Marika: Change this bit to read in k_vec and pk from the block directly. Get growth from camb
+    # AD: If we can avoid interpolation, then yes. Looking at load_modules.py, we could leave them there to have more utility code separated. 
+    # Could call them utilities. Dunno
+
+    # TODO: move all interpolations into this function
     k_vec_original, plin_original = pk_lib.get_linear_power_spectrum(block, z_vec)
-
-    # We have to redefine k_vec because of halo profile
+    # load growth factor
+    k_vec_original,  growth_factor_original, scale_factor_original = pk_lib.get_growth_factor(block, z_vec)
+    # load nonlinear power spectrum
+    k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
+    
+    # TODO: Check if we can avoid redefining k_vec
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
 
-    # load growth factor and scale factor
-    growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec,k_vec)
-    
-    # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
-    plin= pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
+    # TODO: Check this extrapolation. Normally log-linear extrapolation works better with power spectra
+    plin_k_interp = interp1d(k_vec_original, plin_original, axis=1, fill_value='extrapolate')
+    plin = plin_k_interp(k_vec)
 
-    # Only used in Fortuna et al. 2021 implementation of IA power spectra
-    # computes the effective power spectrum, mixing the linear and nonlinear ones:
-    # Defaullt in Fortuna et al. 2021 is the non-linear power spectrum, so t_eff defaults to 0
+    growth_factor_interp = interp1d(k_vec_original, growth_factor_original, axis=1, fill_value='extrapolate')
+    growth_factor = growth_factor_interp(k_vec)
+
+    # The scale factor is use in the alignment model
+    scale_factor_interp = interp1d(k_vec_original, scale_factor_original, axis=1, fill_value='extrapolate')
+    scale_factor = scale_factor_interp(k_vec)
+
+    # AD: The following two lines only used for testing, need to be removed later on!
+    # block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
+    #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
+
+    # AD: Only used in Fortuna et al. implementation of IA power spectra
+    # compute the effective power spectrum, mixing the linear and nonlinear one:
+    # Defaullt in Fortuna et al. is the non-linear power spectrum, so t_eff defaults to 0
     #
     # (1.-t_eff)*pnl + t_eff*plin
     #
-    # load nonlinear power spectrum
-    k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
-    pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
+    # non-linear matter power spectrum. 
+    p_nonlin_k_interp = interp1d(k_nl, p_nl, axis=1, fill_value='extrapolate')
+    pnl = p_nonlin_k_interp(k_vec)
     t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
     pk_eff = (1.-t_eff)*pnl + t_eff*plin
 
-    # TODO: Read mass from the ingredients
+    # If the two_halo_only option is set to True, then only the linear regime is computed and the linear bias is used 
+    # (either computed by the hod module or passed in the value	file (same structure as for the constant bias module)
+    # Otherwise, compute the full power spectra (including the small scales)
+
     # load the halo mass and bias functions from the datablock
     dn_dlnm, b_dm = pk_lib.get_halo_functions(block, mass, z_vec)
     # Reads in the Fourier transform of the normalised dark matter halo profile 
     u_dm, u_sat  = pk_lib.get_normalised_profile(block, k_vec, mass, z_vec)
     
+    # TODO: check that mean_density for A should be mean_density at redshift zero.
+    # A_term       = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
+    
+    # Commented this out for now, because it doesn't work and has variables that are not defined. 
+    # We can bring it back if needed
+    # if two_halo_only == True:
+    #     if matter == True:
+    #         # Accounts for the missing low mass haloes in the integrals for the 2h term.
+    #         # Assumes all missing mass is in haloes of mass M_min.
+    #         # This is calculated separately for each redshift
+    #         # TODO: check if this is needed for the IA section
+    #         A_term = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
+    #         I_m = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
+
+    #         # f_nu = omega_nu/omega_m with the same length as redshift
+    #         fnu     = block['cosmological_parameters', 'fnu']
+    #         omega_c = block['cosmological_parameters', 'omega_c']
+    #         omega_m = block['cosmological_parameters', 'omega_m']
+    #         omega_b = block['cosmological_parameters', 'omega_b']
+
+    #         matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
+            
+    #     if (galaxy == True) or (alignment == True):
+    #         # TODO: Change where this is looking for things, as I have removed metadata
+    #         hod_bins = block[hod_section_name, 'nbins']
+            
+    #         for nb in range(0,hod_bins):
+    #             if hod_bins != 1:
+    #                 suffix = f'{pop_name}_{nb+1}'
+    #             else:
+    #                 suffix = f'{pop_name}'
+                    
+    #             if galaxy == True:
+    #                 # load linear bias:
+    #                 # TODO: change this to galaxy_bias_section_name
+    #                 bg = block[galaxy_bias_section_name, f'b{suffix}']
+    #                 if np.isscalar(bg): bg *= np.ones(nz)
+                    
+    #             if alignment == True:
+    #                 alignment_amplitude_2h, alignment_amplitude_2h_II = pk_lib.compute_two_halo_alignment(block, pop_name, growth_factor, mean_density0)
+                    
+    #             # compute the power spectra
+    #             if p_gg:
+    #                 pk_gg = pk_lib.compute_p_gg_two_halo(block, k_vec, pk_eff, z_vec, bg)
+    #                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg)
+    #             if p_gm:
+    #                 pk_gm = pk_lib.compute_p_gm_two_halo(block, k_vec, pk_eff, z_vec, bg)
+    #                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm)
+    #             if p_mI:
+    #                 #print('pGI...')
+    #                 pk_mI = pk_lib.compute_p_mI_two_halo(block, k_vec, pk_eff, z_vec, f_red_cen, alignment_amplitude_2h)
+    #                 block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)
+    #             if p_gI:
+    #                 pk_gI = pk_lib.compute_p_gI_two_halo(block, k_vec, pk_eff, z_vec, f_red_cen, alignment_amplitude_2h, bg)
+    #                 block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
+    #             if p_II:
+    #                 #print('pII...')
+    #                 pk_II = pk_lib.compute_p_II_two_halo(block, k_vec, pk_eff, z_vec, f_red_cen, alignment_amplitude_2h_II)
+    #                 block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
+                    
+    #     if p_mm:
+    #         # this is not very useful as for the lensing power spectrum it is usually used halofit
+    #         raise ValueError('pmm not implemented for the two-halo only option\n')
+    #         # AD: Implement proper matter-matter term using the halo model here. We do not want to use halofit.
+    #         # compute_p_mm_new(block, k_vec, pk_eff, z_vec, mass, dn_dlnm, matter_profile, I_m, nz, nk)
+
+    # else:
+    
+    # TODO: Check beta_interp
     # Add the non-linear P_hh to the 2h term
     if bnl == True:
         # Reads beta_nl from the block
@@ -277,11 +359,10 @@ def execute(block, config):
     # Assumes all missing mass is in haloes of mass M_min.
     # This is calculated separately for each redshift
     # TODO: check if this is needed for the IA section
-    # TODO: check that mean_density for A should be mean_density at redshift zero.
     A_term = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
     
     # f_nu = omega_nu/omega_m with the same length as redshift
-    fnu     = block['cosmological_parameters', 'fnu'] * np.ones(len(z_vec))
+    fnu     = block['cosmological_parameters', 'fnu']
     omega_c = block['cosmological_parameters', 'omega_c']
     omega_m = block['cosmological_parameters', 'omega_m']
     omega_b = block['cosmological_parameters', 'omega_b']

@@ -1,12 +1,13 @@
 # Library of the power spectrum module
 
 import numpy as np
-from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
+from scipy.interpolate import interp1d, RegularGridInterpolator
 from scipy.integrate import simps
 from scipy.special import erf
 import warnings
 
-from darkmatter_lib import compute_u_dm, radvir_from_mass
+
+# from darkmatter_lib import compute_u_dm, radvir_from_mass
 
 
 # TODO: check simps integration
@@ -68,13 +69,14 @@ mI: matter-intrinsic alignment
 # Read in from block
 # -------------------------------------------------------------------------------------------------------------------- #
 
-def interpolate_in_z(input_grid, z_pl, z_vec):
+def interpolate_in_z(input_grid, z_in, z_out,axis=0):
     """
     Interpolation in redshift
+    Default redshift axis is the first one. 
     """
     
-    f_interp = interp1d(z_pl, input_grid, axis=0)
-    interpolated_grid = f_interp(z_vec)
+    f_interp = interp1d(z_in, input_grid, axis=axis)
+    interpolated_grid = f_interp(z_out)
     
     return interpolated_grid
 
@@ -94,25 +96,23 @@ def get_linear_power_spectrum(block, z_vec):
     return k_vec, plin
 
 # Reads in the growth factor
-def get_growth_factor(block, z_vec):
+def get_growth_factor(block, z_vec, k_vec):
     """
     Loads and interpolates the growth factor
     and scale factor
     """
-    
-    k_vec = block['matter_power_lin', 'k_h']
-    z_pl  = block['growth_parameters', 'z']
+    z_in  = block['growth_parameters', 'z']
     
     # reads in the growth factor and turns it into a 2D array that has this dimensions: len(z) x len(k)
     # all columns are identical
-    growth_factor_zlin = block['growth_parameters', 'd_z'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
-    scale_factor_zlin  = block['growth_parameters', 'a'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
+    growth_factor_in  = block['growth_parameters', 'd_z']
+    growth_factor = interpolate_in_z(growth_factor_in, z_in, z_vec)
+    growth_factor = growth_factor.flatten()[:,np.newaxis] * np.ones(k_vec.size)
+ 
+    scale_factor  = 1./(1.+z_vec)
+    scale_factor  = scale_factor.flatten()[:,np.newaxis] * np.ones(k_vec.size)
     
-    # interpolate in redshift
-    growth_factor = interpolate_in_z(growth_factor_zlin, z_pl, z_vec)
-    scale_factor  = interpolate_in_z(scale_factor_zlin, z_pl, z_vec)
-    
-    return k_vec, growth_factor, scale_factor
+    return growth_factor, scale_factor
 
 
 def get_nonlinear_power_spectrum(block, z_vec):
@@ -127,10 +127,19 @@ def get_nonlinear_power_spectrum(block, z_vec):
     
     return k_nl, p_nl
 
+
+def log_linear_interpolation_k(power_in, k_in, k_out, axis=1, kind='linear'):
+    """
+    log-linear interpolation for power spectra. This works well for extrapolating to higher k.
+    Ideally we want to have a different routine for interpolation (spline) and extrapolation (log-linear)
+    """
+    power_interp = interp1d(np.log(k_in), np.log(power_in), axis=axis, kind=kind, fill_value='extrapolate')
+    power_out = np.exp(power_interp(np.log(k_out)))
+    return power_out
     
 def get_halo_functions(block, mass, z_vec):
     """
-    Loads and interpolates the halo mass function and linear halo bias in redshift and mass
+    Loads the halo mass function and linear halo bias, checks that the redshift and mass bins are the same as the inputs
     """
     
     # load the halo mass function
@@ -147,12 +156,12 @@ def get_halo_functions(block, mass, z_vec):
     #dn_dlnm = interpolate2d_HM(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec)
     #b_dm    = interpolate2d_HM(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
     
-    if((mass_hmf!=mass).any()):
+    if((mass_hmf!=mass).any() or (mass_hbf!=mass).any()):
         raise Exception('The mass values are different to the input mass values.')
-    if((z_hmf!=z_vec).any()):
+    if((z_hmf!=z_vec).any() or (z_hbf!=z_vec).any()):
         raise Exception('The redshift values are different to the input redshift values.')
     
-    return dndlnmh_hmf, halobias_hbf#dn_dlnm, b_dm
+    return dndlnmh_hmf, halobias_hbf #dn_dlnm, b_dm
 
 
 # TODO: Check if this interpolation works well
@@ -1259,17 +1268,17 @@ def compute_p_II_two_halo(k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h_II)
 
 #################################################
 
-# TODO: Change the input from fourier_nfw_profile to read a given section name
-# done TODO: Why do we take the absolute value and why the reshaping? don't need these so removed them
-# TODO: k_vec,mass, z_vec are not used
-# Need to make sure that they are the same as what we have elsewhere
-# TODO: This is probably why the k_vec is change from the input from CAMB!
-def compute_u_dm_grid(block, k_vec, mass, z_vec):
+def get_normalised_profile(block, k_vec, mass, z_vec):
+    """
+    Reads the Fourier transform of the normalised Dark matter halo profile U.
+    Checks that mass, redshift and k match the input.
+    """
     z_udm    = block['fourier_nfw_profile', 'z']
     mass_udm = block['fourier_nfw_profile', 'm_h']
     k_udm    = block['fourier_nfw_profile', 'k_h']
     u_dm     = block['fourier_nfw_profile', 'ukm']
     u_sat    = block['fourier_nfw_profile', 'uksat']
+
     if((k_vec!=k_udm).any()):
         raise Exception('The profile k values are different to the input k values.')
     if((mass_udm!=mass).any()):
