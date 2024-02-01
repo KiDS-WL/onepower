@@ -230,7 +230,7 @@ def execute(block, config):
     one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
     hod_section_name, mead_correction, point_mass, poisson_type, pop_name = config
 
-    mean_density0 = block['density', 'mean_density0'] *np.ones(len(z_vec))
+    mean_density0 = block['density', 'mean_density0'] * np.ones(len(z_vec))
 
     # Interpolates in z only
     k_vec_original, plin_original = pk_lib.get_linear_power_spectrum(block, z_vec)
@@ -239,7 +239,7 @@ def execute(block, config):
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
 
     # load growth factor and scale factor
-    growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec,k_vec)
+    growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec, k_vec)
     
     # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
     plin= pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
@@ -291,7 +291,7 @@ def execute(block, config):
         # 2h term integral for matter
         I_m = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
         # Matter halo profile
-        matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
+        matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, np.zeros_like(fnu))
         # TODO: Why is there a matter profile and a matter_profile_1h_mm?
         
         if mead_correction == 'feedback':
@@ -302,7 +302,7 @@ def execute(block, config):
             fstar_mm = pk_lib.load_fstar_mm(block, hod_section_name, z_vec, mass)
             matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z_vec, fstar_mm, omega_c, omega_m, omega_b, fnu)
         else:
-            matter_profile_1h_mm = matter_profile.copy()
+            matter_profile_1h_mm = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
             
         if bnl == True:
             # TODO: This one uses matter_profile not matter_profile_1h_mm. Shouldn't we use the same profile everywhere?
