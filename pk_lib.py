@@ -137,9 +137,9 @@ def log_linear_interpolation_k(power_in, k_in, k_out, axis=1, kind='linear'):
     power_out = np.exp(power_interp(np.log(k_out)))
     return power_out
     
-def get_halo_functions(block, mass, z_vec):
+def get_halo_functions(block):
     """
-    Loads the halo mass function and linear halo bias, checks that the redshift and mass bins are the same as the inputs
+    Loads the halo mass function and linear halo bias
     """
     
     # load the halo mass function
@@ -156,12 +156,12 @@ def get_halo_functions(block, mass, z_vec):
     #dn_dlnm = interpolate2d_HM(dndlnmh_hmf, mass_hmf, z_hmf, mass, z_vec)
     #b_dm    = interpolate2d_HM(halobias_hbf, mass_hbf, z_hbf, mass, z_vec)
     
-    if((mass_hmf!=mass).any() or (mass_hbf!=mass).any()):
-        raise Exception('The mass values are different to the input mass values.')
-    if((z_hmf!=z_vec).any() or (z_hbf!=z_vec).any()):
-        raise Exception('The redshift values are different to the input redshift values.')
+    if((mass_hmf!=mass_hbf).any()):
+        raise Exception('The mass values are different between hmf and hbf values.')
+    if((z_hmf!=z_hbf).any()):
+        raise Exception('The redshift values are different between hmf and hbf.')
     
-    return dndlnmh_hmf, halobias_hbf #dn_dlnm, b_dm
+    return dndlnmh_hmf, halobias_hbf, mass_hmf, z_hmf  #dn_dlnm, b_dm
 
 
 # TODO: Check if this interpolation works well
@@ -684,6 +684,11 @@ def compute_A_term(mass, b_dm, dn_dlnm, mean_density0):
     Equation A.5 of Mead and Verde 2021, 2011.08858
     A(M_min) = 1−[1/ρ¯ int_M_min^infty dM M b(M) n(M)]
     Here all missing mass is assumed to be in halos of minimum mass M_min = min(mass)
+    This equation arises from 
+    int_0^infty M b(M) n(M) dM = ρ¯ .
+    and 
+    int_0^infty M n(M) dM = ρ¯ .
+    This ρ¯ is the mean matter density at that redshift. 
     """
     
     integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
@@ -1268,7 +1273,7 @@ def compute_p_II_two_halo(k_vec, p_eff, z_vec, f_gal, alignment_amplitude_2h_II)
 
 #################################################
 
-def get_normalised_profile(block, k_vec, mass, z_vec):
+def get_normalised_profile(block, mass, z_vec):
     """
     Reads the Fourier transform of the normalised Dark matter halo profile U.
     Checks that mass, redshift and k match the input.
@@ -1279,13 +1284,11 @@ def get_normalised_profile(block, k_vec, mass, z_vec):
     u_dm     = block['fourier_nfw_profile', 'ukm']
     u_sat    = block['fourier_nfw_profile', 'uksat']
 
-    if((k_vec!=k_udm).any()):
-        raise Exception('The profile k values are different to the input k values.')
     if((mass_udm!=mass).any()):
         raise Exception('The profile mass values are different to the input mass values.')
     if((z_udm!=z_vec).any()):
         raise Exception('The profile z values are different to the input z values.')
-    return u_dm,u_sat
+    return u_dm,u_sat,k_udm
 
 
     # print(u_udm.shape,u_usat.shape)
