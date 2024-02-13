@@ -334,12 +334,11 @@ def execute(block, config):
         #Peak height, mf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
         nu[jz]        = mf.nu**0.5
         dndlnmh[jz]   = mf.dndlnm
-        mean_density0[jz]  = mf.mean_density0
+        mean_density0 = mf.mean_density0
         mean_density_z[jz] = mf.mean_density
         rho_halo[jz]  = overdensity_z[jz] * mf.mean_density0
         
         b_nu[jz] = mf.halo_bias
-        f_nu[jz] = this_cosmo_run.Onu0/this_cosmo_run.Om0
     
         # These are only used for mead_corrections
         # index of 
@@ -454,6 +453,8 @@ def execute(block, config):
     print(conc_cen/conc_cen0)
     print(conc_sat/conc_sat0)
     #"""
+    
+    f_nu = this_cosmo_run.Onu0/this_cosmo_run.Om0
 
     #  TODO: Clean these up. Put more of them into the same folder
     block.put_grid('concentration_dm', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
@@ -475,10 +476,11 @@ def execute(block, config):
     ###################################################################################################################
 
 
-    # density 
-    block.put_double_array_1d('density', 'mean_density0', mean_density0) #(mean_density0/this_cosmo_run.Om0)*this_cosmo_run.Odm0)
+    # density
+    block['density', 'mean_density0'] = mean_density0
+    block['density', 'rho_crit'] = mean_density0/this_cosmo_run.Om0
+    #block.put_double_array_1d('density', 'mean_density0', mean_density0) #(mean_density0/this_cosmo_run.Om0)*this_cosmo_run.Odm0)
     block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
-    block.put_double_array_1d('density', 'rho_crit', mean_density0/this_cosmo_run.Om0)
     block.put_double_array_1d('density', 'rho_halo', rho_halo)
 
     # hmf
@@ -496,7 +498,7 @@ def execute(block, config):
     # cosmological parameters
     h_z = this_cosmo_run.H(z_vec).value/100.0
     block.put_double_array_1d(cosmo_params, 'h_z', h_z)
-    block.put_double_array_1d(cosmo_params, 'fnu', f_nu)
+    block[cosmo_params, 'fnu'] = f_nu
 
     return 0
 

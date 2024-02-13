@@ -242,7 +242,7 @@ def execute(block, config):
     growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec, k_vec)
     
     # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
-    plin= pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
+    plin = pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
 
     # Only used in Fortuna et al. 2021 implementation of IA power spectra
     # computes the effective power spectrum, mixing the linear and nonlinear ones:
@@ -255,6 +255,10 @@ def execute(block, config):
     pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
     t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
     pk_eff = (1.-t_eff)*pnl + t_eff*plin
+
+    # AD: The following two lines only used for testing, need to be removed later on!
+    block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
+    #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
 
     # TODO: Read mass from the ingredients
     # load the halo mass and bias functions from the datablock

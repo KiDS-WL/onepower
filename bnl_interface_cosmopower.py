@@ -137,7 +137,7 @@ def get_cosmopower_inputs(block, z_vec, len_zvec, len_Mvec, M_vec):
     #test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
     ombh2, omch2, omega_lambda, lnAs, n_w, w = test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
 
-    params_bnl = {'obh2':ombh2*np.ones_like(z_list),
+    params_bnl = {'ombh2':ombh2*np.ones_like(z_list),
                   'omch2': omch2*np.ones_like(z_list),
                   'omega_lambda': omega_lambda*np.ones_like(z_list),
                   #'logAs': np.log(10**10*A_s)*np.ones_like(z_list),
@@ -185,7 +185,7 @@ def execute(block, config):
         pl.show()
         quit()
         #"""
-        
+        import matplotlib.pyplot as pl
         if use_specific_k_modes:
         
             # load linear power spectrum
@@ -198,6 +198,12 @@ def execute(block, config):
             bnl_spline = interp1d(np.log10(config['k_vec']), bnl_functions, axis=-1, fill_value=0.0, bounds_error=False)
             bnl_functions_new = bnl_spline(np.log10(k_new))
             beta_cosmopower = bnl_functions_new# * low_k_truncation(k_new) * high_k_truncation(k_new)# / ((1.0+config['z_vec'])**1.0)[:,np.newaxis,np.newaxis,np.newaxis]# * high_k_truncation(k_new)
+            #for i, zi in enumerate(config['z_vec']):
+            #    for iM1,M1 in enumerate(config['M_vec']):
+            #        for iM2,M2 in enumerate(config['M_vec']):
+            #            pl.plot(k_new, np.abs(beta_cosmopower[i, iM1, iM2, :]))
+            #pl.xscale('log')
+            #pl.show()
         else:
             beta_cosmopower = bnl_functions
             
