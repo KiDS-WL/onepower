@@ -185,7 +185,7 @@ def execute(block, config):
         pl.show()
         quit()
         #"""
-        import matplotlib.pyplot as pl
+        #import matplotlib.pyplot as pl
         if use_specific_k_modes:
         
             # load linear power spectrum

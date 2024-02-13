@@ -869,7 +869,6 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
     #for iM, M0 in enumerate(M2):
     #    b02[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z)/Pk_klin)
     
-    import matplotlib.pyplot as pl
     for iM1, M01 in enumerate(M1):
         for iM2, M02 in enumerate(M2):
             if iM2 < iM1:
