@@ -312,7 +312,7 @@ def execute(block, config):
             # TODO: This one uses matter_profile not matter_profile_1h_mm. Shouldn't we use the same profile everywhere?
             # AD: No, I_NL and 2-halo functions should use the mater_profile, no 1h! The corrections applied do not hold true for 2h regime!
             I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile,
-                                b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, 
+                                b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec,
                                 z_vec, A_term, mean_density0, beta_interp)
     
         if p_mm == True and bnl == False:

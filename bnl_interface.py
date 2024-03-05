@@ -117,13 +117,13 @@ def execute(block, config):
             
         if num_calls % update_bnl == 0:
             ombh2 = block['cosmological_parameters', 'ombh2']
-            omch2 = block['cosmological_parameters', 'omch2'] # - 0.00064 #need to subtract the neutrino density to get h right in DQ emulator!
+            omch2 = block['cosmological_parameters', 'omch2']# - 0.00064 #need to subtract the neutrino density to get h right in DQ emulator! Update: no need, defined correctly in consistency module!
             omega_lambda = block['cosmological_parameters', 'omega_lambda']
             A_s = block['cosmological_parameters', 'A_s']
             n_s = block['cosmological_parameters', 'n_s']
             w = block['cosmological_parameters', 'w']
             #cparam = np.array([ombh2, omch2, omega_lambda, np.log(A_s*10.0**10.0),n_s,w])
-            cparam = test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
+            cparam = test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(A_s*10.0**10.0),n_s,w]))
             #print('cparam: ', cparam)
             emulator.set_cosmology(cparam)
                 

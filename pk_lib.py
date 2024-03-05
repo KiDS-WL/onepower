@@ -2,11 +2,12 @@
 
 import numpy as np
 from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
-from scipy.integrate import simps
+from scipy.integrate import simps, quad
 from scipy.special import erf
 from scipy.optimize import curve_fit
 import warnings
 
+import matplotlib.pyplot as pl
 
 # from darkmatter_lib import compute_u_dm, radvir_from_mass
 
@@ -477,26 +478,12 @@ def two_halo_truncation(k_vec, k_trunc=2.0):
     #return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
     if k_trunc == None:
         return np.ones_like(k_vec)
-    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
-
-
-def one_halo_truncation_old(k_vec, k_trunc=0.1):
-    """
-    1-halo term truncation at large scales (small k), this uses the error function
-    """
-    #return 1.-np.exp(-(k_vec/k_star)**2.)
-    if k_trunc == None:
-        return np.ones_like(k_vec)
-    return erf(k_vec/k_trunc)
-
-
-def two_halo_truncation_old(k_vec, k_trunc=2.0):
-    """
-    2-halo term truncation at larger k-values
-    """
-    if k_trunc == None:
-        return np.ones_like(k_vec)
-    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
+    k_d = 0.07
+    nd = 2.8
+    k_frac = k_vec/k_d
+    
+    return 1.0 - 0.05 * (k_frac**nd)/(1.0 + k_frac**nd)
+    #return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
 
 def one_halo_truncation_ia(k_vec, k_trunc=4.0):
@@ -554,7 +541,6 @@ def transition_smoothing(neff, k_vec, p_1h, p_2h):
     """
     
     delta_prefac = (k_vec**3.0)/(2.0*np.pi**2.0)
-    # alpha = (1.875 * (1.603**block['hmf', 'neff'][:,np.newaxis]))
     alpha = (1.875 * (1.603**neff[:,np.newaxis]))
     Delta_1h = delta_prefac * p_1h
     Delta_2h = delta_prefac * p_2h
@@ -689,10 +675,11 @@ def compute_A_term(mass, b_dm, dn_dlnm, mean_density0):
     
     integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
     A = 1. - simps(integrand_m1, mass)
-    if (A < 0.).any():  
+    if (A < 0.).any():
         warnings.warn('Warning: Mass function/bias correction is negative!', RuntimeWarning)
         
     return A
+
 
 def missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0):
     A_term = compute_A_term(mass[np.newaxis,np.newaxis,:], b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
@@ -788,14 +775,15 @@ def low_k_truncation(k_vec, k_trunc):
     """
     Beta_nl low-k truncation
     """
-    return 1.0/(1.0+np.exp(-(10.0*(np.log10(k_vec/k_trunc)))))
+    return 1.0/(1.0+np.exp(-(10.0*(np.log10(k_vec) - np.log10(k_trunc)))))
 
 
 def high_k_truncation(k_vec, k_trunc):
     """
     Beta_nl high-k truncation
     """
-    return 0.5*(1.0+(erf(-0.1*(k_vec-k_trunc))))#0.5*(1.0+(erf(-(k_vec-k_trunc))))
+    return 1.0/(1.0+np.exp((10.0*(np.log10(k_vec) - np.log10(k_trunc)))))
+    #return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
 
 def minimum_halo_mass(emu):
@@ -853,7 +841,7 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
     M2 = 10.0**log10M2
     # Parameters
     # Large 'linear' scale for linear halo bias [h/Mpc]
-    klin = np.array([0.05])
+    klin = np.array([0.02])
     
     # Calculate beta_NL by looping over mass arrays
     beta_func = np.zeros((len(M1), len(M2), len(k)))
@@ -866,8 +854,7 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
     
     for iM, M0 in enumerate(M1):
         b01[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z)/Pk_klin)
-    #for iM, M0 in enumerate(M2):
-    #    b02[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z)/Pk_klin)
+        #b01[iM] = emulator.get_bias_mass(M0, z)
     
     for iM1, M01 in enumerate(M1):
         for iM2, M02 in enumerate(M2):
@@ -886,25 +873,51 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
                 #kmax = 2.0*np.pi/rmax
                     
                 # Create beta_NL
-                shot_noise = lambda x, a: a
-                popt, popc = curve_fit(shot_noise, k[k>50], Pk_hh[k>50])
-                Pk_hh = Pk_hh - np.ones_like(k)*shot_noise(k, *popt)
+                #shot_noise = lambda x, a: a
+                #popt, popc = curve_fit(shot_noise, k[(k>100) & (k<200)], Pk_hh[(k>100) & (k<200)])
+                #Pk_hh = Pk_hh - np.ones_like(k)*shot_noise(k, *popt)
             
-                beta_func[iM1, iM2, :] = (Pk_hh/(b1*b2*Pk_lin) - 1.0 ) * low_k_truncation(k, klin)
-                
-                lmin, lmax = hl_envelopes_idx(np.abs(beta_func[iM1, iM2, :]+1))
-                beta_func_interp = interp1d(k[lmax], np.abs(beta_func[iM1, iM2, lmax]+1), kind='quadratic', bounds_error=False, fill_value=(1.0, 0.0))
-                beta_func[iM1, iM2, :] = beta_func_interp(k)-1.0
-                
+                beta_func[iM1, iM2, :] = (Pk_hh/(b1*b2*Pk_lin) - 1.0)
                 
                 Pk_hh0 = emulator.get_phh_mass(klin, M01, M02, z)
-                Pk_hh0 = Pk_hh0 - np.ones_like(klin)*shot_noise(klin, *popt)
+                #Pk_hh0 = Pk_hh0 - np.ones_like(klin)*shot_noise(klin, *popt)
                 db = Pk_hh0/(b1*b2*Pk_klin) - 1.0
                 
-                beta_func[iM1, iM2, :] = (((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 60.0))/(db + 1.0) - 1.0) * low_k_truncation(k, klin)# * high_k_truncation(k, 10.0)
-                #beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * low_k_truncation(k, klin) * high_k_truncation(k, kmax)
+                lmin, lmax = hl_envelopes_idx(np.abs(beta_func[iM1, iM2, :]+1.0))
+                beta_func_interp = interp1d(k[lmax], np.abs(beta_func[iM1, iM2, lmax]+1.0), kind='quadratic', bounds_error=False, fill_value='extrapolate')
+                beta_func[iM1, iM2, :] = (beta_func_interp(k)-1.0)# * low_k_truncation(k, klin)
                 
-    return beta_func
+        
+                #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 30.0)/(db + 1.0) - 1.0) * low_k_truncation(k, klin)
+                #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) #* low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#/(1.0+z))
+                beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db)# * low_k_truncation(k, klin) * high_k_truncation(k, 30.0)
+                
+                #pl.plot(k, beta_func[iM1, iM2, :])
+                #pl.plot(k, k**0.25)
+                #pl.plot(k[lmax], tmp[lmax])
+                #pl.plot(k, tmp)
+                #pl.plot(k[lmin], tmp[lmin])
+                #pl.plot(k, high_k_truncation(k, kmax))
+                #pl.plot(k, Pk_hh)
+                #pl.plot(k, b1*b2*Pk_lin)
+                #k_vec_original, plin_original = get_linear_power_spectrum(block, z)
+                #pl.plot(k_vec_original, b1*b2*plin_original)
+    """
+    pl.plot(k, Pk_lin)
+    k_vec_original, plin_original = get_linear_power_spectrum(block, z)
+    pl.plot(k_vec_original, plin_original)
+    pl.plot(k, emulator.get_pknl(k, z))
+    k_nl, p_nl = get_nonlinear_power_spectrum(block, z)
+    pl.plot(k_nl, p_nl)
+    #"""
+    """
+    pl.xscale('log')
+    pl.yscale('log')
+    pl.show()
+    quit()
+    #"""
+    #print(emulator.cosmo.get_Ez(z), (1.0+z)**(1.0/2.0))
+    return beta_func #* emulator.Dgrowth_from_z(z)#/ (1.0+z)**(1.0/3.0)#* emulator.Dgrowth_from_z(z)**0.5
     
     
 def create_bnl_interpolation_function(emulator, interpolation, z, block):
@@ -914,17 +927,22 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     zc = z.copy()
     
     Mmin, kmax = minimum_halo_mass(emulator)
-    M_up = np.log10((10.0**15.1))
-    M_lo = np.log10((10.0**12.2))
+    M_up = np.log10((10.0**14.0))
+    M_lo = np.log10((10.0**12.0))
     #M_lo = np.log10(Mmin)
-    M = np.logspace(M_lo, M_up, lenM)
-    k = np.logspace(-3.0, 2.0, lenk)
-        
-    beta_nl_interp_i = np.empty(len(z), dtype=object)
-    for i,zi in enumerate(zc):
-        beta_func = compute_bnl_darkquest(zi+0.01, np.log10(M), np.log10(M), k, emulator, block, kmax)
-        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], beta_func, fill_value=None, bounds_error=False, method='nearest')
     
+    M = np.logspace(M_lo, M_up, lenM)
+    k = np.logspace(-3.0, np.log10(200), lenk)
+    beta_nl_interp_i = np.empty(len(z), dtype=object)
+    #beta_func = compute_bnl_darkquest(0.01, np.log10(M), np.log10(M), k, emulator, block, kmax)
+    for i,zi in enumerate(zc):
+        #M = np.logspace(M_lo, M_up - 3.0*np.log10(1+zi), lenM)
+        beta_func = compute_bnl_darkquest(zi, np.log10(M), np.log10(M), k, emulator, block, kmax)
+        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], beta_func, fill_value=None, bounds_error=False, method='nearest')
+    #pl.xscale('log')
+    #pl.yscale('log')
+    #pl.show()
+    #quit()
     return beta_nl_interp_i
 
 
@@ -988,11 +1006,18 @@ def compute_p_mm(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, o
 def compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, I_NL_mm, one_halo_ktrunc):
 
     # 2-halo term:
-    pk_mm_2h = plin * I_m_term * I_m_term + plin*I_NL_mm
+    pk_mm_2h = (plin * I_m_term * I_m_term + plin*I_NL_mm)# * two_halo_truncation(k_vec)[np.newaxis,:]
     # 1-halo term
     pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
     # Total
     pk_mm_tot = pk_mm_1h + pk_mm_2h
+    #import matplotlib.pyplot as pl
+    #for i in range(len(z_vec)):
+    #    pl.plot(k_vec, (pk_mm_tot/(pk_mm_1h + plin * I_m_term * I_m_term))[i])
+    #    pl.plot(k_vec, 1.0+I_NL_mm[i])
+    #pl.xscale('log')
+    #pl.show()
+    #quit()
     
     return pk_mm_1h, pk_mm_2h, pk_mm_tot
     

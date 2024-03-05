@@ -135,12 +135,12 @@ def get_cosmopower_inputs(block, z_vec, len_zvec, len_Mvec, M_vec):
     w = block['cosmological_parameters', 'w']
 
     #test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
-    ombh2, omch2, omega_lambda, lnAs, n_w, w = test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(10**10*A_s),n_s,w]))
+    ombh2, omch2, omega_lambda, lnAs, n_w, w = test_cosmo(np.array([ombh2, omch2, omega_lambda, np.log(A_s*10.0**10.0),n_s,w]))
 
     params_bnl = {'ombh2':ombh2*np.ones_like(z_list),
                   'omch2': omch2*np.ones_like(z_list),
                   'omega_lambda': omega_lambda*np.ones_like(z_list),
-                  #'logAs': np.log(10**10*A_s)*np.ones_like(z_list),
+                  #'logAs': np.log(A_s*10.0**10.0)*np.ones_like(z_list),
                   'logAs': lnAs*np.ones_like(z_list),
                   'ns': n_s*np.ones_like(z_list),
                   'w': w*np.ones_like(z_list),
@@ -160,7 +160,7 @@ def execute(block, config):
     
     if bnl == True:
         params_bnl = get_cosmopower_inputs(block, config['z_vec'], config['len_zvec'], config['len_Mvec'], config['M_vec'])
-        bnl_functions = bnl_emulator.predictions_np(params_bnl).reshape(config['len_zvec'], config['len_Mvec'], config['len_Mvec'], config['len_kvec'])
+        bnl_functions = bnl_emulator.predictions_np(params_bnl).reshape(config['len_zvec'], config['len_Mvec'], config['len_Mvec'], config['len_kvec']) - 1.0
         print('bnl read from emulator, creating 3D array')
         """
         # Test to see what exactly was emulated
