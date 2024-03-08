@@ -5,6 +5,7 @@ from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSplin
 from scipy.integrate import simps, quad
 from scipy.special import erf
 from scipy.optimize import curve_fit
+from scipy.ndimage import gaussian_filter1d
 import warnings
 
 import matplotlib.pyplot as pl
@@ -841,7 +842,7 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
     M2 = 10.0**log10M2
     # Parameters
     # Large 'linear' scale for linear halo bias [h/Mpc]
-    klin = np.array([0.02])
+    klin = np.array([0.05])
     
     # Calculate beta_NL by looping over mass arrays
     beta_func = np.zeros((len(M1), len(M2), len(k)))
@@ -886,38 +887,15 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
                 lmin, lmax = hl_envelopes_idx(np.abs(beta_func[iM1, iM2, :]+1.0))
                 beta_func_interp = interp1d(k[lmax], np.abs(beta_func[iM1, iM2, lmax]+1.0), kind='quadratic', bounds_error=False, fill_value='extrapolate')
                 beta_func[iM1, iM2, :] = (beta_func_interp(k)-1.0)# * low_k_truncation(k, klin)
+                db = (beta_func_interp(klin)-1.0)
                 
         
                 #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 30.0)/(db + 1.0) - 1.0) * low_k_truncation(k, klin)
                 #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) #* low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#/(1.0+z))
-                beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db)# * low_k_truncation(k, klin) * high_k_truncation(k, 30.0)
-                
-                #pl.plot(k, beta_func[iM1, iM2, :])
-                #pl.plot(k, k**0.25)
-                #pl.plot(k[lmax], tmp[lmax])
-                #pl.plot(k, tmp)
-                #pl.plot(k[lmin], tmp[lmin])
-                #pl.plot(k, high_k_truncation(k, kmax))
-                #pl.plot(k, Pk_hh)
-                #pl.plot(k, b1*b2*Pk_lin)
-                #k_vec_original, plin_original = get_linear_power_spectrum(block, z)
-                #pl.plot(k_vec_original, b1*b2*plin_original)
-    """
-    pl.plot(k, Pk_lin)
-    k_vec_original, plin_original = get_linear_power_spectrum(block, z)
-    pl.plot(k_vec_original, plin_original)
-    pl.plot(k, emulator.get_pknl(k, z))
-    k_nl, p_nl = get_nonlinear_power_spectrum(block, z)
-    pl.plot(k_nl, p_nl)
-    #"""
-    """
-    pl.xscale('log')
-    pl.yscale('log')
-    pl.show()
-    quit()
-    #"""
-    #print(emulator.cosmo.get_Ez(z), (1.0+z)**(1.0/2.0))
-    return beta_func #* emulator.Dgrowth_from_z(z)#/ (1.0+z)**(1.0/3.0)#* emulator.Dgrowth_from_z(z)**0.5
+                beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#*(1.0+z))
+                #pl.plot(k, np.abs(beta_func[iM1, iM2, :]))
+
+    return beta_func# * emulator.Dgrowth_from_z(z)**2.0
     
     
 def create_bnl_interpolation_function(emulator, interpolation, z, block):
@@ -986,6 +964,66 @@ def poisson_func(block, type, mass_avg, k_vec, z_vec):
     return poisson_num
 
 
+def Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB=2.7255):
+    """
+    No-wiggle transfer function from astro-ph:9709112
+    """
+    # These only needs to be calculated once
+    rb = ombh2/ommh2     # Baryon ratio
+    s = 44.5*np.log(9.83/ommh2)/np.sqrt(1.+10.*ombh2**0.75)              # Equation (26)
+    alpha = 1.-0.328*np.log(431.*ommh2)*rb+0.38*np.log(22.3*ommh2)*rb**2 # Equation (31)
+
+    # Functions of k
+    Gamma = (ommh2/h)*(alpha+(1.-alpha)/(1.+(0.43*k*s*h)**4)) # Equation (30)
+    q = k*(T_CMB/2.7)**2/Gamma # Equation (28)
+    L = np.log(2.*np.e+1.8*q)  # Equation (29)
+    C = 14.2+731./(1.+62.5*q)  # Equation (29)
+    Tk_nw = L/(L+C*q**2)       # Equation (29)
+    return Tk_nw
+    
+    
+def sigmaV(power, k):
+    # In the limit where r -> 0.
+    dlnk = np.log(k[1] / k[0])
+    # we multiply by k because our steps are in logk.
+    integ = power * k
+    sigma = (0.5 / np.pi**2) * simps(integ, dx=dlnk, axis=-1)
+    return np.sqrt(sigma/3.0)
+    
+    
+def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25):
+    """
+    Extract the wiggle from the linear power spectrum
+    TODO: Should get to work for uneven log(k) spacing
+    NOTE: https://stackoverflow.com/questions/24143320/gaussian-sum-filter-for-irregular-spaced-points
+    """
+    if not np.isclose(np.all(np.diff(k)-np.diff(k)[0]), 0.):
+        raise ValueError('Dewiggle only works with linearly-spaced k array')
+    dlnk = np.log(k[1]/k[0])
+    sigma = sigma_dlnk/dlnk
+    
+    Pk_nowiggle = (k**ns)*Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB)**2
+    Pk_ratio = Pk_lin/Pk_nowiggle
+    Pk_ratio = gaussian_filter1d(Pk_ratio, sigma)
+    Pk_smooth = Pk_ratio*Pk_nowiggle
+    Pk_wiggle = Pk_lin-Pk_smooth
+    return Pk_wiggle
+    
+
+def dewiggle(plin, k, block):
+    try:
+        tcmb = block['cosmological_parameters', 'TCMB']
+    except:
+        tcmb = 2.7255
+    sigma = sigmaV(plin, k)
+    pk_wig = get_Pk_wiggle(k, plin, block['cosmological_parameters', 'h0'],
+                                    block['cosmological_parameters', 'ombh2'],
+                                    block['cosmological_parameters', 'ommh2'],
+                                    block['cosmological_parameters', 'n_s'],
+                                    tcmb)
+    plin_dw = plin - (1.0 - np.exp(-(k[np.newaxis,:]*sigma[:,np.newaxis])**2)) * pk_wig
+    return plin_dw
+
 
 # ---- POWER SPECTRA ----#
 
@@ -1006,18 +1044,11 @@ def compute_p_mm(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, o
 def compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, I_NL_mm, one_halo_ktrunc):
 
     # 2-halo term:
-    pk_mm_2h = (plin * I_m_term * I_m_term + plin*I_NL_mm)# * two_halo_truncation(k_vec)[np.newaxis,:]
+    pk_mm_2h = plin * I_m_term * I_m_term + plin*I_NL_mm
     # 1-halo term
     pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
     # Total
     pk_mm_tot = pk_mm_1h + pk_mm_2h
-    #import matplotlib.pyplot as pl
-    #for i in range(len(z_vec)):
-    #    pl.plot(k_vec, (pk_mm_tot/(pk_mm_1h + plin * I_m_term * I_m_term))[i])
-    #    pl.plot(k_vec, 1.0+I_NL_mm[i])
-    #pl.xscale('log')
-    #pl.show()
-    #quit()
     
     return pk_mm_1h, pk_mm_2h, pk_mm_tot
     

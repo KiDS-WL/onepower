@@ -2,6 +2,7 @@ from cosmosis.datablock import names, option_section
 import warnings
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.optimize import root_scalar
 # from scipy.integrate import simps, solve_ivp, quad
 # from astropy.cosmology import FlatLambdaCDM, LambdaCDM
 from astropy.cosmology import Flatw0waCDM
@@ -171,7 +172,25 @@ def setup(options):
     bias_model = options[option_section, 'bias_model']
     mdef_params = {} if mdef_model in ['SOVirial'] else {'overdensity':overdensity}
     
-    # most general astropy cosmology initialisation, 
+    # Option to set similar corrections to HMcode2020
+    # MA question: What do these different options do? It doesn't look like there is a difference between them.
+    use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
+    if use_mead == 'mead2020':
+        mead_correction = 'nofeedback'
+    elif use_mead == 'mead2020_feedback':
+        mead_correction = 'feedback'
+    #elif use_mead == 'fit_feedback':
+    #    mead_correction = 'fit'
+    else:
+        mead_correction = None
+    
+    if mead_correction is not None:
+        hmf_model = 'ST'
+        bias_model = 'ST99'
+        mdef_model = 'SOVirial'
+        mdef_params = {}
+    
+    # most general astropy cosmology initialisation,
     # gets updated as sampler runs with camb provided cosmology parameters.
     # setting some values to generate instance
     initialise_cosmo=Flatw0waCDM(
@@ -199,19 +218,6 @@ def setup(options):
     mf.cmz_relation
     # Array of halo masses 
     mass = mf.m
-
-
-    # Option to set similar corrections to HMcode2020
-    # MA question: What do these different options do? It doesn't look like there is a difference between them.
-    use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
-    if use_mead == 'mead2020':
-        mead_correction = 'nofeedback'
-    elif use_mead == 'mead2020_feedback':
-        mead_correction = 'feedback'
-    #elif use_mead == 'fit_feedback':
-    #    mead_correction = 'fit'
-    else:
-        mead_correction = None
 
     return log_mass_min, log_mass_max, nmass, dlog10m, z_vec, nz, nz_conc, mass, mf, cm_model, mdef_model, overdensity, delta_c, bias_model, mead_correction, nk, profile, profile_value_name
 
@@ -346,8 +352,13 @@ def execute(block, config):
         # effective power spectrum index at the collapse scale,
         # Question: n_eff is just used in the transition_smoothing module for mead_corrections. It is called n^eff_cc in table 2 of https://arxiv.org/pdf/2009.01858.pdf . But it doesn't explain what it is. Do we know if this is the correct one to use? 
         neff[jz]      = mf.n_eff[idx_neff]
+        #Rnl = mf.filter.mass_to_radius(mf.mass_nonlinear, mf.mean_density0)
+        #neff[jz] = -3.0 - 2.0*mf.normalised_filter.dlnss_dlnm(Rnl)
+        
         # Only used for mead_corrections
         sigma8_z[jz] = mf.normalised_filter.sigma(8.0)
+        #pk_cold = mf.power * hmu.Tk_cold_ratio(mf.k, g, block[cosmo_params, 'ommh2'], block[cosmo_params, 'h0'], this_cosmo_run.Onu0/this_cosmo_run.Om0, this_cosmo_run.Neff, T_CMB=tcmb)**2.0
+        #sigma8_z[jz] = hmu.sigmaR_cc(pk_cold, mf.k, 8.0)
         
         if mead_correction == 'nofeedback':
             norm_cen  = 5.196 #/3.85#1.0#(5.196/3.85) #0.85*1.299

@@ -2,6 +2,7 @@ from cosmosis.datablock import names, option_section
 import warnings
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.optimize import root_scalar
 from scipy.integrate import simps, solve_ivp, quad
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 import astropy.units as u
@@ -115,7 +116,25 @@ def setup(options):
     #Choice of code to define Halo Mass Function
     hmf_code = options.get_string(option_section, 'hmf_code', default='HMF')   #Options are CCL, HMF
     
-    # most general astropy cosmology initialisation, 
+    # Option to set similar corrections to HMcode2020
+    # MA question: What do these different options do? It doesn't look like there is a difference between them.
+    use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
+    if use_mead == 'mead2020':
+        mead_correction = 'nofeedback'
+    elif use_mead == 'mead2020_feedback':
+        mead_correction = 'feedback'
+    #elif use_mead == 'fit_feedback':
+    #    mead_correction = 'fit'
+    else:
+        mead_correction = None
+    
+    if mead_correction is not None:
+        hmf_model = 'ST'
+        bias_model = 'ST99'
+        mdef_model = 'SOVirial'
+        mdef_params = {}
+    
+    # most general astropy cosmology initialisation,
     # gets updated as sampler runs with camb provided cosmology parameters.
     # setting some values to generate instance
     initialise_cosmo=Flatw0waCDM(H0=100., Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
@@ -135,19 +154,7 @@ def setup(options):
                         lnk_min=-18.0, lnk_max=18.0)
 
     # Array of halo masses - equally spaced in logM
-    mass = mf.m   
-
-    # Option to set similar corrections to HMcode2020
-    # TODO: stellar_fraction_from_observable_feedback option is not used here
-    use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
-    if use_mead == 'mead2020':
-        mead_correction = 'nofeedback'
-    elif use_mead == 'mead2020_feedback':
-        mead_correction = 'feedback'
-    #elif use_mead == 'fit_feedback':
-    #    mead_correction = 'fit'
-    else:
-        mead_correction = None
+    mass = mf.m
 
     # config ={}
     # config['log_mass_min'] =log_mass_min
@@ -287,6 +294,9 @@ def execute(block, config):
         # It is called n^eff_cc in table 2 of https://arxiv.org/pdf/2009.01858.pdf . 
         # But it doesn't explain what it is. Do we know if this is the correct one to use? 
         neff[jz]      = mf.n_eff[idx_neff]
+        #Rnl = mf.filter.mass_to_radius(mf.mass_nonlinear, mf.mean_density0)
+        #neff[jz]      = -3.0 - 2.0*mf.normalised_filter.dlnss_dlnm(Rnl)
+        
         # Only used for mead_corrections
         sigma8_z[jz] = mf.normalised_filter.sigma(8.0)
 

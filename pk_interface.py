@@ -147,6 +147,8 @@ def setup(options):
 
     poisson_type  = options.get_string(option_section, 'poisson_type', default='')
     point_mass    = options.get_bool(option_section, 'point_mass', default=False)
+    
+    dewiggle      = options.get_bool(option_section, 'dewiggle', default=False)
 
     # Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
     # and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
@@ -220,7 +222,7 @@ def setup(options):
            p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_fortuna, p_mI_fortuna, p_II_fortuna, \
            matter, galaxy, bnl, alignment, \
            one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
-           hod_section_name, mead_correction, point_mass, poisson_type, pop_name
+           hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name
 
 def execute(block, config):
 
@@ -228,7 +230,7 @@ def execute(block, config):
     p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_fortuna, p_mI_fortuna, p_II_fortuna, \
     matter, galaxy, bnl, alignment,\
     one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
-    hod_section_name, mead_correction, point_mass, poisson_type, pop_name = config
+    hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name = config
 
     mean_density0 = block['density', 'mean_density0'] * np.ones(len(z_vec))
 
@@ -241,8 +243,12 @@ def execute(block, config):
     # load growth factor and scale factor
     growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec, k_vec)
     
-    # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
+    # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating.
     plin = pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
+
+    # Optionally de-wiggle linear power spectrum as in Mead 2020:
+    if mead_correction in ['feedback', 'nofeedback'] or dewiggle == True:
+        plin = pk_lib.dewiggle(plin, k_vec, block)
 
     # Only used in Fortuna et al. 2021 implementation of IA power spectra
     # computes the effective power spectrum, mixing the linear and nonlinear ones:
