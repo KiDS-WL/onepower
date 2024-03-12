@@ -8,8 +8,6 @@ from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d
 import warnings
 
-import matplotlib.pyplot as pl
-
 # from darkmatter_lib import compute_u_dm, radvir_from_mass
 
 
