@@ -115,21 +115,6 @@ def setup(options):
     # Read in the minimum and maximum halo mass
     # These are the same as the values that go into the halo model ingredients and the HOD sections, but they don't have to be.
 
-    # TODO: Remove these and read the values from the ingredients section
-    log_mass_min = options[option_section, 'log_mass_min']
-    log_mass_max = options[option_section, 'log_mass_max']
-    nmass = options[option_section, 'nmass']
-    # log-spaced mass in units of M_sun/h
-    dlog10m = (log_mass_max-log_mass_min)/nmass
-    mass    = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
-
-    zmin  = options[option_section, 'zmin']
-    zmax  = options[option_section, 'zmax']
-    nz    = options[option_section, 'nz']
-    z_vec = np.linspace(zmin, zmax, nz)
-    # k_vec changed becasue of the halo profile k_vec
-    nk = options[option_section, 'nk']
-
     p_mm = options.get_bool(option_section, 'p_mm', default=False)
     p_gg = options.get_bool(option_section, 'p_gg', default=False)
     p_gm = options.get_bool(option_section, 'p_gm', default=False)
@@ -218,27 +203,31 @@ def setup(options):
     else:
         mead_correction = None
 
-    return mass, z_vec, nk, \
-           p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_fortuna, p_mI_fortuna, p_II_fortuna, \
+    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_fortuna, p_mI_fortuna, p_II_fortuna, \
            matter, galaxy, bnl, alignment, \
            one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
            hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name
 
 def execute(block, config):
 
-    mass, z_vec, nk, \
     p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_fortuna, p_mI_fortuna, p_II_fortuna, \
     matter, galaxy, bnl, alignment,\
     one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
     hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name = config
 
-    mean_density0 = block['density', 'mean_density0'] * np.ones(len(z_vec))
+    # load the halo mass, halo bias, mass and redshifts from the datablock
+    dn_dlnm, b_dm, mass, z_vec = pk_lib.get_halo_functions(block)
+
+    # Reads in the Fourier transform of the normalised dark matter halo profile 
+    u_dm, u_sat, k_vec  = pk_lib.get_normalised_profile(block, mass, z_vec)
+
+    nk = len(k_vec)
 
     # Interpolates in z only
     k_vec_original, plin_original = pk_lib.get_linear_power_spectrum(block, z_vec)
 
-    # We have to redefine k_vec because of halo profile
-    k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
+    # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
+    plin = pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
 
     # load growth factor and scale factor
     growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec, k_vec)
@@ -287,7 +276,7 @@ def execute(block, config):
     # Assumes all missing mass is in haloes of mass M_min.
     # This is calculated separately for each redshift
     # TODO: check if this is needed for the IA section
-    # TODO: check that mean_density for A should be mean_density at redshift zero.
+    mean_density0 = block['density', 'mean_density0'] * np.ones(len(z_vec))
     A_term = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
     
     # f_nu = omega_nu/omega_m with the same length as redshift
@@ -521,7 +510,17 @@ def execute(block, config):
                 #block.put_grid(f'matter_intrinsic_power_2h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)
                 block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI_bnl)
             
-            
+            # Only used in Fortuna et al. 2021 implementation of IA power spectra
+            # computes the effective power spectrum, mixing the linear and nonlinear ones:
+            # Defaullt in Fortuna et al. 2021 is the non-linear power spectrum, so t_eff defaults to 0
+            #
+            # (1.-t_eff)*pnl + t_eff*plin
+            #
+            # load nonlinear power spectrum
+            k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
+            pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
+            t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
+            pk_eff = (1.-t_eff)*pnl + t_eff*plin
             # Intrinsic aligment power spectra (implementation from Maria Cristina - 2h = LA/NLA mixture)
             if p_II_fortuna == True:
                 pk_II_1h, pk_II_2h, pk_II = pk_lib.compute_p_II_fortuna(block, k_vec, pk_eff, z_vec,
