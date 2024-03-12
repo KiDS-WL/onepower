@@ -847,7 +847,7 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
     # Calculate beta_NL by looping over mass arrays
     beta_func = np.zeros((len(M1), len(M2), len(k)))
     b01 = np.zeros(len(M1))
-    b02 = np.zeros(len(M2))
+    #b02 = np.zeros(len(M2))
     # Linear power
     Pk_lin = emulator.get_pklin_from_z(k, z)
     #klin = np.array([k[np.argmax(Pk_lin)]])
@@ -891,8 +891,7 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
         
                 #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 30.0)/(db + 1.0) - 1.0) * low_k_truncation(k, klin)
                 #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) #* low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#/(1.0+z))
-                beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * low_k_truncation(k, klin) * high_k_truncation(k, 30.0)
-                #pl.plot(k, beta_func[iM1, iM2, :])
+                beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * low_k_truncation(k, klin) * high_k_truncation(k, kmax)
 
     return beta_func
     
@@ -905,7 +904,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     
     Mmin, kmax = minimum_halo_mass(emulator)
     M_up = np.log10((10.0**14.0))
-    M_lo = np.log10((10.0**12.0))
+    #M_lo = np.log10((10.0**12.0))
     M_lo = np.log10(Mmin)
     
     M = np.logspace(M_lo, M_up, lenM)
@@ -914,12 +913,9 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     beta_func = compute_bnl_darkquest(0.0, np.log10(M), np.log10(M), k, emulator, block, kmax)
     for i,zi in enumerate(zc):
         #M = np.logspace(M_lo, M_up - 3.0*np.log10(1+zi), lenM)
-        #beta_func = compute_bnl_darkquest(0.0, np.log10(M), np.log10(M), k, emulator, block, kmax)
+        #beta_func = compute_bnl_darkquest(zi, np.log10(M), np.log10(M), k, emulator, block, kmax)
         beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], beta_func, fill_value=None, bounds_error=False, method='nearest')
-    #pl.xscale('log')
-    #pl.yscale('log')
-    #pl.show()
-    #quit()
+    
     return beta_nl_interp_i
 
 

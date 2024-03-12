@@ -101,6 +101,7 @@ def setup(options):
     profile = profile.lower()
     profile_value_name = options.get_string(option_section, 'profile_value_name', default='profile_parameters')
 
+    hmf_model = options[option_section, 'hmf_model']
     # Type of mass definition for Haloes
     mdef_model = options[option_section, 'mdef_model']
     # Over density threshold
@@ -133,6 +134,7 @@ def setup(options):
         bias_model = 'ST99'
         mdef_model = 'SOVirial'
         mdef_params = {}
+        cm_model = 'bullock01'
     
     # most general astropy cosmology initialisation,
     # gets updated as sampler runs with camb provided cosmology parameters.
@@ -146,7 +148,7 @@ def setup(options):
     # This is the slow part it take 1.58/1.67
     mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, 
                         Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
-                        hmf_model=options[option_section, 'hmf_model'],
+                        hmf_model=hmf_model,
                         mdef_model=mdef_model, mdef_params=mdef_params,
                         transfer_model='CAMB',
                         delta_c=delta_c, disable_mass_conversion=False,
