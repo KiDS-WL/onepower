@@ -240,12 +240,6 @@ def execute(block, config):
     pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
     block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
     #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
-
-    # TODO: Read mass from the ingredients
-    # load the halo mass and bias functions from the datablock
-    dn_dlnm, b_dm = pk_lib.get_halo_functions(block, mass, z_vec)
-    # Reads in the Fourier transform of the normalised dark matter halo profile 
-    u_dm, u_sat  = pk_lib.get_normalised_profile(block, k_vec, mass, z_vec)
     
     # Add the non-linear P_hh to the 2h term
     if bnl == True:
