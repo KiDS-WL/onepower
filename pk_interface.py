@@ -225,33 +225,19 @@ def execute(block, config):
 
     # Interpolates in z only
     k_vec_original, plin_original = pk_lib.get_linear_power_spectrum(block, z_vec)
-
     # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
     plin = pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
-
     # load growth factor and scale factor
     growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec, k_vec)
-    
-    # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating.
-    plin = pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
 
     # Optionally de-wiggle linear power spectrum as in Mead 2020:
     if mead_correction in ['feedback', 'nofeedback'] or dewiggle == True:
         plin = pk_lib.dewiggle(plin, k_vec, block)
 
-    # Only used in Fortuna et al. 2021 implementation of IA power spectra
-    # computes the effective power spectrum, mixing the linear and nonlinear ones:
-    # Defaullt in Fortuna et al. 2021 is the non-linear power spectrum, so t_eff defaults to 0
-    #
-    # (1.-t_eff)*pnl + t_eff*plin
-    #
-    # load nonlinear power spectrum
-    k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
-    pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
-    t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
-    pk_eff = (1.-t_eff)*pnl + t_eff*plin
 
     # AD: The following two lines only used for testing, need to be removed later on!
+    k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
+    pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
     block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
     #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
 
