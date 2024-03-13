@@ -128,7 +128,7 @@ def execute(block, config):
             emulator.set_cosmology(cparam)
                 
             beta_interp_tmp = pk_lib.create_bnl_interpolation_function(emulator, interpolate_bnl, z_vec, block)
-            print('Created b_nl interpolator')
+            #print('Created b_nl interpolator')
                 
             beta_interp = np.zeros((z_vec.size, mass.size, mass.size, k_vec.size))
             indices = np.vstack(np.meshgrid(np.arange(mass.size),np.arange(mass.size),np.arange(k_vec.size), copy = False)).reshape(3,-1).T
