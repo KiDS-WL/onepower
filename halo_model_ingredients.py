@@ -6,6 +6,7 @@ from scipy.optimize import root_scalar
 from scipy.integrate import simps, solve_ivp, quad
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 import astropy.units as u
+import hmf
 from halomod import bias as bias_func
 from halomod.concentration import make_colossus_cm
 from halomod import concentration as conc_func
@@ -23,6 +24,17 @@ from astropy.cosmology import Planck15
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
+
+
+# This patches hmf caching!
+def obj_eq_fix(ob1, ob2):
+    """Test equality of objects that is numpy-aware."""
+    try:
+        return bool(ob1 == ob2)
+    except ValueError:
+        # Could be a numpy array.
+        return np.array_equiv(ob1, ob2)#(ob1 == ob2).all()
+hmf._internals._cache.obj_eq = obj_eq_fix
 
 
 class SOVirial_Mead(SphericalOverdensity):

@@ -7,6 +7,7 @@ from scipy.optimize import root_scalar
 # from astropy.cosmology import FlatLambdaCDM, LambdaCDM
 from astropy.cosmology import Flatw0waCDM
 # import astropy.units as u
+import hmf
 from halomod.halo_model import DMHaloModel
 # from halomod import bias as bias_func
 from halomod.concentration import make_colossus_cm
@@ -32,6 +33,18 @@ from astropy.cosmology import Planck15
 cosmo_params = names.cosmological_parameters
 
 warnings.filterwarnings('ignore', category=UserWarning, module='colossus')
+
+
+# This patches hmf caching!
+def obj_eq_fix(ob1, ob2):
+    """Test equality of objects that is numpy-aware."""
+    try:
+        return bool(ob1 == ob2)
+    except ValueError:
+        # Could be a numpy array.
+        return np.array_equiv(ob1, ob2)#(ob1 == ob2).all()
+hmf._internals._cache.obj_eq = obj_eq_fix
+
 
 class SOVirial_Mead(SphericalOverdensity):
     """
@@ -137,8 +150,10 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
             range_return=True, range_warning=False)
     #toc = time.perf_counter()
     #print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
-
-    c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
+    if len(c[c>0]) == 0:
+        c_interp = lambda x: np.ones_like(x)
+    else:
+        c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
 
     
     return c_interp(mass)
