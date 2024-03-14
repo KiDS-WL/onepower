@@ -57,7 +57,7 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
         # colossus warns us about massive neutrinos, but that is also ok
         # as we do not use cosmology from it, but it requires it to setup the instance!
         this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
-                     sigma8=block[cosmo_params, 'sigma_8'], ns=block[cosmo_params, 'n_s'])
+                     sigma8=block[cosmo_params, 'sigma_8'], ns=block[cosmo_params, 'n_s'], persistence='')
 
     if isinstance(mdef, str):
         mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
@@ -71,8 +71,10 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
             range_return=True, range_warning=False)
     #toc = time.perf_counter()
     #print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
-
-    c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
+    if len(c[c>0]) == 0:
+        c_interp = lambda x: np.ones_like(x)
+    else:
+        c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
 
     
     return c_interp(mass)
