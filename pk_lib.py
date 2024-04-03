@@ -876,14 +876,14 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
                 #kmax = 2.0*np.pi/rmax
                     
                 # Create beta_NL
-                #shot_noise = lambda x, a: a
-                #popt, popc = curve_fit(shot_noise, k[(k>100) & (k<200)], Pk_hh[(k>100) & (k<200)])
-                #Pk_hh = Pk_hh - np.ones_like(k)*shot_noise(k, *popt)
+                shot_noise = lambda x, a: a
+                popt, popc = curve_fit(shot_noise, k[(k>100) & (k<200)], Pk_hh[(k>100) & (k<200)])
+                Pk_hh = Pk_hh - np.ones_like(k)*shot_noise(k, *popt)
             
                 beta_func[iM1, iM2, :] = Pk_hh/(b1*b2*Pk_lin) - 1.0
                 
                 Pk_hh0 = emulator.get_phh_mass(klin, M01, M02, z)
-                #Pk_hh0 = Pk_hh0 - np.ones_like(klin)*shot_noise(klin, *popt)
+                Pk_hh0 = Pk_hh0 - np.ones_like(klin)*shot_noise(klin, *popt)
                 db = Pk_hh0/(b1*b2*Pk_klin) - 1.0
                 
                 lmin, lmax = hl_envelopes_idx(np.abs(beta_func[iM1, iM2, :]+1.0))
@@ -894,7 +894,7 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
         
                 #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 30.0)/(db + 1.0) - 1.0) * low_k_truncation(k, klin)
                 #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) #* low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#/(1.0+z))
-                beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * low_k_truncation(k, klin) * high_k_truncation(k, kmax)
+                beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * low_k_truncation(k, klin) * high_k_truncation(k, 3.0*kmax)
 
     return beta_func
     
@@ -913,7 +913,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     M = np.logspace(M_lo, M_up, lenM)
     k = np.logspace(-3.0, np.log10(200), lenk)
     beta_nl_interp_i = np.empty(len(z), dtype=object)
-    beta_func = compute_bnl_darkquest(0.0, np.log10(M), np.log10(M), k, emulator, block, kmax)
+    beta_func = compute_bnl_darkquest(0.01, np.log10(M), np.log10(M), k, emulator, block, kmax)
     for i,zi in enumerate(zc):
         #M = np.logspace(M_lo, M_up - 3.0*np.log10(1+zi), lenM)
         #beta_func = compute_bnl_darkquest(zi, np.log10(M), np.log10(M), k, emulator, block, kmax)
@@ -1042,7 +1042,7 @@ def compute_p_mm(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, o
 def compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, I_NL_mm, one_halo_ktrunc):
 
     # 2-halo term:
-    pk_mm_2h = ( plin * I_m_term * I_m_term + plin*I_NL_mm ) * two_halo_truncation(k_vec)[np.newaxis,:]
+    pk_mm_2h = ( plin * I_m_term * I_m_term + plin*I_NL_mm ) #* two_halo_truncation(k_vec)[np.newaxis,:]
     # 1-halo term
     pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
     # Total
