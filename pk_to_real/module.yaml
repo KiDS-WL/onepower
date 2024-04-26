@@ -1,15 +1,15 @@
 #This is a template for module description files
-name: cl_to_corr
+name: pk_to_real
 version: '1.0'
-purpose: Compute correlation functions xi+, xi-, w, and gamma_t from C_ell
+purpose: Compute correlation functions Delta_Sigma and w_p from P(k)
 url: ''
-interface: cl_to_corr.py
+interface: pk_to_real.py
 attribution: [CosmoSIS Team]
 rules: ''
 cite: []
 assumptions:
--   Input C_ell sufficiently well-sampled over chosen range
--   Ell and theta values consistently chosen
+-   Input P(k) sufficiently well-sampled over chosen range
+-   k and r_p values consistently chosen
 
 explanation: >
     The correlation functions are related to the spectra via Bessel functions:

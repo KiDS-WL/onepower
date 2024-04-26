@@ -13,7 +13,7 @@ import matplotlib.pyplot as pl
 TRANSFORM_WP = "wp"
 TRANSFORM_DS = "ds"
 
-DEFAULT_N_TRANSFORM = 8192
+DEFAULT_N_TRANSFORM = 250#8192
 DEFAULT_K_MIN = 0.0001
 DEFAULT_K_MAX = 5.0e6
 DEFAULT_RP_MIN = 0.1
@@ -28,8 +28,8 @@ DEFAULT_SECTIONS = {
 }
 
 OUTPUT_NAMES = {
-    TRANSFORM_WP:  "bin_{}_{}",
-    TRANSFORM_DS:  "bin_{}_{}",
+    TRANSFORM_WP:  "bin_{}",
+    TRANSFORM_DS:  "bin_{}",
 }
 
 
@@ -54,7 +54,7 @@ class projected_corr():
         self.q, self.mu = _TRANSFORM_PARAMETERS[transform_type]
 
         # Prepare the Hankel transform.
-        N_hankel = 350
+        N_hankel = 20#350
         h_hankel = np.pi/N_hankel
         self.h_transform = HankelTransform(self.mu,N_hankel,h_hankel)
 
@@ -63,14 +63,17 @@ class projected_corr():
         self.rp_max = rp_max
 
         # work out the effective rp values.
+        nc = 0.5 * (n + 1)
         log_kmin = np.log(k_min)
         log_kmax = np.log(k_max)
         log_kmid = 0.5 * (log_kmin + log_kmax)
         k_mid = np.exp(log_kmid)
         r_mid = 1.0 / k_mid
+        x = np.arange(n)
 
         # And the effective separations of the output
-        self.rp = np.exp(np.arange(n)*dlogr) * r_mid
+        self.rp = np.exp((x - nc) * dlogr) * r_mid
+        #self.rp = np.degrees(self.rp_rad) * 60.0
         self.range = (self.rp > self.rp_min) & (self.rp < self.rp_max)
     
         
@@ -152,7 +155,7 @@ class projection():
             b1 = i + 1
 
             # The key name for each bin
-            output_name = self.output_name.format(b1, b1)
+            output_name = self.output_name.format(b1)
 
             if self.suffixes is not None:
                 input_section = f"{self.input_section}_{self.suffixes[i]}"

@@ -1,34 +1,7 @@
-"""
-This module combines the red and blue power spectra. It interpolates and extrapolates the 
-different power spectra in input to match the range and sampling of the matter_power_nl.
-The extrapolation method is not particurlarly advanced (numpy.interp) and would be good
-to replace it with something more robust. 
-
-The red fraction as a function of redshift must be provided by the user ad a txt file with
-columns (z, f_red(z)). The z-binning can be arbitrary (it is interpolated inside the code)
-but it safe to provide the largest range possible to avoid substantial extrapolations. 
-
-The code assume the red and blue power spectra to be computed on the same z and k binning.
-
-Step 1: interpolate f_red to the z-bins of the pk of interest
-Step 2: add red and blue power spectra
-Step 3: interpolate to the z and k-binning of the matter_power_nl
-
-NO CROSS TERMS ARE CURRENTLY IMPLEMENTED.
-
-For each redshift, the power spectra are combined as following:
-
-GI -> pk_tot = f_red * pk_red + (1-f_red) * pk_blue 
-II -> pk_tot = f_red**2. * pk_red + (1-f_red)**2. * pk_blue
-gI -> pk_tot = f_red**2. * pk_red + (1-f_red)**2. * pk_blue
-gg -> pk_tot = f_red**2. * pk_red + (1-f_red)**2. * pk_blue
-gm -> pk_tot = f_red * pk_red + (1-f_red) * pk_blue
-
-"""
-
 from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp1d
+from hankel import HankelTransform
 
 # We have a collection of commonly used pre-defined block section names.
 # If none of the names here is relevant for your calculation you can use any
@@ -36,83 +9,48 @@ from scipy.interpolate import interp1d
 cosmo = names.cosmological_parameters
 
 
-def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, power_section, z_ext, k_ext, extrapolate_option):
-    # Note that we have first interpolated the f_red to the halo model pipeline z range
-    k = block[f'{power_section}{suffix_red}', 'k_h']
-    z = block[f'{power_section}{suffix_red}', 'z']
-    pk_red = block[f'{power_section}{suffix_red}', 'p_k']
-    pk_blue = block[f'{power_section}{suffix_blue}', 'p_k']
-		
-    # TODO: Add the cross terms
-    # This is not optimised, but it is good to first choose what do we want to implement
-    # in terms of cross terms.
-    if power_section in ['intrinsic_power', 'galaxy_power', 'galaxy_intrinsic_power']:
-        pk_tot = f_red[:,np.newaxis]**2.*pk_red + (1.-f_red[:,np.newaxis])**2.*pk_blue
-    else:
-        pk_tot = f_red[:,np.newaxis]*pk_red + (1.-f_red[:,np.newaxis])*pk_blue
-
-    # For matter-intrinsic and galaxy-intrinsic, pk_tot will usually be negative (for A_IA > 0)
-    # And at very high k can be as large as -100!
-    # If we're interpolating over log10(pk_tot) negative power is problematic
-    # Check to see if it is negative, and take the absolute value 
-    if np.sum(pk_tot)<0:
-        pk_tot = pk_tot * -1
-        changed_sign=True
-    else:    
-        changed_sign=False
-
-    #warnings.warn('No cross terms between red and blue galaxies implemented.
-    #This is only valid for IA in the regime of negligible blue galaxy alignment.')
-    #IT 02/03/22: Commented line 86 to execute the code
-    
-    # extrapolate
-    #inter_func_z = interp1d(z, np.nan_to_num(np.log10(pk_tot + 1.0), nan=0.0, posinf=0.0, neginf=0.0), kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
-    #pk_tot_ext_z = 10.0**inter_func_z(z_ext) - 1.0
-    # In redshift direction this seems to be more stable:
-    inter_func_z = interp1d(z, pk_tot, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
-    pk_tot_ext_z = inter_func_z(z_ext)
-    
-    inter_func_k = interp1d(np.log10(k), np.nan_to_num(np.log10(pk_tot_ext_z + 1.0), nan=0.0, posinf=0.0, neginf=0.0), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
-    pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
+class projected_corr(k, R, power_gm, power_gg, rho_mean, hank):
+    def __init__(self):
+        self.k = k
+        self.R = R
+        self.power_gm = power_gm
+        self.power_gg = power_gg
+        self.rho_mean = rho_mean
+        self.hank = hank
         
-    # Introduce the sign convention back for the GI terms    
-    if changed_sign:
-        pk_tot_ext=pk_tot_ext*-1
-
-    block.put_grid(f'{power_section}{suffix_out}', 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
-
-
-def extrapolate_power(block, suffix_out, suffix_in, power_section, z_ext, k_ext, extrapolate_option):
-    k = block[f'{power_section}{suffix_in}', 'k_h']
-    z = block[f'{power_section}{suffix_in}', 'z']
-    pk_in = block[f'{power_section}{suffix_in}', 'p_k']
-    
-    # For matter-intrinsic and galaxy-intrinsic, pk_tot will usually be negative (for A_IA > 0)
-    # If we're interpolating over log10(pk_tot) negative power is problematic
-    # Check to see if it is negative, and take the absolute value
-    if np.sum(pk_in)<0:
-        pk_in = pk_in * -1
-        changed_sign=True
-    else:
-        changed_sign=False
-    
-    #inter_func_z = interp1d(z, np.nan_to_num(np.log10(pk_in + 1.0), nan=0.0, posinf=0.0, neginf=0.0), kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
-    #pk_tot_ext_z = 10.0**inter_func_z(z_ext) - 1.0
-    # In redshift direction this seems to be more stable:
-    inter_func_z = interp1d(z, pk_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
-    pk_tot_ext_z = inter_func_z(z_ext)
-    
-    inter_func_k = interp1d(np.log10(k), np.nan_to_num(np.log10(pk_tot_ext_z + 1.0), nan=0.0, posinf=0.0, neginf=0.0), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
-    pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
         
-    # Introduce the sign convention back for the GI terms
-    if changed_sign:
-        pk_tot_ext=pk_tot_ext*-1
-        
-    block.put_grid(f'{power_section}{suffix_out}', 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
- 
- 
-#--------------------------------------------------------------------------------#	
+    def get_sigma_ogata(power, R, hank, order=0, rho_mean=1.0):
+        result = np.zeros(R.shape)
+        h = hank[order]
+        for i in range(result.size):
+            integ = lambda x: np.exp(power_func(np.log(x/R[i]))) * x
+            result[i] = h.transform(integ)[0]
+            
+        return (rho_mean * result) / (2.0 * pi * R**2)
+    
+    def get_wgg(self):
+        if self.power_gg is None:
+            return None
+        else:
+            wgg = self.get_sigma_ogata(self.power_gg, self.R, self.hank, order=0, rho_mean=1.0)
+        return wgg
+    
+    def get_wgm(self):
+        if self.power_gm is None:
+            return None
+        else:
+            wgm = self.get_sigma_ogata(self.power_gm, self.R, self.hank, order=0, rho_mean=self.rho_mean)
+        return wgm
+    
+    def get_ds(self):
+        if self.power_gm is None:
+            return None
+        else:
+            ds = self.get_sigma_ogata(self.power_gm, self.R, self.hank, order=2, rho_mean=self.rho_mean)
+        return ds
+    
+
+
 
 def setup(options):
     #This function is called once per processor per chain.
@@ -130,13 +68,6 @@ def setup(options):
     p_II_option = options[option_section, 'do_p_II']
     p_gI_option = options[option_section, 'do_p_gI']
 
-    if any(option == 'add_and_extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
-        f_red_file = options[option_section, 'f_red_file']
-        z_fred, f_red = np.loadtxt(f_red_file, unpack=True)
-    else:
-        print('Only extrapolating power spectra.')
-        z_fred, f_red = None, None
-
     hod_section_name_extrap = options.get_string(option_section, 'hod_section_name_extrap', default='hod_red').lower()
     hod_section_name_red = options.get_string(option_section, 'hod_section_name_red', default='hod_red').lower()
     hod_section_name_blue = options.get_string(option_section, 'hod_section_name_blue', default='hod_blue').lower()
@@ -145,18 +76,9 @@ def setup(options):
     name_red = options.get_string(option_section, 'input_power_suffix_red', default='red').lower()
     name_blue = options.get_string(option_section, 'input_power_suffix_blue', default='blue').lower()
     
-    if name_extrap != '':
-        suffix_extrap = f'_{name_extrap}'
-    else:
-        suffix_extrap = ''
-    if name_red != '':
-        suffix_red = f'_{name_red}'
-    else:
-        suffix_red = ''
-    if name_blue != '':
-        suffix_blue = f'_{name_blue}'
-    else:
-        suffix_blue = ''
+    h_transform = {}
+    for order in [0,2]:x
+        h_transform[order] = HankelTransform(order,10000,0.00001)
 			
     return z_fred, f_red, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, suffix_extrap, suffix_red, suffix_blue, hod_section_name_extrap, hod_section_name_red, hod_section_name_blue
 	
@@ -277,5 +199,4 @@ def cleanup(config):
     # Usually python modules do not need to do anything here.
     # We just leave it in out of pedantic completeness.
     pass
-
 

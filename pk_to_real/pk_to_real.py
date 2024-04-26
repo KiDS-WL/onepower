@@ -6,8 +6,6 @@ import numpy as np
 from cosmosis.datablock import option_section
 from scipy.integrate import simps
 
-import matplotlib.pyplot as pl
-
 # These are the ones the user can use
 TRANSFORM_WP = "wp"
 TRANSFORM_DS = "ds"
@@ -27,8 +25,8 @@ DEFAULT_SECTIONS = {
 }
 
 OUTPUT_NAMES = {
-    TRANSFORM_WP:  "bin_{}_{}",
-    TRANSFORM_DS:  "bin_{}_{}",
+    TRANSFORM_WP:  "bin_{}",
+    TRANSFORM_DS:  "bin_{}",
 }
 
 
@@ -51,15 +49,15 @@ class LogInterp(object):
     def __init__(self, angle, spec, kind):
         if np.all(spec > 0):
             self.interp_func = scipy.interpolate.interp1d(
-                np.log(angle), np.log(spec), kind, bounds_error=False)
+                np.log(angle), np.log(spec), kind, bounds_error=False, fill_value='extrapolate')
             self.interp_type = 'loglog'
         elif np.all(spec < 0):
             self.interp_func = scipy.interpolate.interp1d(
-                np.log(angle), np.log(-spec), kind, bounds_error=False)
+                np.log(angle), np.log(-spec), kind, bounds_error=False, fill_value='extrapolate')
             self.interp_type = 'minus_loglog'
         else:
             self.interp_func = scipy.interpolate.interp1d(
-                np.log(angle), spec, kind, bounds_error=False)
+                np.log(angle), spec, kind, bounds_error=False, fill_value='extrapolate')
             self.interp_type = 'log_ang'
 
     def __call__(self, angle):
@@ -115,16 +113,19 @@ class Transformer(object):
         self.upper = upper
 
         # work out the effective rp values.
+        nc = 0.5 * (n + 1)
         log_kmin = np.log(k_min)
         log_kmax = np.log(k_max)
         log_kmid = 0.5 * (log_kmin + log_kmax)
         k_mid = np.exp(log_kmid)
         r_mid = self.kr / k_mid
+        x = np.arange(n)
 
         # And the effective separations of the output
-        self.rp = np.exp(np.arange(n)*dlogr) * r_mid
-        self.range = (self.rp > self.rp_min) & (
-                    self.rp < self.rp_max)
+        self.rp = np.exp((x - nc) * dlogr) * r_mid
+        #self.rp = np.degrees(self.rp_rad) * 60.0
+        self.range = (self.rp > self.rp_min) & (self.rp < self.rp_max)
+
 
     def __call__(self, k_in, pk_in):
         """Convert the input k and P(k) points to the points this transform requires, and then
@@ -148,11 +149,11 @@ class Transformer(object):
         k_max = k[-1]
         interpolator = LogInterp(k, pk, 'linear')
         pk_out = interpolator(self.k)
-        bad_low = np.isnan(pk_out) & (self.k < k_min)
-        bad_high = np.isnan(pk_out) & (self.k > k_max)
+        #bad_low = np.isnan(pk_out) & (self.k < k_min)
+        #bad_high = np.isnan(pk_out) & (self.k > k_max)
 
-        pk_out[bad_low] = pk[0] * (self.k[bad_low] / k_min)**self.lower
-        pk_out[bad_high] = pk[-1] * (self.k[bad_high] / k_max)**self.upper
+        #pk_out[bad_low] = pk[0] * (self.k[bad_low] / k_min)**self.lower
+        #pk_out[bad_high] = pk[-1] * (self.k[bad_high] / k_max)**self.upper
 
         return pk_out
 
@@ -168,6 +169,7 @@ class CosmosisTransformer(Transformer):
 
         # Where to get/put the input/outputs
         default_input, default_output = DEFAULT_SECTIONS[corr_type]
+        self.corr_type = corr_type
 
         self.input_section = options.get_string(
             option_section, "input_section_name", default_input)
@@ -211,6 +213,10 @@ class CosmosisTransformer(Transformer):
 
         # Choose the bin values to go up to.  Different modules might specify this in different ways.
         # They might have one nbin value (for cosmic shear and clustering) or two (for GGL)
+        if self.corr_type == "ds":
+            density = block["density", "mean_density0"]/1e12
+        else:
+            density = 1.0
         
         if self.nbins is None:
             nbins = block[self.sample, "nbin"]
@@ -222,7 +228,7 @@ class CosmosisTransformer(Transformer):
             b1 = i + 1
 
             # The key name for each bin
-            output_name = self.output_name.format(b1, b1)
+            output_name = self.output_name.format(b1)
 
             if self.suffixes is not None:
                 input_section = f"{self.input_section}_{self.suffixes[i]}"
@@ -240,16 +246,12 @@ class CosmosisTransformer(Transformer):
         
             for j in range(len(z)):
                 rp, xi[j,:] = super(CosmosisTransformer, self).__call__(k, pk[j,:])
+                #pl.plot(rp, 1.0+xi[j,:])
             # Integrate over n(z)
             nz = self.load_kernel(block, self.sample, b1, z, 0.0)
-            xi = simps(nz[:,np.newaxis]*xi, z, axis=0)
-            #pl.plot(rp, xi)
-            
+            xi = simps(nz[:,np.newaxis]*xi*density, z, axis=0)
             # Save results back to cosmosis
             block[self.output_section, output_name] = xi
-        #pl.xscale('log')
-        #pl.yscale('log')
-        #pl.show()
             
         block[self.output_section, "nbin"] = nbins
         block[self.output_section, "sample"] = self.sample
