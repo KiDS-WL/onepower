@@ -136,7 +136,7 @@ def setup(options):
     save_observable   = options.get_bool(option_section, 'save_observable',True)
     # options are: "obs_z" or "obs_zmed" or "obs_onebin" depending if you want to calculate 
     # the observable function per each redshift or on the median one or per one big bin
-    observable_mode   = options.get_string(option_section, 'observable_mode',"obs_z")
+    observable_mode   = options.get_string(option_section, 'observable_mode','obs_z')
     # TODO: Check if this is z_median or if it is used in the other options
     z_picked          = options.get_double(option_section, 'z_input',0.1)
 
@@ -390,32 +390,15 @@ def execute(block, config):
         # AD: CHECK THE h HERE!
         # AD: Should be without as the h is carried through in the first place!
         # AD: ln(10) factor added to the output and multiplication with M/L to get to the usual units data are in 99% reported in!
-            
-        #If required, convert everything to the h from the cosmological parameter section, otherwise keep h=1
-        #h=1.
-        #if rescale_to_h == True:
-        #	h = block['cosmological_parameters', 'h0']
-        #	print h
 
-        # go back to the observed magnitudes
-        obs_h = obs_range#/(h**2.) #note that the _h subscript avoids mixing h conventions while computing the clf_quantities
-        obs_func_h = obs_func#*(h**5.)
         
-        #mr_obs = hod.convert_to_magnitudes(obs_range, abs_mag_sun)
+        obs_h = obs_range#/(h**2.) #note that the _h subscript avoids mixing h conventions while computing the clf_quantities
+        obs_func_h = obs_func
 
         # x value for the observable function (e.g. stellar masses)
         block.put_double_array_1d(observable_section_name,'obs_val_med',obs_h)
         #block.put_double_array_1d('observable_function' + suffix,'obs_func_med',obs_func_h)
-        # y*x value: the observable function (e.g. stellar mass function) times the observable value
         block.put_double_array_1d(observable_section_name,'obs_func_med',np.log(10.)*obs_func_h*obs_h)
-        
-
-        #Back to magnitudes
-        # It doesn't mean anything if the observable is stellar mass!
-        #Lf_in_mags = 0.4*np.log(10.)*obs_h*obs_func_h
-
-        #block.put_double_array_1d('observable_function' + suffix0,'mr_med', mr_obs)
-        #block.put_double_array_1d('observable_function' + suffix0,'obs_mr_med',Lf_in_mags)
 
         #Characteristic luminosity of central galaxies
         obs_cen = hod.obs_star(mass, hod_par, norm_c)

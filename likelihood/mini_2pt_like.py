@@ -156,6 +156,10 @@ def get_theory_point(x, y, mode='interpolate', interpolated_x=None, bin_edges=No
 
 def setup(options):
     
+    # TO-DO: - Implement exclude option
+    #        - Implement scaling of observables to the cosmology of the data
+    #        - 
+    
     input_sections = options.get_string(option_section, 'input_section_names').split()
     
     data_dict = {}
@@ -215,14 +219,15 @@ def execute(block, config):
                                             mode=binning_mode,
                                             interpolated_x=data_x,
                                             bin_edges=edges[count])
-            pl.plot(data_x, data_vectors[count])
-            pl.plot(data_x, theory_vectors[count])
+            #pl.plot(data_x, data_vectors[count])
+            #pl.plot(data_x, theory_vectors[count])
+            #pl.plot(data_x, data_vectors[count]/theory_vectors[count])
             count += 1
     
-        pl.xscale('log')
-        pl.yscale('log')
-        pl.show()
-        pl.clf
+        #pl.xscale('log')
+        #pl.yscale('log')
+        #pl.show()
+        #pl.clf
 
     residuals = data_vectors - theory_vectors
     chi2 = np.array([np.dot(residuals[m], np.dot(inv_cov[m][n], residuals[n]))

@@ -73,7 +73,7 @@ class LogInterp(object):
 
 class Transformer(object):
     """
-    Class to build Hankel Transformers that convert from 2D power spectra to correlation functions.
+    Class to build Hankel Transformers that convert from 3D power spectra to correlation functions.
     Several transform types are allowed, depending whether you are using cosmic shear, clustering, or
     galaxy-galaxy lensing.
     """
@@ -136,10 +136,10 @@ class Transformer(object):
 
         if self.q == 0:
             xi = pyfftlog.fht(self.k * pk, self.xsave,
-                              tdir=self.direction) / (2 * np.pi) / self.rp
+                              tdir=self.direction) * (2 * np.pi) / self.rp
         else:
             xi = pyfftlog.fhtq(self.k * pk, self.xsave,
-                               tdir=self.direction) / (2 * np.pi) / self.rp
+                               tdir=self.direction) * (2 * np.pi) / self.rp
         
         return self.rp[self.range], xi[self.range]
 
@@ -246,7 +246,6 @@ class CosmosisTransformer(Transformer):
         
             for j in range(len(z)):
                 rp, xi[j,:] = super(CosmosisTransformer, self).__call__(k, pk[j,:])
-                #pl.plot(rp, 1.0+xi[j,:])
             # Integrate over n(z)
             nz = self.load_kernel(block, self.sample, b1, z, 0.0)
             xi = simps(nz[:,np.newaxis]*xi*density, z, axis=0)
