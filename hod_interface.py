@@ -391,8 +391,7 @@ def execute(block, config):
         # AD: Should be without as the h is carried through in the first place!
         # AD: ln(10) factor added to the output and multiplication with M/L to get to the usual units data are in 99% reported in!
 
-        
-        obs_h = obs_range#/(h**2.) #note that the _h subscript avoids mixing h conventions while computing the clf_quantities
+        obs_h = obs_range#*(h**2.) #note that the _h subscript avoids mixing h conventions while computing the clf_quantities
         obs_func_h = obs_func
 
         # x value for the observable function (e.g. stellar masses)
