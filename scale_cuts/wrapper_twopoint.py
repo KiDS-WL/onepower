@@ -1,9 +1,9 @@
 
 
     ##############################
-    ##  wrapper_twopoint.py	##
-    ##  Chieh-An Lin		##
-    ##  Version 2020.02.21	##
+    ##  wrapper_twopoint.py    ##
+    ##  Chieh-An Lin        ##
+    ##  Version 2020.02.21    ##
     ##############################
 
 
@@ -28,8 +28,8 @@ class LabelConvention:
     This class deals with the conversion.
     """
     
-    def __init__(self, w='wTh', gamma_t='gT', gamma_x='gX', xi_p='xiP', xi_m='xiM', 
-                  P_nn='Pnn', P_ne_E='PneE', P_ne_B='PneB', P_ee_E='PeeE', P_ee_B='PeeB', 
+    def __init__(self, w='wTh', gamma_t='gT', gamma_x='gX', xi_p='xiP', xi_m='xiM',
+                  P_nn='Pnn', P_ne_E='PneE', P_ne_B='PneB', P_ee_E='PeeE', P_ee_B='PeeB',
                   E_n='En', B_n='Bn', Psi_gm='Psi_gm', Psi_gg='Psi_gg', onept='1pt'):
     
         self.prefix  = 'twoPoint'
@@ -87,16 +87,16 @@ class LabelConvention:
         self.kernelTypeDict = clt.OrderedDict()
         ## Don't touch the order of the assertion
         self.kernelTypeDict[w]       = [self.lens,   self.lens,   tpType1, tpType1, 'arcmin']
-        self.kernelTypeDict[gamma_t] = [self.lens,   self.source, tpType1, tpType2, 'arcmin'] 
-        self.kernelTypeDict[gamma_x] = [self.lens,   self.source, tpType1, tpType3, 'arcmin'] 
-        self.kernelTypeDict[xi_p]    = [self.source, self.source, tpType2, tpType2, 'arcmin']  
+        self.kernelTypeDict[gamma_t] = [self.lens,   self.source, tpType1, tpType2, 'arcmin']
+        self.kernelTypeDict[gamma_x] = [self.lens,   self.source, tpType1, tpType3, 'arcmin']
+        self.kernelTypeDict[xi_p]    = [self.source, self.source, tpType2, tpType2, 'arcmin']
         self.kernelTypeDict[xi_m]    = [self.source, self.source, tpType3, tpType3, 'arcmin']
-        self.kernelTypeDict[P_nn]    = [self.lens,   self.lens,   tpType4, tpType4, None] 
-        self.kernelTypeDict[P_ne_E]  = [self.lens,   self.source, tpType4, tpType5, None] 
-        self.kernelTypeDict[P_ne_B]  = [self.lens,   self.source, tpType4, tpType6, None] 
-        self.kernelTypeDict[P_ee_E]  = [self.source, self.source, tpType5, tpType5, None] 
-        self.kernelTypeDict[P_ee_B]  = [self.source, self.source, tpType6, tpType6, None] 
-        self.kernelTypeDict[E_n]     = [self.source, self.source, tpType5, tpType6, None] 
+        self.kernelTypeDict[P_nn]    = [self.lens,   self.lens,   tpType4, tpType4, None]
+        self.kernelTypeDict[P_ne_E]  = [self.lens,   self.source, tpType4, tpType5, None]
+        self.kernelTypeDict[P_ne_B]  = [self.lens,   self.source, tpType4, tpType6, None]
+        self.kernelTypeDict[P_ee_E]  = [self.source, self.source, tpType5, tpType5, None]
+        self.kernelTypeDict[P_ee_B]  = [self.source, self.source, tpType6, tpType6, None]
+        self.kernelTypeDict[E_n]     = [self.source, self.source, tpType5, tpType6, None]
         self.kernelTypeDict[B_n]     = [self.source, self.source, tpType6, tpType5, None]
         self.kernelTypeDict[Psi_gm]  = [self.lens,   self.source, tpType4, tpType5, None]
         self.kernelTypeDict[Psi_gg]  = [self.lens,   self.lens,   tpType4, tpType4, None]
@@ -117,7 +117,7 @@ class LabelConvention:
     def makeScaleCutsArgs(self, scDict):
         """
         Convert some lines of ASCII characters into a tuple of 5 elements defining various scale cuts
-        scDict is a dictionary, constructed by: 
+        scDict is a dictionary, constructed by:
         scDict[scale_cut_option] = list of strings
         """
         statsList = None
@@ -180,6 +180,10 @@ class SpectrumBuilder():
         self.aIL     = []
         self.angList = []
         self.valList = []
+        self.nobs = []
+        self.obs = []
+        self.obs_name = []
+        self.nbin = []
         return
     
     def addTomo(self, tomoInd1, tomoInd2, angle, value):
@@ -191,6 +195,13 @@ class SpectrumBuilder():
         self.angList.append(angle)
         self.valList.append(value)
         return
+        
+    def add_one_point(self, obs_name, nbin, x, angbin, values):
+        self.obs_name.append(obs_name)
+        self.nbin.append(nbin)
+        self.obs.append(x)
+        self.nobs.append(values)
+        #self.angbin.append(angbin)
     
     def makeSpectrum(self, name, types, angle_unit, kernels=(None, None)):
         self.tIL1    = np.concatenate(self.tIL1)

@@ -6,6 +6,7 @@ import numpy as np
 import twopoint
 import wrapper_twopoint as wtp
 
+# New scale cuts supporting 1pt statistics
 
 def setup(options):
     config = {}
@@ -26,9 +27,9 @@ def setup(options):
     config['bandpower_ggl_extension_name']            = options.get_string(option_section, 'bandpower_ggl_extension_name', default='PneE')
     config['bandpower_e_cosmic_shear_extension_name'] = options.get_string(option_section, 'bandpower_e_cosmic_shear_extension_name', default='PeeE')
     config['bandpower_b_cosmic_shear_extension_name'] = options.get_string(option_section, 'bandpower_b_cosmic_shear_extension_name', default='PeeB')
-    config['cosebis_extension_name']                  = options.get_string(option_section, 'cosebis_extension_name', default='En')
     config['psi_stats_gg_extension_name']             = options.get_string(option_section, 'psi_stats_gg_extension_name', default='Psi_gg')
     config['psi_stats_gm_extension_name']             = options.get_string(option_section, 'psi_stats_gm_extension_name', default='Psi_gm')
+    config['cosebis_extension_name']                  = options.get_string(option_section, 'cosebis_extension_name', default='En')
     config['onepoint_extension_name']                 = options.get_string(option_section, 'onepoint_extension_name', default='1pt')
     
     ## Read section names for theory outputs
@@ -40,9 +41,9 @@ def setup(options):
     config['bandpower_ggl_section_name']            = options.get_string(option_section, 'bandpower_ggl_section_name', default='bandpower_ggl')
     config['bandpower_e_cosmic_shear_section_name'] = options.get_string(option_section, 'bandpower_e_cosmic_shear_section_name', default='bandpower_e_cosmic_shear')
     config['bandpower_b_cosmic_shear_section_name'] = options.get_string(option_section, 'bandpower_b_cosmic_shear_section_name', default='bandpower_b_cosmic_shear')
-    config['cosebis_section_name']                  = options.get_string(option_section, 'cosebis_section_name', default='cosebis')
     config['psi_stats_gg_section_name']             = options.get_string(option_section, 'psi_stats_gg_section_name', default='psi_gg')
     config['psi_stats_gm_section_name']             = options.get_string(option_section, 'psi_stats_gm_section_name', default='psi_gm')
+    config['cosebis_section_name']                  = options.get_string(option_section, 'cosebis_section_name', default='cosebis')
     config['onepoint_section_name']                 = options.get_string(option_section, 'onepoint_section_name', default='observable_function')
     
     ## Read scale cuts
@@ -94,7 +95,7 @@ def setup(options):
     TP_data.keepScales(statsTag_tomoInd1_tomoInd2__angMin_angMax_dict=scArgs[3], statsTag__angMin_angMax_dict=scArgs[4])
     print('  Did scale cuts to data & cov')
     
-    ## Don't put this before scale cuts, because TP_data.choose_data_sets does 
+    ## Don't put this before scale cuts, because TP_data.choose_data_sets does
     ## not modify the covmat_info attribute but only the covmat attribute.
     ## While one can cut a correctly cut covariance, the scale cuts on this
     ## covariance, which relies on covmat_info, can result in errors.
