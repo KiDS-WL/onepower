@@ -279,7 +279,8 @@ def execute(block, config):
         elif mead_correction == 'fit':
             # Reads f_star_extended form the HOD section. Either need to use a conditional HOD to get this value or to put it in block some other way.
             fstar_mm = pk_lib.load_fstar_mm(block, hod_section_name, z_vec, mass)
-            matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z_vec, fstar_mm, omega_c, omega_m, omega_b, fnu)
+            mb = 10.0**block['halo_model_parameters', 'm_b']
+            matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z_vec, mb, fstar_mm, omega_c, omega_m, omega_b, fnu)
         else:
             matter_profile_1h_mm = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
             

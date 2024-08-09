@@ -327,7 +327,7 @@ def matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m,
     return profile
 
 
-def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, fstar, omega_c, omega_m, omega_b, fnu):
+def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, mb, fstar, omega_c, omega_m, omega_b, fnu):
     """
     Total matter profile for a general baryonic feedback model
     using f* from HOD/CSMF/CLF that also provides for point mass estimate when used in the
@@ -344,7 +344,7 @@ def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_de
     #print(np.max(np.abs(Tagn)))
     dm_to_matter_frac = omega_c/omega_m
     Wm_0 = mass / mean_density0
-    f_gas_fit = fg_fit(mass, fstar, z, omega_b, omega_m)
+    f_gas_fit = fg_fit(mass, mb, fstar, z, omega_b, omega_m)
     #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
     Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
     return Wm
@@ -477,8 +477,8 @@ def two_halo_truncation(k_vec, k_trunc=2.0):
     #return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
     if k_trunc == None:
         return np.ones_like(k_vec)
-    k_d = 0.07
-    nd = 2.8
+    k_d = 0.05699#0.07
+    nd = 2.853
     k_frac = k_vec/k_d
     
     return 1.0 - 0.05 * (k_frac**nd)/(1.0 + k_frac**nd)
@@ -593,7 +593,7 @@ def fg(mass, fstar, log10T_AGN, z, omega_b, omega_m, beta=2):
     return fg
 
 
-def fg_fit(mass, fstar, z, omega_b, omega_m):
+def fg_fit(mass, mb, fstar, z, omega_b, omega_m):
     """
     Gas fraction
     Eq 24 of 2009.01858
@@ -606,7 +606,7 @@ def fg_fit(mass, fstar, z, omega_b, omega_m):
     Gas fraction for a general baryonic feedback model
     """
     
-    mb = 10**13.87#block['pk_parameters', 'm_b'] # free parameter.
+    #mb = 10**13.87#block['pk_parameters', 'm_b'] # free parameter.
     baryon_to_matter_fraction = omega_b/omega_m
     f = (baryon_to_matter_fraction - fstar) * (mass/mb)**2.0 / (1.0+(mass/mb)**2.0)
     
@@ -1042,7 +1042,7 @@ def compute_p_mm(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, o
 def compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, I_NL_mm, one_halo_ktrunc):
 
     # 2-halo term:
-    pk_mm_2h = ( plin * I_m_term * I_m_term + plin*I_NL_mm ) #* two_halo_truncation(k_vec)[np.newaxis,:]
+    pk_mm_2h = ( plin * I_m_term * I_m_term * two_halo_truncation(k_vec)[np.newaxis,:] + plin*I_NL_mm ) #* two_halo_truncation(k_vec)[np.newaxis,:]
     # 1-halo term
     pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
     # Total
