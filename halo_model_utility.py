@@ -88,8 +88,8 @@ def get_growth_interpolator(cosmo):
     TODO: Could use d_init = a(1+(w-1)/(w(6w-5))*(Om_w/Om_m)*a**-3w) at early times with w = w(a<<1)
     """
     a_init = 1e-4
-    Om = cosmo.Om0
-    Ode = cosmo.Ode0
+    Om = cosmo.Om0 + cosmo.Onu0
+    Ode = 1.0 - Om
     Ok = cosmo.Ok0
     try:
         w0 = cosmo.w0
@@ -205,3 +205,36 @@ def Dv_Mead(a, Om, f_nu, g, G):
     Dv_Mead = 1.0 + f_Mead(g/a, G/a, p30, p31, p32, p33)*np.log10(Om)**a3 + f_Mead(g/a, G/a, p40, p41, p42, p43)*np.log10(Om)**a4
     Dv0 = 18.0*np.pi**2.0  # Delta_v = ~178, EdS halo virial overdensity
     return Dv_Mead * Dv0 * (1.0 + 0.763*f_nu)
+
+
+def Tk_cold_ratio(k, g, ommh2, h, f_nu, N_nu, T_CMB=2.7255):
+    """
+    Ratio of cold to matter transfer function from Eistenstein & Hu (1999)
+    This can be used to get the cold-matter spectrum approximately from the matter spectrum
+    Captures the scale-dependent growth with neutrino free-streaming scale
+    """
+    if f_nu == 0.: # Fix to unity if there are no neutrinos
+        Tk_cold_ratio = 1.
+    else:
+        pcb = (5.-np.sqrt(1.+24.*(1.-f_nu)))/4. # Growth exponent for unclustered neutrinos completely
+        BigT = T_CMB/2.7 # Big Theta for temperature
+        zeq = 2.5e4*ommh2*BigT**(-4) # Matter-radiation equality redshift
+        D = (1.+zeq)*g # Growth normalised such that D=(1.+z_eq)/(1+z) at early times
+        q = k*h*BigT**2/ommh2 # Wave number relative to the horizon scale at equality (equation 5)
+        yfs = 17.2*f_nu*(1.+0.488*f_nu**(-7./6.))*(N_nu*q/f_nu)**2 # Free streaming scale (equation 14)
+        Dcb = (1.+(D/(1.+yfs))**0.7)**(pcb/0.7) # Cold growth functon
+        Dcbnu = ((1.-f_nu)**(0.7/pcb)+(D/(1.+yfs))**0.7)**(pcb/0.7) # Cold and neutrino growth function
+        Tk_cold_ratio = Dcb/Dcbnu # Finally, the ratio
+    return Tk_cold_ratio
+
+
+def sigmaR_cc(power, k, r):
+    rk = np.outer(r, k)
+    dlnk = np.log(k[1] / k[0])
+
+    k_space = (3 / rk**3) * (np.sin(rk) - rk * np.cos(rk))
+    # we multiply by k because our steps are in logk.
+    rest = power * k ** 3
+    integ = rest * k_space ** 2
+    sigma = (0.5 / np.pi**2) * simps(integ, dx=dlnk, axis=-1)
+    return np.sqrt(sigma)

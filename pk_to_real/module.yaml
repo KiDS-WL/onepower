@@ -1,0 +1,113 @@
+#This is a template for module description files
+name: pk_to_real
+version: '1.0'
+purpose: Compute correlation functions Delta_Sigma and w_p from P(k)
+url: ''
+interface: pk_to_real.py
+attribution: [CosmoSIS Team]
+rules: ''
+cite: []
+assumptions:
+-   Input P(k) sufficiently well-sampled over chosen range
+-   k and r_p values consistently chosen
+
+explanation: >
+    The correlation functions are related to the spectra via Bessel functions:
+
+
+    :math:`\xi_{+}(\theta) = \int_0^\infty C^{ss}_\ell J_{0}(\ell \theta) \ell d\ell / 2\pi`
+
+
+    :math:`\xi_{-}(\theta) = \int_0^\infty C^{ss}_\ell J_{4}(\ell \theta) \ell d\ell / 2\pi`
+
+
+    :math:`w{-}(\theta) = \int_0^\infty C^{gg}_\ell J_{4}(\ell \theta) \ell d\ell / 2\pi`
+
+
+    :math:`\gamma_t(\theta) = \int_0^\infty C^{gs}_\ell J_{(0,4)}(\ell \theta) \ell d\ell / 2\pi`
+
+
+    where s=shear and g=galaxy position.
+    In this module that integral is done via a Hankel Transform.
+
+params:
+    corr_type:
+        meaning: Either w, gamma, or xi depending which transforms you want
+        type: str
+        default:
+    input_section_name:
+        meaning: "Name of the angular power spectrum input section. See shear/spectra\
+            \ module. (Default: 'shear_cl', 'galaxy_cl', or 'galaxy_shear_cl' depending\
+            \ on corr_type)"
+        type: str
+        default:
+    output_section_name:
+        meaning: "Name of the angular correlation function output section (Default:\
+            \ 'shear_xi', 'galaxy_xi', or'galaxy_shear_xi' depending on corr_type)"
+        type: str
+        default:
+    n_transform:
+        meaning: Number of points in the transform.
+        type: int
+        default: 8192
+    ell_min_extrapolate:
+        meaning: Minimum value of ell to extrapolate the input ell to in the transform.
+        type: real
+        default: 0.0001
+    ell_max_extrapolate:
+        meaning: Maximum value of ell to extrapolate the input ell to in the transform.
+        type: real
+        default: 5.0e+06
+    theta_min:
+        meaning: Minimum value of output theta values to go to, in arcmin
+        type: real
+        default: 0.1
+    theta_max:
+        meaning: Maximum value of output theta values to go to, in arcmin
+        type: real
+        default: 1000
+inputs:
+    input_section_name:
+        ell:
+            meaning: Sample ell values for input C_ell
+            type: real 1d
+            default:
+        nbin_a:
+            meaning: The number of redshift bins in the first quantity
+            type: int
+            default:
+        nbin_b:
+            meaning: The number of redshift bins in thesecond quantity
+            type: int
+            default:
+        nbin:
+            meaning: Number of redshift bins used if nbin_a or b not found.
+            type: int
+            default:
+        bin_{i}_{j}:
+            meaning: C_ell (no l(l+1) factor) for bin i and j. Only need j<=i for
+                modes 0 and 1.
+            type: real 1d
+            default:
+outputs:
+    output_section_name:
+        theta:
+            meaning: Sample theta values for output xi(theta)
+            type: real 1d
+        xiplus_i_j:
+            meaning: xi_plus(theta) bin i and j, only if mode=xi Only stores j<=i.
+            type: real 1d
+        ximinus_i_j:
+            meaning: xi_minus(theta) bin i and j, only if mode=xi. Only stores
+                j<=i.
+            type: real 1d
+        bin_i_j:
+            meaning: w(theta) or gamma_t(theta) for bin i and j, only if mode=w or
+                gamma respectively. Only stores j<=i.
+            type: real 1d
+        nbin_a:
+            meaning: Number of i tomographic bins
+            type: int
+        nbin_b:
+            meaning: Number of j tomographic bins
+            type: int

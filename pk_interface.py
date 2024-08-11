@@ -132,6 +132,8 @@ def setup(options):
 
     poisson_type  = options.get_string(option_section, 'poisson_type', default='')
     point_mass    = options.get_bool(option_section, 'point_mass', default=False)
+    
+    dewiggle      = options.get_bool(option_section, 'dewiggle', default=False)
 
     # Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
     # and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
@@ -204,14 +206,14 @@ def setup(options):
     return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_fortuna, p_mI_fortuna, p_II_fortuna, \
            matter, galaxy, bnl, alignment, \
            one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
-           hod_section_name, mead_correction, point_mass, poisson_type, pop_name
+           hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name
 
 def execute(block, config):
 
     p_mm, p_gg, p_gm, p_gI, p_mI, p_II, p_gI_fortuna, p_mI_fortuna, p_II_fortuna, \
     matter, galaxy, bnl, alignment,\
     one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
-    hod_section_name, mead_correction, point_mass, poisson_type, pop_name = config
+    hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name = config
 
     # load the halo mass, halo bias, mass and redshifts from the datablock
     dn_dlnm, b_dm, mass, z_vec = pk_lib.get_halo_functions(block)
@@ -223,12 +225,21 @@ def execute(block, config):
 
     # Interpolates in z only
     k_vec_original, plin_original = pk_lib.get_linear_power_spectrum(block, z_vec)
-
     # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
     plin = pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
-
     # load growth factor and scale factor
     growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec, k_vec)
+
+    # Optionally de-wiggle linear power spectrum as in Mead 2020:
+    if mead_correction in ['feedback', 'nofeedback'] or dewiggle == True:
+        plin = pk_lib.dewiggle(plin, k_vec, block)
+
+
+    # AD: The following two lines only used for testing, need to be removed later on!
+    k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
+    pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
+    block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
+    #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
     
     # Add the non-linear P_hh to the 2h term
     if bnl == True:
@@ -259,7 +270,7 @@ def execute(block, config):
         # 2h term integral for matter
         I_m = pk_lib.Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term)
         # Matter halo profile
-        matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
+        matter_profile = pk_lib.matter_profile(mass, mean_density0, u_dm, np.zeros_like(fnu))
         # TODO: Why is there a matter profile and a matter_profile_1h_mm?
         
         if mead_correction == 'feedback':
@@ -268,15 +279,16 @@ def execute(block, config):
         elif mead_correction == 'fit':
             # Reads f_star_extended form the HOD section. Either need to use a conditional HOD to get this value or to put it in block some other way.
             fstar_mm = pk_lib.load_fstar_mm(block, hod_section_name, z_vec, mass)
-            matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z_vec, fstar_mm, omega_c, omega_m, omega_b, fnu)
+            mb = 10.0**block['halo_model_parameters', 'm_b']
+            matter_profile_1h_mm = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z_vec, mb, fstar_mm, omega_c, omega_m, omega_b, fnu)
         else:
-            matter_profile_1h_mm = matter_profile.copy()
+            matter_profile_1h_mm = pk_lib.matter_profile(mass, mean_density0, u_dm, fnu)
             
         if bnl == True:
             # TODO: This one uses matter_profile not matter_profile_1h_mm. Shouldn't we use the same profile everywhere?
             # AD: No, I_NL and 2-halo functions should use the mater_profile, no 1h! The corrections applied do not hold true for 2h regime!
             I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile,
-                                b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec, 
+                                b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec,
                                 z_vec, A_term, mean_density0, beta_interp)
     
         if p_mm == True and bnl == False:

@@ -45,7 +45,7 @@ def setup(options):
     
     # check if suffixes exists in the extrapolate_obs section of pipeline.ini
     if options.has_value(option_section, 'suffixes'):
-        config['suffixes'] = options[option_section, 'suffixes']
+        config['suffixes'] = np.asarray([options[option_section, 'suffixes']]).flatten()
         config['nbins']    = len(config['suffixes'])
         config['sample']   = options.get_string(option_section, 'sample')
     else:
@@ -92,6 +92,15 @@ def execute(block, config):
         block.put_double_array_1d(output_section_name, f'bin_{i+1}', obs_out)
         block.put_double_array_1d(output_section_name, f'obs_{i+1}', obs_arr[i])
     
+    block[output_section_name, 'nbin'] = nbins
+    block[output_section_name, 'sep_name'] = 'mstar'
+    block[output_section_name, 'save_name'] = ''
+    if config['sample'] is not None:
+        block[output_section_name, 'sample'] = config['sample']
+    else:
+        block[output_section_name, 'sample'] = 'None'
+
+
     return 0
 
 

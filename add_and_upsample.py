@@ -137,11 +137,11 @@ def setup(options):
         print('Only extrapolating power spectra.')
         z_fred, f_red = None, None
 
-    hod_section_name_extrap = options.get_string(option_section, 'hod_section_name_extrap', default='hod_red').lower()
+    hod_section_name_extrap = options.get_string(option_section, 'hod_section_name_extrap', default='hod').lower()
     hod_section_name_red = options.get_string(option_section, 'hod_section_name_red', default='hod_red').lower()
     hod_section_name_blue = options.get_string(option_section, 'hod_section_name_blue', default='hod_blue').lower()
 
-    name_extrap = options.get_string(option_section, 'input_power_suffix_extrap', default='red').lower()
+    name_extrap = options.get_string(option_section, 'input_power_suffix_extrap', default='').lower()
     name_red = options.get_string(option_section, 'input_power_suffix_red', default='red').lower()
     name_blue = options.get_string(option_section, 'input_power_suffix_blue', default='blue').lower()
     
