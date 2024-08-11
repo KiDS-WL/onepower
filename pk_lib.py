@@ -1,11 +1,12 @@
 # Library of the power spectrum module
 
 import numpy as np
-from scipy.interpolate import interp1d, RegularGridInterpolator
-from scipy.integrate import simps
+from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
+from scipy.integrate import simps, quad
 from scipy.special import erf
+from scipy.optimize import curve_fit
+from scipy.ndimage import gaussian_filter1d
 import warnings
-
 
 # from darkmatter_lib import compute_u_dm, radvir_from_mass
 
@@ -315,8 +316,8 @@ def compute_matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, 
     dm_to_matter_frac = omega_c/omega_m
     f_gas = fg(mass, fstar, log10T_AGN, z, omega_b, omega_m)
     Wm_0 = mass / mean_density0
-    #Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
-    Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
+    Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
+    #Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
     return Wm
 
 def matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m, omega_b, log10T_AGN, fnu):
@@ -326,7 +327,7 @@ def matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m,
     return profile
 
 
-def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, fstar, omega_c, omega_m, omega_b, fnu):
+def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, mb, fstar, omega_c, omega_m, omega_b, fnu):
     """
     Total matter profile for a general baryonic feedback model
     using f* from HOD/CSMF/CLF that also provides for point mass estimate when used in the
@@ -343,9 +344,9 @@ def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_de
     #print(np.max(np.abs(Tagn)))
     dm_to_matter_frac = omega_c/omega_m
     Wm_0 = mass / mean_density0
-    f_gas_fit = fg_fit(mass, fstar, z, omega_b, omega_m)
-    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
-    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
+    f_gas_fit = fg_fit(mass, mb, fstar, z, omega_b, omega_m)
+    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
+    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
     return Wm
 
 def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, fstar, omega_c, omega_m, omega_b, fnu):
@@ -461,9 +462,9 @@ def one_halo_truncation(k_vec, k_trunc=0.1):
     """
     1-halo term truncation at large scales (small k)
     """
-    k_frac = k_vec/k_trunc
     if k_trunc == None:
         return np.ones_like(k_vec)
+    k_frac = k_vec/k_trunc
     return (k_frac**4.0)/(1.0 + k_frac**4.0)
 
 
@@ -476,26 +477,12 @@ def two_halo_truncation(k_vec, k_trunc=2.0):
     #return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
     if k_trunc == None:
         return np.ones_like(k_vec)
-    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
-
-
-def one_halo_truncation_old(k_vec, k_trunc = 0.1):
-    """
-    1-halo term truncation at large scales (small k), this uses the error function
-    """
-    #return 1.-np.exp(-(k_vec/k_star)**2.)
-    if k_trunc == None:
-        return np.ones_like(k_vec)
-    return erf(k_vec/k_trunc)
-
-
-def two_halo_truncation_old(k_vec, k_trunc=2.0):
-    """
-    2-halo term truncation at larger k-values
-    """
-    if k_trunc == None:
-        return np.ones_like(k_vec)
-    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
+    k_d = 0.05699#0.07
+    nd = 2.853
+    k_frac = k_vec/k_d
+    
+    return 1.0 - 0.05 * (k_frac**nd)/(1.0 + k_frac**nd)
+    #return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
 
 def one_halo_truncation_ia(k_vec, k_trunc=4.0):
@@ -553,7 +540,6 @@ def transition_smoothing(neff, k_vec, p_1h, p_2h):
     """
     
     delta_prefac = (k_vec**3.0)/(2.0*np.pi**2.0)
-    # alpha = (1.875 * (1.603**block['hmf', 'neff'][:,np.newaxis]))
     alpha = (1.875 * (1.603**neff[:,np.newaxis]))
     Delta_1h = delta_prefac * p_1h
     Delta_2h = delta_prefac * p_2h
@@ -607,7 +593,7 @@ def fg(mass, fstar, log10T_AGN, z, omega_b, omega_m, beta=2):
     return fg
 
 
-def fg_fit(mass, fstar, z, omega_b, omega_m):
+def fg_fit(mass, mb, fstar, z, omega_b, omega_m):
     """
     Gas fraction
     Eq 24 of 2009.01858
@@ -620,7 +606,7 @@ def fg_fit(mass, fstar, z, omega_b, omega_m):
     Gas fraction for a general baryonic feedback model
     """
     
-    mb = 10**13.87#block['pk_parameters', 'm_b'] # free parameter.
+    #mb = 10**13.87#block['pk_parameters', 'm_b'] # free parameter.
     baryon_to_matter_fraction = omega_b/omega_m
     f = (baryon_to_matter_fraction - fstar) * (mass/mb)**2.0 / (1.0+(mass/mb)**2.0)
     
@@ -693,10 +679,11 @@ def compute_A_term(mass, b_dm, dn_dlnm, mean_density0):
     
     integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
     A = 1. - simps(integrand_m1, mass)
-    if (A < 0.).any():  
+    if (A < 0.).any():
         warnings.warn('Warning: Mass function/bias correction is negative!', RuntimeWarning)
         
     return A
+
 
 def missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0):
     A_term = compute_A_term(mass[np.newaxis,np.newaxis,:], b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
@@ -761,11 +748,10 @@ def compute_I_NL_term(k, z, W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_
 
     # Takes the integral over mass_1
     # TODO: check that these integrals do the correct thing, keep this TODO
-    integrand_M1 = B_NL_k_z * W_1[:,:,np.newaxis,:] * b_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] / mass_1[np.newaxis,:,np.newaxis,np.newaxis]
-    integral_M1 = simps(integrand_M1, mass_1, axis=1)
-
-    integrand_M2 = integral_M1 * W_2 * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
-    I_22 = simps(integrand_M2, mass_2, axis=1)
+    integrand_22 = B_NL_k_z * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:] * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_1[np.newaxis,np.newaxis,:,np.newaxis])
+    integral_M1 = simps(integrand_22, mass_1, axis=1)
+    integral_M2 = simps(integral_M1, mass_2, axis=1)
+    I_22 = integral_M2
     
     # TODO: Compare this with pyhalomodel, keep this TODO
 
@@ -789,45 +775,90 @@ def I_NL(mass_1, mass_2, factor_1, factor_2, bias_1, bias_2, dn_dlnm_1, dn_dlnm_
     return I_NL
 
     
-def low_k_truncation(k_vec):
+def low_k_truncation(k_vec, k_trunc):
     """
     Beta_nl low-k truncation
     """
-    k_trunc = 0.01
-    return 1.0/(1.0+np.exp(-(10.0*(np.log10(k_vec/k_trunc)))))
+    return 1.0/(1.0+np.exp(-(10.0*(np.log10(k_vec) - np.log10(k_trunc)))))
 
 
-def high_k_truncation(k_vec):
+def high_k_truncation(k_vec, k_trunc):
     """
     Beta_nl high-k truncation
     """
-    k_trunc = 10.0
-    return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
+    return 1.0/(1.0+np.exp((10.0*(np.log10(k_vec) - np.log10(k_trunc)))))
+    #return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
 
-def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block):
+def minimum_halo_mass(emu):
+    """
+    Minimum halo mass for the set of cosmological parameters [Msun/h]
+    """
+
+    np_min = 200.    # Minimum number of halo particles
+    npart = 2048.    # Cube root of number of simulation particles
+    Lbox_HR = 1000. # Box size for high-resolution simulations [Mpc/h]
+    Lbox_LR = 2000. # Box size for low-resolution simulations [Mpc/h]
+    
+    Om_m = emu.cosmo.get_Omega0()
+    rhom = 2.77536627e11 * Om_m
+    
+    Mbox_HR = rhom*Lbox_HR**3
+    mmin = Mbox_HR*np_min/npart**3
+    
+    vmin = Lbox_HR**3 * np_min/npart**3
+    rmin = ((3.0*vmin) / (4.0*np.pi))**(1.0/3.0)
+    
+    return mmin, 2.0*np.pi/rmin
+    
+    
+def rvir(emu, mass):
+    Om_m = emu.cosmo.get_Omega0()
+    rhom = 2.77536627e11 * Om_m
+    return ((3.0 * mass) / (4.0 * np.pi * 200 * rhom)) ** (1.0 / 3.0)
+    
+
+def hl_envelopes_idx(data, dmin=1, dmax=1):
+    """
+    Input :
+    data: 1d-array, data signal from which to extract high and low envelopes
+    dmin, dmax: int, optional, size of chunks, use this if the size of the input signal is too big
+    Output :
+    lmin,lmax : high/low envelope idx of input signal s
+    """
+
+    # locals min
+    lmin = (np.diff(np.sign(np.diff(data))) > 0).nonzero()[0] + 1
+    # locals max
+    lmax = (np.diff(np.sign(np.diff(data))) < 0).nonzero()[0] + 1
+    
+    # global min of dmin-chunks of locals min
+    lmin = lmin[[i+np.argmin(data[lmin[i:i+dmin]]) for i in range(0,len(lmin),dmin)]]
+    # global max of dmax-chunks of locals max
+    lmax = lmax[[i+np.argmax(data[lmax[i:i+dmax]]) for i in range(0,len(lmax),dmax)]]
+    
+    return lmin,lmax
+
+
+def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
     M1 = 10.0**log10M1
     M2 = 10.0**log10M2
     # Parameters
     # Large 'linear' scale for linear halo bias [h/Mpc]
-    #klin = np.array([k[0]])
-    #klin = np.array([0.02])
+    klin = np.array([0.05])
     
     # Calculate beta_NL by looping over mass arrays
     beta_func = np.zeros((len(M1), len(M2), len(k)))
     b01 = np.zeros(len(M1))
-    b02 = np.zeros(len(M2))
+    #b02 = np.zeros(len(M2))
     # Linear power
     Pk_lin = emulator.get_pklin_from_z(k, z)
-    klin = np.array([k[np.argmax(Pk_lin)]])
+    #klin = np.array([k[np.argmax(Pk_lin)]])
     Pk_klin = emulator.get_pklin_from_z(klin, z)
-
     
     for iM, M0 in enumerate(M1):
-        #b01[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z)/Pk_klin)
-        b01[iM] = np.nan_to_num(emulator.get_bias_mass(M0, z), nan=1.0, posinf=1.0, neginf=1.0)
-    #for iM, M0 in enumerate(M2):
-    #    b02[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z1)/Pk_klin)
+        b01[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z)/Pk_klin)
+    
     for iM1, M01 in enumerate(M1):
         for iM2, M02 in enumerate(M2):
             if iM2 < iM1:
@@ -840,47 +871,53 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block):
                     
                 # Halo-halo power spectrum
                 Pk_hh = emulator.get_phh_mass(k, M01, M02, z)
+                
+                #rmax = max(rvir(emulator, M01), rvir(emulator, M02))
+                #kmax = 2.0*np.pi/rmax
                     
                 # Create beta_NL
+                shot_noise = lambda x, a: a
+                popt, popc = curve_fit(shot_noise, k[(k>100) & (k<200)], Pk_hh[(k>100) & (k<200)])
+                Pk_hh = Pk_hh - np.ones_like(k)*shot_noise(k, *popt)
+            
                 beta_func[iM1, iM2, :] = Pk_hh/(b1*b2*Pk_lin) - 1.0
-                    
+                
                 Pk_hh0 = emulator.get_phh_mass(klin, M01, M02, z)
+                Pk_hh0 = Pk_hh0 - np.ones_like(klin)*shot_noise(klin, *popt)
                 db = Pk_hh0/(b1*b2*Pk_klin) - 1.0
+                
+                lmin, lmax = hl_envelopes_idx(np.abs(beta_func[iM1, iM2, :]+1.0))
+                beta_func_interp = interp1d(k[lmax], np.abs(beta_func[iM1, iM2, lmax]+1.0), kind='quadratic', bounds_error=False, fill_value='extrapolate')
+                beta_func[iM1, iM2, :] = (beta_func_interp(k)-1.0)# * low_k_truncation(k, klin)
+                db = (beta_func_interp(klin)-1.0)
+                
         
-                beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) * low_k_truncation(k) * high_k_truncation(k)
-    
+                #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 30.0)/(db + 1.0) - 1.0) * low_k_truncation(k, klin)
+                #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) #* low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#/(1.0+z))
+                beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * low_k_truncation(k, klin) * high_k_truncation(k, 3.0*kmax)
+
     return beta_func
     
     
 def create_bnl_interpolation_function(emulator, interpolation, z, block):
-    # AD: The mass range in Bnl needs to be optimised. Preferrentially set to the maximum mass limits in DarkEmulator, with the largest number of bins possible.
-    #M = np.logspace(12.0, 16.0, 5)
-    #M = np.logspace(12.0, 14.0, 5)
     
     lenM = 5
-    lenk = 50
-    M = np.empty_like(z, dtype=object)
-    k = np.empty_like(z, dtype=object)
+    lenk = 1000
     zc = z.copy()
-    #zc[zc>=0.5] = 0.5
-    for i,zi in enumerate(zc):
-        # Fitting the upper mass limit to the box size constraints as a function of redshift. Not stable.
-        #M_up = 14.7788 - 0.624468*zi
-        #M_up = 0.581217*zi**2 - 1.47736*zi + 16.0
-        #M_up = 0.581217*zi**2 - 1.47736*zi + 14.9418
-        #M_up = 0.581217*zi**2 - 1.47736*zi + 15.9418
-        M_up = 14.0
-        M_lo = 12.0
-        M[i] = np.logspace(M_lo, M_up, lenM)# * 0.7 / block['cosmological_parameters', 'h0']
-        k[i] = np.logspace(-3.0, np.log10(0.35 * (0.7 / block['cosmological_parameters', 'h0'])), lenk) # Need to correct k for h parameter here.
-    #k = np.logspace(-2.0, 0.2, 50) #50)
-    #beta_func = np.zeros((len(z), lenM, lenM, lenk))
+    
+    Mmin, kmax = minimum_halo_mass(emulator)
+    M_up = np.log10((10.0**14.0))
+    #M_lo = np.log10((10.0**12.0))
+    M_lo = np.log10(Mmin)
+    
+    M = np.logspace(M_lo, M_up, lenM)
+    k = np.logspace(-3.0, np.log10(200), lenk)
     beta_nl_interp_i = np.empty(len(z), dtype=object)
+    beta_func = compute_bnl_darkquest(0.01, np.log10(M), np.log10(M), k, emulator, block, kmax)
     for i,zi in enumerate(zc):
-        #zi += 1e-3
-        #beta_func = np.nan_to_num(compute_bnl_darkquest(zi, np.log10(M[i]), np.log10(M[i]), k[i], emulator, block), nan=0.0, posinf=0.0, neginf=0.0)
-        beta_func = compute_bnl_darkquest(zi, np.log10(M[i]), np.log10(M[i]), k[i], emulator, block)
-        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M[i]), np.log10(M[i]), np.log10(k[i])], beta_func, fill_value=None, bounds_error=False, method='linear')
+        #M = np.logspace(M_lo, M_up - 3.0*np.log10(1+zi), lenM)
+        #beta_func = compute_bnl_darkquest(zi, np.log10(M), np.log10(M), k, emulator, block, kmax)
+        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], beta_func, fill_value=None, bounds_error=False, method='nearest')
     
     return beta_nl_interp_i
 
@@ -925,6 +962,66 @@ def poisson_func(block, type, mass_avg, k_vec, z_vec):
     return poisson_num
 
 
+def Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB=2.7255):
+    """
+    No-wiggle transfer function from astro-ph:9709112
+    """
+    # These only needs to be calculated once
+    rb = ombh2/ommh2     # Baryon ratio
+    s = 44.5*np.log(9.83/ommh2)/np.sqrt(1.+10.*ombh2**0.75)              # Equation (26)
+    alpha = 1.-0.328*np.log(431.*ommh2)*rb+0.38*np.log(22.3*ommh2)*rb**2 # Equation (31)
+
+    # Functions of k
+    Gamma = (ommh2/h)*(alpha+(1.-alpha)/(1.+(0.43*k*s*h)**4)) # Equation (30)
+    q = k*(T_CMB/2.7)**2/Gamma # Equation (28)
+    L = np.log(2.*np.e+1.8*q)  # Equation (29)
+    C = 14.2+731./(1.+62.5*q)  # Equation (29)
+    Tk_nw = L/(L+C*q**2)       # Equation (29)
+    return Tk_nw
+    
+    
+def sigmaV(power, k):
+    # In the limit where r -> 0.
+    dlnk = np.log(k[1] / k[0])
+    # we multiply by k because our steps are in logk.
+    integ = power * k
+    sigma = (0.5 / np.pi**2) * simps(integ, dx=dlnk, axis=-1)
+    return np.sqrt(sigma/3.0)
+    
+    
+def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25):
+    """
+    Extract the wiggle from the linear power spectrum
+    TODO: Should get to work for uneven log(k) spacing
+    NOTE: https://stackoverflow.com/questions/24143320/gaussian-sum-filter-for-irregular-spaced-points
+    """
+    if not np.isclose(np.all(np.diff(k)-np.diff(k)[0]), 0.):
+        raise ValueError('Dewiggle only works with linearly-spaced k array')
+    dlnk = np.log(k[1]/k[0])
+    sigma = sigma_dlnk/dlnk
+    
+    Pk_nowiggle = (k**ns)*Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB)**2
+    Pk_ratio = Pk_lin/Pk_nowiggle
+    Pk_ratio = gaussian_filter1d(Pk_ratio, sigma)
+    Pk_smooth = Pk_ratio*Pk_nowiggle
+    Pk_wiggle = Pk_lin-Pk_smooth
+    return Pk_wiggle
+    
+
+def dewiggle(plin, k, block):
+    try:
+        tcmb = block['cosmological_parameters', 'TCMB']
+    except:
+        tcmb = 2.7255
+    sigma = sigmaV(plin, k)
+    pk_wig = get_Pk_wiggle(k, plin, block['cosmological_parameters', 'h0'],
+                                    block['cosmological_parameters', 'ombh2'],
+                                    block['cosmological_parameters', 'ommh2'],
+                                    block['cosmological_parameters', 'n_s'],
+                                    tcmb)
+    plin_dw = plin - (1.0 - np.exp(-(k[np.newaxis,:]*sigma[:,np.newaxis])**2)) * pk_wig
+    return plin_dw
+
 
 # ---- POWER SPECTRA ----#
 
@@ -945,7 +1042,7 @@ def compute_p_mm(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, o
 def compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, I_NL_mm, one_halo_ktrunc):
 
     # 2-halo term:
-    pk_mm_2h = plin * I_m_term * I_m_term + plin*I_NL_mm
+    pk_mm_2h = ( plin * I_m_term * I_m_term * two_halo_truncation(k_vec)[np.newaxis,:] + plin*I_NL_mm ) #* two_halo_truncation(k_vec)[np.newaxis,:]
     # 1-halo term
     pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
     # Total

@@ -2,14 +2,17 @@ from cosmosis.datablock import names, option_section
 import warnings
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.optimize import root_scalar
 from scipy.integrate import simps, solve_ivp, quad
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 import astropy.units as u
+import hmf
 from halomod import bias as bias_func
 from halomod.concentration import make_colossus_cm
 from halomod import concentration as conc_func
 from hmf import MassFunction
 import hmf.halos.mass_definitions as md
+from hmf.halos.mass_definitions import SphericalOverdensity
 import hmf.cosmology.growth_factor as gf
 from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
 import halo_model_utility as hmu
@@ -17,9 +20,41 @@ from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
 import time
 
+from astropy.cosmology import Planck15
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
+
+
+# This patches hmf caching!
+def obj_eq_fix(ob1, ob2):
+    """Test equality of objects that is numpy-aware."""
+    try:
+        return bool(ob1 == ob2)
+    except ValueError:
+        # Could be a numpy array.
+        return np.array_equiv(ob1, ob2)#(ob1 == ob2).all()
+hmf._internals._cache.obj_eq = obj_eq_fix
+
+
+class SOVirial_Mead(SphericalOverdensity):
+    """
+    SOVirial overdensity definition from Mead et al. 2020
+    """
+    _defaults = {"overdensity": 200}
+        
+    def halo_density(self, z=0, cosmo=Planck15):
+        """The density of haloes under this definition."""
+        return self.params["overdensity"] * self.mean_density(z, cosmo)
+        
+    @property
+    def colossus_name(self):
+        return "200c"
+            
+    def __str__(self):
+        """Describe the halo definition in standard notation."""
+        return "SOVirial"
+
 
 # TODO: concentration is saved into multiple folders. Check if these can be merged.
 def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
@@ -34,10 +69,12 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
         # colossus warns us about massive neutrinos, but that is also ok
         # as we do not use cosmology from it, but it requires it to setup the instance!
         this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
-                     sigma8=block[cosmo_params, 'sigma_8'], ns=block[cosmo_params, 'n_s'])
+                     sigma8=block[cosmo_params, 'sigma_8'], ns=block[cosmo_params, 'n_s'], persistence='')
 
-                     
-    mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
+    if isinstance(mdef, str):
+        mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
+    else:
+        mdef = SOVirial_Mead(overdensity=overdensity)
     
     # This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
     # MA: Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
@@ -46,8 +83,10 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
             range_return=True, range_warning=False)
     #toc = time.perf_counter()
     #print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
-
-    c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
+    if len(c[c>0]) == 0:
+        c_interp = lambda x: np.ones_like(x)
+    else:
+        c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
 
     
     return c_interp(mass)
@@ -76,6 +115,7 @@ def setup(options):
     profile = profile.lower()
     profile_value_name = options.get_string(option_section, 'profile_value_name', default='profile_parameters')
 
+    hmf_model = options[option_section, 'hmf_model']
     # Type of mass definition for Haloes
     mdef_model = options[option_section, 'mdef_model']
     # Over density threshold
@@ -91,7 +131,26 @@ def setup(options):
     #Choice of code to define Halo Mass Function
     hmf_code = options.get_string(option_section, 'hmf_code', default='HMF')   #Options are CCL, HMF
     
-    # most general astropy cosmology initialisation, 
+    # Option to set similar corrections to HMcode2020
+    # MA question: What do these different options do? It doesn't look like there is a difference between them.
+    use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
+    if use_mead == 'mead2020':
+        mead_correction = 'nofeedback'
+    elif use_mead == 'mead2020_feedback':
+        mead_correction = 'feedback'
+    #elif use_mead == 'fit_feedback':
+    #    mead_correction = 'fit'
+    else:
+        mead_correction = None
+    
+    if mead_correction is not None:
+        hmf_model = 'ST'
+        bias_model = 'ST99'
+        mdef_model = 'SOVirial'
+        mdef_params = {}
+        cm_model = 'bullock01'
+    
+    # most general astropy cosmology initialisation,
     # gets updated as sampler runs with camb provided cosmology parameters.
     # setting some values to generate instance
     initialise_cosmo=Flatw0waCDM(H0=100., Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
@@ -103,26 +162,15 @@ def setup(options):
     # This is the slow part it take 1.58/1.67
     mf = MassFunction(z=0., cosmo_model=initialise_cosmo, Mmin=log_mass_min, 
                         Mmax=log_mass_max, dlog10m=dlog10m, sigma_8=0.8, n=0.96,
-                        hmf_model=options[option_section, 'hmf_model'],
-                        mdef_model=mdef_model, mdef_params=mdef_params, 
-                        transfer_model='CAMB', delta_c=delta_c, disable_mass_conversion=False,
+                        hmf_model=hmf_model,
+                        mdef_model=mdef_model, mdef_params=mdef_params,
+                        transfer_model='CAMB',
+                        delta_c=delta_c, disable_mass_conversion=False,
                         growth_model='CambGrowth',
                         lnk_min=-18.0, lnk_max=18.0)
 
     # Array of halo masses - equally spaced in logM
-    mass = mf.m   
-
-    # Option to set similar corrections to HMcode2020
-    # TODO: stellar_fraction_from_observable_feedback option is not used here
-    use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
-    if use_mead == 'mead2020':
-        mead_correction = 'nofeedback'
-    elif use_mead == 'mead2020_feedback':
-        mead_correction = 'feedback'
-    #elif use_mead == 'fit_feedback':
-    #    mead_correction = 'fit'
-    else:
-        mead_correction = None
+    mass = mf.m
 
     # config ={}
     # config['log_mass_min'] =log_mass_min
@@ -144,7 +192,7 @@ def execute(block, config):
     # Update the cosmological parameters
     this_cosmo_run=Flatw0waCDM(
         H0=block[cosmo_params, 'hubble'], Ob0=block[cosmo_params, 'omega_b'],
-        Om0=block[cosmo_params, 'omega_m'], m_nu=[block[cosmo_params, 'mnu'], 0, 0], Tcmb0=tcmb,
+        Om0=block[cosmo_params, 'omega_m'], m_nu=[0, 0, block[cosmo_params, 'mnu']], Tcmb0=tcmb,
     	w0=block[cosmo_params, 'w'], wa=block[cosmo_params, 'wa'] )
      
     #LCDMcosmo = FlatLambdaCDM(
@@ -153,6 +201,9 @@ def execute(block, config):
 
     ns      = block[cosmo_params, 'n_s']
     sigma_8 = block[cosmo_params, 'sigma_8']
+    
+    transfer_k = block['matter_power_transfer_func', 'k_h']
+    transfer_func = block['matter_power_transfer_func', 't_k']
 
     # initialise arrays
     nmass_hmf = len(mass)
@@ -189,7 +240,7 @@ def execute(block, config):
             delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter)))
             # Update the cosmology for the halo mass function, this takes a little while the first time it is called
             # Then it is faster becayse it only updates the redshift and the corresponding delta_c
-            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z)
+            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
             overdensity_z[jz] = mf.halo_overdensity_mean
             mdef_conc = mdef
         elif mead_correction is not None:
@@ -206,18 +257,19 @@ def execute(block, config):
                 a = this_cosmo_run.scale_factor(z_iter)
                 g = growth(a)
                 G = hmu.get_accumulated_growth(a, growth)
-                delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
-                overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter), this_cosmo_run.Onu0/this_cosmo_run.Om0, g, G)
+                delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
+                overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
                 #dolag = (growth(LCDMcosmo.scale_factor(10.0))/growth_LCDM(LCDMcosmo.scale_factor(10.0)))*(growth_LCDM(a)/growth(a))
-                mdef_mead = 'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
+                mdef_mead = SOVirial_Mead#'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
-                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, mdef_model=mdef_mead)
+                mf.ERROR_ON_BAD_MDEF = False
+                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  mdef_params={'overdensity':overdensity_z[jz]}, disable_mass_conversion=True, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
                 if mead_correction in ['feedback', 'nofeedback']:
                     zf[jz,:] = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, mf)
         else:
             overdensity_z[jz] = overdensity
             delta_c_z = delta_c
-            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]})
+            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
             mdef_conc = mdef
     
         # What code do you want to use to define the halo mass function
@@ -258,6 +310,9 @@ def execute(block, config):
         # It is called n^eff_cc in table 2 of https://arxiv.org/pdf/2009.01858.pdf . 
         # But it doesn't explain what it is. Do we know if this is the correct one to use? 
         neff[jz]      = mf.n_eff[idx_neff]
+        #Rnl = mf.filter.mass_to_radius(mf.mass_nonlinear, mf.mean_density0)
+        #neff[jz]      = -3.0 - 2.0*mf.normalised_filter.dlnss_dlnm(Rnl)
+        
         # Only used for mead_corrections
         sigma8_z[jz] = mf.normalised_filter.sigma(8.0)
 
@@ -297,7 +352,7 @@ def execute(block, config):
         
     if mead_correction == 'feedback':
         theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
-        norm_cen  = ((3.44 - 0.496*theta_agn) * np.power(10.0, z_vec*(-0.0671 - 0.0371*theta_agn)))[:,np.newaxis] # /4.0
+        norm_cen  = ((5.196/4.0) * (3.44 - 0.496*theta_agn) * np.power(10.0, z_vec*(-0.0671 - 0.0371*theta_agn)))[:,np.newaxis]
         eta_cen   = (0.1281 * sigma8_z[:,np.newaxis]**(-0.3644))
         conc = (1.0+zf)/(1.0+z_vec[:,np.newaxis])
     # TODO: what happends if mead_correction is stellar_fraction_from_observable_feedback?
