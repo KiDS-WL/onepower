@@ -324,8 +324,6 @@ def execute(block, config):
     
     transfer_k = block['matter_power_transfer_func', 'k_h']
     transfer_func = block['matter_power_transfer_func', 't_k']
-    print(transfer_k.shape)
-    print(transfer_func.shape)
 
     # TODO: mdef_conc not used later
     # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
