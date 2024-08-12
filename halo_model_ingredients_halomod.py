@@ -42,7 +42,13 @@ def obj_eq_fix(ob1, ob2):
         return bool(ob1 == ob2)
     except ValueError:
         # Could be a numpy array.
-        return np.array_equiv(ob1, ob2)#(ob1 == ob2).all()
+        #return np.array_equiv(ob1, ob2)#(ob1 == ob2).all()
+        try:
+            return np.array_equal(ob1, ob2)
+        except ValueError:
+            if ob1.keys() != ob2.keys():
+                return False
+            return all(np.array_equal(ob1[key], ob2[key]) for key in ob1)
 hmf._internals._cache.obj_eq = obj_eq_fix
 
 
@@ -318,6 +324,8 @@ def execute(block, config):
     
     transfer_k = block['matter_power_transfer_func', 'k_h']
     transfer_func = block['matter_power_transfer_func', 't_k']
+    print(transfer_k.shape)
+    print(transfer_func.shape)
 
     # TODO: mdef_conc not used later
     # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
