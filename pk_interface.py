@@ -347,6 +347,7 @@ def execute(block, config):
                 if mead_correction == 'fit' or point_mass == True:
                     # Include point mass and gas contribution to the GGL power spectrum, defined from HOD
                     # Maybe extend to input the mass per bin!
+                    mb = 10.0**block['halo_model_parameters', 'm_b']
                     matter_profile_1h = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0,
                                                                                                     u_dm, z_vec, mb, fstar,
                                                                                                     omega_c, omega_m, omega_b, fnu)
