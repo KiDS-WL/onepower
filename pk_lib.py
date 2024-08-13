@@ -1,5 +1,4 @@
 # Library of the power spectrum module
-
 import numpy as np
 from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
 from scipy.integrate import simps, quad
