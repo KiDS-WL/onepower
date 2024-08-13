@@ -352,7 +352,7 @@ def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_de
 def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, mb, fstar, omega_c, omega_m, omega_b, fnu):
     profile = compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass[np.newaxis, np.newaxis, :],
                                                         mean_density0[:, np.newaxis, np.newaxis], u_dm,
-                                                        z[:, np.newaxis, np.newaxis],mb , fstar[:,np.newaxis,:],
+                                                        z[:, np.newaxis, np.newaxis], mb, fstar[:,np.newaxis,:],
                                                         omega_c, omega_m, omega_b, fnu[:,np.newaxis,np.newaxis])
     return profile
 
