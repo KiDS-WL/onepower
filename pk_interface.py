@@ -348,7 +348,7 @@ def execute(block, config):
                     # Include point mass and gas contribution to the GGL power spectrum, defined from HOD
                     # Maybe extend to input the mass per bin!
                     matter_profile_1h = pk_lib.matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0,
-                                                                                                    u_dm, z_vec, fstar, 
+                                                                                                    u_dm, z_vec, mb, fstar,
                                                                                                     omega_c, omega_m, omega_b, fnu)
                 else:
                     matter_profile_1h = matter_profile_1h_mm.copy()

@@ -1042,7 +1042,7 @@ def compute_p_mm(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, o
 def compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dln_m, matter_profile, I_m_term, I_NL_mm, one_halo_ktrunc):
 
     # 2-halo term:
-    pk_mm_2h = ( plin * I_m_term * I_m_term * two_halo_truncation(k_vec)[np.newaxis,:] + plin*I_NL_mm ) #* two_halo_truncation(k_vec)[np.newaxis,:]
+    pk_mm_2h = ( plin * I_m_term * I_m_term + plin*I_NL_mm ) #* two_halo_truncation(k_vec)[np.newaxis,:]
     # 1-halo term
     pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
     # Total
