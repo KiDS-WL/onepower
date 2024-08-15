@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from astropy.io import fits
 
+# This script needs to be integrated with CosmoPipe and run on the KiDS catalogues. Question remains how to get cen/sat determination of KiDS galaxies, if at all, but if using the halo mass dependent IA that should not matter.
+
 if __name__ == '__main__':
 
     # Settings
