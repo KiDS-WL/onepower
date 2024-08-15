@@ -171,7 +171,7 @@ def execute(block, config):
 
     #---- loading hod value from the values.ini file ----#
     #centrals
-    norm_c   = block[values_name, 'norm_c'] # normalisation
+    norm_c   = 1.0 # fixed to one, log_obs_0 completely takes care of this
     log_ml_0 = block[values_name, 'log_obs_0'] #O_0
     log_ml_1 = block[values_name, 'log_m_1'] #M_1
     g1       = block[values_name, 'g1'] # gamma_1
