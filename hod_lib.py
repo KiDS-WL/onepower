@@ -61,7 +61,7 @@ def phi_sat(obs, mass, hod_par):
     obs_s_star = hod_par.norm_s* cal_mean_obs_c(mass, hod_par)
     obs_tilde = obs/obs_s_star
     phi_star_val = phi_star_s(mass, hod_par)
-    phi_s = (phi_star_val/obs_s_star)*(obs_tilde**(hod_par.alpha_s))*np.exp(-obs_tilde**2.)
+    phi_s = (phi_star_val/obs_s_star)*(obs_tilde**(hod_par.alpha_s))*np.exp(-obs_tilde**hod_par.beta_s)
     return phi_s
 
 
