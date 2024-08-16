@@ -41,10 +41,11 @@ def phi_cen(obs, mass, hod_par):
     used to be cf_cen
     """
     
-    obs_star_c = obs_star(mass,hod_par,hod_par.norm_c) #O∗c
-    phi_c = 1./(np.sqrt(2.*np.pi)* np.log(10)* hod_par.sigma_c*obs) * np.exp((-(np.log10(obs/obs_star_c))**2)/(2*hod_par.sigma_c**2.))
+    mean_obs_c = cal_mean_obs_c(mass,hod_par) #O∗c
+    phi_c = 1./(np.sqrt(2.*np.pi)* np.log(10)* hod_par.sigma_log10_O_c*obs) \
+          * np.exp((-(np.log10(obs/mean_obs_c))**2)/(2*hod_par.sigma_log10_O_c**2.))
     # log10(e)/sqrt(2*pi) = 0.17325843097
-    # cf_c = np.log((0.17325843097/(hod_par.sigma_c))) - np.log(obs) + ((-(np.log10(obs)-np.log10(obs_star_c))**2.)/(2.*hod_par.sigma_c**2.)) 
+    # cf_c = np.log((0.17325843097/(hod_par.sigma_c))) - np.log(obs) + ((-(np.log10(obs)-np.log10(mean_obs_c))**2.)/(2.*hod_par.sigma_c**2.)) 
     # return np.exp(cf_c)
     return phi_c
 
@@ -57,10 +58,10 @@ def phi_sat(obs, mass, hod_par):
     used to be cf_sat
     """
     
-    obs_s_star = obs_star(mass, hod_par, hod_par.norm_s)
+    obs_s_star = hod_par.norm_s* cal_mean_obs_c(mass, hod_par)
     obs_tilde = obs/obs_s_star
     phi_star_val = phi_star_s(mass, hod_par)
-    phi_s = (phi_star_val/obs_s_star)*(obs_tilde**(hod_par.alpha_star))*np.exp(-obs_tilde**2.)
+    phi_s = (phi_star_val/obs_s_star)*(obs_tilde**(hod_par.alpha_s))*np.exp(-obs_tilde**2.)
     return phi_s
 
 
@@ -78,12 +79,11 @@ def obs_func(mass, phi_x, dn_dlnM_normalised, axis=-1):
     obs_function = simps(integrand, mass, axis=axis)
     return obs_function
 
-
-def obs_star(mass, hod_par, norm) :
+def cal_mean_obs_c(mass, hod_par) :
     """
-    eqs 19 and 20 of D23: 2210.03110
+    eqs 19 of D23: 2210.03110
     O∗c(M) = O_0 (M/M1)^γ1 / [1 + (M/M1)]^(γ1−γ2)
-    and
+    To get the values for the satellite call this * hod_par.norm_s
     O∗s(M) = 0.56 O∗c(M)
     Here M1 is a characteristic mass scale, and O_0 is the normalization.
     used to be mor
@@ -93,8 +93,9 @@ def obs_star(mass, hod_par, norm) :
     scale m_1, normalisation m_0 and slopes g_1 and g_2
     """
     
-    obs_star = norm * hod_par.Obs_0 * (mass/hod_par.m_1)**hod_par.g_1/(1.+(mass/hod_par.m_1))**(hod_par.g_1-hod_par.g_2)
-    return obs_star
+    mean_obs_c = hod_par.Obs_norm_c* (mass/hod_par.M_char)**hod_par.g_1/(1.+(mass/hod_par.M_char))**(hod_par.g_1-hod_par.g_2)
+    return mean_obs_c
+
 
 
 def phi_star_s(mass, hod_par):

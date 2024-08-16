@@ -1,6 +1,7 @@
 # CosmoSiS module to compute the halo occupation distribution (HOD) conditional on a galaxy observable
 # such as luminosity or stellar mass function.
 # The formalism is described in Cacciato (2009, thesis), Cacciato et al. (2013, application to SDSS). 
+# This is based on the parametrisation and functional forms first proposed by Yang et al. 2008
 
 # The halo occupation distribution predicts the number of galaxies that populate a halo of mass M:
 #
@@ -18,7 +19,7 @@
 
 from cosmosis.datablock import names, option_section
 import numpy as np
-from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
+from scipy.interpolate import interp1d, RegularGridInterpolator
 # halo model library with HOD and conditional functions
 import hod_lib as hod
 
@@ -28,18 +29,28 @@ cosmo = names.cosmological_parameters
 
 # a class with all the HOD parameters
 class HODpar :
-    def __init__(self, norm_c, Obs_0, m_1, g1, g2, sigma_c, norm_s, pivot, alpha_star, b0, b1, b2):
-        #centrals
-        self.norm_c = norm_c
-        self.m_1 = m_1
-        self.Obs_0 = Obs_0
+    """
+    The conditional observable function provide a distribution for the galaxies populating a halo of mass M.
+    For centrals this is a lognormal distribution, with a mean that is a function of halo mass and is
+    described by a double power law.  
+    For satellites this is a generalised Schechter function with two free powers. 
+    M_char is characteristic halo mass that divides the two regimes of the double powerlaw.
+    Obs_norm_c is the normalisation factor for central galaxies
+
+    """
+    def __init__(self, Obs_norm_c, M_char, g1, g2, sigma_log10_O_c, norm_s, pivot, alpha_s, beta_s, b0, b1, b2):
+        # general parameters
+        self.M_char = M_char 
         self.g_1 = g1
         self.g_2 = g2
-        self.sigma_c = sigma_c
+        #centrals
+        self.Obs_norm_c = Obs_norm_c
+        self.sigma_log10_O_c = sigma_log10_O_c
         #satellites
-        self.norm_s = norm_s
+        self.norm_s = norm_s  # extra normalisation factor for satellites
         self.pivot = pivot
-        self.alpha_star = alpha_star
+        self.alpha_s = alpha_s #low obs slope 
+        self.beta_s = beta_s #slope in the exponent
         self.b0 = b0
         self.b1 = b1
         self.b2 = b2
@@ -160,23 +171,27 @@ def setup(options):
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
             # print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
 
-    return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, observable_h_unit, valid_units
+    return  obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass,\
+            z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name,\
+            values_name, observables_z, observable_section_name, galaxy_bias_section_name,\
+            observable_h_unit, valid_units
 
 
 
-
+# TODO: log_mass_min, log_mass_max not used here
 def execute(block, config):
 
     obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, observable_h_unit, valid_units = config
 
     #---- loading hod value from the values.ini file ----#
     #centrals
-    norm_c   = 1.0 # fixed to one, log_obs_0 completely takes care of this
-    log_ml_0 = block[values_name, 'log_obs_0'] #O_0
-    log_ml_1 = block[values_name, 'log_m_1'] #M_1
-    g1       = block[values_name, 'g1'] # gamma_1
-    g2       = block[values_name, 'g2'] # gamma_2
-    scatter  = block[values_name, 'scatter'] # sigma_c
+
+    # all masses in units of log10(M_sun h^-2)
+    log10_obs_norm_c = block[values_name, 'log10_obs_norm_c'] #O_0, O_norm_c
+    log10_M_ch       = block[values_name, 'log10_m_ch'] # log10 M_char
+    g1               = block[values_name, 'g1'] # gamma_1
+    g2               = block[values_name, 'g2'] # gamma_2
+    sigma_log10_O_c  = block[values_name, 'sigma_log10_O_c'] # sigma_log10_O_c
 
     # TODO: check how this works
     if block.has_value(values_name, 'A_cen'):
@@ -187,6 +202,7 @@ def execute(block, config):
     #satellites
     norm_s   = block[values_name, 'norm_s'] # normalisation
     alpha_s  = block[values_name, 'alpha_s'] # goes into the conditional stellar mass function Phi_sat(M*|M)
+    beta_s  = block[values_name, 'beta_s'] # goes into the conditional stellar mass function Phi_sat(M*|M)
     pivot    = block[values_name, 'pivot']  # pivot mass for the normalisation of the stellar mass function: ϕ∗s
     # log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
     b0 = block[values_name, 'b0'] 
@@ -199,7 +215,7 @@ def execute(block, config):
     else:
         A_sat = None
 
-    hod_par = HODpar(norm_c, 10.**log_ml_0, 10.**log_ml_1, g1, g2, scatter, norm_s, pivot, alpha_s, b0, b1, b2)
+    hod_par = HODpar(10.**log10_obs_norm_c, 10.**log10_M_ch, g1, g2, sigma_log10_O_c, norm_s, pivot, alpha_s, beta_s, b0, b1, b2)
 
     block.put_int(hod_section_name, 'nbins', nbins)
     block.put_bool(hod_section_name, 'option', observables_z)
@@ -399,11 +415,11 @@ def execute(block, config):
         #block.put_double_array_1d('observable_function' + suffix,'obs_func_med',obs_func_h)
         block.put_double_array_1d(observable_section_name,'obs_func_med',np.log(10.)*obs_func_h*obs_h)
 
-        #Characteristic luminosity of central galaxies
-        obs_cen = hod.obs_star(mass, hod_par, norm_c)
+        #Mean value of the observable for central galaxies
+        mean_obs_cen = hod.cal_mean_obs_c(mass, hod_par)
 
         block.put_double_array_1d(observable_section_name,'halo_mass_med',mass)
-        block.put_double_array_1d(observable_section_name,'obs_halo_mass_relation',obs_cen)
+        block.put_double_array_1d(observable_section_name,'mean_obs_halo_mass_relation',mean_obs_cen)
     
     return 0
 
