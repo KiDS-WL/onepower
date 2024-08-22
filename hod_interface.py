@@ -290,6 +290,8 @@ def execute(block, config):
         block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat)
         block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg)
         
+        # TODO: very important, the RegularGridInterpolator creates oscillations in the hmf. 
+        # Need to either remove interpolation or use a different interpolation method.
         if galaxy_bias_option:
             #---- loading the halo bias function ----#
             z_hbf        = block['halobias', 'z']
@@ -332,15 +334,15 @@ def execute(block, config):
     nl_obs = 100
     nl_z = 15
     z_bins_one = np.linspace(z_bins.min(), z_bins.max(), nl_z)
-        
+    
     f_mass_z_one = interp1d(z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
     dn_dlnM_one = f_mass_z_one(z_bins_one)
-        
+    
     obs_range_h = np.empty([nl_z,nl_obs])
     for jz in range(0,nl_z):
         obs_range_h[jz] = np.logspace(np.log10(obs_simps.min()),np.log10(obs_simps.max()), nl_obs)
     obs_func_h = np.empty([nl_z,nl_obs])
-        
+    
     phi_c = hod.phi_cen(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod_par)
     phi_s = hod.phi_sat(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod_par)
     phi = phi_c + phi_s
