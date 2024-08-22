@@ -1,6 +1,7 @@
 # CosmoSiS module to compute the halo occupation distribution (HOD) conditional on a galaxy observable
 # such as luminosity or stellar mass function.
 # The formalism is described in Cacciato (2009, thesis), Cacciato et al. (2013, application to SDSS). 
+# This is based on the parametrisation and functional forms first proposed by Yang et al. 2008
 
 # The halo occupation distribution predicts the number of galaxies that populate a halo of mass M:
 #
@@ -18,7 +19,7 @@
 
 from cosmosis.datablock import names, option_section
 import numpy as np
-from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
+from scipy.interpolate import interp1d, RegularGridInterpolator
 # halo model library with HOD and conditional functions
 import hod_lib as hod
 
@@ -28,18 +29,28 @@ cosmo = names.cosmological_parameters
 
 # a class with all the HOD parameters
 class HODpar :
-    def __init__(self, norm_c, Obs_0, m_1, g1, g2, sigma_c, norm_s, pivot, alpha_star, b0, b1, b2):
-        #centrals
-        self.norm_c = norm_c
-        self.m_1 = m_1
-        self.Obs_0 = Obs_0
+    """
+    The conditional observable function provide a distribution for the galaxies populating a halo of mass M.
+    For centrals this is a lognormal distribution, with a mean that is a function of halo mass and is
+    described by a double power law.  
+    For satellites this is a generalised Schechter function with two free powers. 
+    M_char is characteristic halo mass that divides the two regimes of the double powerlaw.
+    Obs_norm_c is the normalisation factor for central galaxies
+
+    """
+    def __init__(self, Obs_norm_c, M_char, g1, g2, sigma_log10_O_c, norm_s, pivot, alpha_s, beta_s, b0, b1, b2):
+        # general parameters
+        self.M_char = M_char 
         self.g_1 = g1
         self.g_2 = g2
-        self.sigma_c = sigma_c
+        #centrals
+        self.Obs_norm_c = Obs_norm_c
+        self.sigma_log10_O_c = sigma_log10_O_c
         #satellites
-        self.norm_s = norm_s
+        self.norm_s = norm_s  # extra normalisation factor for satellites
         self.pivot = pivot
-        self.alpha_star = alpha_star
+        self.alpha_s = alpha_s #low obs slope 
+        self.beta_s = beta_s #slope in the exponent
         self.b0 = b0
         self.b1 = b1
         self.b2 = b2
@@ -118,16 +129,7 @@ def setup(options):
     # number of bins used for defining observable functions, usually a larger number
     nobs = options.get_int(option_section, 'nobs', 200)
 
-    # Minimum and maximum halo masses in log10 space
-    # TODO: what are the units? M_sun/h ?
-    log_mass_min = options.get_double(option_section, 'log_mass_min',10.0)
-    log_mass_max = options.get_double(option_section, 'log_mass_max',16.0)
-    # number of halo mass bins
-    nmass        = options.get_int(option_section, 'nmass',200)
 
-    #---- log-spaced mass sample ----#
-    dlog10m = (log_mass_max-log_mass_min)/nmass
-    mass    = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
     # TODO: check if we need this
     #It just outputs estimates of the linear bias for the HOD which isn't necessarily a bad thing?
@@ -160,23 +162,27 @@ def setup(options):
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
             # print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
 
-    return obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, observable_h_unit, valid_units
+    return  obs_simps, nbins, nz, nobs, z_bins,\
+            z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name,\
+            values_name, observables_z, observable_section_name, galaxy_bias_section_name,\
+            observable_h_unit, valid_units
 
 
 
-
+# TODO: log_mass_min, log_mass_max not used here
 def execute(block, config):
 
-    obs_simps, nbins, nz, nobs, z_bins, log_mass_min, log_mass_max, nmass, mass, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, observable_h_unit, valid_units = config
+    obs_simps, nbins, nz, nobs, z_bins, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, observable_h_unit, valid_units = config
 
     #---- loading hod value from the values.ini file ----#
     #centrals
-    norm_c   = block[values_name, 'norm_c'] # normalisation
-    log_ml_0 = block[values_name, 'log_obs_0'] #O_0
-    log_ml_1 = block[values_name, 'log_m_1'] #M_1
-    g1       = block[values_name, 'g1'] # gamma_1
-    g2       = block[values_name, 'g2'] # gamma_2
-    scatter  = block[values_name, 'scatter'] # sigma_c
+
+    # all masses in units of log10(M_sun h^-2)
+    log10_obs_norm_c = block[values_name, 'log10_obs_norm_c'] #O_0, O_norm_c
+    log10_M_ch       = block[values_name, 'log10_m_ch'] # log10 M_char
+    g1               = block[values_name, 'g1'] # gamma_1
+    g2               = block[values_name, 'g2'] # gamma_2
+    sigma_log10_O_c  = block[values_name, 'sigma_log10_O_c'] # sigma_log10_O_c
 
     # TODO: check how this works
     if block.has_value(values_name, 'A_cen'):
@@ -187,6 +193,7 @@ def execute(block, config):
     #satellites
     norm_s   = block[values_name, 'norm_s'] # normalisation
     alpha_s  = block[values_name, 'alpha_s'] # goes into the conditional stellar mass function Phi_sat(M*|M)
+    beta_s  = block[values_name, 'beta_s'] # goes into the conditional stellar mass function Phi_sat(M*|M)
     pivot    = block[values_name, 'pivot']  # pivot mass for the normalisation of the stellar mass function: ϕ∗s
     # log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
     b0 = block[values_name, 'b0'] 
@@ -199,14 +206,14 @@ def execute(block, config):
     else:
         A_sat = None
 
-    hod_par = HODpar(norm_c, 10.**log_ml_0, 10.**log_ml_1, g1, g2, scatter, norm_s, pivot, alpha_s, b0, b1, b2)
+    hod_par = HODpar(10.**log10_obs_norm_c, 10.**log10_M_ch, g1, g2, sigma_log10_O_c, norm_s, pivot, alpha_s, beta_s, b0, b1, b2)
 
     block.put_int(hod_section_name, 'nbins', nbins)
     block.put_bool(hod_section_name, 'option', observables_z)
 
     #---- loading the halo mass function ----#
     dndlnM_grid = block['hmf','dndlnmh']
-    mass_dn     = block['hmf','m_h']
+    mass        = block['hmf','m_h']
     z_dn        = block['hmf','z']
     
     for nb in range(0,nbins):
@@ -216,9 +223,9 @@ def execute(block, config):
             suffix = ''
             
         # set interpolator for the halo mass function
-        f_int_dndlnM = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
-        mass_i, z_bins_i = np.meshgrid(mass, z_bins[nb], sparse=True)
-        dndlnM = f_int_dndlnM((mass_i.T, z_bins_i.T)).T
+        f_int_dndlnM = interp1d(z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
+        dndlnM = f_int_dndlnM(z_bins[nb])
+        nmass = mass.size
     
         phi_c = np.empty([nz, nmass, nobs])
         phi_s = np.empty([nz, nmass, nobs])
@@ -285,13 +292,12 @@ def execute(block, config):
         
         if galaxy_bias_option:
             #---- loading the halo bias function ----#
-            mass_hbf     = block['halobias', 'm_h']
             z_hbf        = block['halobias', 'z']
             halobias_hbf = block['halobias', 'b_hb']
 
-            f_interp_halobias = RegularGridInterpolator((mass_hbf.T, z_hbf.T), halobias_hbf.T, bounds_error=False, fill_value=None)
-            mass_i, z_bins_i  = np.meshgrid(mass, z_bins[nb], sparse=True)
-            hbias = f_interp_halobias((mass_i.T,z_bins_i.T)).T
+            f_interp_halobias = interp1d(z_hbf, halobias_hbf, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
+            hbias = f_interp_halobias(z_bins[nb])
+            
 
             galaxybias_cen = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_cen, hbias, dndlnM)/numdens_tot
             galaxybias_sat = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_sat, hbias, dndlnM)/numdens_tot
@@ -327,9 +333,8 @@ def execute(block, config):
     nl_z = 15
     z_bins_one = np.linspace(z_bins.min(), z_bins.max(), nl_z)
         
-    f_mass_z_one = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
-    mass_one_i, z_one_i = np.meshgrid(mass_dn, z_bins_one)
-    dn_dlnM_one = f_mass_z_one((mass_one_i.T, z_one_i.T)).T
+    f_mass_z_one = interp1d(z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
+    dn_dlnM_one = f_mass_z_one(z_bins_one)
         
     obs_range_h = np.empty([nl_z,nl_obs])
     for jz in range(0,nl_z):
@@ -374,9 +379,9 @@ def execute(block, config):
         #f_mass_z_dn = interp2d(mass_dn, z_bins, dndlnM)
         #dn_dlnM_zmedian = f_mass_z_dn(mass_dn, z_picked)
         
-        f_mass_z_dn = RegularGridInterpolator((mass_dn.T, z_dn.T), dndlnM_grid.T, bounds_error=False, fill_value=None)
-        mass_dn_i, z_picked_i = np.meshgrid(mass_dn, z_picked)
-        dn_dlnM_zmedian = f_mass_z_dn((mass_dn_i.T, z_picked_i.T)).T
+        f_mass_z_dn = interp1d(z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
+        dn_dlnM_zmedian = f_mass_z_dn(z_picked)
+        
     
         # logspace values for the obervable values (e.g. stellar masses)
         obs_range = np.logspace(np.log10(obs_simps.min()), np.log10(obs_simps.max()), nobs)
@@ -399,11 +404,11 @@ def execute(block, config):
         #block.put_double_array_1d('observable_function' + suffix,'obs_func_med',obs_func_h)
         block.put_double_array_1d(observable_section_name,'obs_func_med',np.log(10.)*obs_func_h*obs_h)
 
-        #Characteristic luminosity of central galaxies
-        obs_cen = hod.obs_star(mass, hod_par, norm_c)
+        #Mean value of the observable for central galaxies
+        mean_obs_cen = hod.cal_mean_obs_c(mass, hod_par)
 
         block.put_double_array_1d(observable_section_name,'halo_mass_med',mass)
-        block.put_double_array_1d(observable_section_name,'obs_halo_mass_relation',obs_cen)
+        block.put_double_array_1d(observable_section_name,'mean_obs_halo_mass_relation',mean_obs_cen)
     
     return 0
 

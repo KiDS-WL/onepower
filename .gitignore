@@ -10,3 +10,4 @@
 *.fits
 /filesfromIsaac
 runs/*/chain/*
+trained_bnl/*

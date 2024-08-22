@@ -226,14 +226,12 @@ def execute(block, config):
     if satellite_IA_depends_on == 'luminosity':
         lpiv = block[f'intrinsic_alignment_parameters{suffix}', 'L_pivot']
         beta_sat = block[f'intrinsic_alignment_parameters{suffix}', 'beta_sat']
-        gamma_1h = block[f'intrinsic_alignment_parameters{suffix}', 'gamma_1h_amplitude']
         mean_lscaling = mean_L_L0_to_beta(lum_satellites, lum_pdf_z_satellites, lpiv, beta_sat)
         block.put_double_array_1d(f'ia_small_scale_alignment{suffix}', 'alignment_1h', gamma_1h * mean_lscaling)
         
     if satellite_IA_depends_on == 'halo_mass':
         mpiv = block.get_double(f'intrinsic_alignment_parameters{suffix}', 'M_pivot')
         beta_sat = block.get_double(f'intrinsic_alignment_parameters{suffix}', 'beta_sat')
-        gamma_1h = block.get_double(f'intrinsic_alignment_parameters{suffix}', 'gamma_1h_amplitude')
         # Technically just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
         block.put_double_array_1d(f'ia_small_scale_alignment{suffix}', 'alignment_1h', gamma_1h * np.ones(nz))
         block.put_double(f'ia_small_scale_alignment{suffix}', 'M_pivot', mpiv)

@@ -167,7 +167,7 @@ def get_halo_functions(block):
 # TODO: Check if this interpolation works well
 def interpolate2d_HM(input_grid, x_in, y_in, x_out, y_out, method = 'linear'):
     
-    f_interp = RegularGridInterpolator((x_in.T, y_in.T), input_grid.T,method=method, bounds_error=False, fill_value=None)
+    f_interp = RegularGridInterpolator((x_in.T, y_in.T), input_grid.T, method=method, bounds_error=False, fill_value=None)
     xx, yy = np.meshgrid(x_out, y_out, sparse=True)
     interpolated = f_interp((xx.T, yy.T)).T
     
