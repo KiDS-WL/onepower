@@ -56,6 +56,7 @@ def setup(options):
     config['obs_min'] = np.asarray([options[option_section, 'obs_min']]).flatten()
     config['obs_max'] = np.asarray([options[option_section, 'obs_max']]).flatten()
     config['n_obs'] = np.asarray([options[option_section, 'n_obs']]).flatten()
+    config['edges'] = options.get_bool(option_section, 'edges', default=False)
 
     # Check if the legth of obs_min, obs_max, n_obs match
     if not np.all(np.array([len(config['obs_min']), len(config['obs_max']), len(config['n_obs'])]) == len(config['suffixes'])):
@@ -64,7 +65,12 @@ def setup(options):
     # observable array
     config['obs_arr']   = []
     for i in range(config['nbins']):
-        config['obs_arr'].append(np.logspace(config['obs_min'][i], config['obs_max'][i], config['n_obs'][i]))
+        if not config['edges']:
+            config['obs_arr'].append(np.logspace(config['obs_min'][i], config['obs_max'][i], config['n_obs'][i]))
+        else:
+            bins = np.linspace(config['obs_min'][i], config['obs_max'][i], config['n_obs'][i]+1, endpoint=True)
+            center = (bins[1:] + bins[:-1])/2.0
+            config['obs_arr'].append(10.0**center)
     
     return config
 	
