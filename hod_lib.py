@@ -92,7 +92,7 @@ def cal_mean_obs_c(mass, hod_par) :
     returns the observable given halo mass. Assumed to be a double power law with characteristic
     scale m_1, normalisation m_0 and slopes g_1 and g_2
     """
-    
+    # TODO: check this for log and non log. h factors? 
     mean_obs_c = hod_par.Obs_norm_c* (mass/hod_par.M_char)**hod_par.g_1/(1.+(mass/hod_par.M_char))**(hod_par.g_1-hod_par.g_2)
     return mean_obs_c
 
@@ -139,14 +139,14 @@ def compute_stellar_fraction(obs, phi_x):
 
 def compute_number_density(mass, hod_x, dn_dlnM_normalised):
     """
-    Total number of galaxies with the given HOD, e.g. central and satellite galaxies
+    Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
     This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
     Nx = int ⟨Nx|M⟩ n(M) dM
     """
     
-    n_integrand = hod_x*dn_dlnM_normalised/mass
-    n_integral = simps(n_integrand, mass)
-    return n_integral
+    integrand = hod_x*dn_dlnM_normalised/mass
+    n_density = simps(integrand, mass)
+    return n_density
 
 
 def compute_avg_halo_mass(mass, hod_x, dn_dlnM_normalised):
@@ -155,9 +155,9 @@ def compute_avg_halo_mass(mass, hod_x, dn_dlnM_normalised):
     M_mean = int ⟨Nx|M⟩ M n(M) dM
     """
 
-    n_integrand = hod_x*dn_dlnM_normalised
-    n_integral = simps(n_integrand, mass)
-    return n_integral
+    integrand = hod_x*dn_dlnM_normalised
+    mean_halo_mass = simps(integrand, mass)
+    return mean_halo_mass
 
 
 def compute_galaxy_linear_bias(mass, hod_x, halo_bias, dn_dlnM_normalised):
