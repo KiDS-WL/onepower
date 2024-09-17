@@ -314,6 +314,7 @@ def execute(block, config):
         #######################################   OBSERVABLE FUNCTION   #############################################
     
         if save_observable and observable_mode == 'obs_z':
+            suffix_obs = f'_{nb+1}'
             nl_obs = 100
             obs_range_h = np.logspace(np.log10(obs_simps[nb].min()),np.log10(obs_simps[nb].max()), nl_obs)
             obs_func_h = np.empty([nz,nl_obs])
@@ -326,7 +327,7 @@ def execute(block, config):
                 obs_func_h[jz] = interp(obs_range_h)
                     
             #TODO: put this in a different section
-            block.put_grid(observable_section_name, f'z_bin{suffix}', z_bins[nb], f'obs_val{suffix}', obs_range_h, f'obs_func{suffix}', np.log(10.0)*obs_func_h*obs_range_h)
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range_h, f'obs_func{suffix_obs}', np.log(10.0)*obs_func_h*obs_range_h)
             
     if save_observable:
         block.put(observable_section_name,'observable_mode', observable_mode)
