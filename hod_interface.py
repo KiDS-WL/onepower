@@ -98,6 +98,27 @@ def setup(options):
         # number of bins in the observable, for example you might have divided your sample into 3 stellar mass bins
         # With a file input we are assuming that eveything is part of the same bin currently. 
         nbins  = 1
+    elif options.has_value(option_section, 'mass_lim') and options.has_value(option_section, 'mass_lim_low'):
+        observables_z = True
+        file_name     = options.get_string(option_section, 'mass_lim')
+        file_name_low = options.get_string(option_section, 'mass_lim_low')
+        z_bins = np.linspace(options[option_section, 'zmin'], options[option_section, 'zmax'], options[option_section, 'nz'])
+        
+        with open(file_name, 'rb') as dill_file:
+            fit_func_inv = pickle.load(dill_file)
+        
+        with open(file_name_low, 'rb') as dill_file:
+            fit_func_low = pickle.load(dill_file)
+        
+        obs_min = fit_func_inv(z_bins)
+        obs_max = fit_func_low(z_bins)
+        nz     = options[option_section, 'nz']
+        log_obs_min = np.log10(obs_min)[np.newaxis,:]
+        log_obs_max = np.log10(obs_max)[np.newaxis,:]
+        z_bins = z_bins[np.newaxis,:]
+        # number of bins in the observable, for example you might have divided your sample into 3 stellar mass bins
+        # With a file input we are assuming that eveything is part of the same bin currently.
+        nbins  = 1
     else:
         observables_z = False
         # These are the values used to define the edges of the observable and redshift bins. 
