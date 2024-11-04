@@ -2,25 +2,25 @@ from cosmosis.datablock import names, option_section
 import warnings
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.optimize import root_scalar
-from scipy.integrate import simps, solve_ivp, quad
-from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
-import astropy.units as u
-import hmf
-from halomod import bias as bias_func
-from halomod.concentration import make_colossus_cm
-from halomod import concentration as conc_func
-from hmf import MassFunction
-import hmf.halos.mass_definitions as md
-from hmf.halos.mass_definitions import SphericalOverdensity
-import hmf.cosmology.growth_factor as gf
-from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
+from astropy.cosmology import Flatw0waCDM, Planck15
 import halo_model_utility as hmu
 from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
-import time
+import hmf
+import hmf.halos.mass_definitions as md
+from hmf.halos.mass_definitions import SphericalOverdensity
+from hmf import MassFunction
+from halomod import bias as bias_func
+from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
 
-from astropy.cosmology import Planck15
+#import time
+#from scipy.optimize import root_scalar
+#from scipy.integrate import simps, solve_ivp, quad
+#import astropy.units as u
+#from halomod.concentration import make_colossus_cm
+#from halomod import concentration as conc_func
+#import hmf.cosmology.growth_factor as gf
+
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
