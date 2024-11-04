@@ -98,6 +98,27 @@ def setup(options):
         # number of bins in the observable, for example you might have divided your sample into 3 stellar mass bins
         # With a file input we are assuming that eveything is part of the same bin currently. 
         nbins  = 1
+    elif options.has_value(option_section, 'mass_lim') and options.has_value(option_section, 'mass_lim_low'):
+        observables_z = True
+        file_name     = options.get_string(option_section, 'mass_lim')
+        file_name_low = options.get_string(option_section, 'mass_lim_low')
+        z_bins = np.linspace(options[option_section, 'zmin'], options[option_section, 'zmax'], options[option_section, 'nz'])
+        
+        with open(file_name, 'rb') as dill_file:
+            fit_func_inv = pickle.load(dill_file)
+        
+        with open(file_name_low, 'rb') as dill_file:
+            fit_func_low = pickle.load(dill_file)
+        
+        obs_min = fit_func_inv(z_bins)
+        obs_max = fit_func_low(z_bins)
+        nz     = options[option_section, 'nz']
+        log_obs_min = np.log10(obs_min)[np.newaxis,:]
+        log_obs_max = np.log10(obs_max)[np.newaxis,:]
+        z_bins = z_bins[np.newaxis,:]
+        # number of bins in the observable, for example you might have divided your sample into 3 stellar mass bins
+        # With a file input we are assuming that eveything is part of the same bin currently.
+        nbins  = 1
     else:
         observables_z = False
         # These are the values used to define the edges of the observable and redshift bins. 
@@ -314,6 +335,7 @@ def execute(block, config):
         #######################################   OBSERVABLE FUNCTION   #############################################
     
         if save_observable and observable_mode == 'obs_z':
+            suffix_obs = f'_{nb+1}'
             nl_obs = 100
             obs_range_h = np.logspace(np.log10(obs_simps[nb].min()),np.log10(obs_simps[nb].max()), nl_obs)
             obs_func_h = np.empty([nz,nl_obs])
@@ -326,7 +348,7 @@ def execute(block, config):
                 obs_func_h[jz] = interp(obs_range_h)
                     
             #TODO: put this in a different section
-            block.put_grid(observable_section_name, f'z_bin{suffix}', z_bins[nb], f'obs_val{suffix}', obs_range_h, f'obs_func{suffix}', np.log(10.0)*obs_func_h*obs_range_h)
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range_h, f'obs_func{suffix_obs}', np.log(10.0)*obs_func_h*obs_range_h)
             
     if save_observable:
         block.put(observable_section_name,'observable_mode', observable_mode)
