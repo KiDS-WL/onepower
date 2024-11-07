@@ -492,17 +492,18 @@ def execute(block, config):
                 #block.put_grid(f'matter_intrinsic_power_2h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)
                 block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI_bnl)
             
-            # Only used in Fortuna et al. 2021 implementation of IA power spectra
-            # computes the effective power spectrum, mixing the linear and nonlinear ones:
-            # Defaullt in Fortuna et al. 2021 is the non-linear power spectrum, so t_eff defaults to 0
-            #
-            # (1.-t_eff)*pnl + t_eff*plin
-            #
-            # load nonlinear power spectrum
-            k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
-            pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
-            t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
-            pk_eff = (1.-t_eff)*pnl + t_eff*plin
+			if p_II_fortuna == True or p_gI_fortuna == True or p_mI_fortuna == True:
+                # Only used in Fortuna et al. 2021 implementation of IA power spectra
+                # computes the effective power spectrum, mixing the linear and nonlinear ones:
+                # Defaullt in Fortuna et al. 2021 is the non-linear power spectrum, so t_eff defaults to 0
+                #
+                # (1.-t_eff)*pnl + t_eff*plin
+                #
+                # load nonlinear power spectrum
+                k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
+                pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
+                t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
+                pk_eff = (1.-t_eff)*pnl + t_eff*plin
             # Intrinsic aligment power spectra (implementation from Maria Cristina - 2h = LA/NLA mixture)
             if p_II_fortuna == True:
                 pk_II_1h, pk_II_2h, pk_II = pk_lib.compute_p_II_fortuna(block, k_vec, pk_eff, z_vec,
