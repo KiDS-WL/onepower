@@ -492,7 +492,7 @@ def execute(block, config):
                 #block.put_grid(f'matter_intrinsic_power_2h{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_GI_2h)
                 block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI_bnl)
             
-			if p_II_fortuna == True or p_gI_fortuna == True or p_mI_fortuna == True:
+            if p_II_fortuna == True or p_gI_fortuna == True or p_mI_fortuna == True:
                 # Only used in Fortuna et al. 2021 implementation of IA power spectra
                 # computes the effective power spectrum, mixing the linear and nonlinear ones:
                 # Defaullt in Fortuna et al. 2021 is the non-linear power spectrum, so t_eff defaults to 0

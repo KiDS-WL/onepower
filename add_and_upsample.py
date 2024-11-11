@@ -72,8 +72,10 @@ def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, po
     inter_func_z = interp1d(z, pk_tot, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
     pk_tot_ext_z = inter_func_z(z_ext)
     
-    inter_func_k = interp1d(np.log10(k), np.log10(np.nan_to_num(pk_tot_ext_z + 1.0, nan=1.0, posinf=1.0, neginf=1.0)), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
-    pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
+    #inter_func_k = interp1d(np.log10(k), np.log10(np.nan_to_num(pk_tot_ext_z, nan=0.0, posinf=0.0, neginf=0.0) + 1.0), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
+    #pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
+    inter_func_k = interp1d(np.log10(k), pk_tot_ext_z, kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
+    pk_tot_ext = inter_func_k(np.log10(k_ext))
         
     # Introduce the sign convention back for the GI terms    
     if changed_sign:
@@ -102,8 +104,10 @@ def extrapolate_power(block, suffix_out, suffix_in, power_section, z_ext, k_ext,
     inter_func_z = interp1d(z, pk_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
     pk_tot_ext_z = inter_func_z(z_ext)
     
-    inter_func_k = interp1d(np.log10(k), np.log10(np.nan_to_num(pk_tot_ext_z + 1.0, nan=1.0, posinf=1.0, neginf=1.0)), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
-    pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
+    #inter_func_k = interp1d(np.log10(k), np.log10(np.nan_to_num(pk_tot_ext_z, nan=0.0, posinf=0.0, neginf=0.0) + 1.0), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
+    #pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
+    inter_func_k = interp1d(np.log10(k), pk_tot_ext_z, kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
+    pk_tot_ext = inter_func_k(np.log10(k_ext))
         
     # Introduce the sign convention back for the GI terms
     if changed_sign:
