@@ -88,7 +88,6 @@ def execute(block, config):
         z_obs, obs_ext = load_and_extrapolate_obs(block, input_section_name, suffixes[i], obs_arr[i], 0.0)
         if z_obs is not None:
             # Load kernel if exists
-            print('z_obs is not None')
             nz = load_kernel(block, config['sample'], i+1, z_obs, 0.0)
             # Integrate over n(z)
             obs_out = simps(nz[:,np.newaxis]*obs_ext, z_obs, axis=0)
