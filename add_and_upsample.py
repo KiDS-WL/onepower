@@ -36,6 +36,25 @@ from scipy.interpolate import interp1d
 cosmo = names.cosmological_parameters
 
 
+def extrapolate_nan(z, k, z_ext, k_ext, pk_tot, extrapolate_option):
+    
+    pk_extz = np.empty([len(z_ext), len(k)])
+    for i in range(len(k)):
+        pki = pk_tot[:,i][np.isfinite(pk_tot[:,i])]
+        zi = z[np.isfinite(pk_tot[:,i])]
+        inter_func = interp1d(zi, pki, kind='linear', fill_value=extrapolate_option, bounds_error=False)
+        pk_extz[:,i] = inter_func(z_ext)
+    
+    pk_extk = np.empty([len(z), len(k_ext)])
+    for j in range(len(z)):
+        pki = pk_extz[j,:][np.isfinite(pk_extz[j,:])]
+        ki = k[np.isfinite(pk_extz[j,:])]
+        inter_func = interp1d(np.log10(ki), np.log10(pki) + 1.0, kind='linear', fill_value='extrapolate', bounds_error=False)
+        pk_extk[j,:] = 10.0**inter_func(np.log10(k_ext)) - 1.0
+    
+    return pk_extk
+
+
 def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, power_section, z_ext, k_ext, extrapolate_option):
     # Note that we have first interpolated the f_red to the halo model pipeline z range
     k = block[f'{power_section}{suffix_red}', 'k_h']
@@ -76,8 +95,23 @@ def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, po
     #pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
     inter_func_k = interp1d(np.log10(k), pk_tot_ext_z, kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
     pk_tot_ext = inter_func_k(np.log10(k_ext))
-        
-    # Introduce the sign convention back for the GI terms    
+    
+    #pk_tot_ext = extrapolate_nan(z, k, z_ext, k_ext, pk_tot, extrapolate_option)
+    
+    """
+    zz, kk = np.meshgrid(z, np.log10(k))
+    zz2, kk2 = np.meshgrid(z_ext, np.log10(k_ext))
+    import matplotlib.pyplot as pl
+    fig = pl.figure()
+    ax = fig.add_subplot(projection='3d')
+    #ax.scatter(xg.ravel(), yg.ravel(), data.ravel(), s=60, c='k', label='data')
+    ax.plot_wireframe(zz.T, kk.T, np.log10(pk_tot), color='red')#,rstride=3, cstride=3, alpha=0.4, label='Spectra')
+    ax.plot_wireframe(zz2.T, kk2.T, np.log10(pk_tot_ext))
+    pl.legend()
+    pl.show()
+    """
+    
+    # Introduce the sign convention back for the GI terms
     if changed_sign:
         pk_tot_ext=pk_tot_ext*-1
 
@@ -108,6 +142,21 @@ def extrapolate_power(block, suffix_out, suffix_in, power_section, z_ext, k_ext,
     #pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
     inter_func_k = interp1d(np.log10(k), pk_tot_ext_z, kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
     pk_tot_ext = inter_func_k(np.log10(k_ext))
+    
+    #pk_tot_ext = extrapolate_nan(z, k, z_ext, k_ext, pk_in, extrapolate_option)
+    
+    """
+    zz, kk = np.meshgrid(z, np.log10(k))
+    zz2, kk2 = np.meshgrid(z_ext, np.log10(k_ext))
+    import matplotlib.pyplot as pl
+    fig = pl.figure()
+    ax = fig.add_subplot(projection='3d')
+    #ax.scatter(xg.ravel(), yg.ravel(), data.ravel(), s=60, c='k', label='data')
+    ax.plot_wireframe(zz.T, kk.T, np.log10(pk_in), color='red')#,rstride=3, cstride=3, alpha=0.4, label='Spectra')
+    ax.plot_wireframe(zz2.T, kk2.T, np.log10(pk_tot_ext))
+    pl.legend()
+    pl.show()
+    """
         
     # Introduce the sign convention back for the GI terms
     if changed_sign:
