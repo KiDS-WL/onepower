@@ -507,8 +507,9 @@ def execute(block, config):
     
     # cosmological parameters
     f_nu = this_cosmo_run.Onu0/this_cosmo_run.Om0
-    h_z = this_cosmo_run.H(z_vec).value/100.0
-    block.put_double_array_1d(cosmo_params, 'h_z', h_z)
+    # h_z = this_cosmo_run.H(z_vec).value/100.0
+    # block.put_double_array_1d(cosmo_params, 'h_z', h_z)
+    # block.put_double_array_1d(cosmo_params, 'z',z_vec)
     block[cosmo_params, 'fnu'] = f_nu
 
     return 0
