@@ -190,7 +190,7 @@ def execute(block, config):
     neff      = np.empty([nz])
     sigma8_z  = np.empty([nz])
     f_nu      = np.empty([nz])
-    h_z       = np.empty([nz])
+    # h_z       = np.empty([nz])
     mean_density0  = np.empty([nz])
     mean_density_z = np.empty([nz])
     overdensity_z  = np.empty([nz])
@@ -227,7 +227,7 @@ def execute(block, config):
         elif mead_correction is not None:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=UserWarning)
-                # This disables the warning from hmf is just telling us what we know
+                # This disables the warning from hmf. hmf is just telling us what we know
                 # hmf's internal way of calculating the overdensity and the collapse threshold are fixed.
                 # When we use the mead correction we want to define the haloes using the virial definition.
                 # To avoid conflicts we manually pass the overdensity and the collapse threshold,
@@ -242,13 +242,13 @@ def execute(block, config):
                                     this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
                 overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), 
                                         this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
-                mdef_mead = hmu.SOVirial_Mead #'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
+                mdef_mead = hmu.SOVirial_Mead 
                 DM_hmf.ERROR_ON_BAD_MDEF = False
                 DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, 
                               n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  
                               mdef_params={'overdensity':overdensity_z[jz]}, disable_mass_conversion=True, 
                               transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
-        else:
+        else: #Neither mead_correction or SOVirial
             overdensity_z[jz] = overdensity
             delta_c_z = delta_c
             DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, 
@@ -267,7 +267,7 @@ def execute(block, config):
         # index of 
         idx_neff      = np.argmin(np.abs(DM_hmf.nu - 1.0))
         # effective power spectrum index at the collapse scale,
-        # Question: n_eff is just used in the transition_smoothing module for mead_corrections. 
+        # TODO: Question: n_eff is just used in the transition_smoothing module for mead_corrections. 
         # It is called n^eff_cc in table 2 of https://arxiv.org/pdf/2009.01858.pdf . 
         # But it doesn't explain what it is. Do we know if this is the correct one to use? 
         neff[jz]      = DM_hmf.n_eff[idx_neff]
@@ -278,11 +278,14 @@ def execute(block, config):
         sigma8_z[jz] = DM_hmf.normalised_filter.sigma(8.0)
         #pk_cold = DM_hmf.power * hmu.Tk_cold_ratio(DM_hmf.k, g, block[cosmo_params, 'ommh2'], block[cosmo_params, 'h0'], this_cosmo_run.Onu0/this_cosmo_run.Om0, this_cosmo_run.Neff, T_CMB=tcmb)**2.0
         #sigma8_z[jz] = hmu.sigmaR_cc(pk_cold, DM_hmf.k, 8.0)
-        
-        if mead_correction == 'nofeedback':
-            norm_cen  = 5.196 #/3.85#1.0#(5.196/3.85) #0.85*1.299
+        if mead_correction != None:
             eta_cen   = 0.1281 * sigma8_z[jz]**(-0.3644)
-            
+            if mead_correction == 'nofeedback':
+                norm_cen  = 5.196 #/3.85#1.0#(5.196/3.85) #0.85*1.299
+            elif mead_correction == 'feedback':
+                theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
+                norm_cen  = (5.196/4.0) * ((3.44 - 0.496*theta_agn) * np.power(10.0, z_iter*(-0.0671 - 0.0371*theta_agn)))
+
             zf = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, DM_hmf)
             conc_cen[jz,:] = norm_cen * (1.0+zf)/(1.0+z_iter)
             conc_sat[jz,:] = norm_sat * (1.0+zf)/(1.0+z_iter)
@@ -293,45 +296,23 @@ def execute(block, config):
             u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
             r_s_cen[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
             rvir_cen[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
-        
+            # conc_sat
             DM_hmf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run})
             nfw_sat = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_sat[jz,:], norm='m', coord='k')
             u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
             r_s_sat[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
             rvir_sat[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
-            
-            
-        elif mead_correction == 'feedback':
-            theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
-            norm_cen  = (5.196/4.0) * ((3.44 - 0.496*theta_agn) * np.power(10.0, z_iter*(-0.0671 - 0.0371*theta_agn)))
-            eta_cen   = 0.1281 * sigma8_z[jz]**(-0.3644)
-            
-            zf = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, DM_hmf)
-            conc_cen[jz,:] = norm_cen * (1.0+zf)/(1.0+z_iter)
-            conc_sat[jz,:] = norm_sat * (1.0+zf)/(1.0+z_iter)
-            
-            # The only difference is the concentration values. Here is it is conc_cen and for the next block it is conc_sat
-            DM_hmf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run})
-            nfw_cen = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_cen[jz,:], norm='m', coord='k')
-            u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
-            r_s_cen[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
-            rvir_cen[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
-        
-            DM_hmf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run})
-            nfw_sat = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_sat[jz,:], norm='m', coord='k')
-            u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
-            r_s_sat[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
-            rvir_sat[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
-        
-        else:
-            DM_hmf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
+        else: #No mead_correction 
+            DM_hmf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, 
+                          halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
             conc_cen[jz,:] = DM_hmf.cmz_relation
             nfw_cen = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_cen[jz,:], norm='m', coord='k')
             u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
             r_s_cen[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
             rvir_cen[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
         
-            DM_hmf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, halo_concentration_params={'norm':norm_sat, 'sigma8':sigma_8, 'ns':ns})
+            DM_hmf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, 
+                          halo_concentration_params={'norm':norm_sat, 'sigma8':sigma_8, 'ns':ns})
             conc_sat[jz,:] = DM_hmf.cmz_relation
             nfw_sat = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_sat[jz,:], norm='m', coord='k')
             u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
@@ -339,7 +320,6 @@ def execute(block, config):
             rvir_sat[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
     
     
-
     #  TODO: Clean these up. Put more of them into the same folder
     block.put_grid('concentration_dm', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
     block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)
