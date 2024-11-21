@@ -70,6 +70,7 @@ def setup(options):
     profile = options.get_string(option_section, 'profile', default='NFW')
     profile_value_name = options.get_string(option_section, 'profile_value_name', default='profile_parameters')
 
+    # model name for halo mass functions
     hmf_model = options[option_section, 'hmf_model']
     # Type of mass definition for Haloes
     mdef_model = options[option_section, 'mdef_model']
@@ -81,6 +82,7 @@ def setup(options):
     delta_c = options[option_section, 'delta_c']
     # Linear halo bias model
     bias_model = options[option_section, 'bias_model']
+    # set mdef_params to {} for SOVirial model. Otherwise set it to use the overdensity {'overdensity':overdensity}
     mdef_params = {} if mdef_model in ['SOVirial'] else {'overdensity':overdensity}
     
     # Option to set similar corrections to HMcode2020
@@ -95,6 +97,7 @@ def setup(options):
     else:
         mead_correction = None
     
+    # If mead correction is applied set the ingredients to match Mead et al. (2021)
     if mead_correction is not None:
         hmf_model = 'ST'
         bias_model = 'ST99'
@@ -125,49 +128,36 @@ def setup(options):
                         halo_profile_model=hmu.get_bloated_profile(getattr(profile_classes, profile)),
                         halo_concentration_model=hmu.get_modified_concentration(make_colossus_cm(cm_model)))
 
-
-# class DMHaloModel(
-#     rmin: float = 0.01,
-#     rmax: float = 120,
-#     rnum: int = 100,
-#     rlog: bool = True,
-#     dr_table: float = 0.01,
-#     hm_logk_min: int = -2,
-#     hm_logk_max: int = 2,
-#     hm_dlog10k: float = 0.05,
-#     halo_profile_model: str = "NFW",
-#     halo_profile_params: Any | None = None,
-#     halo_concentration_model: str = "Duffy08",
-#     halo_concentration_params: Any | None = None,
-#     bias_model: str = "Tinker10",
-#     bias_params: Any | None = None,
-#     sd_bias_model: Any | None = None,
-#     sd_bias_params: Any | None = None,
-#     exclusion_model: str = "NoExclusion",
-#     exclusion_params: Any | None = None,
-#     colossus_params: Any | None = None,
-#     hc_spectrum: str = "linear",
-#     Mmin: int = 0,
-#     Mmax: int = 18,
-#     force_1halo_turnover: bool = True,
-#     force_unity_dm_bias: bool = True,
-#     **hmf_kwargs: Any
-# )
-
-    DM_hmf.cmz_relation
+    # DM_hmf.cmz_relation
+    # print(DM_hmf.m,DM_hmf.cmz_relation)
+    # exit(1)
     # Array of halo masses 
     mass = DM_hmf.m
 
-    return z_vec, nz, mass, DM_hmf, mdef_model, \
-        overdensity, delta_c, mead_correction, \
-        nk, profile_value_name
+    return {"z_vec": z_vec,
+            "nz": nz,
+            "mass": mass,
+            "DM_hmf": DM_hmf,
+            "mdef_model": mdef_model,
+            "overdensity": overdensity,
+            "delta_c": delta_c,
+            "mead_correction": mead_correction,
+            "nk":nk,
+            "profile_value_name":profile_value_name}
 
 def execute(block, config):
 
     # Read in the config as returned by setup
-    z_vec, nz, mass, DM_hmf, mdef, \
-    overdensity, delta_c, mead_correction, \
-    nk, profile_value_name = config
+    z_vec = config["z_vec"]
+    nz = config["nz"]
+    mass = config["mass"]
+    DM_hmf = config["DM_hmf"]
+    mdef_model = config["mdef_model"]
+    overdensity = config["overdensity"]
+    delta_c = config["delta_c"]
+    mead_correction= config["mead_correction"]
+    nk = config["nk"]
+    profile_value_name = config["profile_value_name"]
 
     # astropy cosmology requires the CMB temprature as an input. 
     # If it exists in the values file read it from there otherwise set to its default value
@@ -185,6 +175,7 @@ def execute(block, config):
     ns      = block[cosmo_params, 'n_s']
     sigma_8 = block[cosmo_params, 'sigma_8']
     
+    # TODO: will the inputs depend on the profile model? 
     norm_cen = block[profile_value_name, 'norm_cen']
     norm_sat = block[profile_value_name, 'norm_sat']
     eta_cen  = block[profile_value_name, 'eta_cen']
@@ -225,7 +216,7 @@ def execute(block, config):
 
     # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
     for jz,z_iter in enumerate(z_vec):
-        if mdef in ['SOVirial'] and mead_correction is None:
+        if mdef_model in ['SOVirial'] and mead_correction is None:
             # The critical overdensity for collapse for a given redshift and Omega_m
             delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter)))
             # Update the cosmology for the halo mass function, this takes a little while the first time it is called

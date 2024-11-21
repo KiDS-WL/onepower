@@ -269,6 +269,7 @@ class SOVirial_Mead(SphericalOverdensity):
 def get_modified_concentration(base):
     """
     Sends a modified concentration class to hmf
+    This class inherits from base = halomod.concentration
     """
     class NormConc(base):
         """
@@ -297,12 +298,14 @@ def get_modified_concentration(base):
             
     return NormConc
     
-    
+
 def get_bloated_profile(base):
     """
-    Sends a new profile class to hmf
+    Sends a new profile class to hmf.
+    This class inherits from base = halomod.profiles
+    https://halomod.readthedocs.io/en/latest/_autosummary/halomod.profiles.html
     """
-    class BloatedNFW(base):
+    class Bloated_Profile(base):
         """
         Additional bloating to scale radius for any profile as in Mead+ 2021.
         Technically tested only for NFW without truncation
@@ -328,7 +331,7 @@ def get_bloated_profile(base):
             r = self.halo_mass_to_radius(m, at_z=at_z) * np.array(self.params['nu'])**self.params['eta_bloat']
             return r / c
             
-    return BloatedNFW
+    return Bloated_Profile
 
 # def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
 #     """

@@ -16,44 +16,64 @@ explanation: |
    Halo model calculations require setting the halo model ingredients. Here we use halomod and hmf python libraries
    to allow for a range of ingredients to be defined in a consistent way.  
 
+   Note that the concentration-mass relations are calculated in colossus and they each have their own mass and redshift limits:
+   https://bdiemer.bitbucket.io/colossus/halo_concentration.html
+
 # List of parameters that can go in the params.ini file in the section for this module    
 params:
-        theta_min:
-            meaning: "Minimum angular distance between galaxies in arcminutes."
+        log_mass_min:
+            meaning: "Minimum halo mass in log10(M_sun h^-1)."
             type: real
-            default: 0.5
-        theta_max:
-            meaning: "Maximum angular distance between galaxies in arcminutes."
+            default: 
+        log_mass_max:
+            meaning: "Maximum halo mass in log10(M_sun h^-1)."
             type: real
-            default: 300.0
-        n_max:
-            meaning: "Maximum COSEBIs mode to be calculated: n=1,2,.., n_max."
+            default: 
+        nmass:
+            meaning: "Number of log10 binned halo masses."
             type: integer
-            default: 5
-        input_section_name:
-            meaning: "Section name for input cls."
+            default: 
+        zmin:
+            meaning: "Minimum redshift used to calculate ingredients."
+            type: real
+            default: 
+        zmax:
+            meaning: "Maximum redshift used to calculate ingredients."
+            type: real
+            default: 
+        nz:
+            meaning: "Number of redshift bins."
+            type: integer
+            default: 
+        profile:
+            meaning: "type of profile, choose from: NFW, CoredNFW, Einasto, ... see full list:
+            https://halomod.readthedocs.io/en/latest/_autosummary/halomod.profiles.html"
             type: str
-            default: shear_cl
-        output_section_name:
-            meaning: "Section name for outputs."
+            default: NFW
+        nk:
+            meaning: "Number of k-modes for fourier transform of the profile."
+            type: integer
+            default: 
+        profile_value_name:
+            meaning: "Section name in values.ini for profile inputs."
             type: str
-            default: cosebis
-        Wn_Output_FolderName:
-            meaning: "Folder name for Wn files."
+            default: profile_parameters
+        hmf_model:
+            meaning: "Model name for halo mass function, choose from: "
             type: str
-            default: COSEBIS_DIR "/WnLog/"
-        Wn_file_name:
-            meaning: "Wn file name."
+            default: 
+        mdef_model:
+            meaning: "Halo mass definition, choose from: "
             type: str
-            default: "WnLog"
-        table_precision:
-            meaning: "number of digits used in saved WnLog table"
-            type: int 
-            default: 10
-        number_of_Wn_l_bins:
-            meaning: "number of log ell bins used in saved WnLog table"
-            type: int 
-            default: 100000
+            default: 
+        overdensity:
+            meaning: "Over density threshold, only used if mdef_model!=SOVirial"
+            type: str 
+            default: 
+        use_mead2020_corrections:
+            meaning: "Choose from mead2020, mead2020_feedback and None. If not None sets the ingredients to match Mead+ 2021, HMCode2020 paper"
+            type: str 
+            default: None
         Roots_n_Norms_FolderName:
             meaning: "Folder name for Roots and Normalisations."
             type: str
