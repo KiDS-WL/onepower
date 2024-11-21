@@ -1,15 +1,9 @@
 from cosmosis.datablock import names, option_section
 import warnings
 import numpy as np
-from scipy.interpolate import interp1d
-from astropy.cosmology import Flatw0waCDM, Planck15
+from astropy.cosmology import Flatw0waCDM
 import halo_model_utility as hmu
-from colossus.cosmology import cosmology as colossus_cosmology
-from colossus.halo import concentration as colossus_concentration
 import hmf
-import hmf.halos.mass_definitions as md
-from hmf.halos.mass_definitions import SphericalOverdensity
-from hmf.cosmology.cosmo import astropy_to_colossus
 from halomod.halo_model import DMHaloModel
 from halomod.concentration import make_colossus_cm
 import halomod.profiles as profile_classes
@@ -27,13 +21,12 @@ import halomod.profiles as profile_classes
 # from halomod import concentration as conc_func
 # from halomod.profiles import Profile, NFWInf
 # from types import MethodType
-
+# from colossus.cosmology import cosmology as colossus_cosmology
+# from colossus.halo import concentration as colossus_concentration
+# import hmf.halos.mass_definitions as md
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
-
-warnings.filterwarnings('ignore', category=UserWarning, module='colossus')
-
 
 # This patches hmf caching!
 def obj_eq_fix(ob1, ob2):
@@ -52,123 +45,6 @@ def obj_eq_fix(ob1, ob2):
 
 # Redefine obj_eq using the function above.
 hmf._internals._cache.obj_eq = obj_eq_fix
-
-
-class SOVirial_Mead(SphericalOverdensity):
-    """
-    SOVirial overdensity definition from Mead et al. (2021)
-    """
-    _defaults = {"overdensity": 200}
-        
-    def halo_density(self, z=0, cosmo=Planck15):
-        """The density of haloes under this definition."""
-        return self.params["overdensity"] * self.mean_density(z, cosmo)
-    
-    @property
-    def colossus_name(self):
-        return "200c"
-    
-    def __str__(self):
-        """Describe the halo definition in standard notation."""
-        return "SOVirial"
-
-
-
-def get_modified_concentration(base):
-    """
-    Sends a modified concentration class to hmf
-    """
-    class NormConc(base):
-        """
-        Additional normalisation to any concentration-mass relation.
-        """
-        _defaults = base._defaults
-        native_mdefs = base.native_mdefs
-        
-        def __init__(self, norm=1.0, sigma8=0.8, ns=1.0, **model_parameters):
-            self.norm = norm
-            self.sigma8 = sigma8
-            self.ns = ns
-            with warnings.catch_warnings():
-                warnings.filterwarnings('ignore', category=UserWarning)
-                super(base, self).__init__(**model_parameters)
-                astropy_to_colossus(self.cosmo.cosmo, sigma8=self.sigma8, ns=self.ns, persistence='')
-    
-        def cm(self, m, z):
-            c = base.cm(self, m, z)
-            if len(c[c>0]) == 0:
-                c_interp = lambda x: np.ones_like(x)
-            else:
-                c_interp = interp1d(m[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
-
-            return c_interp(m) * self.norm
-            
-    return NormConc
-    
-    
-def get_bloated_profile(base):
-    """
-    Sends a new profile class to hmf
-    """
-    class BloatedNFW(base):
-        """
-        Additional bloating to scale radius for any profile as in Mead+ 2021.
-        Technically tested only for NFW without truncation
-        """
-        _defaults = base._defaults
-        _defaults.update({'eta_bloat':0.0, 'nu':1.0})
-        
-        def _rs_from_m(self, m, c=None, at_z=False):
-            """
-            Return the scale radius for a halo of mass m.
-    
-            Parameters
-            ----------
-            m : float
-                mass of the halo
-            c : float, default None
-                halo_concentration of the halo (if None, use cm_relation to get it).
-            """
-            
-            if c is None:
-                c = self.cm_relation(m)
-    
-            r = self.halo_mass_to_radius(m, at_z=at_z) * np.array(self.params['nu'])**self.params['eta_bloat']
-            return r / c
-            
-    return BloatedNFW
-
-
-# def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
-#     """
-#     calculates concentration given halo mass, using the halomod model provided in config
-#     furthermore it converts to halomod instance to be used with the halomodel,
-#     consistenly with halo mass function and halo bias function
-#     """
-
-#     with warnings.catch_warnings():
-#         warnings.filterwarnings('ignore', category=UserWarning)
-#         # This dissables the warning from colossus that is just telling us what we know
-#         # colossus warns us about massive neutrinos, but that is also ok
-#         # as we do not use cosmology from it, but it requires it to setup the instance!
-#         this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
-#                      sigma8=block[cosmo_params, 'sigma_8'], ns=block[cosmo_params, 'n_s'])
-
-                     
-#     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
-    
-#     # This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
-#     # MA: Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
-#     #tic = time.perf_counter()
-#     c, ms = colossus_concentration.concentration(M=mass, z=z, mdef=mdef.colossus_name, model=model,
-#             range_return=True, range_warning=False)
-#     #toc = time.perf_counter()
-#     #print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
-#     if len(c[c>0]) == 0:
-#         c_interp = lambda x: np.ones_like(x)
-#     else:
-#         c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
-#     return c_interp(mass)
 
 
 def setup(options):
@@ -246,8 +122,8 @@ def setup(options):
                         bias_model=bias_model,
                         #halo_profile_model=profile,
                         #halo_concentration_model=make_colossus_cm(cm_model))
-                        halo_profile_model=get_bloated_profile(getattr(profile_classes, profile)),
-                        halo_concentration_model=get_modified_concentration(make_colossus_cm(cm_model)))
+                        halo_profile_model=hmu.get_bloated_profile(getattr(profile_classes, profile)),
+                        halo_concentration_model=hmu.get_modified_concentration(make_colossus_cm(cm_model)))
 
 
 # class DMHaloModel(
@@ -375,7 +251,7 @@ def execute(block, config):
                                     this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
                 overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), 
                                         this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
-                mdef_mead = SOVirial_Mead #'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
+                mdef_mead = hmu.SOVirial_Mead #'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 DM_hmf.ERROR_ON_BAD_MDEF = False
                 DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, 
                               n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  
@@ -519,3 +395,5 @@ def cleanup(config):
     # Usually python modules do not need to do anything here.
     # We just leave it in out of pedantic completeness.
     pass
+
+
