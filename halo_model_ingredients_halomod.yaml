@@ -21,105 +21,205 @@ explanation: |
 
 # List of parameters that can go in the params.ini file in the section for this module    
 params:
-        log_mass_min:
-            meaning: "Minimum halo mass in log10(M_sun h^-1)."
-            type: real
-            default: 
-        log_mass_max:
-            meaning: "Maximum halo mass in log10(M_sun h^-1)."
-            type: real
-            default: 
-        nmass:
-            meaning: "Number of log10 binned halo masses."
-            type: integer
-            default: 
-        zmin:
-            meaning: "Minimum redshift used to calculate ingredients."
-            type: real
-            default: 
-        zmax:
-            meaning: "Maximum redshift used to calculate ingredients."
-            type: real
-            default: 
-        nz:
-            meaning: "Number of redshift bins."
-            type: integer
-            default: 
-        profile:
-            meaning: "type of profile, choose from: NFW, CoredNFW, Einasto, ... see full list:
-            https://halomod.readthedocs.io/en/latest/_autosummary/halomod.profiles.html"
-            type: str
-            default: NFW
-        nk:
-            meaning: "Number of k-modes for fourier transform of the profile."
-            type: integer
-            default: 
-        profile_value_name:
-            meaning: "Section name in values.ini for profile inputs."
-            type: str
-            default: profile_parameters
-        hmf_model:
-            meaning: "Model name for halo mass function, choose from: "
-            type: str
-            default: 
-        mdef_model:
-            meaning: "Halo mass definition, choose from: "
-            type: str
-            default: 
-        overdensity:
-            meaning: "Over density threshold, only used if mdef_model!=SOVirial"
-            type: str 
-            default: 
-        use_mead2020_corrections:
-            meaning: "Choose from mead2020, mead2020_feedback and None. If not None sets the ingredients to match Mead+ 2021, HMCode2020 paper"
-            type: str 
-            default: None
-        Roots_n_Norms_FolderName:
-            meaning: "Folder name for Roots and Normalisations."
-            type: str
-            default: COSEBIS_DIR "/TLogsRootsAndNorms"
+      log_mass_min:
+          meaning: "Minimum halo mass in log10(M_sun h^-1)."
+          type: real
+          default: 
+      log_mass_max:
+          meaning: "Maximum halo mass in log10(M_sun h^-1)."
+          type: real
+          default: 
+      nmass:
+          meaning: "Number of log10 binned halo masses."
+          type: integer
+          default: 
+      zmin:
+          meaning: "Minimum redshift used to calculate ingredients."
+          type: real
+          default: 
+      zmax:
+          meaning: "Maximum redshift used to calculate ingredients."
+          type: real
+          default: 
+      nz:
+          meaning: "Number of redshift bins."
+          type: integer
+          default: 
+      profile:
+          meaning: "type of profile, choose from: NFW, CoredNFW, Einasto, ... see full list:
+          https://halomod.readthedocs.io/en/latest/_autosummary/halomod.profiles.html"
+          type: str
+          default: NFW
+      nk:
+          meaning: "Number of k-modes for fourier transform of the profile."
+          type: integer
+          default: 
+      profile_value_name:
+          meaning: "Section name in values.ini for profile inputs."
+          type: str
+          default: profile_parameters
+      hmf_model:
+          meaning: "Model name for halo mass function, choose from: "
+          type: str
+          default: 
+      mdef_model:
+          meaning: "Halo mass definition, choose from: "
+          type: str
+          default: 
+      overdensity:
+          meaning: Over density threshold, only used if mdef_model!=SOVirial
+          type: str 
+          default: 
+      use_mead2020_corrections:
+          meaning: Choose from mead2020, mead2020_feedback and None. 
+                  If not None sets the ingredients to match Mead+ 2021, HMCode2020 paper.
+          type: str 
+          default: None
 inputs:
-    input_section_name:
-        ell:
-            meaning: "Sample ell values for input C_ell"
-            type: real 1d
-            default: 
-        nbin_a:
-            meaning: "Number of redshift bins in the first quantity."
-            type: int
-            default:
-        nbin_b:
-            meaning: "Number of redshift bins in the second quantity. If nbin_a is not equal nbin_b gives an error."
-            type: int
-            default:
-        nbin:
-            meaning: "Number of redshift bins used if nbin_a or b not found."
-            type: int
-            default:
-        bin_i_j:
-            meaning: "C_ell (no l(l+1) factor) for bin i and j."
-            type: real 1d
-            default:
-outputs:
-    output_section_name:
-        n:
-            type: "real 1d"
-            meaning: "Array of mode values n for COSEBIs."
-        bin_i_j:
-            type: "real 1d"
-            meaning: "Array of E_n or B_n, for bin i and j."
-        theta_min:
-            type: real 
-            meaning: "Minimum angle in arcmin"
-        theta_max:
+    cosmological_parameters:
+        n_s:
+            meaning: Spectral index of the primordial power spectrum
             type: real
-            meaning: "Maximum angle in arcmin"
-        nbin_a:
-            type: int
-            meaning: "Number of redshift bins in the first quantity."
-        nbin_b:
-            type: int
-            meaning: "Number of redshift bins in the second quantity. Currently nbin_a==nbin_b."
+            default: 
+        sigma_8:
+            meaning:  linear-theory standard deviation of matter density 
+            fluctuations in spheres of radius 8 Mpc/h, at z=0
+            type: real
+            default: 
+    profile_value_name:
+        norm_cen:
+            meaning: Normalisation for central galaxies
+            type: real 
+            default: 
+        norm_sat:
+            meaning: Normalisation for satellite galaxies
+            type: real
+            default:
+        eta_cen:
+            meaning: 
+            type: real
+            default:
+        eta_sat:
+            meaning: 
+            type: real
+            default:
+    matter_power_lin:
+        k_h:
+          meaning: Wavenumbers k of samples in Mpc/h. 
+          type: real 1D
+          default:
+    matter_power_transfer_func:
+        k_h:
+          meaning: Wavenumbers k of samples in Mpc/h. 
+          type: real 1D
+          default:
+        t_k:
+          meaning: Linear transfer function at z=0.
+          type: real 1D
+          default:
+outputs:
+    concentration_m:
+        c:
+          meaning: concentration for matter (centrals)
+          type: real 2D
+        z:
+          meaning: redshift at which c is calculated
+          type: real 1D
+        m_h:
+            type: real 1D
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+    concentration_sat:
+        c:
+          meaning: concentration for satellite galaxies
+          type: real 2D
+        z:
+          meaning: redshift at which c is calculated
+          type: real 1D
+        m_h:
+            type: real 1D
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+    virial_radius:
+        m_h:
+            type: real 1D
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+        rvir_m:
+            type: real 1D
+            meaning: virial radius for matter (centrals), this has no z-dependence
+        rvir_sat:
+            type: real 1D
+            meaning: virial radius for satellites, this has no z-dependence
+    fourier_nfw_profile:
+        ukm:
+          meaning: Fourier transform of the normalised matter halo profile (centrals)
+           as a functions of redshift, k and mass
+          type: real 1D
+        uksat: 
+          meaning: Fourier transform of the normalised halo profile for satellites
+           as a functions of redshift, k and mass
+          type: real 1D
+        z:
+          type: real 1D
+          meaning: redshift
+        k_h:
+          meaning: Wavenumbers k of samples in Mpc/h. 
+          type: real 1D
+        m_h:
+          type: real 1D
+          meaning: halo masses, in M_sun h^-1
+    density:
+        mean_density0:
+          meaning: Mean density of universe at z=0, [Msun h^2 / Mpc**3]
+          type: real 
+        rho_crit:
+          meaning: critial matter density = mean_density0/Omega_m
+          type: real 
+        mean_density_z:
+          meaning: Mean density of universe at redshift z, [Msun h^2 / Mpc**3]
+          type: real 1D
+        z:
+          meaning: redshift for mean density
+          type: real 1D
+        rho_halo: 
+          meaning: Mean halo density
+          type: real 1D
+    hmf:
+        dndlnmh:
+          meaning: The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
+            dn(m)/ dln m eq1 of 1306.6721
+          type: real 1D
+        m_h:
+          meaning: Halo masses in M_sun h^-1
+          type: real 1D
+        nu:
+          meaning: halo peak
+          type: real 1D
+        neff:
+          meaning: measures the slope of the linear power spectrum evaluated at the
+                  non-linear scale for different redshifts
+          type: real 1D
+        sigma8_z:
+          meaning: linear-theory standard deviation of matter density 
+            fluctuations in spheres of radius 8 Mpc/h, at a given redshift
+          type: real 1D
+        z:
+          meaning: redshift
+          type: real 1D
+    halobias:
+        b_hb:
+          meaning: Linear halo bias
+          type: real 1D
+        m_h:
+          meaning: Halo masses in M_sun h^-1
+          type: real 1D
+        z:
+          meaning: redshift
+          type: real 1D
+    cosmological_parameters:
+        f_nu: 
+          meaning: Fraction of neutrinos to total matter,  f_nu = Ω_nu /Ω_m
+          type: real
+        
+        
 
 
 

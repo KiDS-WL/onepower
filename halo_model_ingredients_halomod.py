@@ -191,9 +191,9 @@ def execute(block, config):
     sigma8_z  = np.empty([nz])
     f_nu      = np.empty([nz])
     # h_z       = np.empty([nz])
-    mean_density0  = np.empty([nz])
+    # mean_density0  = np.empty([nz])
     mean_density_z = np.empty([nz])
-    overdensity_z  = np.empty([nz])
+    halo_overdensity_mean  = np.empty([nz])
     u_dm_cen  = np.empty([nz,nk,nmass_hmf])
     u_dm_sat  = np.empty([nz,nk,nmass_hmf])
     conc_cen  = np.empty([nz,nmass_hmf])
@@ -207,9 +207,11 @@ def execute(block, config):
         growth = hmu.get_growth_interpolator(this_cosmo_run)
         #growth_LCDM = hmu.get_growth_interpolator(LCDMcosmo)
 
+    # get the k range from the linear matter power spectrum section.
+    # but use the nk that was given as input
     k_vec_original = block['matter_power_lin', 'k_h']
     k = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
-    
+
     # Power spectrum transfer function used to update the transfer function in hmf
     transfer_k    = block['matter_power_transfer_func', 'k_h']
     transfer_func = block['matter_power_transfer_func', 't_k']
@@ -221,9 +223,11 @@ def execute(block, config):
             delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter)))
             # Update the cosmology for the halo mass function, this takes a little while the first time it is called
             # Then it is faster becayse it only updates the redshift and the corresponding delta_c
-            DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z,
-                        transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
-            overdensity_z[jz] = DM_hmf.halo_overdensity_mean
+            DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, 
+                          delta_c=delta_c_z, transfer_model='FromArray', 
+                          transfer_params={'k':transfer_k, 'T':transfer_func})
+            # The halo overdensity with respect to the mean background.
+            halo_overdensity_mean[jz] = DM_hmf.halo_overdensity_mean
         elif mead_correction is not None:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=UserWarning)
@@ -240,19 +244,19 @@ def execute(block, config):
                 G = hmu.get_accumulated_growth(a, growth)
                 delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), 
                                     this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
-                overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), 
+                halo_overdensity_mean[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), 
                                         this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
                 mdef_mead = hmu.SOVirial_Mead 
                 DM_hmf.ERROR_ON_BAD_MDEF = False
                 DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, 
                               n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  
-                              mdef_params={'overdensity':overdensity_z[jz]}, disable_mass_conversion=True, 
+                              mdef_params={'overdensity':halo_overdensity_mean[jz]}, disable_mass_conversion=True, 
                               transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
         else: #Neither mead_correction or SOVirial
-            overdensity_z[jz] = overdensity
+            halo_overdensity_mean[jz] = overdensity
             delta_c_z = delta_c
             DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, 
-                          delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, 
+                          delta_c=delta_c_z, mdef_params={'overdensity':halo_overdensity_mean[jz]}, 
                           transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
         
         #Peak height, DM_hmf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
@@ -260,7 +264,7 @@ def execute(block, config):
         dndlnmh[jz]   = DM_hmf.dndlnm
         mean_density0 = DM_hmf.mean_density0
         mean_density_z[jz] = DM_hmf.mean_density
-        rho_halo[jz]  = overdensity_z[jz] * DM_hmf.mean_density0 
+        rho_halo[jz]  = halo_overdensity_mean[jz] * DM_hmf.mean_density0 
         b_nu[jz] = DM_hmf.halo_bias
     
         # These are only used for mead_corrections
@@ -321,13 +325,14 @@ def execute(block, config):
     
     
     #  TODO: Clean these up. Put more of them into the same folder
-    block.put_grid('concentration_dm', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
+    block.put_grid('concentration_m', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
     block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)
-    block.put_grid('nfw_scale_radius_dm', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
+    block.put_grid('nfw_scale_radius_m', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
     block.put_grid('nfw_scale_radius_sat', 'z', z_vec, 'm_h', mass, 'rs', r_s_sat)
 
     block.put_double_array_1d('virial_radius', 'm_h', mass)
-    block.put_double_array_1d('virial_radius', 'rvir_dm', rvir_cen[0])
+    #rvir doesn't change with z, hence no z-dimension
+    block.put_double_array_1d('virial_radius', 'rvir_m', rvir_cen[0])
     block.put_double_array_1d('virial_radius', 'rvir_sat', rvir_sat[0])
 
     block.put_double_array_1d('fourier_nfw_profile', 'z', z_vec)
@@ -335,6 +340,7 @@ def execute(block, config):
     block.put_double_array_1d('fourier_nfw_profile', 'k_h', k)
     block.put_double_array_nd('fourier_nfw_profile', 'ukm', u_dm_cen)
     block.put_double_array_nd('fourier_nfw_profile', 'uksat', u_dm_sat)
+
     ###################################################################################################################
 
     # density
@@ -342,21 +348,19 @@ def execute(block, config):
     block['density', 'rho_crit'] = mean_density0/this_cosmo_run.Om0
     block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
     block.put_double_array_1d('density', 'rho_halo', rho_halo)
+    block.put_double_array_1d('density', 'z', z_vec)
 
-    # hmf
+    # halo mass function
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnmh)
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'nu', nu)
     block.put_double_array_1d('hmf', 'neff', neff)
     block.put_double_array_1d('hmf', 'sigma8_z', sigma8_z)
 
-    # halobias
+    # linear halo bias
     block.put_grid('halobias', 'z', z_vec, 'm_h', mass, 'b_hb', b_nu)
     
-    # cosmological parameters
+    # Fraction of neutrinos to total matter,  f_nu = Ω_nu /Ω_m
     f_nu = this_cosmo_run.Onu0/this_cosmo_run.Om0
-    # h_z = this_cosmo_run.H(z_vec).value/100.0
-    # block.put_double_array_1d(cosmo_params, 'h_z', h_z)
-    # block.put_double_array_1d(cosmo_params, 'z',z_vec)
     block[cosmo_params, 'fnu'] = f_nu
 
     return 0
