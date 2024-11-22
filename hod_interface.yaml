@@ -1,0 +1,296 @@
+name: hod_interface
+version: Nov2024
+purpose: "Calculates halo occupation distribution for central and satellite galaxies based on conditional observable functions"
+url: ""
+interface: halo_model_ingredients_halomod.py
+attribution: [Andrej Dvornik, Marika Asgari, Maria-Cristina Fortuna]
+rules:
+    "If you use this module then please cite the papers below"
+cite:
+    - ""
+
+assumptions:
+    - ""
+
+explanation: |
+   To model the distribution of galaxies within the halo model we need to define the halo occupation distribution (HOD)
+   that tells us how galaxies are distributed within dark matter haloes. Here we use the HOD conditional on a galaxy 
+   observable such as luminosity or stellar mass function. The formalism was first proposed by Yang et al. (2008), 
+   also see Cacciato et al. (2013, application to SDSS). The halo occupation distribution predicts the number of galaxies 
+   that populate a halo of mass M:
+
+   N_gal(M) = N_cen(M) + N_sat(M),
+
+   where the galaxies are divided into centrals and satellites. 
+   The prediction depends on the number of galaxies with the given observable, O, 
+   in an observable bin, [O-Delta_O/2, O+Delta_O/2] 
+   given their halo mass, M: \Phi_x(O|M)
+   The number of galaxies is then given by
+
+   N_x(M,z) = \int \Phi_x(O|M) n(M,z) dO
+
+   where x=cen,sat.
+   The conditional observable function provide a distribution for the galaxies populating a halo of mass M. 
+   For centrals this is a lognormal distribution, with a mean that is a function of halo mass and is described by a double power law.  
+   For satellites this is a generalised Schechter function with two free powers. 
+   M_char is the characteristic halo mass that divides the two regimes of the double powerlaw.
+   Obs_norm_c is the normalisation factor for central galaxies
+
+  List of parameters that can go in the params.ini file in the section for this module    
+params:
+      hod_section_name:
+          meaning: output section name for the hod
+          type: str
+          default: 
+      values_name:
+          meaning: where to read the values of parameters in the value.ini
+          type: str
+          default: hod_parameters
+      observable_section_name:
+          meaning: output section name for the observable related quantities.
+          type: str
+          default: stellar_mass_function
+      nobs:
+          meaning: number of bins for calculating variables in terms of the observables. 
+                  This is different to the observable-redshift binning.
+          type: int
+          default: 200
+      do_galaxy_linear_bias:
+          meaning: If true outputs estimates of the linear bias for the HOD 
+          type: bool
+          default: False
+      save_observable:
+          meaning: If true outputs estimates of the linear bias for the HOD 
+          type: bool
+          default: True
+      observable_mode:
+          meaning: "calculate the observable function for each redshift: obs_z, or on the median redshift: obs_zmed or 
+                    for one broad z-bin: obs_onebin"
+          type: str
+          default: obs_z
+      z_median:
+          meaning: This is the median redshift for calculating the observable. Only used if observable_mode=obs_zmed. 
+          type: real
+          default: 0.1
+      observable_h_unit:
+          meaning: units of h for the observable, valid_units are 1/h and 1/h^2
+          type: str
+          default: 1/h^2
+      observables_file:
+          meaning: "(optional) text file containing the observable values, should contain 3 columns: z_bins, obs_min, obs_max"
+          type: str
+          default: 
+      mass_lim:
+          meaning: (optional) if observables_file not given, then look for a file that contains the minimum observables
+          type: str
+          default: 
+      mass_lim_low:
+          meaning: (optional) if observables_file not given, then look for a file that contains the maximum observables
+          type: str
+          default:
+      zmin:
+          meaning: (optional) if observables_file not given, but we use the observable files then look for a scalar zmin.
+                  if no observable files are given, look for the minimum values for the redshift of each observable bin. 
+                  zmin should have the same number of values as obs_min and obs_max. 
+                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+          type: real or real 1D
+          default:
+      zmax:
+          meaning: (optional) if observables_file not given, but we use the observable files then look for a scalar zmax.
+                  If no observable files are given, look for the maximum values for the redshift of each observable bin. 
+                  zmax should have the same number of values as obs_min and obs_max. 
+                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+          type: real or real 1D
+          default:
+      nz:
+          meaning: (optional) if observables_file not given, then look for nz, with zmin and zmax make the number of redshift bins
+                    for which the observable is caluclated at. If we have bin edges defined the nz is the number of redshift bins in 
+                    each redshift-observable box.
+          type: integer
+          default:
+      obs_min:
+          meaning: (optional) if no observable files are given, look for the minimum values for observables. 
+                  If using multiple bins for the observable then provide the minimum value for each bin. 
+                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+          type: real 1D
+          default: 
+      obs_max:
+          meaning: (optional) if no observable files are given, look for the maximum values for observables. 
+                  If using multiple bins for the observable then provide the maximum value for each bin. 
+                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+          type: real 1D
+          default:
+      nk:
+          meaning: "Number of k-modes for fourier transform of the profile."
+          type: integer
+          default: 
+      profile_value_name:
+          meaning: "Section name in values.ini for profile inputs."
+          type: str
+          default: profile_parameters
+      hmf_model:
+          meaning: "Model name for halo mass function, choose from: "
+          type: str
+          default: 
+      mdef_model:
+          meaning: "Halo mass definition, choose from: "
+          type: str
+          default: 
+      overdensity:
+          meaning: Over density threshold, only used if mdef_model!=SOVirial
+          type: str 
+          default: 
+      use_mead2020_corrections:
+          meaning: Choose from mead2020, mead2020_feedback and None. 
+                  If not None sets the ingredients to match Mead+ 2021, HMCode2020 paper.
+          type: str 
+          default: None
+inputs:
+    cosmological_parameters:
+        n_s:
+            meaning: Spectral index of the primordial power spectrum
+            type: real
+            default: 
+        sigma_8:
+            meaning:  linear-theory standard deviation of matter density 
+            fluctuations in spheres of radius 8 Mpc/h, at z=0
+            type: real
+            default: 
+    profile_value_name:
+        norm_cen:
+            meaning: Normalisation for central galaxies
+            type: real 
+            default: 
+        norm_sat:
+            meaning: Normalisation for satellite galaxies
+            type: real
+            default:
+        eta_cen:
+            meaning: 
+            type: real
+            default:
+        eta_sat:
+            meaning: 
+            type: real
+            default:
+    matter_power_lin:
+        k_h:
+          meaning: Wavenumbers k of samples in Mpc/h. 
+          type: real 1D
+          default:
+    matter_power_transfer_func:
+        k_h:
+          meaning: Wavenumbers k of samples in Mpc/h. 
+          type: real 1D
+          default:
+        t_k:
+          meaning: Linear transfer function at z=0.
+          type: real 1D
+          default:
+outputs:
+    concentration_m:
+        c:
+          meaning: concentration for matter (centrals)
+          type: real 2D
+        z:
+          meaning: redshift at which c is calculated
+          type: real 1D
+        m_h:
+            type: real 1D
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+    concentration_sat:
+        c:
+          meaning: concentration for satellite galaxies
+          type: real 2D
+        z:
+          meaning: redshift at which c is calculated
+          type: real 1D
+        m_h:
+            type: real 1D
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+    virial_radius:
+        m_h:
+            type: real 1D
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+        rvir_m:
+            type: real 1D
+            meaning: virial radius for matter (centrals), this has no z-dependence
+        rvir_sat:
+            type: real 1D
+            meaning: virial radius for satellites, this has no z-dependence
+    fourier_nfw_profile:
+        ukm:
+          meaning: Fourier transform of the normalised matter halo profile (centrals)
+           as a functions of redshift, k and mass
+          type: real 1D
+        uksat: 
+          meaning: Fourier transform of the normalised halo profile for satellites
+           as a functions of redshift, k and mass
+          type: real 1D
+        z:
+          type: real 1D
+          meaning: redshift
+        k_h:
+          meaning: Wavenumbers k of samples in Mpc/h. 
+          type: real 1D
+        m_h:
+          type: real 1D
+          meaning: halo masses, in M_sun h^-1
+    density:
+        mean_density0:
+          meaning: Mean density of universe at z=0, [Msun h^2 / Mpc**3]
+          type: real 
+        rho_crit:
+          meaning: critial matter density = mean_density0/Omega_m
+          type: real 
+        mean_density_z:
+          meaning: Mean density of universe at redshift z, [Msun h^2 / Mpc**3]
+          type: real 1D
+        z:
+          meaning: redshift for mean density
+          type: real 1D
+        rho_halo: 
+          meaning: Mean halo density
+          type: real 1D
+    hmf:
+        dndlnmh:
+          meaning: The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
+            dn(m)/ dln m eq1 of 1306.6721
+          type: real 1D
+        m_h:
+          meaning: Halo masses in M_sun h^-1
+          type: real 1D
+        nu:
+          meaning: halo peak
+          type: real 1D
+        neff:
+          meaning: measures the slope of the linear power spectrum evaluated at the
+                  non-linear scale for different redshifts
+          type: real 1D
+        sigma8_z:
+          meaning: linear-theory standard deviation of matter density 
+            fluctuations in spheres of radius 8 Mpc/h, at a given redshift
+          type: real 1D
+        z:
+          meaning: redshift
+          type: real 1D
+    halobias:
+        b_hb:
+          meaning: Linear halo bias
+          type: real 1D
+        m_h:
+          meaning: Halo masses in M_sun h^-1
+          type: real 1D
+        z:
+          meaning: redshift
+          type: real 1D
+    cosmological_parameters:
+        f_nu: 
+          meaning: Fraction of neutrinos to total matter,  f_nu = Ω_nu /Ω_m
+          type: real
+        
+        
+
+
+
+

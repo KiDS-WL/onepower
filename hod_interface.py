@@ -13,17 +13,17 @@
 # given their halo mass, M: \Phi_x(O|M)
 # The number of galaxies is then given by
 #
-# N_x(M,z) = \int \Phi_x(O|M) n(M,z) dL 
+# N_x(M,z) = \int \Phi_x(O|M) n(M,z) dO
 #
 # where x=cen,sat.
 
 from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp1d
-# halo model library with HOD and conditional functions
+# HOD library with HOD and conditional functions
 import hod_lib as hod
 
-cosmo = names.cosmological_parameters
+cosmo_params = names.cosmological_parameters
 
 #--------------------------------------------------------------------------------#	
 
@@ -34,9 +34,8 @@ class HODpar :
     For centrals this is a lognormal distribution, with a mean that is a function of halo mass and is
     described by a double power law.  
     For satellites this is a generalised Schechter function with two free powers. 
-    M_char is characteristic halo mass that divides the two regimes of the double powerlaw.
+    M_char is the characteristic halo mass that divides the two regimes of the double powerlaw.
     Obs_norm_c is the normalisation factor for central galaxies
-
     """
     def __init__(self, Obs_norm_c, M_char, g1, g2, sigma_log10_O_c, norm_s, pivot, alpha_s, beta_s, b0, b1, b2):
         # general parameters
@@ -74,10 +73,21 @@ def setup(options):
     values_name      = options.get_string(option_section, 'values_name','hod_parameters').lower()
     # output section name for the observable related quantities.
     observable_section_name  = options.get_string(option_section, 'observable_section_name', default='stellar_mass_function').lower()
-    # TODO: check where this is used and if we need it
-    # output section name for galaxy bias
-    galaxy_bias_section_name = options.get_string(option_section, 'galaxy_bias_section_name', default='galaxy_bias').lower()
 
+    # read this from the ini file
+    # number of bins used for defining observable functions, usually a larger number
+    nobs = options.get_int(option_section, 'nobs', 200)
+
+    #Outputs estimates of the linear bias for the HOD 
+    galaxy_bias_option = options.get_bool(option_section, 'do_galaxy_linear_bias', False)
+
+    save_observable   = options.get_bool(option_section, 'save_observable',True)
+    # options are: "obs_z" or "obs_zmed" or "obs_onebin" depending if you want to calculate 
+    # the observable function per each redshift or on the median z or for one broad z-bin
+    # TODO: what is the difference between obs_zmed and obs_onebin?
+    observable_mode   = options.get_string(option_section, 'observable_mode','obs_z')
+    # This is the median z 
+    z_median          = options.get_double(option_section, 'z_median',0.1)
 
     # Checks units of h
     #observable_h_unit = options.get_string(option_section, 'observable_h_unit', default='1/h').lower()
@@ -98,6 +108,8 @@ def setup(options):
         # number of bins in the observable, for example you might have divided your sample into 3 stellar mass bins
         # With a file input we are assuming that eveything is part of the same bin currently. 
         nbins  = 1
+    # TODO: the names of these sections don't match their function: mass_lim and mass_lim_low
+    # Suggest changing to obs_min_file and obs_max_file instead
     elif options.has_value(option_section, 'mass_lim') and options.has_value(option_section, 'mass_lim_low'):
         observables_z = True
         file_name     = options.get_string(option_section, 'mass_lim')
@@ -112,7 +124,7 @@ def setup(options):
         
         obs_min = fit_func_inv(z_bins)
         obs_max = fit_func_low(z_bins)
-        nz     = options[option_section, 'nz']
+        nz      = options[option_section, 'nz']
         log_obs_min = np.log10(obs_min)[np.newaxis,:]
         log_obs_max = np.log10(obs_max)[np.newaxis,:]
         z_bins = z_bins[np.newaxis,:]
@@ -121,16 +133,16 @@ def setup(options):
         nbins  = 1
     else:
         observables_z = False
-        # These are the values used to define the edges of the observable and redshift bins. 
-        # They are used to create volume limites samples of the galaxies.
+        # These are the values used to define the edges of the observable-redshift bins. 
+        # These are boxed shaped bins in observable-redshift space.
+        # They are used to create volume limited samples of the galaxies.
         # 1 or more values can be given for each min max value, as long as they are all the same length.
         obs_min = np.asarray([options[option_section, 'obs_min']]).flatten()
         obs_max = np.asarray([options[option_section, 'obs_max']]).flatten()
         zmin = np.asarray([options[option_section, 'zmin']]).flatten()
         zmax = np.asarray([options[option_section, 'zmax']]).flatten()
-        # TODO: number of redshift bins used for ...
+        # number of redshift bins used for each observable-redshift bin
         nz      = options[option_section, 'nz']
-        
         # Check if the length of obs_min, obs_max, zmin and zmax match.
         if not np.all(np.array([len(obs_min), len(obs_max), len(zmin), len(zmax)]) == len(obs_min)):
             raise Exception('Error: obs_min, obs_max, zmin and zmax need to be of same length.')
@@ -139,30 +151,10 @@ def setup(options):
             nbins = len(obs_min)
         
         # Arrays using starting and end values of zmin and zmax 
-        # TODO: Check if this is what we want
         z_bins = np.array([np.linspace(zmin_i, zmax_i, nz) for zmin_i, zmax_i in zip(zmin, zmax)])
-        #z_bins = np.array([np.linspace(zmin_i, zmax_i, nz, endpoint=True) for zmin_i, zmax_i in zip(zmin, zmax)])
         # This simply repeats the min and max values for the observables for all redshift bins
         log_obs_min = np.array([np.repeat(obs_min_i,nz) for obs_min_i in obs_min])
         log_obs_max = np.array([np.repeat(obs_max_i,nz) for obs_max_i in obs_max])
-
-    # read this from the ini file
-    # number of bins used for defining observable functions, usually a larger number
-    nobs = options.get_int(option_section, 'nobs', 200)
-
-
-
-    # TODO: check if we need this
-    #It just outputs estimates of the linear bias for the HOD which isn't necessarily a bad thing?
-    galaxy_bias_option = options.get_bool(option_section, 'do_galaxy_linear_bias', False)
-
-    save_observable   = options.get_bool(option_section, 'save_observable',True)
-    # options are: "obs_z" or "obs_zmed" or "obs_onebin" depending if you want to calculate 
-    # the observable function per each redshift or on the median one or per one big bin
-    observable_mode   = options.get_string(option_section, 'observable_mode','obs_z')
-    # TODO: Check if this is z_median or if it is used in the other options
-    z_picked          = options.get_double(option_section, 'z_input',0.1)
-
 
     # per each redshift bin, the range of observables over which we can integrate the conditional function changes, 
     # due to the flux lim of the survey. 
@@ -183,19 +175,40 @@ def setup(options):
             obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
             # print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
 
-    return  obs_simps, nbins, nz, nobs, z_bins,\
-            z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name,\
-            values_name, observables_z, observable_section_name, galaxy_bias_section_name,\
-            observable_h_unit, valid_units
+    return  {"obs_simps": obs_simps,
+             "nbins": nbins,
+             "nz": nz,
+             "nobs": nobs,
+             "z_bins": z_bins,
+             "z_median": z_median,
+             "galaxy_bias_option": galaxy_bias_option,
+             "save_observable": save_observable,
+             "observable_mode": observable_mode,
+             "hod_section_name": hod_section_name,
+             "values_name":values_name,
+             "observables_z": observables_z,
+             "observable_section_name": observable_section_name,
+             "observable_h_unit":observable_h_unit, 
+             "valid_units": valid_units}
 
 
-
-# TODO: log_mass_min, log_mass_max not used here
 def execute(block, config):
 
-    obs_simps, nbins, nz, nobs, z_bins, z_picked, galaxy_bias_option, save_observable, \
-    observable_mode, hod_section_name, values_name, observables_z, observable_section_name,\
-    galaxy_bias_section_name, observable_h_unit, valid_units = config
+    obs_simps= config["obs_simps"]
+    nbins=config["nbins"]
+    nz=config["nz"]
+    nobs=config["nobs"]
+    z_bins=config["z_bins"]
+    z_median=config["z_median"]
+    galaxy_bias_option=config["galaxy_bias_option"]
+    save_observable=config["save_observable"]
+    observable_mode=config["observable_mode"]
+    hod_section_name=config["hod_section_name"]
+    values_name=config["values_name"]
+    observables_z=config["observables_z"]
+    observable_section_name=config["observable_section_name"]
+    observable_h_unit=config["observable_h_unit"]
+    valid_units = config["valid_units"]
 
     #---- loading hod value from the values.ini file ----#
     #centrals
@@ -387,9 +400,8 @@ def execute(block, config):
     
     if save_observable and observable_mode == 'obs_onebin':
         obs_func_h = hod.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
-
-        #TODO: put this in a different section
-        block.put_grid(observable_section_name, 'z_bin_1', z_bins_one, 'obs_val_1', obs_range_h[0], 'obs_func_1', np.log(10.0)*obs_func_h*obs_range_h[0])
+        block.put_grid(observable_section_name, 'z_bin_1', z_bins_one, 'obs_val_1', obs_range_h[0], 
+                       'obs_func_1', np.log(10.0)*obs_func_h*obs_range_h[0])
     
     
     #########################
@@ -405,10 +417,10 @@ def execute(block, config):
     if save_observable and observable_mode == 'obs_zmed':
         #interpolate the hmf at the redshift where the observable function is evaluated
         #f_mass_z_dn = interp2d(mass_dn, z_bins, dndlnM)
-        #dn_dlnM_zmedian = f_mass_z_dn(mass_dn, z_picked)
+        #dn_dlnM_zmedian = f_mass_z_dn(mass_dn, z_median)
         
         f_mass_z_dn = interp1d(z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
-        dn_dlnM_zmedian = f_mass_z_dn(z_picked)
+        dn_dlnM_zmedian = f_mass_z_dn(z_median)
         
     
         # logspace values for the obervable values (e.g. stellar masses)
