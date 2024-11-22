@@ -191,7 +191,8 @@ def setup(options):
              "observable_h_unit":observable_h_unit, 
              "valid_units": valid_units}
 
-
+# TODO: check that the h dependence is consistent. For stellar mass function usually stellar masses 
+# are in units of M_sun/h^2, while halo masses are in M_sun/h
 def execute(block, config):
 
     obs_simps= config["obs_simps"]
@@ -295,6 +296,7 @@ def execute(block, config):
         # arXiv:1512.03050
         
         if A_cen is not None:
+            # np.fmin: Compare two arrays and return a new array containing the element-wise minima.
             delta_pop_c = A_cen * np.fmin(n_cen, 1.0-n_cen)
             n_cen = n_cen + delta_pop_c
         if A_sat is not None:
@@ -328,21 +330,22 @@ def execute(block, config):
         block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat)
         block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg)
         
-        # Very important, the RegularGridInterpolator creates oscillations in the hmf. So we change this to interp1d
-        # Need to either remove interpolation or use a different interpolation method.
+        # Very important, the RegularGridInterpolator creates oscillations in the hmf. 
+        # So we change this to interp1d
+        # TODO: check that this galaxy bias means
         if galaxy_bias_option:
             #---- loading the halo bias function ----#
             z_hbf        = block['halobias', 'z']
             halobias_hbf = block['halobias', 'b_hb']
 
-            f_interp_halobias = interp1d(z_hbf, halobias_hbf, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
+            f_interp_halobias = interp1d(z_hbf, halobias_hbf, kind='linear', 
+                                         fill_value='extrapolate', bounds_error=False, axis=0)
             hbias = f_interp_halobias(z_bins[nb])
             
             galaxybias_cen = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_cen, hbias, dndlnM)/numdens_tot
             galaxybias_sat = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_sat, hbias, dndlnM)/numdens_tot
             galaxybias_tot = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
             
-            # TODO:Put these into a different section
             block.put_double_array_1d(hod_section_name, f'galaxy_bias_centrals{suffix}', galaxybias_cen)
             block.put_double_array_1d(hod_section_name, f'galaxy_bias_satellites{suffix}', galaxybias_sat)
             # # this can be useful in case you want to use the constant bias module to compute p_gg
@@ -362,8 +365,7 @@ def execute(block, config):
             for jz in range(0,nz):
                 interp = interp1d(obs_simps[nb,jz], obs_func_tmp[jz], kind='linear', bounds_error=False, fill_value=(0,0))
                 obs_func_h[jz] = interp(obs_range_h)
-                    
-            #TODO: put this in a different section
+
             block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range_h, f'obs_func{suffix_obs}', np.log(10.0)*obs_func_h*obs_range_h)
             
     if save_observable:

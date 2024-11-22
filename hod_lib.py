@@ -115,6 +115,8 @@ def phi_star_s(mass, hod_par):
 #               HOD library                 #
 #-------------------------------------------#
 
+#TODO: section 4 of https://arxiv.org/pdf/1512.03050 defines <N|M> differently to us?! eq 5 is the same. 
+# but then eq 8 is not what we expect! 
 def compute_hod(obs, phi_x):
     """
     The HOD is computed by integrating over the COFs
