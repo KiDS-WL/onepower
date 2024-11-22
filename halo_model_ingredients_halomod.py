@@ -1,15 +1,9 @@
 from cosmosis.datablock import names, option_section
 import warnings
 import numpy as np
-from scipy.interpolate import interp1d
-from astropy.cosmology import Flatw0waCDM, Planck15
+from astropy.cosmology import Flatw0waCDM
 import halo_model_utility as hmu
-from colossus.cosmology import cosmology as colossus_cosmology
-from colossus.halo import concentration as colossus_concentration
 import hmf
-import hmf.halos.mass_definitions as md
-from hmf.halos.mass_definitions import SphericalOverdensity
-from hmf.cosmology.cosmo import astropy_to_colossus
 from halomod.halo_model import DMHaloModel
 from halomod.concentration import make_colossus_cm
 import halomod.profiles as profile_classes
@@ -27,13 +21,12 @@ import halomod.profiles as profile_classes
 # from halomod import concentration as conc_func
 # from halomod.profiles import Profile, NFWInf
 # from types import MethodType
-
+# from colossus.cosmology import cosmology as colossus_cosmology
+# from colossus.halo import concentration as colossus_concentration
+# import hmf.halos.mass_definitions as md
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
-
-warnings.filterwarnings('ignore', category=UserWarning, module='colossus')
-
 
 # This patches hmf caching!
 def obj_eq_fix(ob1, ob2):
@@ -52,123 +45,6 @@ def obj_eq_fix(ob1, ob2):
 
 # Redefine obj_eq using the function above.
 hmf._internals._cache.obj_eq = obj_eq_fix
-
-
-class SOVirial_Mead(SphericalOverdensity):
-    """
-    SOVirial overdensity definition from Mead et al. (2021)
-    """
-    _defaults = {"overdensity": 200}
-        
-    def halo_density(self, z=0, cosmo=Planck15):
-        """The density of haloes under this definition."""
-        return self.params["overdensity"] * self.mean_density(z, cosmo)
-    
-    @property
-    def colossus_name(self):
-        return "200c"
-    
-    def __str__(self):
-        """Describe the halo definition in standard notation."""
-        return "SOVirial"
-
-
-
-def get_modified_concentration(base):
-    """
-    Sends a modified concentration class to hmf
-    """
-    class NormConc(base):
-        """
-        Additional normalisation to any concentration-mass relation.
-        """
-        _defaults = base._defaults
-        native_mdefs = base.native_mdefs
-        
-        def __init__(self, norm=1.0, sigma8=0.8, ns=1.0, **model_parameters):
-            self.norm = norm
-            self.sigma8 = sigma8
-            self.ns = ns
-            with warnings.catch_warnings():
-                warnings.filterwarnings('ignore', category=UserWarning)
-                super(base, self).__init__(**model_parameters)
-                astropy_to_colossus(self.cosmo.cosmo, sigma8=self.sigma8, ns=self.ns, persistence='')
-    
-        def cm(self, m, z):
-            c = base.cm(self, m, z)
-            if len(c[c>0]) == 0:
-                c_interp = lambda x: np.ones_like(x)
-            else:
-                c_interp = interp1d(m[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
-
-            return c_interp(m) * self.norm
-            
-    return NormConc
-    
-    
-def get_bloated_profile(base):
-    """
-    Sends a new profile class to hmf
-    """
-    class BloatedNFW(base):
-        """
-        Additional bloating to scale radius for any profile as in Mead+ 2021.
-        Technically tested only for NFW without truncation
-        """
-        _defaults = base._defaults
-        _defaults.update({'eta_bloat':0.0, 'nu':1.0})
-        
-        def _rs_from_m(self, m, c=None, at_z=False):
-            """
-            Return the scale radius for a halo of mass m.
-    
-            Parameters
-            ----------
-            m : float
-                mass of the halo
-            c : float, default None
-                halo_concentration of the halo (if None, use cm_relation to get it).
-            """
-            
-            if c is None:
-                c = self.cm_relation(m)
-    
-            r = self.halo_mass_to_radius(m, at_z=at_z) * np.array(self.params['nu'])**self.params['eta_bloat']
-            return r / c
-            
-    return BloatedNFW
-
-
-# def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
-#     """
-#     calculates concentration given halo mass, using the halomod model provided in config
-#     furthermore it converts to halomod instance to be used with the halomodel,
-#     consistenly with halo mass function and halo bias function
-#     """
-
-#     with warnings.catch_warnings():
-#         warnings.filterwarnings('ignore', category=UserWarning)
-#         # This dissables the warning from colossus that is just telling us what we know
-#         # colossus warns us about massive neutrinos, but that is also ok
-#         # as we do not use cosmology from it, but it requires it to setup the instance!
-#         this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
-#                      sigma8=block[cosmo_params, 'sigma_8'], ns=block[cosmo_params, 'n_s'])
-
-                     
-#     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
-    
-#     # This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
-#     # MA: Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
-#     #tic = time.perf_counter()
-#     c, ms = colossus_concentration.concentration(M=mass, z=z, mdef=mdef.colossus_name, model=model,
-#             range_return=True, range_warning=False)
-#     #toc = time.perf_counter()
-#     #print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
-#     if len(c[c>0]) == 0:
-#         c_interp = lambda x: np.ones_like(x)
-#     else:
-#         c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
-#     return c_interp(mass)
 
 
 def setup(options):
@@ -194,6 +70,7 @@ def setup(options):
     profile = options.get_string(option_section, 'profile', default='NFW')
     profile_value_name = options.get_string(option_section, 'profile_value_name', default='profile_parameters')
 
+    # model name for halo mass functions
     hmf_model = options[option_section, 'hmf_model']
     # Type of mass definition for Haloes
     mdef_model = options[option_section, 'mdef_model']
@@ -205,6 +82,7 @@ def setup(options):
     delta_c = options[option_section, 'delta_c']
     # Linear halo bias model
     bias_model = options[option_section, 'bias_model']
+    # set mdef_params to {} for SOVirial model. Otherwise set it to use the overdensity {'overdensity':overdensity}
     mdef_params = {} if mdef_model in ['SOVirial'] else {'overdensity':overdensity}
     
     # Option to set similar corrections to HMcode2020
@@ -219,6 +97,7 @@ def setup(options):
     else:
         mead_correction = None
     
+    # If mead correction is applied set the ingredients to match Mead et al. (2021)
     if mead_correction is not None:
         hmf_model = 'ST'
         bias_model = 'ST99'
@@ -246,52 +125,39 @@ def setup(options):
                         bias_model=bias_model,
                         #halo_profile_model=profile,
                         #halo_concentration_model=make_colossus_cm(cm_model))
-                        halo_profile_model=get_bloated_profile(getattr(profile_classes, profile)),
-                        halo_concentration_model=get_modified_concentration(make_colossus_cm(cm_model)))
+                        halo_profile_model=hmu.get_bloated_profile(getattr(profile_classes, profile)),
+                        halo_concentration_model=hmu.get_modified_concentration(make_colossus_cm(cm_model)))
 
-
-# class DMHaloModel(
-#     rmin: float = 0.01,
-#     rmax: float = 120,
-#     rnum: int = 100,
-#     rlog: bool = True,
-#     dr_table: float = 0.01,
-#     hm_logk_min: int = -2,
-#     hm_logk_max: int = 2,
-#     hm_dlog10k: float = 0.05,
-#     halo_profile_model: str = "NFW",
-#     halo_profile_params: Any | None = None,
-#     halo_concentration_model: str = "Duffy08",
-#     halo_concentration_params: Any | None = None,
-#     bias_model: str = "Tinker10",
-#     bias_params: Any | None = None,
-#     sd_bias_model: Any | None = None,
-#     sd_bias_params: Any | None = None,
-#     exclusion_model: str = "NoExclusion",
-#     exclusion_params: Any | None = None,
-#     colossus_params: Any | None = None,
-#     hc_spectrum: str = "linear",
-#     Mmin: int = 0,
-#     Mmax: int = 18,
-#     force_1halo_turnover: bool = True,
-#     force_unity_dm_bias: bool = True,
-#     **hmf_kwargs: Any
-# )
-
-    DM_hmf.cmz_relation
+    # DM_hmf.cmz_relation
+    # print(DM_hmf.m,DM_hmf.cmz_relation)
+    # exit(1)
     # Array of halo masses 
     mass = DM_hmf.m
 
-    return z_vec, nz, mass, DM_hmf, mdef_model, \
-        overdensity, delta_c, mead_correction, \
-        nk, profile_value_name
+    return {"z_vec": z_vec,
+            "nz": nz,
+            "mass": mass,
+            "DM_hmf": DM_hmf,
+            "mdef_model": mdef_model,
+            "overdensity": overdensity,
+            "delta_c": delta_c,
+            "mead_correction": mead_correction,
+            "nk":nk,
+            "profile_value_name":profile_value_name}
 
 def execute(block, config):
 
     # Read in the config as returned by setup
-    z_vec, nz, mass, DM_hmf, mdef, \
-    overdensity, delta_c, mead_correction, \
-    nk, profile_value_name = config
+    z_vec = config["z_vec"]
+    nz = config["nz"]
+    mass = config["mass"]
+    DM_hmf = config["DM_hmf"]
+    mdef_model = config["mdef_model"]
+    overdensity = config["overdensity"]
+    delta_c = config["delta_c"]
+    mead_correction= config["mead_correction"]
+    nk = config["nk"]
+    profile_value_name = config["profile_value_name"]
 
     # astropy cosmology requires the CMB temprature as an input. 
     # If it exists in the values file read it from there otherwise set to its default value
@@ -309,6 +175,7 @@ def execute(block, config):
     ns      = block[cosmo_params, 'n_s']
     sigma_8 = block[cosmo_params, 'sigma_8']
     
+    # TODO: will the inputs depend on the profile model? 
     norm_cen = block[profile_value_name, 'norm_cen']
     norm_sat = block[profile_value_name, 'norm_sat']
     eta_cen  = block[profile_value_name, 'eta_cen']
@@ -323,10 +190,10 @@ def execute(block, config):
     neff      = np.empty([nz])
     sigma8_z  = np.empty([nz])
     f_nu      = np.empty([nz])
-    h_z       = np.empty([nz])
-    mean_density0  = np.empty([nz])
+    # h_z       = np.empty([nz])
+    # mean_density0  = np.empty([nz])
     mean_density_z = np.empty([nz])
-    overdensity_z  = np.empty([nz])
+    halo_overdensity_mean  = np.empty([nz])
     u_dm_cen  = np.empty([nz,nk,nmass_hmf])
     u_dm_sat  = np.empty([nz,nk,nmass_hmf])
     conc_cen  = np.empty([nz,nmass_hmf])
@@ -340,27 +207,31 @@ def execute(block, config):
         growth = hmu.get_growth_interpolator(this_cosmo_run)
         #growth_LCDM = hmu.get_growth_interpolator(LCDMcosmo)
 
+    # get the k range from the linear matter power spectrum section.
+    # but use the nk that was given as input
     k_vec_original = block['matter_power_lin', 'k_h']
     k = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
-    
+
     # Power spectrum transfer function used to update the transfer function in hmf
     transfer_k    = block['matter_power_transfer_func', 'k_h']
     transfer_func = block['matter_power_transfer_func', 't_k']
 
     # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
     for jz,z_iter in enumerate(z_vec):
-        if mdef in ['SOVirial'] and mead_correction is None:
+        if mdef_model in ['SOVirial'] and mead_correction is None:
             # The critical overdensity for collapse for a given redshift and Omega_m
             delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter)))
             # Update the cosmology for the halo mass function, this takes a little while the first time it is called
             # Then it is faster becayse it only updates the redshift and the corresponding delta_c
-            DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z,
-                        transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
-            overdensity_z[jz] = DM_hmf.halo_overdensity_mean
+            DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, 
+                          delta_c=delta_c_z, transfer_model='FromArray', 
+                          transfer_params={'k':transfer_k, 'T':transfer_func})
+            # The halo overdensity with respect to the mean background.
+            halo_overdensity_mean[jz] = DM_hmf.halo_overdensity_mean
         elif mead_correction is not None:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=UserWarning)
-                # This disables the warning from hmf is just telling us what we know
+                # This disables the warning from hmf. hmf is just telling us what we know
                 # hmf's internal way of calculating the overdensity and the collapse threshold are fixed.
                 # When we use the mead correction we want to define the haloes using the virial definition.
                 # To avoid conflicts we manually pass the overdensity and the collapse threshold,
@@ -373,19 +244,19 @@ def execute(block, config):
                 G = hmu.get_accumulated_growth(a, growth)
                 delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), 
                                     this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
-                overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), 
+                halo_overdensity_mean[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), 
                                         this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
-                mdef_mead = SOVirial_Mead #'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
+                mdef_mead = hmu.SOVirial_Mead 
                 DM_hmf.ERROR_ON_BAD_MDEF = False
                 DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, 
                               n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  
-                              mdef_params={'overdensity':overdensity_z[jz]}, disable_mass_conversion=True, 
+                              mdef_params={'overdensity':halo_overdensity_mean[jz]}, disable_mass_conversion=True, 
                               transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
-        else:
-            overdensity_z[jz] = overdensity
+        else: #Neither mead_correction or SOVirial
+            halo_overdensity_mean[jz] = overdensity
             delta_c_z = delta_c
             DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, 
-                          delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, 
+                          delta_c=delta_c_z, mdef_params={'overdensity':halo_overdensity_mean[jz]}, 
                           transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
         
         #Peak height, DM_hmf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
@@ -393,14 +264,14 @@ def execute(block, config):
         dndlnmh[jz]   = DM_hmf.dndlnm
         mean_density0 = DM_hmf.mean_density0
         mean_density_z[jz] = DM_hmf.mean_density
-        rho_halo[jz]  = overdensity_z[jz] * DM_hmf.mean_density0 
+        rho_halo[jz]  = halo_overdensity_mean[jz] * DM_hmf.mean_density0 
         b_nu[jz] = DM_hmf.halo_bias
     
         # These are only used for mead_corrections
         # index of 
         idx_neff      = np.argmin(np.abs(DM_hmf.nu - 1.0))
         # effective power spectrum index at the collapse scale,
-        # Question: n_eff is just used in the transition_smoothing module for mead_corrections. 
+        # TODO: Question: n_eff is just used in the transition_smoothing module for mead_corrections. 
         # It is called n^eff_cc in table 2 of https://arxiv.org/pdf/2009.01858.pdf . 
         # But it doesn't explain what it is. Do we know if this is the correct one to use? 
         neff[jz]      = DM_hmf.n_eff[idx_neff]
@@ -411,11 +282,14 @@ def execute(block, config):
         sigma8_z[jz] = DM_hmf.normalised_filter.sigma(8.0)
         #pk_cold = DM_hmf.power * hmu.Tk_cold_ratio(DM_hmf.k, g, block[cosmo_params, 'ommh2'], block[cosmo_params, 'h0'], this_cosmo_run.Onu0/this_cosmo_run.Om0, this_cosmo_run.Neff, T_CMB=tcmb)**2.0
         #sigma8_z[jz] = hmu.sigmaR_cc(pk_cold, DM_hmf.k, 8.0)
-        
-        if mead_correction == 'nofeedback':
-            norm_cen  = 5.196 #/3.85#1.0#(5.196/3.85) #0.85*1.299
+        if mead_correction != None:
             eta_cen   = 0.1281 * sigma8_z[jz]**(-0.3644)
-            
+            if mead_correction == 'nofeedback':
+                norm_cen  = 5.196 #/3.85#1.0#(5.196/3.85) #0.85*1.299
+            elif mead_correction == 'feedback':
+                theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
+                norm_cen  = (5.196/4.0) * ((3.44 - 0.496*theta_agn) * np.power(10.0, z_iter*(-0.0671 - 0.0371*theta_agn)))
+
             zf = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, DM_hmf)
             conc_cen[jz,:] = norm_cen * (1.0+zf)/(1.0+z_iter)
             conc_sat[jz,:] = norm_sat * (1.0+zf)/(1.0+z_iter)
@@ -426,45 +300,23 @@ def execute(block, config):
             u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
             r_s_cen[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
             rvir_cen[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
-        
+            # conc_sat
             DM_hmf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run})
             nfw_sat = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_sat[jz,:], norm='m', coord='k')
             u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
             r_s_sat[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
             rvir_sat[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
-            
-            
-        elif mead_correction == 'feedback':
-            theta_agn = block['halo_model_parameters', 'logT_AGN'] - 7.8
-            norm_cen  = (5.196/4.0) * ((3.44 - 0.496*theta_agn) * np.power(10.0, z_iter*(-0.0671 - 0.0371*theta_agn)))
-            eta_cen   = 0.1281 * sigma8_z[jz]**(-0.3644)
-            
-            zf = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, DM_hmf)
-            conc_cen[jz,:] = norm_cen * (1.0+zf)/(1.0+z_iter)
-            conc_sat[jz,:] = norm_sat * (1.0+zf)/(1.0+z_iter)
-            
-            # The only difference is the concentration values. Here is it is conc_cen and for the next block it is conc_sat
-            DM_hmf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run})
-            nfw_cen = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_cen[jz,:], norm='m', coord='k')
-            u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
-            r_s_cen[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
-            rvir_cen[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
-        
-            DM_hmf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run})
-            nfw_sat = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_sat[jz,:], norm='m', coord='k')
-            u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
-            r_s_sat[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
-            rvir_sat[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
-        
-        else:
-            DM_hmf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
+        else: #No mead_correction 
+            DM_hmf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, 
+                          halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
             conc_cen[jz,:] = DM_hmf.cmz_relation
             nfw_cen = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_cen[jz,:], norm='m', coord='k')
             u_dm_cen[jz,:,:] = nfw_cen/np.expand_dims(nfw_cen[0,:], 0)
             r_s_cen[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
             rvir_cen[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
         
-            DM_hmf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, halo_concentration_params={'norm':norm_sat, 'sigma8':sigma_8, 'ns':ns})
+            DM_hmf.update(halo_profile_params={'eta_bloat':eta_sat, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, 
+                          halo_concentration_params={'norm':norm_sat, 'sigma8':sigma_8, 'ns':ns})
             conc_sat[jz,:] = DM_hmf.cmz_relation
             nfw_sat = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_sat[jz,:], norm='m', coord='k')
             u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
@@ -472,15 +324,15 @@ def execute(block, config):
             rvir_sat[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
     
     
-
     #  TODO: Clean these up. Put more of them into the same folder
-    block.put_grid('concentration_dm', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
+    block.put_grid('concentration_m', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
     block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)
-    block.put_grid('nfw_scale_radius_dm', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
+    block.put_grid('nfw_scale_radius_m', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
     block.put_grid('nfw_scale_radius_sat', 'z', z_vec, 'm_h', mass, 'rs', r_s_sat)
 
     block.put_double_array_1d('virial_radius', 'm_h', mass)
-    block.put_double_array_1d('virial_radius', 'rvir_dm', rvir_cen[0])
+    #rvir doesn't change with z, hence no z-dimension
+    block.put_double_array_1d('virial_radius', 'rvir_m', rvir_cen[0])
     block.put_double_array_1d('virial_radius', 'rvir_sat', rvir_sat[0])
 
     block.put_double_array_1d('fourier_nfw_profile', 'z', z_vec)
@@ -488,6 +340,7 @@ def execute(block, config):
     block.put_double_array_1d('fourier_nfw_profile', 'k_h', k)
     block.put_double_array_nd('fourier_nfw_profile', 'ukm', u_dm_cen)
     block.put_double_array_nd('fourier_nfw_profile', 'uksat', u_dm_sat)
+
     ###################################################################################################################
 
     # density
@@ -495,20 +348,19 @@ def execute(block, config):
     block['density', 'rho_crit'] = mean_density0/this_cosmo_run.Om0
     block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
     block.put_double_array_1d('density', 'rho_halo', rho_halo)
+    block.put_double_array_1d('density', 'z', z_vec)
 
-    # hmf
+    # halo mass function
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnmh)
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'nu', nu)
     block.put_double_array_1d('hmf', 'neff', neff)
     block.put_double_array_1d('hmf', 'sigma8_z', sigma8_z)
 
-    # halobias
+    # linear halo bias
     block.put_grid('halobias', 'z', z_vec, 'm_h', mass, 'b_hb', b_nu)
     
-    # cosmological parameters
+    # Fraction of neutrinos to total matter,  f_nu = Ω_nu /Ω_m
     f_nu = this_cosmo_run.Onu0/this_cosmo_run.Om0
-    h_z = this_cosmo_run.H(z_vec).value/100.0
-    block.put_double_array_1d(cosmo_params, 'h_z', h_z)
     block[cosmo_params, 'fnu'] = f_nu
 
     return 0
@@ -518,3 +370,5 @@ def cleanup(config):
     # Usually python modules do not need to do anything here.
     # We just leave it in out of pedantic completeness.
     pass
+
+

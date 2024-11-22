@@ -40,22 +40,18 @@ mI: matter-intrinsic alignment
 # NOTE: no truncation (halo exclusion problem) applied!
 
 from cosmosis.datablock import names, option_section
-
 import numpy as np
-from scipy.interpolate import interp1d
+import numbers
+import pk_lib
 
+# from scipy.interpolate import interp1d
 # from scipy.interpolate import interp2d, RegularGridInterpolator
 # from collections import OrderedDict
 # import sys
 # import time
 
-import numbers
-import pk_lib
-
-
-
-cosmo = names.cosmological_parameters
-
+# cosmological parameters section name in block
+cosmo_params = names.cosmological_parameters
 
 # TODO: change the name of this file and pk_lib file to make it clear what these do.
 
@@ -129,7 +125,6 @@ def setup(options):
     # If True uses beta_nl
     bnl     = options.get_bool(option_section, 'bnl', default=False)
 
-
     poisson_type  = options.get_string(option_section, 'poisson_type', default='')
     point_mass    = options.get_bool(option_section, 'point_mass', default=False)
     
@@ -180,12 +175,7 @@ def setup(options):
         pop_name = f'_{population_name}'
     else:
         pop_name = ''
-    
 
-    # TODO: Check that moving use_mead doesn't couse a conflict
-    # change this: generally not good practice to look into a different section other than option_section.
-    # Since names can change in the ini file. For now moved it to this section
-    # check_mead    = options.has_value('hmf_and_halo_bias', 'use_mead2020_corrections')
     check_mead    = options.has_value(option_section, 'use_mead2020_corrections')
     if check_mead:
         use_mead = options[option_section, 'use_mead2020_corrections']
@@ -234,7 +224,6 @@ def execute(block, config):
     if mead_correction in ['feedback', 'nofeedback'] or dewiggle == True:
         plin = pk_lib.dewiggle(plin, k_vec, block)
 
-
     # AD: The following two lines only used for testing, need to be removed later on!
     k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
     pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
@@ -260,10 +249,10 @@ def execute(block, config):
     A_term = pk_lib.missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0)
     
     # f_nu = omega_nu/omega_m with the same length as redshift
-    fnu     = block['cosmological_parameters', 'fnu'] * np.ones(len(z_vec))
-    omega_c = block['cosmological_parameters', 'omega_c']
-    omega_m = block['cosmological_parameters', 'omega_m']
-    omega_b = block['cosmological_parameters', 'omega_b']
+    fnu     = block[cosmo_params, 'fnu'] * np.ones(len(z_vec))
+    omega_c = block[cosmo_params, 'omega_c']
+    omega_m = block[cosmo_params, 'omega_m']
+    omega_b = block[cosmo_params, 'omega_b']
     
     # If matter auto or cross power spectra are set to True
     if matter == True:
@@ -286,7 +275,8 @@ def execute(block, config):
             
         if bnl == True:
             # TODO: This one uses matter_profile not matter_profile_1h_mm. Shouldn't we use the same profile everywhere?
-            # AD: No, I_NL and 2-halo functions should use the mater_profile, no 1h! The corrections applied do not hold true for 2h regime!
+            # AD: No, I_NL and 2-halo functions should use the mater_profile, no 1h! 
+            # The corrections applied do not hold true for 2h regime!
             I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile,
                                 b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec,
                                 z_vec, A_term, mean_density0, beta_interp)
@@ -303,20 +293,22 @@ def execute(block, config):
                                                                     dn_dlnm, matter_profile_1h_mm, I_m,
                                                                     one_halo_ktrunc, two_halo_ktrunc)
             # save in the datablock
-            #block.put_grid('matter_1h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_1h)
-            #block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)
-            #block.put_grid('matter_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
-            block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
+            # TODO: change this after testing.
+            block.put_grid('matter_1h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_1h)
+            block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)
+            block.put_grid('matter_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
+            # block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
             
         if p_mm == True and bnl == True:
             pk_mm_1h_bnl, pk_mm_2h_bnl, pk_mm_tot_bnl = pk_lib.compute_p_mm_bnl(k_vec, plin, z_vec, mass, dn_dlnm,
                                                                                 matter_profile_1h_mm, I_m, I_NL_mm,
                                                                                 one_halo_ktrunc)
             # save in the datablock
-            #block.put_grid('matter_1h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_1h)
-            #block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)
-            #block.put_grid('matter_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
-            block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot_bnl)
+            # TODO: change this after testing.
+            block.put_grid('matter_1h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_1h)
+            block.put_grid('matter_2h_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_2h)
+            block.put_grid('matter_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
+            # block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot_bnl)
 
     if (galaxy == True) or (alignment == True):
         # TODO: metadata does not exist change this

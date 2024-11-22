@@ -65,7 +65,7 @@ def execute(block, config):
     # This already contains the luminosity dependence if there
     gamma_1h_amplitude = block[f'ia_small_scale_alignment{suffix}', 'alignment_1h']
     # Also load the redshift dimension 
-    z = block['concentration_dm', 'z'] #This dimension/resolution here has been set by the nz in halo_model_ingredients.py
+    z = block['concentration_m', 'z'] #This dimension/resolution here has been set by the nz in halo_model_ingredients.py
     nz=np.size(z)
 
     # Now I want to load the high resolution halo parameters calculated with the halo model module
@@ -73,11 +73,11 @@ def execute(block, config):
     # When downsampling we note that this doesn't need to be perfect, our final resolution does not need to 
     # perfectly match the user input value - just as close as possible
 
-    mass_halo = block['concentration_dm', 'm_h']    
+    mass_halo = block['concentration_m', 'm_h']    
     nmass_halo = np.size(mass_halo) #The dimension/resolution here has been set by the nmass in halo_model_ingredients.py
-    c_halo = block['concentration_dm', 'c']  #This has dimension nz,nmass_halo
+    c_halo = block['concentration_m', 'c']  #This has dimension nz,nmass_halo
     r_s_halo = block['nfw_scale_radius_dm', 'rs'] #This has dimension nz,nmass_halo
-    rvir_halo = block['virial_radius', 'rvir_dm'] #This has dimension nmass_halo : rvir doesn't change with z, hence no z-dimension
+    rvir_halo = block['virial_radius', 'rvir_m'] #This has dimension nmass_halo : rvir doesn't change with z, hence no z-dimension
 
     if nmass_halo < nmass_setup:
         raise ValueError("The halo mass resolution is too low for the radial IA calculation. Please increase nmass when you run halo_model_ingredients.py")

@@ -19,7 +19,7 @@
 
 from cosmosis.datablock import names, option_section
 import numpy as np
-from scipy.interpolate import interp1d, RegularGridInterpolator
+from scipy.interpolate import interp1d
 # halo model library with HOD and conditional functions
 import hod_lib as hod
 
@@ -80,13 +80,13 @@ def setup(options):
 
 
     # Checks units of h
-    observable_h_unit = options.get_string(option_section, 'observable_h_unit', default='1/h').lower()
+    #observable_h_unit = options.get_string(option_section, 'observable_h_unit', default='1/h').lower()
+    observable_h_unit = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
     valid_units = ['1/h', '1/h^2']
     if not observable_h_unit in valid_units:
         raise Exception('Currently supported h factors in obserable are {valid_units}')
 
-    
-    # if file name is given then use it otherwise use values in the ini file # in units of L_sun/h2
+    # if file name is given then use it otherwise use values in the ini file # in units of O_sun/h2
     if options.has_value(option_section, 'observables_file'):
         observables_z = True
         file_name     = options.get_string(option_section, 'observables_file')
@@ -193,12 +193,14 @@ def setup(options):
 # TODO: log_mass_min, log_mass_max not used here
 def execute(block, config):
 
-    obs_simps, nbins, nz, nobs, z_bins, z_picked, galaxy_bias_option, save_observable, observable_mode, hod_section_name, values_name, observables_z, observable_section_name, galaxy_bias_section_name, observable_h_unit, valid_units = config
+    obs_simps, nbins, nz, nobs, z_bins, z_picked, galaxy_bias_option, save_observable, \
+    observable_mode, hod_section_name, values_name, observables_z, observable_section_name,\
+    galaxy_bias_section_name, observable_h_unit, valid_units = config
 
     #---- loading hod value from the values.ini file ----#
     #centrals
 
-    # all masses in units of log10(M_sun h^-2)
+    # all observable masses in units of log10(M_sun h^-2)
     log10_obs_norm_c = block[values_name, 'log10_obs_norm_c'] #O_0, O_norm_c
     log10_M_ch       = block[values_name, 'log10_m_ch'] # log10 M_char
     g1               = block[values_name, 'g1'] # gamma_1
@@ -269,6 +271,8 @@ def execute(block, config):
         n_cen  = np.array([hod.compute_hod(obs_simps_z, phi_c_z) for obs_simps_z, phi_c_z in zip(obs_simps[nb], phi_c)])
         
         # f_star = int_{O_low}^{O_high} Φx(O|M) O dO
+        # TODO: check the h units are correct
+        # valid_units[1] is 1/h^2
         f_star = np.array([hod.compute_stellar_fraction(obs_simps_z, phi_z_i)/mass for obs_simps_z, phi_z_i in zip(obs_simps[nb], phi)])
         if observable_h_unit == valid_units[1]:
             f_star = f_star * block['cosmological_parameters', 'h0']
@@ -311,7 +315,7 @@ def execute(block, config):
         block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat)
         block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg)
         
-        # TODO: very important, the RegularGridInterpolator creates oscillations in the hmf. 
+        # Very important, the RegularGridInterpolator creates oscillations in the hmf. So we change this to interp1d
         # Need to either remove interpolation or use a different interpolation method.
         if galaxy_bias_option:
             #---- loading the halo bias function ----#
@@ -321,7 +325,6 @@ def execute(block, config):
             f_interp_halobias = interp1d(z_hbf, halobias_hbf, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
             hbias = f_interp_halobias(z_bins[nb])
             
-
             galaxybias_cen = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_cen, hbias, dndlnM)/numdens_tot
             galaxybias_sat = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_sat, hbias, dndlnM)/numdens_tot
             galaxybias_tot = hod.compute_galaxy_linear_bias(mass[np.newaxis,:], n_tot, hbias, dndlnM)/numdens_tot
@@ -352,6 +355,7 @@ def execute(block, config):
             
     if save_observable:
         block.put(observable_section_name,'observable_mode', observable_mode)
+    
     # Calculating the full stellar mass fraction and if desired the observable function for one bin case
     nl_obs = 100
     nl_z = 15

@@ -4,7 +4,7 @@ It produces the theoretical prediction for the observable for the full survey.
 The number of bins and the mass range can be different to what is calculated in the hod_interface.py module.
 """
 
-from cosmosis.datablock import names, option_section
+from cosmosis.datablock import option_section
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.integrate import simps
@@ -25,16 +25,15 @@ def load_and_extrapolate_obs(block, obs_section, suffix_in, x_ext, extrapolate_o
         z_obs = None
     
     return z_obs, obs_ext
-    
+
 def load_kernel(block, kernel_section, bin, z_ext, extrapolate_option):
 
     z_obs = block[kernel_section, 'z']
     obs_in = block[kernel_section, f'bin_{bin}']
     inter_func = interp1d(z_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
     kernel_ext = inter_func(z_ext)
-    
-    return kernel_ext
 
+    return kernel_ext
 
 def setup(options):
 	

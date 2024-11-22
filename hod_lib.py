@@ -170,4 +170,3 @@ def compute_galaxy_linear_bias(mass, hod_x, halo_bias, dn_dlnM_normalised):
     bg_integrand = hod_x*halo_bias*dn_dlnM_normalised/mass
     bg_integral = simps(bg_integrand, mass)
     return bg_integral
-
