@@ -80,8 +80,7 @@ def setup(options):
 
 
     # Checks units of h
-    #observable_h_unit = options.get_string(option_section, 'observable_h_unit', default='1/h').lower()
-    observable_h_unit = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
+    observable_h_unit = options.get_string(option_section, 'observable_h_unit', default='1/h').lower()
     valid_units = ['1/h', '1/h^2']
     if not observable_h_unit in valid_units:
         raise Exception('Currently supported h factors in obserable are {valid_units}')
