@@ -52,7 +52,8 @@ params:
           default: stellar_mass_function
       nobs:
           meaning: Number of observable bins within each observable-redshift bin 
-                  for calculating variables in terms of the observables. 
+                  for calculating variables in terms of the observables. Use at least 100
+                  to avoid numerical issue when integrating.
           type: int
           default: 200
       do_galaxy_linear_bias:

@@ -211,9 +211,6 @@ def execute(block, config):
     observable_h_unit=config["observable_h_unit"]
     valid_units = config["valid_units"]
 
-    # print(nbins,nz,nobs,z_bins,hod_section_name,values_name,observable_h_unit)
-
-    # exit()
     #---- loading hod value from the values.ini file ----#
     #centrals
 
@@ -262,9 +259,10 @@ def execute(block, config):
             suffix = f'_{nb+1}'
         else:
             suffix = ''
-            
+        
         # set interpolator for the halo mass function
-        f_int_dndlnM = interp1d(z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
+        f_int_dndlnM = interp1d(z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate',
+                                 bounds_error=False, axis=0)
         dndlnM = f_int_dndlnM(z_bins[nb])
         nmass = mass.size
     
