@@ -33,36 +33,34 @@ The halo mass dependence comes in through pivot observable values denoted by *, 
 """
 
 
-def phi_cen(obs, mass, hod_par):
+def COF_cen(obs, mass, hod_par):
     """
     COF for Central galaxies
     eq 17 of D23: 2210.03110:
     Φc(O|M) =1/[√(2π) ln(10) σ_c O] exp[ -log(O/O∗c)^2/ (2 σ_c^2) ]
-    used to be cf_cen
+    Note Φc(O|M) is unitless.
     """
     
     mean_obs_c = cal_mean_obs_c(mass,hod_par) #O∗c
-    phi_c = 1./(np.sqrt(2.*np.pi)* np.log(10)* hod_par.sigma_log10_O_c*obs) \
+    COF_c = 1./(np.sqrt(2.*np.pi)* np.log(10)* hod_par.sigma_log10_O_c*obs) \
           * np.exp((-(np.log10(obs/mean_obs_c))**2)/(2*hod_par.sigma_log10_O_c**2.))
-    # log10(e)/sqrt(2*pi) = 0.17325843097
-    # cf_c = np.log((0.17325843097/(hod_par.sigma_c))) - np.log(obs) + ((-(np.log10(obs)-np.log10(mean_obs_c))**2.)/(2.*hod_par.sigma_c**2.)) 
-    # return np.exp(cf_c)
-    return phi_c
+    
+    return COF_c
 
 
-def phi_sat(obs, mass, hod_par):
+def COF_sat(obs, mass, hod_par):
     """
     COF for satellite galaxies
     eq 18 of D23: 2210.03110:
     Φs(O|M) =ϕ∗s/O∗s  (O/O∗s)^α_s exp [−(O/O∗s)^2], O*s is O∗s(M) = 0.56 O∗c(M)
-    used to be cf_sat
+    Note Φs(O|M) is unitless.
     """
     
     obs_s_star = hod_par.norm_s* cal_mean_obs_c(mass, hod_par)
     obs_tilde = obs/obs_s_star
     phi_star_val = phi_star_s(mass, hod_par)
-    phi_s = (phi_star_val/obs_s_star)*(obs_tilde**(hod_par.alpha_s))*np.exp(-obs_tilde**hod_par.beta_s)
-    return phi_s
+    COF_s = (phi_star_val/obs_s_star)*(obs_tilde**(hod_par.alpha_s))*np.exp(-obs_tilde**hod_par.beta_s)
+    return COF_s
 
 
 def obs_func(mass, phi_x, dn_dlnM_normalised, axis=-1):
@@ -73,6 +71,7 @@ def obs_func(mass, phi_x, dn_dlnM_normalised, axis=-1):
     dn_dlnM_normalised is basically n(M) x mass, it is the output of hmf
     The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
     dn(m)/ dln m eq1 of 1306.6721
+    obs_func unit is h^3 Mpc^{-3} dex^-1
     """
 
     integrand = phi_x*dn_dlnM_normalised/mass
@@ -100,7 +99,7 @@ def cal_mean_obs_c(mass, hod_par) :
 
 def phi_star_s(mass, hod_par):
     """
-    pivot phi used in eq 21 of D23: 2210.03110
+    pivot COF used in eq 21 of D23: 2210.03110
     using a bias expantion around the pivot mass
     eq 22 of D23: 2210.03110
     log[ϕ∗s(M)] = b0 + b1(log m13) , m13 is logM_pivot, m13 = M/(hod_par.pivot M⊙ h−1)
@@ -117,14 +116,14 @@ def phi_star_s(mass, hod_par):
 
 #TODO: section 4 of https://arxiv.org/pdf/1512.03050 defines <N|M> differently to us?! eq 5 is the same. 
 # but then eq 8 is not what we expect! 
-def compute_hod(obs, phi_x):
+def compute_hod(obs, COF_x):
     """
     The HOD is computed by integrating over the COFs
     eq 23 of D23: 2210.03110
     ⟨Nx|M⟩ =int_{O_low}^{O_high} Φx(O|M) dO
     """
     
-    hod_x = simps(phi_x, obs)
+    hod_x = simps(COF_x, obs)
     return hod_x
     
 

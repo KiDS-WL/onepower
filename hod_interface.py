@@ -75,7 +75,7 @@ def setup(options):
     observable_section_name  = options.get_string(option_section, 'observable_section_name', default='stellar_mass_function').lower()
 
     # read this from the ini file
-    # number of bins used for defining observable functions, usually a larger number
+    # number of bins used for defining observable functions within each observable-redshift bin, usually a larger number
     nobs = options.get_int(option_section, 'nobs', 200)
 
     #Outputs estimates of the linear bias for the HOD 
@@ -211,6 +211,9 @@ def execute(block, config):
     observable_h_unit=config["observable_h_unit"]
     valid_units = config["valid_units"]
 
+    # print(nbins,nz,nobs,z_bins,hod_section_name,values_name,observable_h_unit)
+
+    # exit()
     #---- loading hod value from the values.ini file ----#
     #centrals
 
@@ -229,8 +232,8 @@ def execute(block, config):
 
     #satellites
     norm_s   = block[values_name, 'norm_s'] # normalisation
-    alpha_s  = block[values_name, 'alpha_s'] # goes into the conditional stellar mass function Phi_sat(M*|M)
-    beta_s  = block[values_name, 'beta_s'] # goes into the conditional stellar mass function Phi_sat(M*|M)
+    alpha_s  = block[values_name, 'alpha_s'] # goes into the conditional stellar mass function COF_sat(M*|M)
+    beta_s  = block[values_name, 'beta_s'] # goes into the conditional stellar mass function COF_sat(M*|M)
     pivot    = block[values_name, 'pivot']  # pivot mass for the normalisation of the stellar mass function: ϕ∗s
     # log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
     b0 = block[values_name, 'b0'] 
@@ -246,13 +249,14 @@ def execute(block, config):
     hod_par = HODpar(10.**log10_obs_norm_c, 10.**log10_M_ch, g1, g2, sigma_log10_O_c, norm_s, pivot, alpha_s, beta_s, b0, b1, b2)
 
     block.put_int(hod_section_name, 'nbins', nbins)
-    block.put_bool(hod_section_name, 'option', observables_z)
+    block.put_bool(hod_section_name, 'observable_z', observables_z)
 
     #---- loading the halo mass function ----#
     dndlnM_grid = block['hmf','dndlnmh']
     mass        = block['hmf','m_h']
     z_dn        = block['hmf','z']
     
+    # Loop through the observable-redshift bins
     for nb in range(0,nbins):
         if nbins != 1:
             suffix = f'_{nb+1}'
@@ -264,30 +268,32 @@ def execute(block, config):
         dndlnM = f_int_dndlnM(z_bins[nb])
         nmass = mass.size
     
-        phi_c = np.empty([nz, nmass, nobs])
-        phi_s = np.empty([nz, nmass, nobs])
+        COF_c = np.empty([nz, nmass, nobs])
+        COF_s = np.empty([nz, nmass, nobs])
         
-        phi_c = hod.phi_cen(obs_simps[nb,:,np.newaxis], mass[:,np.newaxis], hod_par)
-        phi_s = hod.phi_sat(obs_simps[nb,:,np.newaxis], mass[:,np.newaxis], hod_par)
+        COF_c = hod.COF_cen(obs_simps[nb,:,np.newaxis], mass[:,np.newaxis], hod_par)
+        COF_s = hod.COF_sat(obs_simps[nb,:,np.newaxis], mass[:,np.newaxis], hod_par)
         
-        phi = phi_c + phi_s
-
-
+        COF = COF_c + COF_s
         ###################################   HALO OCCUPATION DISTRIBUTION   #########################################
     
-        # Since the bins are a function of redshift, Phi(O(z)|M) is a 3-dim array in O, z, M. The
+        # Since the bins are a function of redshift, COF(O(z)|M) is a 3-dim array in Observable, z, Mass. The
         # resulting HODs are a function of mass and redshift. Note that they would only be a function of mass in theory.
         # The dependence on redshift comes as a result of the flux-lim of the survey. It's not physical at this stage and
         # does not capture the passive evolution of galaxies, that has to be modelled in an independent way.
     
         # ⟨Nx|M⟩ =int_{O_low}^{O_high} Φx(O|M) dO
-        n_sat  = np.array([hod.compute_hod(obs_simps_z, phi_s_z) for obs_simps_z, phi_s_z in zip(obs_simps[nb], phi_s)])
-        n_cen  = np.array([hod.compute_hod(obs_simps_z, phi_c_z) for obs_simps_z, phi_c_z in zip(obs_simps[nb], phi_c)])
-        
+        n_sat  = np.array([hod.compute_hod(obs_simps_z, COF_s_z) for obs_simps_z, COF_s_z in zip(obs_simps[nb], COF_s)])
+        n_cen  = np.array([hod.compute_hod(obs_simps_z, COF_c_z) for obs_simps_z, COF_c_z in zip(obs_simps[nb], COF_c)])
+        if((n_sat<0).any() or (n_cen<0).any()):
+            raise Exception('Error: some of the values in the hod are negative.'+
+                            'This is likely because nobs was not large enough.'+
+                            'Try increasing it to make the integral more stable.')
+
         # f_star = int_{O_low}^{O_high} Φx(O|M) O dO
         # TODO: check the h units are correct
         # valid_units[1] is 1/h^2
-        f_star = np.array([hod.compute_stellar_fraction(obs_simps_z, phi_z_i)/mass for obs_simps_z, phi_z_i in zip(obs_simps[nb], phi)])
+        f_star = np.array([hod.compute_stellar_fraction(obs_simps_z, phi_z_i)/mass for obs_simps_z, phi_z_i in zip(obs_simps[nb], COF)])
         if observable_h_unit == valid_units[1]:
             f_star = f_star * block['cosmological_parameters', 'h0']
 
@@ -359,7 +365,7 @@ def execute(block, config):
             obs_range_h = np.logspace(np.log10(obs_simps[nb].min()),np.log10(obs_simps[nb].max()), nl_obs)
             obs_func_h = np.empty([nz,nl_obs])
                 
-            obs_func_tmp = hod.obs_func(mass[np.newaxis,:,np.newaxis], phi, dndlnM[:,:,np.newaxis], axis=-2)
+            obs_func_tmp = hod.obs_func(mass[np.newaxis,:,np.newaxis], COF, dndlnM[:,:,np.newaxis], axis=-2)
     
             # interpolate in L_obs to have a consistent grid
             for jz in range(0,nz):
@@ -384,9 +390,9 @@ def execute(block, config):
         obs_range_h[jz] = np.logspace(np.log10(obs_simps.min()),np.log10(obs_simps.max()), nl_obs)
     obs_func_h = np.empty([nl_z,nl_obs])
     
-    phi_c = hod.phi_cen(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod_par)
-    phi_s = hod.phi_sat(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod_par)
-    phi = phi_c + phi_s
+    COF_c = hod.COF_cen(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod_par)
+    COF_s = hod.COF_sat(obs_range_h[:,np.newaxis], mass[:,np.newaxis], hod_par)
+    COF = COF_c + COF_s
     
     # TODO: What is this one for? There is already f_start for the bins.
     # The TO-DO in this lines needs explanation: f_star here is different then f_star calculate for each bin, 
@@ -395,13 +401,13 @@ def execute(block, config):
     # unlike the other f_star which are for each stellar mass bin. I would keep the metadata block here 
     # to save all the parameters not directly connected with "per bin" HODs and corresponding products.
     # AD: added suffix here in order to keep track of the right one if multiple hods used!
-    f_star_mm = np.array([hod.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
+    f_star_mm = np.array([hod.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, COF)])
     if observable_h_unit == valid_units[1]:
         f_star_mm = f_star_mm * block['cosmological_parameters', 'h0']
     block.put_grid(hod_section_name, 'z_extended', z_bins_one, 'mass_extended', mass, 'f_star_extended', f_star_mm)
     
     if save_observable and observable_mode == 'obs_onebin':
-        obs_func_h = hod.obs_func(mass[np.newaxis,:,np.newaxis], phi, dn_dlnM_one[:,:,np.newaxis], axis=-2)
+        obs_func_h = hod.obs_func(mass[np.newaxis,:,np.newaxis], COF, dn_dlnM_one[:,:,np.newaxis], axis=-2)
         block.put_grid(observable_section_name, 'z_bin_1', z_bins_one, 'obs_val_1', obs_range_h[0], 
                        'obs_func_1', np.log(10.0)*obs_func_h*obs_range_h[0])
     
@@ -412,7 +418,7 @@ def execute(block, config):
     
     # Compute observable function: note that since the observable function is computed for a single value of z and
     # might have a different range in magnitudes with respect to the case of the hod section (independent
-    # options), we decided to re-compute phi rather than interpolating on the previous one.
+    # options), we decided to re-compute COF rather than interpolating on the previous one.
     # At the moment, we assume the observable function is to be computed on the largest possible range 
     # of absolute magnitudes.
     
@@ -428,8 +434,8 @@ def execute(block, config):
         # logspace values for the obervable values (e.g. stellar masses)
         obs_range = np.logspace(np.log10(obs_simps.min()), np.log10(obs_simps.max()), nobs)
     
-        phi_c_lf = hod.phi_cen(obs_range[:,np.newaxis], mass, hod_par)
-        phi_s_lf = hod.phi_sat(obs_range[:,np.newaxis], mass, hod_par)
+        phi_c_lf = hod.COF_cen(obs_range[:,np.newaxis], mass, hod_par)
+        phi_s_lf = hod.COF_sat(obs_range[:,np.newaxis], mass, hod_par)
         phi_lf   = phi_c_lf+phi_s_lf
 
         obs_func = hod.obs_func(mass, phi_lf, dn_dlnM_zmedian)
