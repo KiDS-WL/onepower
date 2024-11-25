@@ -1,0 +1,299 @@
+name: hod_interface
+version: Nov2024
+purpose: "Calculates halo occupation distribution for central and satellite galaxies based on conditional observable functions"
+url: ""
+interface: halo_model_ingredients_halomod.py
+attribution: [Andrej Dvornik, Marika Asgari, Maria-Cristina Fortuna]
+rules:
+    "If you use this module then please cite the papers below"
+cite:
+    - ""
+
+assumptions:
+    - ""
+
+explanation: |
+   To model the distribution of galaxies within the halo model we need to define the halo occupation distribution (HOD)
+   that tells us how galaxies are distributed within dark matter haloes. Here we use the HOD conditional on a galaxy 
+   observable such as luminosity or stellar mass function. The formalism was first proposed by Yang et al. (2008), 
+   also see Cacciato et al. (2013, application to SDSS). The halo occupation distribution predicts the number of galaxies 
+   that populate a halo of mass M:
+
+   N_gal(M) = N_cen(M) + N_sat(M),
+
+   where the galaxies are divided into centrals and satellites. 
+   The prediction depends on the number of galaxies with the given observable, O, 
+   in an observable bin, [O-Delta_O/2, O+Delta_O/2] 
+   given their halo mass, M: \Phi_x(O|M)
+   The number of galaxies is then given by
+
+   N_x(M,z) = \int \Phi_x(O|M) n(M,z) dO
+
+   where x=cen,sat.
+   The conditional observable function provide a distribution for the galaxies populating a halo of mass M. 
+   For centrals this is a lognormal distribution, with a mean that is a function of halo mass and is described by a double power law.  
+   For satellites this is a generalised Schechter function with two free powers. 
+   M_char is the characteristic halo mass that divides the two regimes of the double powerlaw.
+   Obs_norm_c is the normalisation factor for central galaxies
+
+  List of parameters that can go in the params.ini file in the section for this module    
+params:
+      hod_section_name:
+          meaning: output section name for the hod
+          type: str
+          default: 
+      values_name:
+          meaning: where to read the values of parameters in the value.ini
+          type: str
+          default: hod_parameters
+      observable_section_name:
+          meaning: output section name for the observable related quantities.
+          type: str
+          default: stellar_mass_function
+      nobs:
+          meaning: Number of observable bins within each observable-redshift bin 
+                  for calculating variables in terms of the observables. Use at least 100
+                  to avoid numerical issue when integrating.
+          type: int
+          default: 200
+      do_galaxy_linear_bias:
+          meaning: If true outputs estimates of the linear bias for the HOD 
+          type: bool
+          default: False
+      save_observable:
+          meaning: If true outputs estimates of the linear bias for the HOD 
+          type: bool
+          default: True
+      observable_mode:
+          meaning: "calculate the observable function for each redshift: obs_z, or on the median redshift: obs_zmed or 
+                    for one broad z-bin: obs_onebin"
+          type: str
+          default: obs_z
+      z_median:
+          meaning: This is the median redshift for calculating the observable. Only used if observable_mode=obs_zmed. 
+          type: real
+          default: 0.1
+      observable_h_unit:
+          meaning: units of h for the observable, valid_units are 1/h and 1/h^2
+          type: str
+          default: 1/h^2
+      observables_file:
+          meaning: "(optional) text file containing the observable values, should contain 3 columns: z_bins, obs_min, obs_max"
+          type: str
+          default: 
+      mass_lim:
+          meaning: (optional) if observables_file not given, then look for a file that contains the minimum observables
+          type: str
+          default: 
+      mass_lim_low:
+          meaning: (optional) if observables_file not given, then look for a file that contains the maximum observables
+          type: str
+          default:
+      zmin:
+          meaning: (optional) if observables_file not given, but we use the observable files then look for a scalar zmin.
+                  if no observable files are given, look for the minimum values for the redshift of each observable bin. 
+                  zmin should have the same number of values as obs_min and obs_max. 
+                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+          type: real or real 1D
+          default:
+      zmax:
+          meaning: (optional) if observables_file not given, but we use the observable files then look for a scalar zmax.
+                  If no observable files are given, look for the maximum values for the redshift of each observable bin. 
+                  zmax should have the same number of values as obs_min and obs_max. 
+                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+          type: real or real 1D
+          default:
+      nz:
+          meaning: (optional) if observables_file not given, then look for nz, with zmin and zmax make the number of redshift bins
+                    for which the observable is caluclated at. If we have bin edges defined the nz is the number of redshift bins in 
+                    each redshift-observable box.
+          type: integer
+          default:
+      obs_min:
+          meaning: (optional) if no observable files are given, look for the minimum values for observables. 
+                  If using multiple bins for the observable then provide the minimum value for each bin. 
+                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+          type: real 1D
+          default: 
+      obs_max:
+          meaning: (optional) if no observable files are given, look for the maximum values for observables. 
+                  If using multiple bins for the observable then provide the maximum value for each bin. 
+                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+          type: real 1D
+          default:
+inputs:
+    values_name:
+        log10_obs_norm_c: 
+            meaning: the normalisation for the central observable in log10(M_sun h^-2)
+            type: real
+        log10_M_ch:
+            meaning:  Characteristic halo mass for the central observable in log10(M_sun h^-2) 
+            type: real
+        g1:
+            meaning:  gamma_1 the power for M_halo<<M_ch that determines the mean observable value for centrals
+            type: real
+        g2:
+            meaning:  gamma_2 the power for M_halo>>M_ch that determines the mean observable value for centrals
+            type: real
+        sigma_log10_O_c:
+            meaning: the variance of log10 observable for central galaxies. 
+              This can in principle depend on halo mass but here we assume that it doesn't.
+            type: real
+        A_cen:
+            meaning: (optional) Assembly bias parameter, should be between -1 and 1. 
+                    This parameterisation is based on arXiv:1512.03050, Hearin+ 2016
+                    A_cen * np.fmin(n_cen, 1.0-n_cen)
+            type: real
+        norm_s:
+            meaning: Normalisation of the conditional observable function for satellites 
+            type: real
+        alpha_s: 
+            meaning: of the conditional observable function for satellites 
+            type: real
+        beta_s:
+            meaning: of the conditional observable function for satellites 
+            type: real
+        pivot:
+            meaning: log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+            type: real
+        b0:
+            meaning: log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+            type: real
+        b1:
+            meaning: log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+            type: real
+        b2:
+            meaning: log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+            type: real
+        A_sat:
+            meaning: (optional) Assembly bias parameter, should be between -1 and 1. 
+                    This parameterisation is based on arXiv:1512.03050, Hearin+ 2016
+                    delta_pop_s = A_sat * n_sat
+                    n_sat = n_sat + delta_pop_s
+            type: real
+    hmf:
+        dndlnmh:
+          meaning: The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
+            dn(m)/ dln m eq1 of 1306.6721
+          type: real 1D
+        m_h:
+          meaning: Halo masses in M_sun h^-1
+          type: real 1D
+        z:
+          meaning: redshift
+          type: real 1D
+    cosmological_parameters:
+        h0:
+          meaning: Hubble parameter at z=0
+          type: real
+    halobias:
+        b_hb:
+          meaning: 
+          type: real 1D
+        z:
+          meaning: 
+          type: real 1D
+    
+outputs:
+    hod_section_name:
+        nbins:
+          meaning: number of observable-redshift bins
+          type: int 
+        observables_z:
+          meaning: If true it means that the observables are read from a file otherwise they are not
+          type: bool
+        m_h:
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+            type: real 1D
+        z{_i}:
+            meaning: 
+            type: real 1D
+        mass{_i}:
+            meaning: 
+            type: real 1D
+        n_sat{_i}:
+            meaning: 
+            type: real 2D
+        n_cen{_i}:
+            meaning: 
+            type: real 2D
+        n_tot{_i}:
+            meaning: 
+            type: real 2D
+        f_star{_i}:
+            meaning: 
+            type: real 2D
+        number_density_cen{_i}:
+            meaning: 
+            type: real 1D
+        number_density_sat{_i}:
+            meaning: 
+            type: real 1D
+        number_density_tot{_i}:
+            meaning: 
+            type: real 1D
+        central_fraction{_i}:
+            meaning: 
+            type: real 1D
+        satellite_fraction{_i}:
+            meaning: 
+            type: real 1D
+        average_halo_mass{_i}:
+            meaning: 
+            type: real 1D
+        number_density_cen{_i}:
+            meaning: 
+            type: real 1D
+        number_density_cen{_i}:
+            meaning: 
+            type: real 1D
+        galaxy_bias_centrals{_i}:
+            meaning: 
+            type: real 1D
+        galaxy_bias_satellites{_i}:
+            meaning: 
+            type: real 1D
+        b:
+            meaning: Total galaxy bias versus z
+            type: real 1D
+        z_extended:
+            meaning:
+            type: real 1D
+        mass_extended:
+            meaning:
+            type: real 1D
+        f_star_extended:
+            meaning:
+            type: real 2D
+    observable_section_name:
+        z_bin{_i}:
+            meaning: 
+            type: real 1D
+        obs_val{_i}:
+            meaning: 
+            type: real 1D
+        obs_func{_i}:
+            meaning: 
+            type: real 2D
+        observable_mode:
+            meaning: 
+            type: 
+        obs_val_med:
+            meaning: 
+            type:
+        obs_func_med:
+            meaning: 
+            type:
+        halo_mass_med:
+            meaning: 
+            type:
+        mean_obs_halo_mass_relation:
+            meaning: 
+            type:
+
+        
+
+
+
+
+
