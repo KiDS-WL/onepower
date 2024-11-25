@@ -1,0 +1,310 @@
+name: pk_interface
+version: Nov2024
+purpose: "Calculates power spectra using halo model. "
+url: ""
+interface: pk_interface.py
+attribution: [Andrej Dvornik, Marika Asgari, Maria-Cristina Fortuna]
+rules:
+    "If you use this module then please cite the papers below"
+cite:
+    - ""
+
+assumptions:
+    - ""
+
+explanation: |
+  Calculates 3D power spectra using the halo model approach: 
+  See section 2 of https://arxiv.org/pdf/2303.08752.pdf for details
+
+  P_uv = P^2h_uv + P^1h_uv  (1)
+  P^1h_uv (k) = int_0^infty dM Wu(M, k) Wv(M, k) n(M)  (2)
+  P^2h_uv (k) = int_0^infty int_0^infty dM1 dM2 Phh(M1, M2, k) Wu(M1, k) Wv(M2, k) n(M1) n(M2)  (3)
+
+  Wx are the profile of the fields, u and v, showing how they fit into haloes. 
+  n(M) is the halo mass function, quantifying the number of haloes of each mass, M.
+  Integrals are taken over halo mass. 
+
+  The halo-halo power spectrum can be written as,
+  Phh(M1,M2,k) = b(M1) b(M2) P^lin_mm(k) (1 + beta_nl(M1,M2,k)) (4)
+
+  In the vanilla halo model the 2-halo term is usually simplified by assuming that haloes are linearly biased with respect to matter.
+  This sets beta_nl to zero and effectively decouples the integrals in (3). Here we allow for both options to be calculated. 
+  If you want the option with beta_nl the beta_nl modules has to be run before this module. 
+
+  We truncate the 1-halo term so that it doesn't dominate at large scales.
+
+  Linear matter power spectrum needs to be provided as well. The halo_model_ingredients and hod modules (for everything but mm) 
+  need to be run before this. 
+
+  Current power spectra that we predict are 
+  mm: matter-matter
+  gg: galaxy-galaxy
+  gm: galaxy-matter
+
+  II: intrinsic-intrinsic alignments
+  gI: galaxy-intrinsic alignment
+  mI: matter-intrinsic alignment
+
+  List of parameters that can go in the params.ini file in the section for this module    
+params:
+      p_mm:
+          meaning: if True calculates matter-matter power spectrum.
+          type: bool
+          default: False
+      p_mg:
+          meaning: if True calculates matter-galaxy power spectrum.
+          type: bool
+          default: False
+      p_gg:
+          meaning: if True calculates galaxy-galaxy power spectrum.
+          type: bool
+          default: False
+      p_II:
+          meaning: if True calculates intrinsic-intrinsic power spectrum.
+          type: bool
+          default: False
+      p_mI:
+          meaning: if True calculates matter-intrinsic power spectrum.
+          type: bool
+          default: False
+      p_gI:
+          meaning: if True calculates galaxy-intrinsic power spectrum.
+          type: bool
+          default: False
+      fortuna:
+          meaning: if True any p_*I calculated will use the Fortuna et al. 2021 methodology. 
+                  If you want the non-linear matter power spectrum not to be calculated using halo model,
+                  use camb before this module.
+          type: bool
+          default: False
+      bnl:
+          meaning: if True uses the beyond linear halo bias formalism of Mead & Verde 2020. 
+                  If fortuna is True this is not used for p_*I.
+          type: bool
+          default: False
+      point_mass:
+          meaning: 
+          type: bool
+          default: False
+      dewiggle:
+          meaning: 
+          type: bool
+          default: False
+      poisson_type:
+          meaning: Choose from scalar and power_law.
+          type: str
+          default: ''
+      one_halo_ktrunc_ia:
+          meaning: This is the k (h/Mpc) scale used to truncate the 1-halo term to avoid the halo exclusion problem. 
+                  Only use for p_*I. If set to None, no truncation is applied.
+          type: real or None
+          default: 4.0
+      two_halo_ktrunc_ia:
+          meaning: This is the k (h/Mpc) scale used to truncate the NLA 2-halo term at small scales 
+                to avoid double-counting of the 1-halo term. Only use for p_*I and if fortuna is True.
+                If set to None, no truncation is applied.
+          type: real or None
+          default: 6.0
+      one_halo_ktrunc:
+          meaning: This is the k (h/Mpc) scale used to truncate the 1-halo at very large scales. 
+                  If set to None, no truncation is applied.
+          type: real or None
+          default: 0.1
+      two_halo_ktrunc:
+          meaning: This is the k (h/Mpc) scale used to truncate the 2-halo at smaller scales. 
+                  If set to None, no truncation is applied.
+          type: real or None
+          default: 2.0
+      hod_section_name:
+          meaning: Section name for hod parameters. This should match the section name for an hod module that is run before this module.
+          type: str
+          default: 
+      population_name:
+          meaning:  
+          type: str
+          default: ''
+      check_mead:
+          meaning: If true outputs estimates of the linear bias for the HOD 
+          type: str
+          default: 
+inputs:
+    hmf:
+        dndlnmh:
+          meaning: The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
+            dn(m)/ dln m eq1 of 1306.6721
+          type: real 1D
+        m_h:
+          meaning: Halo masses in M_sun h^-1
+          type: real 1D
+        z:
+          meaning: redshift
+          type: real 1D
+        sigma8_z:
+          meaning: 
+          type: real 1D
+        neff:
+          meaning: 
+          type: real 1D
+    halobias:
+        b_hb:
+          meaning: 
+          type: real 1D
+        m_h:
+          meaning: Halo masses in M_sun h^-1
+          type: real 1D
+        z:
+          meaning: 
+          type: real 1D
+    fourier_nfw_profile:
+
+
+    matter_power_lin:
+
+    growth_parameters:
+
+    bnl:
+        beta_interp:
+          meaning: 
+          type: real nD
+    density:
+
+    cosmological_parameters:
+        fnu:
+          meaning: 
+          type: real
+        omega_c:
+          meaning: 
+          type: real
+        omega_m:
+          meaning: 
+          type: real
+        omega_b:
+          meaning: 
+          type: real
+    halo_model_parameters:
+        logT_AGN:
+          meaning: 
+          type: real
+        m_b:
+          meaning: 
+          type: real
+    hod_section_name:
+        nbins:
+          meaning: number of observable-redshift bins
+          type: int
+        mass{_i}: 
+          meaning: 
+          type: real 1D
+        
+    z_hod    = block[section_name, f'z{suffix}']
+    Ncen_hod = block[section_name, f'n_cen{suffix}']
+    Nsat_hod = block[section_name, f'n_sat{suffix}']
+    numdencen_hod = block[section_name, f'number_density_cen{suffix}']
+    numdensat_hod = block[section_name, f'number_density_sat{suffix}']
+    f_c_hod = block[section_name, f'central_fraction{suffix}']
+    f_s_hod = block[section_name, f'satellite_fraction{suffix}']
+    mass_avg_hod = block[section_name, f'average_halo_mass{suffix}']  
+    
+outputs:
+    hod_section_name:
+        nbins:
+          meaning: number of observable-redshift bins
+          type: int 
+        observables_z:
+          meaning: If true it means that the observables are read from a file otherwise they are not
+          type: bool
+        m_h:
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+            type: real 1D
+        z{_i}:
+            meaning: 
+            type: real 1D
+        mass{_i}:
+            meaning: 
+            type: real 1D
+        n_sat{_i}:
+            meaning: 
+            type: real 2D
+        n_cen{_i}:
+            meaning: 
+            type: real 2D
+        n_tot{_i}:
+            meaning: 
+            type: real 2D
+        f_star{_i}:
+            meaning: 
+            type: real 2D
+        number_density_cen{_i}:
+            meaning: 
+            type: real 1D
+        number_density_sat{_i}:
+            meaning: 
+            type: real 1D
+        number_density_tot{_i}:
+            meaning: 
+            type: real 1D
+        central_fraction{_i}:
+            meaning: 
+            type: real 1D
+        satellite_fraction{_i}:
+            meaning: 
+            type: real 1D
+        average_halo_mass{_i}:
+            meaning: 
+            type: real 1D
+        number_density_cen{_i}:
+            meaning: 
+            type: real 1D
+        number_density_cen{_i}:
+            meaning: 
+            type: real 1D
+        galaxy_bias_centrals{_i}:
+            meaning: 
+            type: real 1D
+        galaxy_bias_satellites{_i}:
+            meaning: 
+            type: real 1D
+        b:
+            meaning: Total galaxy bias versus z
+            type: real 1D
+        z_extended:
+            meaning:
+            type: real 1D
+        mass_extended:
+            meaning:
+            type: real 1D
+        f_star_extended:
+            meaning:
+            type: real 2D
+    observable_section_name:
+        z_bin{_i}:
+            meaning: 
+            type: real 1D
+        obs_val{_i}:
+            meaning: 
+            type: real 1D
+        obs_func{_i}:
+            meaning: 
+            type: real 2D
+        observable_mode:
+            meaning: 
+            type: 
+        obs_val_med:
+            meaning: 
+            type:
+        obs_func_med:
+            meaning: 
+            type:
+        halo_mass_med:
+            meaning: 
+            type:
+        mean_obs_halo_mass_relation:
+            meaning: 
+            type:
+
+        
+
+
+
+
+
