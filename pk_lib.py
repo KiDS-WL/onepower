@@ -961,7 +961,7 @@ def compute_two_halo_alignment(alignment_gi, suffix, growth_factor, mean_density
     """
     
     # linear alignment coefficients
-    C1 = 5.e-14
+    C1 = 5e-14
     # load the 2h (effective) amplitude of the alignment signal from the data block. 
     # This already includes the luminosity dependence if set. Double array [nz].
     # alignment_gi = block[f'ia_large_scale_alignment{suffix}', 'alignment_gi']
@@ -1133,10 +1133,10 @@ def compute_p_gg(k_vec, pk_lin, mass, dn_dln_m, central_profile,
     pk_2h = pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
     pk_tot = pk_1h + pk_2h
 
+    # TODO: check this
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
     # changed this to have the poisson parameter included
-    # return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
     return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
 
 
@@ -1178,7 +1178,8 @@ def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
 # TODO: combine these two together
 # TODO: should'nt the poisson parameter come into here as well?
 # AD: No, no poisson parameter here, it only enters the 1-halo s-s term.
-def compute_p_gm(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profile, matter_profile, I_c_term, I_s_term, I_m_term, one_halo_ktrunc, two_halo_ktrunc):
+def compute_p_gm(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profile, 
+                 matter_profile, I_c_term, I_s_term, I_m_term, one_halo_ktrunc, two_halo_ktrunc):
     """
     p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
     """
@@ -1315,7 +1316,8 @@ def compute_p_II_fortuna(k_vec, p_eff, mass, dn_dln_m, s_align_factor,
 
 
 # Needs Poisson parameter as well!
-def compute_p_II(k_vec, p_lin, mass, dn_dln_m, s_align_factor, I_c_align_term, I_s_align_term, one_halo_ktrunc, two_halo_ktrunc):
+def compute_p_II(k_vec, p_lin, mass, dn_dln_m, s_align_factor, 
+                 I_c_align_term, I_s_align_term, one_halo_ktrunc, two_halo_ktrunc):
     """
     p_tot = p_ss_II_1h + p_cc_II_2h + O(p_sc_II_1h) + O(p_cs_II_2h)
     """
@@ -1374,7 +1376,8 @@ def compute_p_gI_fortuna(k_vec, p_eff, mass, dn_dln_m, central_profile,
     
     return pk_cs_1h, pk_cc_2h, pk_tot
 
-def compute_p_gI(k_vec, p_lin, mass, dn_dln_m, central_profile, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, one_halo_ktrunc, two_halo_ktrunc):
+def compute_p_gI(k_vec, p_lin, mass, dn_dln_m, central_profile, s_align_factor, 
+                 I_c_term, I_c_align_term, I_s_align_term, one_halo_ktrunc, two_halo_ktrunc):
     """
     p_tot = p_cs_gI_1h + (2?)*p_cc_gI_2h + O(p_ss_gI_1h) + O(p_cs_gI_2h)
     """

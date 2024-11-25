@@ -195,112 +195,183 @@ inputs:
         mass{_i}: 
           meaning: 
           type: real 1D
-        
-    z_hod    = block[section_name, f'z{suffix}']
-    Ncen_hod = block[section_name, f'n_cen{suffix}']
-    Nsat_hod = block[section_name, f'n_sat{suffix}']
-    numdencen_hod = block[section_name, f'number_density_cen{suffix}']
-    numdensat_hod = block[section_name, f'number_density_sat{suffix}']
-    f_c_hod = block[section_name, f'central_fraction{suffix}']
-    f_s_hod = block[section_name, f'satellite_fraction{suffix}']
-    mass_avg_hod = block[section_name, f'average_halo_mass{suffix}']  
+           z_hod    = block[section_name, f'z{suffix}']
+            Ncen_hod = block[section_name, f'n_cen{suffix}']
+            Nsat_hod = block[section_name, f'n_sat{suffix}']
+            numdencen_hod = block[section_name, f'number_density_cen{suffix}']
+            numdensat_hod = block[section_name, f'number_density_sat{suffix}']
+            f_c_hod = block[section_name, f'central_fraction{suffix}']
+            f_s_hod = block[section_name, f'satellite_fraction{suffix}']
+            mass_avg_hod = block[section_name, f'average_halo_mass{suffix}']  
     
+    ia_large_scale_alignment{_i}:
+        alignment_gi:
+          meaning: 
+          type: 
+    wkm:
+        w_km_{jz}{_i}:
+          meaning: 
+          type: 
+        k_h_{jz}{_i}:
+          meaning: 
+          type: 
+        mass_{jz}{_i}:
+          meaning: 
+          type: 
+    ia_small_scale_alignment{pop_name}:
+        instance:
+          meaning: 
+          type: str
+        beta_sat:
+          meaning: 
+          type: 
+        M_pivot:
+          meaning: 
+          type: 
+    ia_large_scale_alignment{pop_name}:
+        instance:
+          meaning: 
+          type: str
+        beta_sat:
+          meaning: 
+          type: 
+        M_pivot:
+          meaning: 
+          type: 
+    pk_parameters:
+        poisson:
+          meaning: 
+          type: real
+        M_0:
+          meaning: 
+          type: real
+        slope:
+          meaning: 
+          type: real
+        linear_fraction_fortuna:
+          meaning: if linear_fraction_fortuna is t_eff then pk_eff = (1.-t_eff)*pnl + t_eff*plin
+          type: real
 outputs:
-    hod_section_name:
-        nbins:
-          meaning: number of observable-redshift bins
-          type: int 
-        observables_z:
-          meaning: If true it means that the observables are read from a file otherwise they are not
-          type: bool
-        m_h:
-            meaning: halo masses for which c is calculated, in M_sun h^-1
-            type: real 1D
-        z{_i}:
-            meaning: 
-            type: real 1D
-        mass{_i}:
-            meaning: 
-            type: real 1D
-        n_sat{_i}:
-            meaning: 
-            type: real 2D
-        n_cen{_i}:
-            meaning: 
-            type: real 2D
-        n_tot{_i}:
-            meaning: 
-            type: real 2D
-        f_star{_i}:
-            meaning: 
-            type: real 2D
-        number_density_cen{_i}:
-            meaning: 
-            type: real 1D
-        number_density_sat{_i}:
-            meaning: 
-            type: real 1D
-        number_density_tot{_i}:
-            meaning: 
-            type: real 1D
-        central_fraction{_i}:
-            meaning: 
-            type: real 1D
-        satellite_fraction{_i}:
-            meaning: 
-            type: real 1D
-        average_halo_mass{_i}:
-            meaning: 
-            type: real 1D
-        number_density_cen{_i}:
-            meaning: 
-            type: real 1D
-        number_density_cen{_i}:
-            meaning: 
-            type: real 1D
-        galaxy_bias_centrals{_i}:
-            meaning: 
-            type: real 1D
-        galaxy_bias_satellites{_i}:
-            meaning: 
-            type: real 1D
-        b:
-            meaning: Total galaxy bias versus z
-            type: real 1D
-        z_extended:
-            meaning:
-            type: real 1D
-        mass_extended:
-            meaning:
-            type: real 1D
-        f_star_extended:
-            meaning:
-            type: real 2D
-    observable_section_name:
-        z_bin{_i}:
-            meaning: 
-            type: real 1D
-        obs_val{_i}:
-            meaning: 
-            type: real 1D
-        obs_func{_i}:
-            meaning: 
-            type: real 2D
-        observable_mode:
-            meaning: 
-            type: 
-        obs_val_med:
-            meaning: 
-            type:
-        obs_func_med:
-            meaning: 
-            type:
-        halo_mass_med:
-            meaning: 
-            type:
-        mean_obs_halo_mass_relation:
-            meaning: 
-            type:
+    matter_power_nl:
+        p_k_1h:
+          meaning: 
+          type: real 2D
+        p_k_2h:
+          meaning: 
+          type: real 2D
+        p_k:
+          meaning: 
+          type: real 2D
+        k_h:
+          meaning: 
+          type: real 1D
+        z:
+          meaning: 
+          type: real 1D
+    galaxy_power{_i}:
+        p_k_1h:
+          meaning: 
+          type: real 2D
+        p_k_2h:
+          meaning: 
+          type: real 2D
+        p_k:
+          meaning: 
+          type: real 2D
+        k_h:
+          meaning: 
+          type: real 1D
+        z:
+          meaning: 
+          type: real 1D
+    matter_galaxy_power{_i}:
+        p_k_1h:
+          meaning: 
+          type: real 2D
+        p_k_2h:
+          meaning: 
+          type: real 2D
+        p_k:
+          meaning: 
+          type: real 2D
+        k_h:
+          meaning: 
+          type: real 1D
+        z:
+          meaning: 
+          type: real 1D
+    galaxy_linear_bias{_i}:
+        bg_linear:
+          meaning: 
+          type: 
+        k_h:
+          meaning: 
+          type: real 1D
+        z:
+          meaning: 
+          type: real 1D
+    galaxy_matter_linear_bias{_i}:
+        bgm_linear:
+          meaning: 
+          type: 
+        k_h:
+          meaning: 
+          type: real 1D
+        z:
+          meaning: 
+          type: real 1D
+    intrinsic_power{_i}:
+        p_k_1h:
+          meaning: 
+          type: real 2D
+        p_k_2h:
+          meaning: 
+          type: real 2D
+        p_k:
+          meaning: 
+          type: real 2D
+        k_h:
+          meaning: 
+          type: real 1D
+        z:
+          meaning: 
+          type: real 1D
+    galaxy_intrinsic_power{_i}:
+        p_k_1h:
+          meaning: 
+          type: real 2D
+        p_k_2h:
+          meaning: 
+          type: real 2D
+        p_k:
+          meaning: 
+          type: real 2D
+        k_h:
+          meaning: 
+          type: real 1D
+        z:
+          meaning: 
+          type: real 1D
+    matter_intrinsic_power{_i}:
+        p_k_1h:
+          meaning: 
+          type: real 2D
+        p_k_2h:
+          meaning: 
+          type: real 2D
+        p_k:
+          meaning: 
+          type: real 2D
+        k_h:
+          meaning: 
+          type: real 1D
+        z:
+          meaning: 
+          type: real 1D
+        
+
+
+    
 
         
 

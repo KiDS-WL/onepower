@@ -272,7 +272,6 @@ def execute(block, config):
                                                                         one_halo_ktrunc, two_halo_ktrunc)
             block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h)
             block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h)
-            # block.put_grid('matter_power', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
             block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
     # end of matter
     ##############################################################################################################
@@ -288,7 +287,8 @@ def execute(block, config):
                 suffix = f'{pop_name}'
                 suffix_hod = ''
                 
-            Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg, fstar = pk_lib.load_hods(block, hod_section_name, suffix_hod, z_vec, mass)
+            Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg, fstar = pk_lib.load_hods(block, 
+                                                                            hod_section_name, suffix_hod, z_vec, mass)
         
             # setup for galaxy correlations
             if galaxy == True:
@@ -403,34 +403,34 @@ def execute(block, config):
                                         Choose from scalar and power_law or the default value to avoid using this parameter.')
                
                 if bnl: # If bnl is True use the beyond linear halo bias formalism
-                    pk_gg_1h, pk_gg_2h, pk_gg, bg_halo_model = pk_lib.compute_p_gg_bnl(k_vec, plin, 
+                    pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = pk_lib.compute_p_gg_bnl(k_vec, plin, 
                         mass, dn_dlnm, profile_c, profile_s, I_c, I_s, I_NL_cs, I_NL_cc, I_NL_ss, 
                         mass_avg, poisson_par, one_halo_ktrunc)
                 else: # If bnl is not ture then just use linear halo bias
-                    pk_gg_1h, pk_gg_2h, pk_gg, bg_halo_model = pk_lib.compute_p_gg(k_vec, plin, 
+                    pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = pk_lib.compute_p_gg(k_vec, plin, 
                         mass, dn_dlnm, profile_c, profile_s, I_c, I_s, mass_avg, 
                         poisson_par, one_halo_ktrunc, two_halo_ktrunc)
                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h)
                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h)
                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg)
-                block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'galaxybiastotal', bg_halo_model)
+                block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear)
             # end of p_gg
             if p_gm:
                 if bnl:  # If bnl is True use the beyond linear halo bias formalism
-                    pk_1h, pk_2h, pk_tot, galaxy_matter_linear_bias = pk_lib.compute_p_gm_bnl(k_vec, plin, 
+                    pk_1h, pk_2h, pk_tot, bgm_linear = pk_lib.compute_p_gm_bnl(k_vec, plin, 
                         mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c, I_s, I_m, 
                         I_NL_cm, I_NL_sm, one_halo_ktrunc)
                 else: # If bnl is not ture then just use linear halo bias
-                    pk_1h, pk_2h, pk_tot, galaxy_matter_linear_bias = pk_lib.compute_p_gm(k_vec, plin, 
+                    pk_1h, pk_2h, pk_tot, bgm_linear = pk_lib.compute_p_gm(k_vec, plin, 
                         mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c, I_s, I_m, 
                         one_halo_ktrunc, two_halo_ktrunc)
                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h)
                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
                 block.put_grid(f'galaxy_matter_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 
-                               'galaxy_matter_linear_bias', galaxy_matter_linear_bias)
+                               'bgm_linear', bgm_linear)
             # end of p_gm
-    
+    ########################################################################################################################
             # Intrinsic aligment power spectra (full halo model calculation)
             if fortuna:
                 # Only used in Fortuna et al. 2021 implementation of IA power spectra
