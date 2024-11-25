@@ -237,7 +237,7 @@ def execute(block, config):
     if any(option == 'extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
 
         hod_bins_extrap = block[hod_section_name_extrap, 'nbins']
-        observables_z = block[hod_section_name_extrap, 'option']
+        observables_z = block[hod_section_name_extrap, 'observable_z']
         
         if observables_z == True:
             extrapolate_option = 'extrapolate'
