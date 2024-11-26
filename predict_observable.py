@@ -57,7 +57,7 @@ def setup(options):
     config['n_obs'] = np.asarray([options[option_section, 'n_obs']]).flatten()
     config['edges'] = options.get_bool(option_section, 'edges', default=False)
 
-    # Check if the legth of obs_min, obs_max, n_obs match
+    # Check if the length of obs_min, obs_max, n_obs match
     if not np.all(np.array([len(config['obs_min']), len(config['obs_max']), len(config['n_obs'])]) == len(config['suffixes'])):
         raise Exception('Error: obs_min, obs_max, n_obs need to be of same length as the number of suffixes provided or equal to one.')
 

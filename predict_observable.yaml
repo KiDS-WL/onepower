@@ -1,0 +1,93 @@
+name: predict_observable
+version: Nov2024
+purpose: "Calculates halo occupation distribution for central and satellite galaxies based on conditional observable functions"
+url: ""
+interface: predict_observable.py
+attribution: [Andrej Dvornik, Marika Asgari, Maria-Cristina Fortuna]
+rules:
+    "If you use this module then please cite the papers below"
+cite:
+    - ""
+
+assumptions:
+    - ""
+
+explanation: |
+  This module combines tomographic / stellar mass bins of the individually calculated observables
+  It produces the theoretical prediction for the observable for the full survey. 
+  The number of bins and the mass range can be different to what is calculated in the hod_interface.py module.
+
+  List of parameters that can go in the params.ini file in the section for this module    
+params:
+    input_section_name:
+        meaning: Input section name to get the observable values from
+        type: str
+        default: stellar_mass_function
+    output_section_name:
+        meaning: Output section name to save the observable values to
+        type: str
+        default: obs_out
+    suffixes:
+        meaning: (optional) if given read from input. Otherwise set ot median.
+        type: int 1D or str 
+        default: med
+    sample:
+        meaning: (optional) if suffixes are given
+        type: str
+        default: 
+    obs_min:
+        meaning: minimum value{s} for the observable
+        type: real
+        default: 
+    obs_max:
+        meaning: maximum value{s} for the observable
+        type: real
+        default: 
+    n_obs:
+        meaning: 
+        type: int
+        default: 
+    edges:
+        meaning: 
+        type: bool
+        default: False
+inputs:
+    input_section_name:
+        obs_val_{i}:
+            meaning: 
+            type: 
+        z_bin_{i}:
+            meaning: 
+            type: 
+        obs_func_{i}:
+            meaning: 
+            type: 
+    sample:
+        z:
+          meaning: 
+          type: 
+        bin_{i}:
+          meaning: 
+          type: 
+outputs:
+    output_section_name:
+        bin_{i}:
+          meaning: 
+          type: 
+        obs_{i}:
+          meaning: 
+          type: 
+        nbin:
+          meaning: 
+          type: 
+        sep_name:
+          meaning: 
+          type: 
+        save_name:
+          meaning: 
+          type: 
+        sample:
+          meaning: 
+          type: 
+        
+
