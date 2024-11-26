@@ -793,7 +793,7 @@ def compute_I_NL_term(W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z
     return I_NL
 
 
-def I_NL(mass_1, mass_2, factor_1, factor_2, bias_1, bias_2, 
+def I_NL(mass_1, mass_2, factor_1, factor_2, bias_1, bias_2,
          dn_dlnm_1, dn_dlnm_2, A, rho_mean, beta_interp=None):
     I_NL = compute_I_NL_term(factor_1, factor_2, bias_1, bias_2, mass_1, mass_2, dn_dlnm_1, dn_dlnm_2, A, rho_mean, beta_interp)
     return I_NL
