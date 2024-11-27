@@ -9,31 +9,44 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.integrate import simps
 
-
-def load_and_extrapolate_obs(block, obs_section, suffix_in, x_ext, extrapolate_option):
-
-    x_obs = block[obs_section, f'obs_val_{suffix_in}']
+# z_obs, obs_ext = load_and_interpolate_obs(block, input_section_name, suffixes[i], obs_arr[i], 0.0)
+def load_and_interpolate_obs(block, obs_section, suffix_in, obs, extrapolate_option=0.0):
+    """
+    Loads the observable, e.g. stellar mass, the observable function, e.g. stellar mass function,
+    and the redshift bins for the observable. Interpolates the observable function for the obs values 
+    that are given.
+    """
+    # load observable values from observable section name, suffix_in is either med for median
+    #  or a number showing the observable-redshift bin index
+    obs_in = block[obs_section, f'obs_val_{suffix_in}']
+    obs_func_in = block[obs_section, f'obs_func_{suffix_in}']
+    # If there are any observable-redshift bins in the observable section:
+    # If there are no bins z_bin_{suffix_in} does not exist
     if block.has_value(obs_section, f'z_bin_{suffix_in}'):
         z_obs = block[obs_section, f'z_bin_{suffix_in}']
-        obs_in = block[obs_section, f'obs_func_{suffix_in}']
-        inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=1)
-        obs_ext = inter_func(x_ext)
+        print('in if',obs_func_in.shape)
+        obs_func_interp = interp1d(obs_in, obs_func_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=1)
     else:
-        obs_in = block[obs_section, f'obs_func_{suffix_in}']
-        inter_func = interp1d(x_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
-        obs_ext = inter_func(x_ext)
         z_obs = None
-    
-    return z_obs, obs_ext
+        print('in else',obs_func_in.shape)
+        obs_func_interp = interp1d(obs_in, obs_func_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
+    obs_func = obs_func_interp(obs)
 
-def load_kernel(block, kernel_section, bin, z_ext, extrapolate_option):
+    return z_obs, obs_func
 
-    z_obs = block[kernel_section, 'z']
-    obs_in = block[kernel_section, f'bin_{bin}']
-    inter_func = interp1d(z_obs, obs_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
-    kernel_ext = inter_func(z_ext)
+def load_redshift(block, redshift_section, bin, z, extrapolate_option=0.0):
+    """
+    Loads the redshift distribution in the redshift section. 
+    Note: This should match the redshift distribution of the observable sample.
+    Then interpolates the redshift distribution for z.
+    This is only used if we are not in med (median) mode. 
+    """
+    z_in  = block[redshift_section, 'z']
+    nz_in = block[redshift_section, f'bin_{bin}']
+    nz_interp = interp1d(z_in, nz_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
+    nz = nz_interp(z)
 
-    return kernel_ext
+    return nz
 
 def setup(options):
 	
@@ -52,24 +65,27 @@ def setup(options):
         config['sample']   = None
         config['suffixes'] = ['med']
         
-    config['obs_min'] = np.asarray([options[option_section, 'obs_min']]).flatten()
-    config['obs_max'] = np.asarray([options[option_section, 'obs_max']]).flatten()
+    config['log10_obs_min'] = np.asarray([options[option_section, 'log10_obs_min']]).flatten()
+    config['log10_obs_max'] = np.asarray([options[option_section, 'log10_obs_max']]).flatten()
     config['n_obs'] = np.asarray([options[option_section, 'n_obs']]).flatten()
     config['edges'] = options.get_bool(option_section, 'edges', default=False)
 
-    # Check if the length of obs_min, obs_max, n_obs match
-    if not np.all(np.array([len(config['obs_min']), len(config['obs_max']), len(config['n_obs'])]) == len(config['suffixes'])):
-        raise Exception('Error: obs_min, obs_max, n_obs need to be of same length as the number of suffixes provided or equal to one.')
+    # Check if the length of log10_obs_min, log10_obs_max, n_obs match
+    if not np.all(np.array([len(config['log10_obs_min']), len(config['log10_obs_max']), len(config['n_obs'])]) == len(config['suffixes'])):
+        raise Exception('Error: log10_obs_min, log10_obs_max, n_obs need to be of same length as \
+                         the number of suffixes provided or equal to one.')
 
-    # observable array
+    # observable array this is not in log10
     config['obs_arr']   = []
     for i in range(config['nbins']):
-        if not config['edges']:
-            config['obs_arr'].append(np.logspace(config['obs_min'][i], config['obs_max'][i], config['n_obs'][i]))
-        else:
-            bins = np.linspace(config['obs_min'][i], config['obs_max'][i], config['n_obs'][i]+1, endpoint=True)
+        if config['edges']:
+            # log10_obs_min and log10_obs_max are in log10 M_sun/h^2 units for stellar masses
+            bins = np.linspace(config['log10_obs_min'][i], config['log10_obs_max'][i], config['n_obs'][i]+1, endpoint=True)
             center = (bins[1:] + bins[:-1])/2.0
             config['obs_arr'].append(10.0**center)
+        else:
+            # if edges is False then we assume that log10_obs_min and log10_obs_max are the center of the bins
+            config['obs_arr'].append(np.logspace(config['log10_obs_min'][i], config['log10_obs_max'][i], config['n_obs'][i]))
     
     return config
 	
@@ -82,29 +98,28 @@ def execute(block, config):
     suffixes = config['suffixes']
     nbins    = config['nbins']
 
-    # number of bins for the observable
+    # number of bins for the observable this is given via len(suffixes)
     for i in range(nbins):
-        z_obs, obs_ext = load_and_extrapolate_obs(block, input_section_name, suffixes[i], obs_arr[i], 0.0)
+        # reads in and interpolates obs_func for the obs_arr[i]. z_obs is read if it exists.
+        z_obs, obs_func = load_and_interpolate_obs(block, input_section_name, suffixes[i], obs_arr[i], extrapolate_option=0.0)
+        # if the input observable depends on redshift then take the weighted average of it.
         if z_obs is not None:
-            # Load kernel if exists
-            print('z_obs is not None')
-            nz = load_kernel(block, config['sample'], i+1, z_obs, 0.0)
-            # Integrate over n(z)
-            obs_out = simps(nz[:,np.newaxis]*obs_ext, z_obs, axis=0)
-        else:
-            # Just use interpolated result at the median redshift for the output
-            obs_out = obs_ext
-        block.put_double_array_1d(output_section_name, f'bin_{i+1}', obs_out)
+            # print('z_obs is not None')
+            # Reads in the redshift distribution for the observables. 
+            # Interpolates it for z_obs
+            nz = load_redshift(block, config['sample'], i+1, z_obs, extrapolate_option=0.0)
+            # int dz n(z) x (observable function) = weighted average of the observable over redshift
+            obs_func = simps(nz[:,np.newaxis]*obs_func, z_obs, axis=0)
+        block.put_double_array_1d(output_section_name, f'bin_{i+1}', obs_func)
         block.put_double_array_1d(output_section_name, f'obs_{i+1}', obs_arr[i])
     
     block[output_section_name, 'nbin'] = nbins
-    block[output_section_name, 'sep_name'] = 'mstar'
-    block[output_section_name, 'save_name'] = ''
+    # block[output_section_name, 'sep_name'] = 'mstar'
+    # block[output_section_name, 'save_name'] = ''
     if config['sample'] is not None:
         block[output_section_name, 'sample'] = config['sample']
     else:
         block[output_section_name, 'sample'] = 'None'
-
 
     return 0
 

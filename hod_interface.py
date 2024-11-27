@@ -137,8 +137,8 @@ def setup(options):
         # These are boxed shaped bins in observable-redshift space.
         # They are used to create volume limited samples of the galaxies.
         # 1 or more values can be given for each min max value, as long as they are all the same length.
-        obs_min = np.asarray([options[option_section, 'obs_min']]).flatten()
-        obs_max = np.asarray([options[option_section, 'obs_max']]).flatten()
+        obs_min = np.asarray([options[option_section, 'log10_obs_min']]).flatten()
+        obs_max = np.asarray([options[option_section, 'log10_obs_max']]).flatten()
         zmin = np.asarray([options[option_section, 'zmin']]).flatten()
         zmax = np.asarray([options[option_section, 'zmax']]).flatten()
         # number of redshift bins used for each observable-redshift bin
