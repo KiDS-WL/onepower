@@ -79,14 +79,17 @@ params:
           default: 1/h^2
       observables_file:
           meaning: "(optional) text file containing the observable values, should contain 3 columns: z_bins, obs_min, obs_max"
+                    Note these are not in log10 format
           type: str
           default: 
       mass_lim:
           meaning: (optional) if observables_file not given, then look for a file that contains the minimum observables
+                    Note these are not in log10 format
           type: str
           default: 
       mass_lim_low:
           meaning: (optional) if observables_file not given, then look for a file that contains the maximum observables
+                    Note these are not in log10 format
           type: str
           default:
       zmin:
@@ -109,16 +112,18 @@ params:
                     each redshift-observable box.
           type: integer
           default:
-      obs_min:
+      log10_obs_min:
           meaning: (optional) if no observable files are given, look for the minimum values for observables. 
                   If using multiple bins for the observable then provide the minimum value for each bin. 
                   We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+                  Note this is in log10 format.
           type: real 1D
           default: 
-      obs_max:
+      log10_obs_max:
           meaning: (optional) if no observable files are given, look for the maximum values for observables. 
                   If using multiple bins for the observable then provide the maximum value for each bin. 
                   We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+                  Note this is in log10 format.
           type: real 1D
           default:
 inputs:
