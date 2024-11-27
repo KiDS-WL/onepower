@@ -28,7 +28,7 @@ class LabelConvention:
     This class deals with the conversion.
     """
     
-    def __init__(self, w='wTh', gamma_t='gT', gamma_x='gX', xi_p='xiP', xi_m='xiM',
+    def __init__(self, w='wtheta', gamma_t='gammat', gamma_x='gammax', xi_p='xip', xi_m='xim',
                   P_nn='Pnn', P_ne_E='PneE', P_ne_B='PneB', P_ee_E='PeeE', P_ee_B='PeeB',
                   E_n='En', B_n='Bn', Psi_gm='Psi_gm', Psi_gg='Psi_gg', onept='1pt'):
     
@@ -39,11 +39,11 @@ class LabelConvention:
         
         self.onept   = '1PT'.lower()
         
-        self.w       = 'wTh'.lower()
-        self.gamma_t = 'gT'.lower()
-        self.gamma_x = 'gX'.lower()
-        self.xi_p    = 'xiP'.lower()
-        self.xi_m    = 'xiM'.lower()
+        self.w       = 'wtheta'.lower()
+        self.gamma_t = 'gammat'.lower()
+        self.gamma_x = 'gammax'.lower()
+        self.xi_p    = 'xip'.lower()
+        self.xi_m    = 'xim'.lower()
         self.P_nn    = 'Pnn'.lower()
         self.P_ne_E  = 'PneE'.lower()
         self.P_ne_B  = 'PneB'.lower()
@@ -96,8 +96,8 @@ class LabelConvention:
         self.kernelTypeDict[P_ne_B]  = [self.lens,   self.source, tpType4, tpType6, None]
         self.kernelTypeDict[P_ee_E]  = [self.source, self.source, tpType5, tpType5, None]
         self.kernelTypeDict[P_ee_B]  = [self.source, self.source, tpType6, tpType6, None]
-        self.kernelTypeDict[E_n]     = [self.source, self.source, tpType5, tpType6, None]
-        self.kernelTypeDict[B_n]     = [self.source, self.source, tpType6, tpType5, None]
+        self.kernelTypeDict[E_n]     = [self.source, self.source, tpType5, tpType5, None]
+        self.kernelTypeDict[B_n]     = [self.source, self.source, tpType6, tpType6, None]
         self.kernelTypeDict[Psi_gm]  = [self.lens,   self.source, tpType4, tpType5, None]
         self.kernelTypeDict[Psi_gg]  = [self.lens,   self.lens,   tpType4, tpType4, None]
         return
@@ -117,7 +117,7 @@ class LabelConvention:
     def makeScaleCutsArgs(self, scDict):
         """
         Convert some lines of ASCII characters into a tuple of 5 elements defining various scale cuts
-        scDict is a dictionary, constructed by:
+        scDict is a dictionary, constructed by: 
         scDict[scale_cut_option] = list of strings
         """
         statsList = None

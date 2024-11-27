@@ -130,7 +130,8 @@ class OnePointMeasurement(object):
         header = extension.header
 
         i = 1
-        name = 'VALUE{}'.format(i)
+        #name = 'VALUE{}'.format(i)
+        name = 'BIN{}'.format(i)
         name_x = 'ANG{}'.format(i)
         name_low = 'ANGLEMIN{}'.format(i)
         name_high = 'ANGGLEMAX{}'.format(i)
@@ -142,13 +143,20 @@ class OnePointMeasurement(object):
         while name in data.names:
             obs_in = data[name]
             nobs.append(obs_in)
-            obs.append(data['ANG{}'.format(i)])
-            if 'ANGLEMIN{}'.format(i) in data.names:
-                obs_low.append(data['ANGLEMIN{}'.format(i)])
-            if 'ANGLEMAX{}'.format(i) in data.names:
-                obs_high.append(data['ANGLEMAX{}'.format(i)])
+            #obs.append(data['ANG{}'.format(i)])
+            #if 'ANGLEMIN{}'.format(i) in data.names:
+            #    obs_low.append(data['ANGLEMIN{}'.format(i)])
+            #if 'ANGLEMAX{}'.format(i) in data.names:
+            #    obs_high.append(data['ANGLEMAX{}'.format(i)])
+            #i += 1
+            #name = 'VALUE{}'.format(i)
+            obs.append(data['OBS{}'.format(i)])
+            if 'OBS_LOW{}'.format(i) in data.names:
+                obs_low.append(data['OBS_LOW{}'.format(i)])
+            if 'OBS_HIGH{}'.format(i) in data.names:
+                obs_high.append(data['OBS_HIGH{}'.format(i)])
             i += 1
-            name = 'VALUE{}'.format(i)
+            name = 'BIN{}'.format(i)
             
         if obs_low == []:
             obs_low = None
@@ -929,6 +937,7 @@ class TwoPointFile(object):
         data_sets = [d.lower() for d in data_sets]
         mask = []
         use = []
+        use_obs = []
         for spectrum in self.spectra:
             if spectrum.name.lower() in data_sets:
                 use.append(True)
@@ -939,10 +948,10 @@ class TwoPointFile(object):
         if self.nobs is not None:
             for obs in self.nobs:
                 if obs.name.lower() in data_sets:
-                    use.append(True)
+                    use_obs.append(True)
                     mask.append(np.ones(sum(obs.nsample), dtype=bool))
                 else:
-                    use.append(False)
+                    use_obs.append(False)
                     mask.append(np.zeros(sum(obs.nsample), dtype=bool))
         for data_set in data_sets:
             if not any(spectrum.name.lower() == data_set for spectrum in self.spectra) and not any(obs.name.lower() == data_set for obs in self.nobs):
@@ -950,7 +959,7 @@ class TwoPointFile(object):
                     "Data set called {} not found in two-point data file.".format(data_set))
         self.spectra = [s for (u, s) in zip(use, self.spectra) if u]
         if self.nobs is not None:
-            self.nobs = [s for (u, s) in zip(use, self.nobs) if u]
+            self.nobs = [s for (u, s) in zip(use_obs, self.nobs) if u]
         if self.covmat is not None:
             mask = np.concatenate(mask)
             self.covmat = self.covmat[mask, :][:, mask]
@@ -1064,7 +1073,7 @@ class TwoPointFile(object):
         # We might also have some 1pt functions saved.
         for extension in fitsfile:
             if extension.header.get(ONEPOINT_SENTINEL):
-                    nobs.append(OnePointMeasurement.from_fits(extension))
+                nobs.append(OnePointMeasurement.from_fits(extension))
 
         # We might also require window functions W(ell) or W(theta). It's also possible
         # that we just use a single sample value of ell or theta instead.

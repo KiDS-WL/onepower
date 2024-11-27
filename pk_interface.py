@@ -250,9 +250,8 @@ def execute(block, config):
             # TODO: This one uses matter_profile not matter_profile_1h_mm. Shouldn't we use the same profile everywhere?
             # AD: No, I_NL and 2-halo functions should use the mater_profile, no 1h! 
             # The corrections applied do not hold true for 2h regime!
-            I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile,
-                                b_dm, b_dm, dn_dlnm, dn_dlnm, k_vec,
-                                z_vec, A_term, mean_density0, beta_interp)
+            I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile, b_dm, b_dm,
+                                dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
     
         if p_mm:
             if bnl:
@@ -316,17 +315,17 @@ def execute(block, config):
                 if bnl == True:
                     if p_gg == True:
                         I_NL_cs = pk_lib.I_NL(mass, mass, profile_c, profile_s, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
                         I_NL_ss = pk_lib.I_NL(mass, mass, profile_s, profile_s, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
                         I_NL_cc = pk_lib.I_NL(mass, mass, profile_c, profile_c, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
 
                     if p_gm == True:
                         I_NL_cm = pk_lib.I_NL(mass, mass, profile_c, matter_profile, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
                         I_NL_sm = pk_lib.I_NL(mass, mass, profile_s, matter_profile, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, k_vec, z_vec, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
             # end of galaxy setup
             ##############################################################################################################
             # setup for intrinsic correlations
@@ -334,7 +333,7 @@ def execute(block, config):
                 # AD: Will probably be removed after some point when we get all the Bnl terms for IA added!
                 # load the 2h (effective) amplitude of the alignment signal from the data block. 
             # This already includes the luminosity dependence if set. Double array [nz].
-                alignment_gi=block[f'ia_large_scale_alignment{suffix}', 'alignment_gi']
+                alignment_gi = block[f'ia_large_scale_alignment{suffix}', 'alignment_gi']
                 alignment_amplitude_2h, alignment_amplitude_2h_II, C1 = pk_lib.compute_two_halo_alignment(alignment_gi, pop_name,
                                                                                             growth_factor, mean_density0)
                 # ============================================================================== #

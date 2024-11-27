@@ -191,11 +191,11 @@ def execute(block, config):
             beta_two = block[f'intrinsic_alignment_parameters{suffix}', 'beta_two']
             mean_lscaling = np.empty(nz)
             for i in range(0,nz):
-                mean_lscaling[i] = broken_powerlaw(lum_centrals[i], lum_pdf_z_centrals[i], gamma_2h, lpiv, beta, beta_two)
+                mean_lscaling[i] = broken_powerlaw(lum_centrals[i], lum_pdf_z_centrals[i], gamma_2h, 10.0**lpiv, beta, beta_two)
             block.put_double_array_1d(f'ia_large_scale_alignment{suffix}', 'alignment_gi', mean_lscaling)
         else:
             print('You have chosen to implement a single power law model for the luminosity dependence of the centrals')
-            mean_lscaling = mean_L_L0_to_beta(lum_centrals, lum_pdf_z_centrals, lpiv, beta)
+            mean_lscaling = mean_L_L0_to_beta(lum_centrals, lum_pdf_z_centrals, 10.0**lpiv, beta)
             block.put_double_array_1d(f'ia_large_scale_alignment{suffix}', 'alignment_gi', gamma_2h * mean_lscaling)
         
     if central_IA_depends_on  == 'halo_mass':
@@ -210,7 +210,7 @@ def execute(block, config):
             raise ValueError('A double power law model for the halo mass dependence of centrals has not been implemented.  Either remove beta_two from your parameter list or select central_IA_depends_on="luminosity"\n ')
         # Technically just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
         block.put_double_array_1d(f'ia_large_scale_alignment{suffix}', 'alignment_gi', gamma_2h * np.ones(nz))
-        block.put_double(f'ia_large_scale_alignment{suffix}', 'M_pivot', mpiv)
+        block.put_double(f'ia_large_scale_alignment{suffix}', 'M_pivot', 10.0**mpiv)
         block.put_double(f'ia_large_scale_alignment{suffix}', 'beta', beta)
     
     #Add instance information to block
@@ -226,7 +226,7 @@ def execute(block, config):
     if satellite_IA_depends_on == 'luminosity':
         lpiv = block[f'intrinsic_alignment_parameters{suffix}', 'L_pivot']
         beta_sat = block[f'intrinsic_alignment_parameters{suffix}', 'beta_sat']
-        mean_lscaling = mean_L_L0_to_beta(lum_satellites, lum_pdf_z_satellites, lpiv, beta_sat)
+        mean_lscaling = mean_L_L0_to_beta(lum_satellites, lum_pdf_z_satellites, 10.0**lpiv, beta_sat)
         block.put_double_array_1d(f'ia_small_scale_alignment{suffix}', 'alignment_1h', gamma_1h * mean_lscaling)
         
     if satellite_IA_depends_on == 'halo_mass':
@@ -234,7 +234,7 @@ def execute(block, config):
         beta_sat = block.get_double(f'intrinsic_alignment_parameters{suffix}', 'beta_sat')
         # Technically just repacking the variables, but this is the easiest way to accomodate backwards compatibility and clean pk_lib.py module
         block.put_double_array_1d(f'ia_small_scale_alignment{suffix}', 'alignment_1h', gamma_1h * np.ones(nz))
-        block.put_double(f'ia_small_scale_alignment{suffix}', 'M_pivot', mpiv)
+        block.put_double(f'ia_small_scale_alignment{suffix}', 'M_pivot', 10.0**mpiv)
         block.put_double(f'ia_small_scale_alignment{suffix}', 'beta_sat', beta_sat)
 
     #Add instance information to block
