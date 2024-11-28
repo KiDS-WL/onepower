@@ -273,7 +273,7 @@ def execute(block, config):
         hod_bins_red = block[hod_section_name_red, 'nbins']
         hod_bins_blue = block[hod_section_name_blue, 'nbins']
         
-        observables_z_red = block[hod_section_name_red, 'option']
+        observables_z_red = block[hod_section_name_red, 'observable_z']
         if observables_z_red == True:
             extrapolate_option = 'extrapolate'
         if observables_z_red == False:
