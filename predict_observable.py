@@ -24,11 +24,9 @@ def load_and_interpolate_obs(block, obs_section, suffix_in, obs, extrapolate_opt
     # If there are no bins z_bin_{suffix_in} does not exist
     if block.has_value(obs_section, f'z_bin_{suffix_in}'):
         z_obs = block[obs_section, f'z_bin_{suffix_in}']
-        print('in if',obs_func_in.shape)
         obs_func_interp = interp1d(obs_in, obs_func_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=1)
     else:
         z_obs = None
-        print('in else',obs_func_in.shape)
         obs_func_interp = interp1d(obs_in, obs_func_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
     obs_func = obs_func_interp(obs)
 
