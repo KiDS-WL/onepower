@@ -172,7 +172,7 @@ def execute(block, config):
     # # so for baryonic feedback in cosmic shear and thus needs to be calculated for a wide range of halo masses, 
     # # unlike the other f_star which are for each stellar mass bin. I would keep the metadata block here 
     # # to save all the parameters not directly connected with "per bin" HODs and corresponding products.
-    # f_star = np.array([hod.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, phi)])
+    # f_star = np.array([hod.compute_stellar_fraction(obs_range_h_i, phi_z_i)/mass for obs_range_h_i, phi_z_i in zip(obs_range_h, COF)])
     # block.put_grid(hod_section_name, 'z_extended', z_bins_one, 'mass_extended', mass, 'f_star_extended', f_star)
     
     return 0

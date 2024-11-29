@@ -2,25 +2,25 @@ from cosmosis.datablock import names, option_section
 import warnings
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.optimize import root_scalar
-from scipy.integrate import simps, solve_ivp, quad
-from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
-import astropy.units as u
-import hmf
-from halomod import bias as bias_func
-from halomod.concentration import make_colossus_cm
-from halomod import concentration as conc_func
-from hmf import MassFunction
-import hmf.halos.mass_definitions as md
-from hmf.halos.mass_definitions import SphericalOverdensity
-import hmf.cosmology.growth_factor as gf
-from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
+from astropy.cosmology import Flatw0waCDM, Planck15
 import halo_model_utility as hmu
 from colossus.cosmology import cosmology as colossus_cosmology
 from colossus.halo import concentration as colossus_concentration
-import time
+import hmf
+import hmf.halos.mass_definitions as md
+from hmf.halos.mass_definitions import SphericalOverdensity
+from hmf import MassFunction
+from halomod import bias as bias_func
+from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
 
-from astropy.cosmology import Planck15
+#import time
+#from scipy.optimize import root_scalar
+#from scipy.integrate import simps, solve_ivp, quad
+#import astropy.units as u
+#from halomod.concentration import make_colossus_cm
+#from halomod import concentration as conc_func
+#import hmf.cosmology.growth_factor as gf
+
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
@@ -224,7 +224,7 @@ def execute(block, config):
     h_z       = np.empty([nz])
     # mean_density0  = np.empty([nz])
     mean_density_z = np.empty([nz])
-    overdensity_z  = np.empty([nz])
+    halo_overdensity_mean  = np.empty([nz])
     
     downsample_factor = int(nz/nz_conc)
     if downsample_factor > 0 :
@@ -247,7 +247,7 @@ def execute(block, config):
             # Update the cosmology for the halo mass function, this takes a little while the first time it is called
             # Then it is faster becayse it only updates the redshift and the corresponding delta_c
             mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
-            overdensity_z[jz] = mf.halo_overdensity_mean
+            halo_overdensity_mean[jz] = mf.halo_overdensity_mean
             mdef_conc = mdef
         elif mead_correction is not None:
             with warnings.catch_warnings():
@@ -264,18 +264,18 @@ def execute(block, config):
                 g = growth(a)
                 G = hmu.get_accumulated_growth(a, growth)
                 delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
-                overdensity_z[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
+                halo_overdensity_mean[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
                 #dolag = (growth(LCDMcosmo.scale_factor(10.0))/growth_LCDM(LCDMcosmo.scale_factor(10.0)))*(growth_LCDM(a)/growth(a))
                 mdef_mead = SOVirial_Mead#'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
                 mf.ERROR_ON_BAD_MDEF = False
-                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  mdef_params={'overdensity':overdensity_z[jz]}, disable_mass_conversion=True, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
+                mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  mdef_params={'overdensity':halo_overdensity_mean[jz]}, disable_mass_conversion=True, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
                 if mead_correction in ['feedback', 'nofeedback']:
                     zf[jz,:] = hmu.get_halo_collapse_redshifts(mass, z_iter, delta_c_z, growth, this_cosmo_run, mf)
         else:
-            overdensity_z[jz] = overdensity
+            halo_overdensity_mean[jz] = overdensity
             delta_c_z = delta_c
-            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':overdensity_z[jz]}, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
+            mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_params={'overdensity':halo_overdensity_mean[jz]}, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
             mdef_conc = mdef
     
         # What code do you want to use to define the halo mass function
@@ -303,8 +303,8 @@ def execute(block, config):
 
         # This is the redshift dependant mean density
         mean_density_z[jz] = mf.mean_density
-        rho_halo[jz]  = overdensity_z[jz] * mf.mean_density0
-        bias     = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_z, delta_halo=overdensity_z[jz],
+        rho_halo[jz]  = halo_overdensity_mean[jz] * mf.mean_density0
+        bias     = getattr(bias_func, bias_model)(mf.nu, delta_c=delta_c_z, delta_halo=halo_overdensity_mean[jz],
                                                  sigma_8=sigma_8, n=ns, cosmo=this_cosmo_run, m=mass)
         b_nu[jz] = bias.bias()
         
@@ -329,9 +329,9 @@ def execute(block, config):
 
     downsample_factor = int(nz/nz_conc)
     if downsample_factor > 0 :
-        overdensity_conc = overdensity_z[::downsample_factor]
+        overdensity_conc = halo_overdensity_mean[::downsample_factor]
     else:
-        overdensity_conc = overdensity_z
+        overdensity_conc = halo_overdensity_mean
     
     for i,z_iter in enumerate(z_conc):
         conc[i,:] = concentration_colossus(block, this_cosmo_run, mass, z_iter, model_cm, mdef_conc, overdensity_conc[i])
@@ -387,12 +387,12 @@ def execute(block, config):
         u_dm_sat = compute_u_dm(k, r_s_sat, conc_sat, mass)
 
     #  TODO: Clean these up. Put more of them into the same folder
-    block.put_grid('concentration_dm', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
+    block.put_grid('concentration_m', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
     block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)
-    block.put_grid('nfw_scale_radius_dm', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
+    block.put_grid('nfw_scale_radius_m', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
     block.put_grid('nfw_scale_radius_sat', 'z', z_vec, 'm_h', mass, 'rs', r_s_sat)
     block.put_double_array_1d('virial_radius', 'm_h', mass)
-    block.put_double_array_1d('virial_radius', 'rvir_dm', rvir_cen[0])  #rvir doesn't change with z, hence no z-dimension
+    block.put_double_array_1d('virial_radius', 'rvir_m', rvir_cen[0])  #rvir doesn't change with z, hence no z-dimension
     block.put_double_array_1d('virial_radius', 'rvir_sat', rvir_sat[0])
 
 
