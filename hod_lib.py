@@ -69,7 +69,8 @@ def obs_func(mass, phi_x, dn_dlnM_normalised, axis=-1):
     with the Halo Mass Function (HMF) to give:  Φs(O),Φc(O)
     Φx(O) =int Φx(O|M) n(M) dM,
     dn_dlnM_normalised is basically n(M) x mass, it is the output of hmf
-    The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
+    The differential mass function in terms of natural log of m, 
+    len=len(m) [units \(h^3 Mpc^{-3}\)]
     dn(m)/ dln m eq1 of 1306.6721
     obs_func unit is h^3 Mpc^{-3} dex^-1
     """
