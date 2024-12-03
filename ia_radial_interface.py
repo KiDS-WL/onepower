@@ -76,7 +76,7 @@ def execute(block, config):
     mass_halo = block['concentration_m', 'm_h']    
     nmass_halo = np.size(mass_halo) #The dimension/resolution here has been set by the nmass in halo_model_ingredients.py
     c_halo = block['concentration_m', 'c']  #This has dimension nz,nmass_halo
-    r_s_halo = block['nfw_scale_radius_dm', 'rs'] #This has dimension nz,nmass_halo
+    r_s_halo = block['nfw_scale_radius_m', 'rs'] #This has dimension nz,nmass_halo
     rvir_halo = block['virial_radius', 'rvir_m'] #This has dimension nmass_halo : rvir doesn't change with z, hence no z-dimension
 
     if nmass_halo < nmass_setup:
