@@ -7,11 +7,11 @@
     ##############################
 
 
-import sys
+# import sys
 import collections as clt
 import numpy as np
-import scipy as sp
-import astropy.io.fits as fits
+# import scipy as sp
+# import astropy.io.fits as fits
 import twopoint
 
 

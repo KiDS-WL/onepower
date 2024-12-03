@@ -14,8 +14,8 @@ def execute(block, config):
 
     d = block[input_section_name, "data"]
     mu = block[input_section_name, "theory"]
-    print('data:',d)
-    print('theory:',mu)
+    print('data:',np.round(d,decimals=4))
+    print('theory:',np.round(mu,decimals=4)) 
 
     inv_cov = block[input_section_name, "inv_covariance"]
     r = d - mu
