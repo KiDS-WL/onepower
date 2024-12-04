@@ -12,42 +12,10 @@ from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 
 cosmo_params = names.cosmological_parameters
 
-# z_obs, obs_ext = load_and_interpolate_obs(block, input_section_name, suffixes[i], obs_arr[i], 0.0)
-def load_and_interpolate_obs(block, obs_section, suffix_in, obs, extrapolate_option=0.0):
-    """
-    Loads the observable, e.g. stellar mass, the observable function, e.g. stellar mass function,
-    and the redshift bins for the observable. Interpolates the observable function for the obs values 
-    that are given.
-    """
-    # load observable values from observable section name, suffix_in is either med for median
-    #  or a number showing the observable-redshift bin index
-    obs_in = block[obs_section, f'obs_val_{suffix_in}']
-    obs_func_in = block[obs_section, f'obs_func_{suffix_in}']
-    # If there are any observable-redshift bins in the observable section:
-    # If there are no bins z_bin_{suffix_in} does not exist
-    if block.has_value(obs_section, f'z_bin_{suffix_in}'):
-        z_obs = block[obs_section, f'z_bin_{suffix_in}']
-        obs_func_interp = interp1d(obs_in, obs_func_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=1)
-    else:
-        z_obs = None
-        obs_func_interp = interp1d(obs_in, obs_func_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
-    obs_func = obs_func_interp(obs)
-
-    return z_obs, obs_func
-
-def load_redshift(block, redshift_section, bin, z, extrapolate_option=0.0):
-    """
-    Loads the redshift distribution in the redshift section. 
-    Note: This should match the redshift distribution of the observable sample.
-    Then interpolates the redshift distribution for z.
-    This is only used if we are not in med (median) mode. 
-    """
-    z_in  = block[redshift_section, 'z']
-    nz_in = block[redshift_section, f'bin_{bin}']
-    nz_interp = interp1d(z_in, nz_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
-    nz = nz_interp(z)
-
-    return nz
+"""
+    !!!WORK IN PROGRESS!!!
+    Currently non functional
+"""
 
 def setup(options):
 	
