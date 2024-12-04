@@ -751,7 +751,7 @@ def compute_Ig_term(profile, mass, dn_dlnm_z, b_m):
     I_g = simps(integrand, mass)
     return I_g
 
-def I_term(mass, profile, b_m, dn_dlnm):
+def Ig_term(mass, profile, b_m, dn_dlnm):
     I_term = compute_Ig_term(profile, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
     return I_term
 
@@ -1144,37 +1144,19 @@ def compute_p_gg(k_vec, pk_lin, mass, dn_dln_m, central_profile,
 
     # send the possion parameter to compute_1h_term as part of the profile.
     # if poisson is mass dependent we need to take it into the 1h term integral
-    # poisson_ave = poisson_func(poisson_par, mass_avg)[:,np.newaxis]
-    # print('poisson_ave',poisson_ave)
     poisson = poisson_func(poisson_par, mass)
-    print('poisson',poisson)
 
     # 1-halo term:
     pk_cs_1h = compute_1h_term(central_profile, satellite_profile, mass[np.newaxis,np.newaxis,:], 
                                dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec, one_halo_ktrunc)
-    
-    # pk_ss_1h_nop = compute_1h_term(satellite_profile, satellite_profile, mass[np.newaxis,np.newaxis,:], 
-    #                             dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec, one_halo_ktrunc)
-
     pk_ss_1h = compute_1h_term(satellite_profile * poisson, satellite_profile, mass[np.newaxis,np.newaxis,:], 
                                dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec, one_halo_ktrunc)
-
-
-    # print(pk_ss_1h/(poisson_ave*pk_ss_1h_nop))
-    # exit()
-    # removed poisson from here as it is now part of pk_ss_1h
-    # When mass dependent it makes a big difference to pk where or not we have it in the intergral
-    # or outside of the integral
-    # pk_1h = 2.0*pk_cs_1h + poisson_ave*pk_ss_1h
 
     pk_1h = 2.0*pk_cs_1h + pk_ss_1h
     pk_2h = pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
     pk_tot = pk_1h + pk_2h
-
-    # TODO: check this
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
-    # changed this to have the poisson parameter included
     return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
 
 def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profile, 
@@ -1191,40 +1173,21 @@ def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
 
     # send the possion parameter to compute_1h_term as part of the profile.
     # if poisson is mass dependent we need to take it into the 1h term integral
-    # poisson_ave = poisson_func(poisson_par, mass_avg)[:,np.newaxis]
-    # print('poisson_ave',poisson_ave)
     poisson = poisson_func(poisson_par, mass)
-    print('poisson',poisson)
 
     # 1-halo term:
     pk_cs_1h = compute_1h_term(central_profile, satellite_profile, 
                                mass[np.newaxis,np.newaxis,:], 
                                dn_dln_m[:,np.newaxis,:])* one_halo_truncation(k_vec, one_halo_ktrunc)
-    # pk_ss_1h_nop = compute_1h_term(satellite_profile, satellite_profile, 
-    #                            mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:])\
-    #              * one_halo_truncation(k_vec, one_halo_ktrunc)
     pk_ss_1h = compute_1h_term(satellite_profile * poisson, satellite_profile, 
                                mass[np.newaxis,np.newaxis,:], 
                                dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec, one_halo_ktrunc)
 
-
-    # print(pk_ss_1h/(poisson_ave*pk_ss_1h_nop))
-    # exit()
-    # removed poisson from here as it is now part of pk_ss_1h
-    # When mass dependent it makes a big difference to pk where or not we have it in the intergral
-    # or outside of the integral
-    # pk_1h = 2.0*pk_cs_1h + poisson_ave*pk_ss_1h
-
     pk_1h = 2.0*pk_cs_1h + pk_ss_1h
     pk_2h = pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
     pk_tot = pk_1h + pk_2h
-    
-    # pk_tot_nbnl = 2. * pk_cs_1h + poisson * pk_ss_1h + pk_cc_2h - (pk_lin*I_NL_cc) + pk_ss_2h - (pk_lin*I_NL_ss) + (2. * pk_cs_2h) - (2. * pk_lin*I_NL_cs)
-
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
-    #print('p_nn succesfully computed')
-    # return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
     return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
 
 # galaxy-matter power spectrum
@@ -1265,18 +1228,18 @@ def compute_p_gm_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile,
     
     # 2-halo term:
     pk_cm_2h = pk_lin * I_c_term * I_m_term + pk_lin*I_NL_cm
-    pk_sm_2h = pk_lin * I_s_term * I_m_term  + pk_lin*I_NL_sm
+    pk_sm_2h = pk_lin * I_s_term * I_m_term + pk_lin*I_NL_sm
         # 1-halo term
     pk_cm_1h = compute_1h_term(central_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) \
                 * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_sm_1h = compute_1h_term(satellite_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) \
                 * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
+                
     pk_1h = pk_cm_1h + pk_sm_1h
     pk_2h = pk_cm_2h + pk_sm_2h
     pk_tot = pk_1h + pk_2h
     # galaxy-matter linear bias
     galaxy_matter_linear_bias = np.sqrt(I_c_term * I_m_term + I_s_term * I_m_term)
-    
     return pk_1h, pk_2h, pk_tot, galaxy_matter_linear_bias
 
 
@@ -1409,7 +1372,6 @@ def compute_p_II_bnl(k_vec, p_lin, mass, dn_dln_m,
 
 
 # galaxy-intrinsic power spectrum
-#IT redefinition as dn_dln_m
 def compute_p_gI_fortuna(k_vec, p_eff, mass, dn_dln_m, central_profile, 
                          s_align_factor, I_c_term, alignment_amplitude_2h, 
                          one_halo_ktrunc, two_halo_ktrunc):
