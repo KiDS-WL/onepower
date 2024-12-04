@@ -30,13 +30,8 @@ We also calculate the observable function which is
 \Phi_x(O) = \int \Phi_x(O|M) n(M,z) dM
 where n(M,z) is the halo mass function. 
 
-IMPORTANT: in the code all observable units are in 1/h because we want to have the correct units for the
-Observable Function. For example the observed stellar mass function has units of Mpc^-3 h^-3. 
-n(M,z) has units of Mpc^-3 h^-3.
-\Phi_x(O|M) has the same units as 1/M_star.
-So M_star has to have the same units as M_halo (dM).
-M_halo has units of M_sun/h.
-But usually M_star is reported in units of M_sun/h^2.
+IMPORTANT: in the code all observable units are in what the data is specified to be through observable_h_unit.
+Usually M_star is reported in units of M_sun/h^2.
 The observable_h_unit should be set to what the inputs are (from the data and from the values file).
 """
 

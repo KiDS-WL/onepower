@@ -306,8 +306,8 @@ def execute(block, config):
                 
                 # calculate the 2-halo integrals for centrals and satelites
                 # I_c = pk_lib.Ic_term(mass, profile_c, b_dm, dn_dlnm, nk)
-                I_c = pk_lib.I_term(mass, profile_c, b_dm, dn_dlnm)
-                I_s = pk_lib.I_term(mass, profile_s, b_dm, dn_dlnm)
+                I_c = pk_lib.Ig_term(mass, profile_c, b_dm, dn_dlnm)
+                I_s = pk_lib.Ig_term(mass, profile_s, b_dm, dn_dlnm)
                 
                 if mead_correction == 'fit' or point_mass == True:
                     # Include point mass and gas contribution to the GGL power spectrum, defined from HOD
