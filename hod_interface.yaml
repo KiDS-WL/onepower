@@ -14,118 +14,126 @@ assumptions:
 
 explanation: |
    To model the distribution of galaxies within the halo model we need to define the halo occupation distribution (HOD)
-   that tells us how galaxies are distributed within dark matter haloes. Here we use the HOD conditional on a galaxy 
-   observable such as luminosity or stellar mass function. The formalism was first proposed by Yang et al. (2008), 
-   also see Cacciato et al. (2013, application to SDSS). The halo occupation distribution predicts the number of galaxies 
-   that populate a halo of mass M:
+   that tells us how galaxies are distributed within dark matter haloes. Here we use the conditional observable function 
+   to estimate the HOD. The conditional observable function provides a distribution for the galaxies populating a halo of mass M. 
+   The observable is a quantity that can be directly infered from observations for a galaxy 
+   such as luminosity or stellar mass function. The formalism was first proposed by Yang et al. (2008), 
+   also see Cacciato et al. (2013, application to SDSS). 
+   
+   The halo occupation distribution predicts the number of galaxies that populate a halo of mass M:
 
    N_gal(M) = N_cen(M) + N_sat(M),
 
    where the galaxies are divided into centrals and satellites. 
-   The prediction depends on the number of galaxies with the given observable, O, 
-   in an observable bin, [O-Delta_O/2, O+Delta_O/2] 
-   given their halo mass, M: \Phi_x(O|M)
+   The observable function for a population of galaxies x is \Phi_x(O|M). 
+   This is a function of the observable, O, in an observable bin, [O-Delta_O/2, O+Delta_O/2] 
+   and the halo mass of the galaxies, M: 
    The number of galaxies is then given by
 
-   N_x(M,z) = \int \Phi_x(O|M) n(M,z) dO
+   N_x(M,z) = \int \Phi_x(O|M) dO
 
-   where x=cen,sat.
-   The conditional observable function provide a distribution for the galaxies populating a halo of mass M. 
-   For centrals this is a lognormal distribution, with a mean that is a function of halo mass and is described by a double power law.  
-   For satellites this is a generalised Schechter function with two free powers. 
+   \Phi_x(O|M) can also depend on redshift.
+   The conditional observable function takes different forms for central and satellite galaxies.
+   For centrals it follows a lognormal distribution, with a mean that is a function of halo mass 
+   and is described by a double power law.  
    M_char is the characteristic halo mass that divides the two regimes of the double powerlaw.
    Obs_norm_c is the normalisation factor for central galaxies
+   For satellites it follows a generalised Schechter function with two/three free powers. 
+
+   We also calculate the observable function which is 
+   \Phi_x(O) = \int \Phi_x(O|M) n(M,z) dM
+   where n(M,z) is the halo mass function. 
 
   List of parameters that can go in the params.ini file in the section for this module    
 params:
-      hod_section_name:
-          meaning: output section name for the hod
-          type: str
-          default: 
-      values_name:
-          meaning: where to read the values of parameters in the value.ini
-          type: str
-          default: hod_parameters
-      observable_section_name:
-          meaning: output section name for the observable related quantities.
-          type: str
-          default: stellar_mass_function
-      nobs:
-          meaning: Number of observable bins within each observable-redshift bin 
-                  for calculating variables in terms of the observables. Use at least 100
-                  to avoid numerical issue when integrating.
-          type: int
-          default: 200
-      do_galaxy_linear_bias:
-          meaning: If true outputs estimates of the linear bias for the HOD 
-          type: bool
-          default: False
-      save_observable:
-          meaning: If true outputs estimates of the linear bias for the HOD 
-          type: bool
-          default: True
-      observable_mode:
-          meaning: "calculate the observable function for each redshift: obs_z, or on the median redshift: obs_zmed or 
+    hod_section_name:
+        meaning: output section name for the hod
+        type: str
+        default: 
+    values_name:
+        meaning: where to read the values of parameters in the value.ini
+        type: str
+        default: hod_parameters
+    observable_section_name:
+        meaning: output section name for the observable related quantities.
+        type: str
+        default: stellar_mass_function
+    nobs:
+        meaning: Number of observable bins within each observable-redshift bin 
+                for calculating variables in terms of the observables. Use at least 100
+                to avoid numerical issue when integrating.
+        type: int
+        default: 200
+    do_galaxy_linear_bias:
+        meaning: If true outputs estimates of the linear bias for the HOD 
+        type: bool
+        default: False
+    save_observable:
+        meaning: If true outputs estimates of the linear bias for the HOD 
+        type: bool
+        default: True
+    observable_mode:
+        meaning: "calculate the observable function for each redshift: obs_z, or on the median redshift: obs_zmed or 
                     for one broad z-bin: obs_onebin"
-          type: str
-          default: obs_z
-      z_median:
-          meaning: This is the median redshift for calculating the observable. Only used if observable_mode=obs_zmed. 
-          type: real
-          default: 0.1
-      observable_h_unit:
-          meaning: units of h for the observable, valid_units are 1/h and 1/h^2
-          type: str
-          default: 1/h^2
-      observables_file:
-          meaning: "(optional) text file containing the observable values, should contain 3 columns: z_bins, obs_min, obs_max"
-                    Note these are not in log10 format
-          type: str
-          default: 
-      mass_lim:
-          meaning: (optional) if observables_file not given, then look for a file that contains the minimum observables
-                    Note these are not in log10 format
-          type: str
-          default: 
-      mass_lim_low:
-          meaning: (optional) if observables_file not given, then look for a file that contains the maximum observables
-                    Note these are not in log10 format
-          type: str
-          default:
-      zmin:
-          meaning: (optional) if observables_file not given, but we use the observable files then look for a scalar zmin.
-                  if no observable files are given, look for the minimum values for the redshift of each observable bin. 
-                  zmin should have the same number of values as obs_min and obs_max. 
-                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
-          type: real or real 1D
-          default:
-      zmax:
-          meaning: (optional) if observables_file not given, but we use the observable files then look for a scalar zmax.
-                  If no observable files are given, look for the maximum values for the redshift of each observable bin. 
-                  zmax should have the same number of values as obs_min and obs_max. 
-                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
-          type: real or real 1D
-          default:
-      nz:
-          meaning: (optional) if observables_file not given, then look for nz, with zmin and zmax make the number of redshift bins
-                    for which the observable is caluclated at. If we have bin edges defined the nz is the number of redshift bins in 
-                    each redshift-observable box.
-          type: integer
-          default:
-      log10_obs_min:
-          meaning: (optional) if no observable files are given, look for the minimum values for observables. 
-                  If using multiple bins for the observable then provide the minimum value for each bin. 
-                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
-                  Note this is in log10 format.
-          type: real 1D
-          default: 
-      log10_obs_max:
-          meaning: (optional) if no observable files are given, look for the maximum values for observables. 
-                  If using multiple bins for the observable then provide the maximum value for each bin. 
-                  We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
-                  Note this is in log10 format.
-          type: real 1D
-          default:
+        type: str
+        default: obs_z
+    z_median:
+        meaning: This is the median redshift for calculating the observable. Only used if observable_mode=obs_zmed. 
+        type: real
+        default: 0.1
+    observable_h_unit:
+        meaning: units of h for the observable, valid_units are 1/h and 1/h^2
+        type: str
+        default: 1/h ?
+    observables_file:
+        meaning: "(optional) text file containing the observable values, should contain 3 columns: z_bins, obs_min, obs_max"
+                Note these are not in log10 format
+        type: str
+        default: 
+    mass_lim:
+        meaning: (optional) if observables_file not given, then look for a file that contains the minimum observables
+                Note these are not in log10 format
+        type: str
+        default: 
+    mass_lim_low:
+        meaning: (optional) if observables_file not given, then look for a file that contains the maximum observables
+                Note these are not in log10 format
+        type: str
+        default:
+    zmin:
+        meaning: (optional) if observables_file not given, but we use the observable files then look for a scalar zmin.
+                if no observable files are given, look for the minimum values for the redshift of each observable bin. 
+                zmin should have the same number of values as obs_min and obs_max. 
+                We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+        type: real or real 1D
+        default:
+    zmax:
+        meaning: (optional) if observables_file not given, but we use the observable files then look for a scalar zmax.
+                If no observable files are given, look for the maximum values for the redshift of each observable bin. 
+                zmax should have the same number of values as obs_min and obs_max. 
+                We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+        type: real or real 1D
+        default:
+    nz:
+        meaning: (optional) if observables_file not given, then look for nz, with zmin and zmax make the number of redshift bins
+                for which the observable is caluclated at. If we have bin edges defined the nz is the number of redshift bins in 
+                each redshift-observable box.
+        type: integer
+        default:
+    log10_obs_min:
+        meaning: (optional) if no observable files are given, look for the minimum values for observables. 
+                If using multiple bins for the observable then provide the minimum value for each bin. 
+                We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+                Note this is in log10 format.
+        type: real 1D
+        default: 
+    log10_obs_max:
+        meaning: (optional) if no observable files are given, look for the maximum values for observables. 
+                If using multiple bins for the observable then provide the maximum value for each bin. 
+                We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+                Note this is in log10 format.
+        type: real 1D
+        default:
 inputs:
     values_name:
         log10_obs_norm_c: 
@@ -278,7 +286,8 @@ outputs:
             meaning: 
             type: real 1D
         obs_func{_i}:
-            meaning: 
+            meaning: This is the observable function times ln(10) times observable. 
+                    Φ(m*) m* ln(10) = 1/dlog10_m*  sum 1.0/V_max
             type: real 2D
         observable_mode:
             meaning: 

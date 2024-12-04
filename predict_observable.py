@@ -17,7 +17,7 @@ def load_and_interpolate_obs(block, obs_section, suffix_in, obs, extrapolate_opt
     that are given.
     """
     # load observable values from observable section name, suffix_in is either med for median
-    #  or a number showing the observable-redshift bin index
+    # or a number showing the observable-redshift bin index
     obs_in = block[obs_section, f'obs_val_{suffix_in}']
     obs_func_in = block[obs_section, f'obs_func_{suffix_in}']
     # If there are any observable-redshift bins in the observable section:
@@ -96,6 +96,8 @@ def execute(block, config):
     suffixes = config['suffixes']
     nbins    = config['nbins']
 
+    # TODO: find the binned value of obs_func_binned = sum_M*min^M*max obs_func
+    # This should be closer to the estimated obs_func. 
     # number of bins for the observable this is given via len(suffixes)
     for i in range(nbins):
         # reads in and interpolates obs_func for the obs_arr[i]. z_obs is read if it exists.

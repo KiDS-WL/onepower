@@ -169,6 +169,9 @@ def get_normalised_profile(block, mass, z_vec):
     k_udm    = block['fourier_nfw_profile', 'k_h']
     u_dm     = block['fourier_nfw_profile', 'ukm']
     u_sat    = block['fourier_nfw_profile', 'uksat']
+    # For now we assume that centrals are in the centre of the haloes so no need for 
+    # defnining their profile
+    # u_cen    = block['fourier_nfw_profile', 'ukcen']
 
     if((mass_udm!=mass).any()):
         raise Exception('The profile mass values are different to the input mass values.')
@@ -372,22 +375,13 @@ def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, 
 # Galaxy Profiles
 # ----------------#
 
-def compute_galaxy_profile(Ngal, mean_number_density, fraction, u_gal=None):
-    if u_gal is None:
-        # this is relevant for centrals
-        return fraction * Ngal / mean_number_density
-    else:
-        # This one for satellites
-        return fraction * Ngal * u_gal / mean_number_density
-
-# clustering - centrals
-def central_profile(Ncen, numdencen, f_cen):
-    profile = compute_galaxy_profile(Ncen, numdencen[:,np.newaxis], f_cen[:,np.newaxis])
-    return profile
-
-# clustering - satellites
-def satellite_profile(Nsat, numdensat, f_sat, u_gal):
-    profile = compute_galaxy_profile(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], u_gal)
+# galaxy profile for a sample of galaxies, for example centrals and satellites.
+# set u_sample to ones if centrals are in the centre of the halo
+def galaxy_profile(N_sample, numden_sample, f_sample, u_sample):
+    # profile = fraction * Ngal * u_gal / mean_number_density
+    profile = f_sample[:,np.newaxis,np.newaxis] * N_sample[:,np.newaxis,:] * u_sample / numden_sample[:,np.newaxis,np.newaxis]
+    # profile = compute_galaxy_profile(N_sample[:,np.newaxis,:], numden_sample[:,np.newaxis,np.newaxis],
+                                    #   f_sample[:,np.newaxis,np.newaxis], u_sample)
     return profile
 
 
@@ -420,7 +414,10 @@ def satellite_alignment_profile(Nsat, numdensat, f_sat, wkm):
     times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
     """
     
-    s_align_factor = compute_satellite_galaxy_alignment_profile(Nsat[:,np.newaxis,:], numdensat[:,np.newaxis,np.newaxis], f_sat[:,np.newaxis,np.newaxis], wkm.transpose(0,2,1))
+    s_align_factor = compute_satellite_galaxy_alignment_profile(Nsat[:,np.newaxis,:], 
+                                                                numdensat[:,np.newaxis,np.newaxis], 
+                                                                f_sat[:,np.newaxis,np.newaxis], 
+                                                                wkm.transpose(0,2,1))
     
     return s_align_factor
     
@@ -433,7 +430,11 @@ def central_alignment_profile(mass, scale_factor, growth_factor, f_cen, C1):
     times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
     """
     
-    c_align_factor = compute_central_galaxy_alignment_profile(scale_factor[:,:,np.newaxis], growth_factor[:,:,np.newaxis], f_cen[:,np.newaxis,np.newaxis], C1, mass[np.newaxis, np.newaxis, :])
+    c_align_factor = compute_central_galaxy_alignment_profile(scale_factor[:,:,np.newaxis], 
+                                                              growth_factor[:,:,np.newaxis], 
+                                                              f_cen[:,np.newaxis,np.newaxis], 
+                                                              C1, 
+                                                              mass[np.newaxis, np.newaxis, :])
     
     return c_align_factor
     
@@ -570,25 +571,34 @@ def transition_smoothing(neff, k_vec, p_1h, p_2h):
     
     return Delta_hmcode/delta_prefac
 
-
+# We are already taking the discreteness of the satellites into account by using the poisson parameter
 def compute_1h_term(profile_u, profile_v, mass, dn_dlnm_z):
     '''
-    The 1h term of the power spectrum. All of the possible power spectra have the same structure at small scales:
-    int W_u(k,z|M) W_v(k,z|M) n(M) dM
-    where u,v are our fields, e.g. matter, galaxy, intrinsic alignment
-    for example matter halo profile is: W_matter = (M/rho_m) U_matter(k,z|M)
-    :param profile_u: array 1d (nmass), the given W_u for fixed value of k and z
-    :param profile_v: array 1d (nmass), the given W_v for fixed value of k and z
+    For two fields u,v e.g. matter, galaxy, intrinsic alignment, we calculate the 1 halo term.
+    P^1h_uv(k)= int W_u(k,z,M) W_v(k,z,M) n(M) dM
+    If the fields are the same and they correspond to discrete tracers (e.g. satellite galaxies):
+    P^1h_uv(k)= 1/n_x^2 int <N_x(M)[N_x(M)-1]> U_x(k,z,M)^2 n(M) dM + 1/n_x
+    n_x = int N_x(M) n(M) dM
+    The shot noise term is removed as we do our measurements in real space where it only shows up
+    at zero lag which is not measured. 
+    See eq 22 of Asgari, Mead, Heymans 2023 review paper.
+    But for satellite galaxis we use:
+    <N_sat(N_sat-1)> = P_oisson <N_sat>^2:
+    P^1h_ss(k)= 1/n_s^2 int P_oisson <N_sat>^2 U_s(k,z,M)^2 n(M) dM 
+    and write profile_u = profile_v = <N_sat> U_s(k,z,M) * sqrt(P_oisson)/n_s
+    for matter halo profile is: W_m = (M/rho_m) U_m(z,k,M)
+    for galaxies: W_g = (N_g(M)/n_g) U_g(z,k,M)
+    :param profile_u: array 3d, (nz, nk, nmass)
+    :param profile_v: array 3d, (nz, nk, nmass)
     :param mass: array 1d (nmass)
-    :param dn_dlnm_z: array 1d (nmass), the halo mass function at the given redshift z
-    :return: scalar, the integral along the mass axis
+    :param dn_dlnm_z: array 3d (nz,1,nmass), the halo mass function at the given redshift z
+    :return: array 2d (nz,nk), the integral along the mass axis
     '''
-    
+
     integrand = profile_u * profile_v * dn_dlnm_z / mass
     integral_1h = simps(integrand, mass)
     
     return integral_1h
-
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # Gas fraction
@@ -620,7 +630,7 @@ def fg_fit(mass, mb, fstar, z, omega_b, omega_m):
     """
     Gas fraction
     Eq 24 of 2009.01858
-    fg(M) = [Ωb/Ωm− f∗] (M/Mb)^β/ (1 + (M/Mb)^β)
+    fg(M) = [Ωb/Ωm - f_*] (M/Mb)^β/ (1 + (M/Mb)^β)
     where fg is the halo gas fraction, the pre-factor in parenthesis is the
     available gas reservoir, while Mb > 0 and β > 0 are fitted parameters.
     Haloes of M >> Mb are unaffected while those of M < Mb have
@@ -719,7 +729,8 @@ def Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term):
     # 2-halo term integral for matter, I_m = int_0^infty dM b(M) W_m(M,k) n(M) = int_0^infty dM b(M) M/rho_bar U_m(M,k) n(M)
     """
     
-    I_m_term = compute_Im_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
+    I_m_term = compute_Im_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], 
+                               dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
     return I_m_term + A_term
 
 def compute_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
@@ -730,7 +741,8 @@ def compute_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
 # TODO: write one that extrapolates intead of using A_term
 # TODO: compare results 
 def Im_term_v2(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term):
-    I_m_term = compute_Im_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
+    I_m_term = compute_Im_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], 
+                               dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
     return I_m_term + A_term
 
 
@@ -739,15 +751,17 @@ def compute_Ig_term(profile, mass, dn_dlnm_z, b_m):
     I_g = simps(integrand, mass)
     return I_g
 
+def I_term(mass, profile, b_m, dn_dlnm):
+    I_term = compute_Ig_term(profile, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
+    return I_term
 
-def Is_term(mass, profile_satellites, b_m, dn_dlnm):
-    I_s = compute_Ig_term(profile_satellites, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
-    return I_s
+# def Is_term(mass, profile_satellites, b_m, dn_dlnm):
+#     I_s = compute_Ig_term(profile_satellites, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
+#     return I_s
 
-
-def Ic_term(mass, profile_centrals, b_m, dn_dlnm, nk):
-    I_c = np.tile(np.array([compute_Ig_term(profile_centrals, mass[np.newaxis,:], dn_dlnm, b_m)]).T, [1,nk])
-    return I_c
+# def Ic_term(mass, profile_centrals, b_m, dn_dlnm, nk):
+#     I_c = np.tile(np.array([compute_Ig_term(profile_centrals, mass[np.newaxis,:], dn_dlnm, b_m)]).T, [1,nk])
+#     return I_c
 
 
 def Ig_align_term(mass, profile_align, b_m, dn_dlnm, mean_density0, A_term):
@@ -759,7 +773,9 @@ def compute_I_NL_term(W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z
     """
     uses eqs A.7 to A.10 fo Mead and Verde 2021, 2011.08858 to calculate the integral over beta_nl
     """
-
+    # TODO: check if we need this now the profile_c is the same format as profile_s
+    # check the format of c_align_profile and s_align_profile
+    # if not also combine with I_NL.
     if len(W_1.shape) < 3:
         W_1 = W_1[:,np.newaxis,:]
     if len(W_2.shape) < 3:
@@ -771,20 +787,27 @@ def compute_I_NL_term(W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z
 
     # Takes the integral over mass_1
     # TODO: check that these integrals do the correct thing, keep this TODO
-    integrand_22 = B_NL_k_z * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:] * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_1[np.newaxis,np.newaxis,:,np.newaxis])
+    integrand_22 = B_NL_k_z * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:] \
+        * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
+        * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] \
+        * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] \
+        * mass_1[np.newaxis,np.newaxis,:,np.newaxis])
     integral_M1 = simps(integrand_22, mass_1, axis=1)
     integral_M2 = simps(integral_M1, mass_2, axis=1)
     I_22 = integral_M2
     
     # TODO: Compare this with pyhalomodel, keep this TODO
 
-    I_11 = B_NL_k_z[:,0,0,:] * ((A**2.0) * W_1[:,0,:] * W_2[:,0,:] * (rho_mean[:,np.newaxis]**2.0)) / (mass_1[0] * mass_2[0])
+    I_11 = B_NL_k_z[:,0,0,:] * ((A**2.0) * W_1[:,0,:] * W_2[:,0,:] \
+            * (rho_mean[:,np.newaxis]**2.0)) / (mass_1[0] * mass_2[0])
     
-    integrand_12 = B_NL_k_z[:,:,0,:] * W_2[:,:,:] * b_2[:,:,np.newaxis] * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
+    integrand_12 = B_NL_k_z[:,:,0,:] * W_2[:,:,:] * b_2[:,:,np.newaxis] \
+        * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
     integral_12 = simps(integrand_12, mass_2, axis=1)
     I_12 = A * W_1[:,0,:] * integral_12 * rho_mean[:,np.newaxis] / mass_1[0]
     
-    integrand_21 = B_NL_k_z[:,0,:,:] * W_1[:,:,:] * b_1[:,:,np.newaxis] * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
+    integrand_21 = B_NL_k_z[:,0,:,:] * W_1[:,:,:] * b_1[:,:,np.newaxis] \
+        * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
     integral_21 = simps(integrand_21, mass_1, axis=1)
     I_21 = A * W_2[:,0,:] * integral_21 * rho_mean[:,np.newaxis] / mass_2[0]
     
@@ -911,7 +934,8 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
                 db = Pk_hh0/(b1*b2*Pk_klin) - 1.0
                 
                 lmin, lmax = hl_envelopes_idx(np.abs(beta_func[iM1, iM2, :]+1.0))
-                beta_func_interp = interp1d(k[lmax], np.abs(beta_func[iM1, iM2, lmax]+1.0), kind='quadratic', bounds_error=False, fill_value='extrapolate')
+                beta_func_interp = interp1d(k[lmax], np.abs(beta_func[iM1, iM2, lmax]+1.0), 
+                                            kind='quadratic', bounds_error=False, fill_value='extrapolate')
                 beta_func[iM1, iM2, :] = (beta_func_interp(k)-1.0)# * low_k_truncation(k, klin)
                 db = (beta_func_interp(klin)-1.0)
                 
@@ -941,7 +965,8 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     for i,zi in enumerate(zc):
         #M = np.logspace(M_lo, M_up - 3.0*np.log10(1+zi), lenM)
         #beta_func = compute_bnl_darkquest(zi, np.log10(M), np.log10(M), k, emulator, block, kmax)
-        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], beta_func, fill_value=None, bounds_error=False, method='nearest')
+        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], 
+                                                      beta_func, fill_value=None, bounds_error=False, method='nearest')
     
     return beta_nl_interp_i
 
@@ -987,7 +1012,7 @@ def compute_two_halo_alignment(alignment_gi, suffix, growth_factor, mean_density
         
 #     return poisson_num
 
-
+# TODO: change this to calculate things for the same masses as in n(M)
 def poisson_func(params, mass_avg):
 
     if params['poisson_type'] == 'scalar':
@@ -1083,7 +1108,8 @@ def compute_p_mm_bnl(k_vec, plin, mass, dn_dln_m, matter_profile, I_m_term, I_NL
     # 2-halo term:
     pk_mm_2h = ( plin * I_m_term * I_m_term + plin*I_NL_mm ) #* two_halo_truncation(k_vec)[np.newaxis,:]
     # 1-halo term
-    pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
+    pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, 
+                               dn_dln_m[:,np.newaxis]) * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
     # Total
     pk_mm_tot = pk_mm_1h + pk_mm_2h
     
@@ -1095,7 +1121,8 @@ def compute_p_mm_mead(k_vec, plin, mass, dn_dln_m, matter_profile, sigma8_z, nef
     # 2-halo term:
     pk_mm_2h = plin * two_halo_truncation_mead(k_vec, sigma8_z)
     # 1-halo term
-    pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_mead(k_vec, sigma8_z)
+    pk_mm_1h = compute_1h_term(matter_profile, matter_profile, mass, 
+                               dn_dln_m[:,np.newaxis]) * one_halo_truncation_mead(k_vec, sigma8_z)
     # Total
     pk_mm_tot = transition_smoothing(neff, k_vec, pk_mm_1h, pk_mm_2h)
     
@@ -1103,7 +1130,6 @@ def compute_p_mm_mead(k_vec, plin, mass, dn_dln_m, matter_profile, sigma8_z, nef
    
 
 # galaxy-galaxy power spectrum
-# TODO: combine this with the next function, but add an option for beta_nl
 def compute_p_gg(k_vec, pk_lin, mass, dn_dln_m, central_profile, 
                  satellite_profile, I_c_term, I_s_term, mass_avg, 
                  poisson_par, one_halo_ktrunc, two_halo_ktrunc):
@@ -1116,20 +1142,32 @@ def compute_p_gg(k_vec, pk_lin, mass, dn_dln_m, central_profile,
     pk_ss_2h = pk_lin * I_s_term * I_s_term * two_halo_truncation(k_vec, two_halo_ktrunc)[np.newaxis,:]
     pk_cs_2h = pk_lin * I_c_term * I_s_term * two_halo_truncation(k_vec, two_halo_ktrunc)[np.newaxis,:]
 
+    # send the possion parameter to compute_1h_term as part of the profile.
+    # if poisson is mass dependent we need to take it into the 1h term integral
+    # poisson_ave = poisson_func(poisson_par, mass_avg)[:,np.newaxis]
+    # print('poisson_ave',poisson_ave)
+    poisson = poisson_func(poisson_par, mass)
+    print('poisson',poisson)
+
     # 1-halo term:
-    # TODO: check that the satellite 1 halo term is correct (eq 22 of the review)
-    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], satellite_profile, mass[np.newaxis,np.newaxis,:], 
-                               dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec, one_halo_ktrunc)
-    pk_ss_1h = compute_1h_term(satellite_profile, satellite_profile, mass[np.newaxis,np.newaxis,:], 
+    pk_cs_1h = compute_1h_term(central_profile, satellite_profile, mass[np.newaxis,np.newaxis,:], 
                                dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec, one_halo_ktrunc)
     
-    # Total
-    # AD: adding Poisson parameter to ph_ss_1h!
-    # poisson = block['pk_parameters', 'poisson']
-    # TODO: check if we can remove block dependence here. Maybe read in the parameters separately.
+    # pk_ss_1h_nop = compute_1h_term(satellite_profile, satellite_profile, mass[np.newaxis,np.newaxis,:], 
+    #                             dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec, one_halo_ktrunc)
 
-    poisson = poisson_func(poisson_par, mass_avg)[:,np.newaxis]
-    pk_1h = 2.0*pk_cs_1h + poisson*pk_ss_1h
+    pk_ss_1h = compute_1h_term(satellite_profile * poisson, satellite_profile, mass[np.newaxis,np.newaxis,:], 
+                               dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec, one_halo_ktrunc)
+
+
+    # print(pk_ss_1h/(poisson_ave*pk_ss_1h_nop))
+    # exit()
+    # removed poisson from here as it is now part of pk_ss_1h
+    # When mass dependent it makes a big difference to pk where or not we have it in the intergral
+    # or outside of the integral
+    # pk_1h = 2.0*pk_cs_1h + poisson_ave*pk_ss_1h
+
+    pk_1h = 2.0*pk_cs_1h + pk_ss_1h
     pk_2h = pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
     pk_tot = pk_1h + pk_2h
 
@@ -1138,7 +1176,6 @@ def compute_p_gg(k_vec, pk_lin, mass, dn_dln_m, central_profile,
     galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
     # changed this to have the poisson parameter included
     return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
-
 
 def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profile, 
                      I_c_term, I_s_term, I_NL_cs, I_NL_cc, I_NL_ss, 
@@ -1152,16 +1189,33 @@ def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
     pk_cc_2h = pk_lin * I_c_term * I_c_term + pk_lin*I_NL_cc
     pk_ss_2h = pk_lin * I_s_term * I_s_term + pk_lin*I_NL_ss
 
-    # 1-halo term:
-    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], satellite_profile, 
-                               mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:])\
-                 * one_halo_truncation(k_vec, one_halo_ktrunc)
-    pk_ss_1h = compute_1h_term(satellite_profile, satellite_profile, 
-                               mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:])\
-                 * one_halo_truncation(k_vec, one_halo_ktrunc)
+    # send the possion parameter to compute_1h_term as part of the profile.
+    # if poisson is mass dependent we need to take it into the 1h term integral
+    # poisson_ave = poisson_func(poisson_par, mass_avg)[:,np.newaxis]
+    # print('poisson_ave',poisson_ave)
+    poisson = poisson_func(poisson_par, mass)
+    print('poisson',poisson)
 
-    poisson = poisson_func(poisson_par, mass_avg)[:,np.newaxis]
-    pk_1h = 2.0*pk_cs_1h + poisson*pk_ss_1h
+    # 1-halo term:
+    pk_cs_1h = compute_1h_term(central_profile, satellite_profile, 
+                               mass[np.newaxis,np.newaxis,:], 
+                               dn_dln_m[:,np.newaxis,:])* one_halo_truncation(k_vec, one_halo_ktrunc)
+    # pk_ss_1h_nop = compute_1h_term(satellite_profile, satellite_profile, 
+    #                            mass[np.newaxis,np.newaxis,:], dn_dln_m[:,np.newaxis,:])\
+    #              * one_halo_truncation(k_vec, one_halo_ktrunc)
+    pk_ss_1h = compute_1h_term(satellite_profile * poisson, satellite_profile, 
+                               mass[np.newaxis,np.newaxis,:], 
+                               dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec, one_halo_ktrunc)
+
+
+    # print(pk_ss_1h/(poisson_ave*pk_ss_1h_nop))
+    # exit()
+    # removed poisson from here as it is now part of pk_ss_1h
+    # When mass dependent it makes a big difference to pk where or not we have it in the intergral
+    # or outside of the integral
+    # pk_1h = 2.0*pk_cs_1h + poisson_ave*pk_ss_1h
+
+    pk_1h = 2.0*pk_cs_1h + pk_ss_1h
     pk_2h = pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
     pk_tot = pk_1h + pk_2h
     
@@ -1173,11 +1227,7 @@ def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
     # return 2. * pk_cs_1h + pk_ss_1h, pk_cc_2h + pk_ss_2h + 2. * pk_cs_2h, pk_tot, galaxy_linear_bias
     return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
 
-
 # galaxy-matter power spectrum
-# TODO: combine these two together
-# TODO: should'nt the poisson parameter come into here as well?
-# AD: No, no poisson parameter here, it only enters the 1-halo s-s term.
 def compute_p_gm(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profile, 
                  matter_profile, I_c_term, I_s_term, I_m_term, one_halo_ktrunc, two_halo_ktrunc):
     """
@@ -1187,13 +1237,15 @@ def compute_p_gm(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profi
     # 2-halo term:
     pk_cm_2h = pk_lin * I_c_term * I_m_term * two_halo_truncation(k_vec, two_halo_ktrunc)[np.newaxis,:]
     pk_sm_2h = pk_lin * I_s_term * I_m_term * two_halo_truncation(k_vec, two_halo_ktrunc)[np.newaxis,:]
+
     # 1-halo term
-    pk_cm_1h = compute_1h_term(central_profile[:,np.newaxis], matter_profile, 
+    pk_cm_1h = compute_1h_term(central_profile, matter_profile, 
                                mass, dn_dln_m[:,np.newaxis]) \
                 * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_sm_1h = compute_1h_term(satellite_profile, matter_profile, 
                                mass, dn_dln_m[:,np.newaxis]) \
                 * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
+    
     pk_1h = pk_cm_1h + pk_sm_1h
     pk_2h = pk_cm_2h + pk_sm_2h
     pk_tot = pk_1h + pk_2h
@@ -1215,7 +1267,7 @@ def compute_p_gm_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile,
     pk_cm_2h = pk_lin * I_c_term * I_m_term + pk_lin*I_NL_cm
     pk_sm_2h = pk_lin * I_s_term * I_m_term  + pk_lin*I_NL_sm
         # 1-halo term
-    pk_cm_1h = compute_1h_term(central_profile[:,np.newaxis], matter_profile, mass, dn_dln_m[:,np.newaxis]) \
+    pk_cm_1h = compute_1h_term(central_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) \
                 * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_sm_1h = compute_1h_term(satellite_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) \
                 * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
@@ -1369,7 +1421,7 @@ def compute_p_gI_fortuna(k_vec, p_eff, mass, dn_dln_m, central_profile,
     #IT Removed new_axis from alignment_amplitude_2h[:,np.newaxis] in the following line
     pk_cc_2h = -1.0 * p_eff * I_c_term * alignment_amplitude_2h[:,] * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis,:]
     # 1-halo term
-    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis])\
+    pk_cs_1h = compute_1h_term(central_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis])\
                  * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     
     pk_tot = pk_cs_1h + pk_cc_2h
@@ -1382,7 +1434,7 @@ def compute_p_gI(k_vec, p_lin, mass, dn_dln_m, central_profile, s_align_factor,
     p_tot = p_cs_gI_1h + (2?)*p_cc_gI_2h + O(p_ss_gI_1h) + O(p_cs_gI_2h)
     """
     
-    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis])\
+    pk_cs_1h = compute_1h_term(central_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis])\
           * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_cc_2h = p_lin * I_c_term * I_c_align_term * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis,:]
     pk_cs_2h = p_lin * I_c_term * I_s_align_term * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis,:]
@@ -1399,7 +1451,7 @@ def compute_p_gI_bnl(k_vec, p_lin, mass, dn_dln_m, central_profile,
     p_tot = p_cs_gI_1h + (2?)*p_cc_gI_2h + O(p_ss_gI_1h) + O(p_cs_gI_2h)
     """
     
-    pk_cs_1h = compute_1h_term(central_profile[:,np.newaxis,:], s_align_factor, mass, dn_dln_m[:,np.newaxis]) \
+    pk_cs_1h = compute_1h_term(central_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) \
                 * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
     pk_cc_2h = p_lin * I_c_term * I_c_align_term + p_lin*(I_NL_ia_gc)
     pk_cs_2h = p_lin * I_c_term * I_s_align_term + p_lin*(I_NL_ia_gs)
