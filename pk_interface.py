@@ -285,22 +285,29 @@ def execute(block, config):
             else:
                 suffix = f'{pop_name}'
                 suffix_hod = ''
-                
-            Ncen, Nsat, numdencen, numdensat, f_cen, f_sat, mass_avg, fstar = pk_lib.load_hods(block, 
-                                                                            hod_section_name, suffix_hod, z_vec, mass)
+            # mass_avg is the averange halo mass per redshift bin.
+            N_cen, N_sat, numdencen, numdensat,\
+            f_cen, f_sat, mass_avg, fstar = pk_lib.load_hods(block, 
+                                        hod_section_name, suffix_hod, z_vec, mass)
+
         
             # setup for galaxy correlations
             if galaxy == True:
-                # preparing the 1h term
-                # TODO: check if Nsat and Ncen need to be in a grid with respect to z
+                # preparing the 1-halo term
                 # Computes the profiles for centrals and satellites.
                 # These are the W_u(M,k) functions in Asgari, Mead, Heymans 2023: 2303.08752
-                # Centrals are assumed to be in the centre of the halo, therefore no need for the normalised profile, U.
-                profile_c = pk_lib.central_profile(Ncen, numdencen, f_cen)
-                profile_s = pk_lib.satellite_profile(Nsat, numdensat, f_sat, u_sat)
+                # We assume that the centrals are in the centre of the halo, 
+                # and set their normalised profile to 1 everwhere.
+                # profile_c2 = pk_lib.central_profile(N_cen, numdencen, f_cen)
+                # profile_s = pk_lib.satellite_profile(N_sat, numdensat, f_sat, u_sat)
+
+                profile_c = pk_lib.galaxy_profile(N_cen, numdencen, f_cen, np.ones_like(u_sat))
+                profile_s = pk_lib.galaxy_profile(N_sat, numdensat, f_sat, u_sat)
+                
                 # calculate the 2-halo integrals for centrals and satelites
-                I_c = pk_lib.Ic_term(mass, profile_c, b_dm, dn_dlnm, nk)
-                I_s = pk_lib.Is_term(mass, profile_s, b_dm, dn_dlnm)
+                # I_c = pk_lib.Ic_term(mass, profile_c, b_dm, dn_dlnm, nk)
+                I_c = pk_lib.I_term(mass, profile_c, b_dm, dn_dlnm)
+                I_s = pk_lib.I_term(mass, profile_s, b_dm, dn_dlnm)
                 
                 if mead_correction == 'fit' or point_mass == True:
                     # Include point mass and gas contribution to the GGL power spectrum, defined from HOD
@@ -320,7 +327,6 @@ def execute(block, config):
                             dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
                         I_NL_cc = pk_lib.I_NL(mass, mass, profile_c, profile_c, b_dm, b_dm,
                             dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
-
                     if p_gm == True:
                         I_NL_cm = pk_lib.I_NL(mass, mass, profile_c, matter_profile, b_dm, b_dm,
                             dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
@@ -348,10 +354,10 @@ def execute(block, config):
                 if block[f'ia_small_scale_alignment{pop_name}', 'instance'] == 'halo_mass':
                     beta_sat = block[f'ia_small_scale_alignment{pop_name}', 'beta_sat']
                     M_pivot  = block[f'ia_small_scale_alignment{pop_name}', 'M_pivot']
-                    s_align_profile = pk_lib.satellite_alignment_profile_grid_halo(Nsat, numdensat, f_sat, wkm,
+                    s_align_profile = pk_lib.satellite_alignment_profile_grid_halo(N_sat, numdensat, f_sat, wkm,
                                                                                 beta_sat,  M_pivot, mass_avg)
                 else:
-                    s_align_profile = pk_lib.satellite_alignment_profile(Nsat, numdensat, f_sat, wkm)
+                    s_align_profile = pk_lib.satellite_alignment_profile(N_sat, numdensat, f_sat, wkm)
                 if block[f'ia_large_scale_alignment{pop_name}', 'instance'] == 'halo_mass':
                     beta    = block[f'ia_large_scale_alignment{pop_name}', 'beta']
                     M_pivot = block[f'ia_large_scale_alignment{pop_name}', 'M_pivot']
@@ -390,22 +396,39 @@ def execute(block, config):
             if p_gg:
                 # first check if the poisson distribution for the satellites is disturbed.
                 if poisson_type == 'scalar':
+                    # P= poisson
                     poisson_par = {'poisson_type': poisson_type,
                         "poisson": block['pk_parameters', 'poisson']}
                 elif poisson_type == 'power_law':
+                    # P = poisson x (M/M_0)^slope
                     poisson_par = {'poisson_type': poisson_type,
                                     "poisson": block['pk_parameters', 'poisson'], 
-                                    'M0': block['pk_parameters', 'M_0'],
+                                    'M_0': 10**block['pk_parameters', 'M_0'],
                                     'slope' : block['pk_parameters', 'slope']}
                 elif poisson_type != '':
                     raise ValueError(f'Not a recognised poission_type={poisson_type}. \
-                                        Choose from scalar and power_law or the default value to avoid using this parameter.')
+                                    Choose from scalar and power_law or the default value to avoid using this parameter.')
                
                 if bnl: # If bnl is True use the beyond linear halo bias formalism
                     pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = pk_lib.compute_p_gg_bnl(k_vec, plin, 
                         mass, dn_dlnm, profile_c, profile_s, I_c, I_s, I_NL_cs, I_NL_cc, I_NL_ss, 
                         mass_avg, poisson_par, one_halo_ktrunc)
                 else: # If bnl is not ture then just use linear halo bias
+                    """
+                    For poisson distributed satellites, we have 
+                    < N_sat (N_sat-1) > = <N_sat>^2 = lambda^2 = <N_sat^2> - <N_sat>^2
+                    We define the Poisson parameters as: 
+                    Poisson = <N_sat(N_sat-1)>/<N_sat>^2
+                    a super-Poissonian distribution is a probability distribution 
+                    that has a larger variance than a Poisson distribution with the same mean.
+                    Conversely, a sub-Poissonian distribution has a smaller variance.  
+                    Why do we assume poisson distribution for satellites? 
+                    Possion distribution assumes:
+                    1- The satellites are independent. The existance of one satellite does not
+                       affect another satellite.
+                    2- Two satellites cannot exist in the same location. 
+                    3- The average number of satellites per halo is indepenedent of any occurance?
+                    """
                     pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = pk_lib.compute_p_gg(k_vec, plin, 
                         mass, dn_dlnm, profile_c, profile_s, I_c, I_s, mass_avg, 
                         poisson_par, one_halo_ktrunc, two_halo_ktrunc)
