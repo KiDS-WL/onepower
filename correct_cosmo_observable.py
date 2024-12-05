@@ -30,10 +30,11 @@ def setup(options):
     # At least to specifiy the exact cosmology model, even though it should be a s close as general
     # as in CAMB, for which we can safely assume Flatw0waCDM does the job...
     
-    cosmo_kwargs = ast.literal_eval(options.get_string(option_section, 'cosmo_kwargs',  default="{'H0':70.0, 'Om0':0.7, 'Ode0':0.3}"))
-    # cosmo_kwargs is to be a string containing a dictionary!
-    # ast.literal_eval("{'H0':h*100.0, 'Om0':omegav, 'Ode0':omegav}")
+    # cosmo_kwargs is to be a string containing a dictionary with all the arguments the
+    # requested cosmology accepts (see default)!
+    cosmo_kwargs = ast.literal_eval(options.get_string(option_section, 'cosmo_kwargs',  default="{'H0':70.0, 'Om0':0.3, 'Ode0':0.7}"))
     
+    # requested cosmology class from astropy:
     cosmo_class = options.get_string(option_section, 'astropy_cosmology_class',  default='LambdaCDM')
     cosmo_class_init = getattr(astropy.cosmology, cosmo_class)
     cosmo_model_data = cosmo_class_init(**cosmo_kwargs)
@@ -65,31 +66,26 @@ def execute(block, config):
         tcmb = 2.7255
     cosmo_model_run = Flatw0waCDM(
         H0=block[cosmo_params, 'hubble'], Ob0=block[cosmo_params, 'omega_b'],
-        Om0=block[cosmo_params, 'omega_m'], m_nu=[0, 0, block[cosmo_params, 'mnu']], Tcmb0=tcmb,
-        w0=block[cosmo_params, 'w'], wa=block[cosmo_params, 'wa'] )
+        Om0=block[cosmo_params, 'omega_m'], m_nu=[0, 0, block[cosmo_params, 'mnu']],
+        Tcmb0=tcmb, w0=block[cosmo_params, 'w'], wa=block[cosmo_params, 'wa'] )
     h_run = cosmo_model_run.h
     
-    import matplotlib.pyplot as pl
-    # number of bins for the observable this is given via len(suffixes)
+    # number of bins for the observable this is given via saved nbins value
     for i in range(nbins):
         
         obs_func = block[section_name, f'bin_{i+1}']
-        obs_arr = block[section_name, f'obs_{i+1}']
-        pl.plot(obs_arr, obs_func, color='black')
+        #obs_arr = block[section_name, f'obs_{i+1}']
+        
         comoving_volume_data = (cosmo_model_data.comoving_distance(zmax[i])**3.0 - cosmo_model_data.comoving_distance(zmin[i])**3.0) * h_data**3.0
         comoving_volume_model = (cosmo_model_run.comoving_distance(zmax[i])**3.0 - cosmo_model_run.comoving_distance(zmin[i])**3.0) * h_run**3.0
         
         ratio_obs = comoving_volume_model / comoving_volume_data
         obs_func_new = obs_func * ratio_obs
         
-        pl.plot(obs_arr, obs_func_new, color='red')
         block.replace_double_array_1d(section_name, f'bin_{i+1}', obs_func_new)
         # AD: I think there is no change to the obs values (the stellar masses)
         #block.replace_double_array_1d(section_name, f'obs_{i+1}', obs_arr_new)
 
-    pl.xscale('log')
-    pl.xscale('log')
-    pl.show()
     return 0
 
 
