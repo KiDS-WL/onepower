@@ -1,7 +1,7 @@
 """
-This module combines tomographic / stellar mass bins of the individually calculated observables
-It produces the theoretical prediction for the observable for the full survey. 
-The number of bins and the mass range can be different to what is calculated in the hod_interface.py module.
+This module corrects the individually calculated observables (stellar mass function)
+for the difference in input data cosmology to the predicted output cosmology
+by multiplication of ratio of volumes according to More et al. 2013 and More et al. 2015
 """
 
 from cosmosis.datablock import names, option_section
@@ -11,11 +11,6 @@ import astropy
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 
 cosmo_params = names.cosmological_parameters
-
-"""
-    !!!WORK IN PROGRESS!!!
-    Currently non functional
-"""
 
 def setup(options):
 	
@@ -32,7 +27,8 @@ def setup(options):
     
     # cosmo_kwargs is to be a string containing a dictionary with all the arguments the
     # requested cosmology accepts (see default)!
-    cosmo_kwargs = ast.literal_eval(options.get_string(option_section, 'cosmo_kwargs',  default="{'H0':70.0, 'Om0':0.3, 'Ode0':0.7}"))
+    cosmo_kwargs = ast.literal_eval(options.get_string(option_section, 'cosmo_kwargs',
+                                    default="{'H0':70.0, 'Om0':0.3, 'Ode0':0.7}"))
     
     # requested cosmology class from astropy:
     cosmo_class = options.get_string(option_section, 'astropy_cosmology_class',  default='LambdaCDM')
@@ -76,8 +72,12 @@ def execute(block, config):
         obs_func = block[section_name, f'bin_{i+1}']
         #obs_arr = block[section_name, f'obs_{i+1}']
         
-        comoving_volume_data = (cosmo_model_data.comoving_distance(zmax[i])**3.0 - cosmo_model_data.comoving_distance(zmin[i])**3.0) * h_data**3.0
-        comoving_volume_model = (cosmo_model_run.comoving_distance(zmax[i])**3.0 - cosmo_model_run.comoving_distance(zmin[i])**3.0) * h_run**3.0
+        comoving_volume_data = ((cosmo_model_data.comoving_distance(zmax[i])**3.0
+                                - cosmo_model_data.comoving_distance(zmin[i])**3.0)
+                                * h_data**3.0)
+        comoving_volume_model = ((cosmo_model_run.comoving_distance(zmax[i])**3.0
+                                - cosmo_model_run.comoving_distance(zmin[i])**3.0)
+                                * h_run**3.0)
         
         ratio_obs = comoving_volume_model / comoving_volume_data
         obs_func_new = obs_func * ratio_obs
