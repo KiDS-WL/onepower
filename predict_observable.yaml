@@ -59,6 +59,18 @@ params:
                 are given in log10 M_sun/h^2.
         type: bool
         default: False
+    weighted_binning:
+        meaning: If True does weighted binning on SMF. 
+                The weights are either 1 if no file is given (this is equivalent to integrating over the observable bin).
+                If obs_dist_file is given then the weights are taken from that file.
+                If weighted_binning is True then we also need the edges to be True, so that we know the edges of the bins.
+        type: bool
+        default: False
+    obs_dist_file:
+        meaning: If obs_dist_file name is given then the weights are taken from that file. This should be a text file with 2 columns.
+                column 1 should be log10 observable and column 2 the weight (e.g. number of galaxies for the given value in column 1).
+        type: str
+        default: ""
 inputs:
     input_section_name:
         obs_val_{i}:

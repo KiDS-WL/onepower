@@ -63,7 +63,7 @@ def setup(options):
         config['suffixes'] = ['med']
     
     obs_dist_file = options.get_string(option_section, 'obs_dist_file', default='')
-    config['weighted_binning'] = options.get_bool(option_section, 'weighted_binning', default=True)
+    config['weighted_binning'] = options.get_bool(option_section, 'weighted_binning', default=False)
     config['log10_obs_min'] = np.asarray([options[option_section, 'log10_obs_min']]).flatten()
     config['log10_obs_max'] = np.asarray([options[option_section, 'log10_obs_max']]).flatten()
     config['n_obs'] = np.asarray([options[option_section, 'n_obs']]).flatten()
