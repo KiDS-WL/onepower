@@ -10,7 +10,7 @@ from scipy.interpolate import interp1d
 from scipy.integrate import simps
 
 # z_obs, obs_ext = load_and_interpolate_obs(block, input_section_name, suffixes[i], obs_arr[i], 0.0)
-def load_and_interpolate_obs(block, obs_section, suffix_in, obs, extrapolate_option=0.0):
+def load_and_interpolate_obs(block, obs_section, suffix_in, extrapolate_option=0.0):
     """
     Loads the observable, e.g. stellar mass, the observable function, e.g. stellar mass function,
     and the redshift bins for the observable. Interpolates the observable function for the obs values 
@@ -28,9 +28,9 @@ def load_and_interpolate_obs(block, obs_section, suffix_in, obs, extrapolate_opt
     else:
         z_obs = None
         obs_func_interp = interp1d(obs_in, obs_func_in, kind='linear', fill_value=extrapolate_option, bounds_error=False)
-    obs_func = obs_func_interp(obs)
+    # obs_func = obs_func_interp(obs)
 
-    return z_obs, obs_func
+    return z_obs, obs_func_interp
 
 def load_redshift(block, redshift_section, bin, z, extrapolate_option=0.0):
     """
@@ -52,7 +52,6 @@ def setup(options):
     # input and output section names
     config['input_section_name']  = options.get_string(option_section, 'input_section_name',  default='stellar_mass_function')
     config['output_section_name'] = options.get_string(option_section, 'output_section_name', default='obs_out')
-    
     # check if suffixes exists in the extrapolate_obs section of pipeline.ini
     if options.has_value(option_section, 'suffixes'):
         config['suffixes'] = np.asarray([options[option_section, 'suffixes']]).flatten()
@@ -62,7 +61,9 @@ def setup(options):
         config['nbins']    = 1
         config['sample']   = None
         config['suffixes'] = ['med']
-        
+    
+    obs_dist_file = options.get_string(option_section, 'obs_dist_file', default='')
+    config['weighted_binning'] = options.get_bool(option_section, 'weighted_binning', default=True)
     config['log10_obs_min'] = np.asarray([options[option_section, 'log10_obs_min']]).flatten()
     config['log10_obs_max'] = np.asarray([options[option_section, 'log10_obs_max']]).flatten()
     config['n_obs'] = np.asarray([options[option_section, 'n_obs']]).flatten()
@@ -85,6 +86,17 @@ def setup(options):
             # if edges is False then we assume that log10_obs_min and log10_obs_max are the center of the bins
             config['obs_arr'].append(np.logspace(config['log10_obs_min'][i], config['log10_obs_max'][i], config['n_obs'][i]))
     
+    if config['weighted_binning']:
+        if config['edges']:
+            if obs_dist_file:
+                # read in number of galaxies within a narrow observable bin from file
+                config['obs_dist'] = np.loadtxt(obs_dist_file,comments='#')
+            else:
+                nObins = 10000
+                config['obs_arr_fine'] = np.linspace(config['log10_obs_min'].min(), config['log10_obs_max'].max(), nObins, endpoint=True)
+        else:
+            raise ErrorValue('Error: please provide edge values for observables to do weighted binning.')
+    
     return config
 	
 
@@ -96,12 +108,44 @@ def execute(block, config):
     suffixes = config['suffixes']
     nbins    = config['nbins']
 
-    # TODO: find the binned value of obs_func_binned = sum_M*min^M*max obs_func
+    # TODO: find the binned value of obs_func_binned = \sum_O_{min}^O_{max} Phi(O_i) * N(O_i) / \sum_O_{min}^O_{max} N(O_i)
+    # N(O_i) is the number of galaxies with obs = O_i in a fine bin around O_i
     # This should be closer to the estimated obs_func. 
     # number of bins for the observable this is given via len(suffixes)
     for i in range(nbins):
-        # reads in and interpolates obs_func for the obs_arr[i]. z_obs is read if it exists.
-        z_obs, obs_func = load_and_interpolate_obs(block, input_section_name, suffixes[i], obs_arr[i], extrapolate_option=0.0)
+        # reads in and produce the interpolator for obs_func. z_obs is read if it exists.
+        z_obs, obs_func_interp = load_and_interpolate_obs(block, input_section_name, suffixes[i], extrapolate_option=0.0)
+        if config['weighted_binning']:
+            # if nbins>1:
+            #     raise ErrorValue('Error: currently only supported for single redshift bin.')
+            try:
+                obs_values=config['obs_dist'][:,0]
+                obs_dist=config['obs_dist'][:,1]
+                # TODO: This is a hack, might need to change it. 
+                if z_obs is not None:
+                    obs_func_fine= obs_func_interp(10**obs_values)[0]
+                else:
+                    obs_func_fine= obs_func_interp(10**obs_values)
+                obs_func_binned = []
+                obs_edges = np.linspace(config['log10_obs_min'][i], config['log10_obs_max'][i], config['n_obs'][i]+1, endpoint=True)
+                for iobs in range(len(obs_arr[i])):
+                    cond_bin = (obs_values>obs_edges[iobs]) & (obs_values<=obs_edges[iobs+1]) 
+                    obs_func_binned.append(np.sum(obs_func_fine[cond_bin]*obs_dist[cond_bin])/np.sum(obs_dist[cond_bin]))
+                obs_func = np.array(obs_func_binned)
+            except:
+                obs_func_integrated = []
+                 # TODO: This is a hack, might need to change it. 
+                if z_obs is not None:
+                    obs_func_fine= obs_func_interp(10**config['obs_arr_fine'])[0]
+                else:
+                    obs_func_fine= obs_func_interp(10**config['obs_arr_fine'])
+                obs_edges = np.linspace(config['log10_obs_min'][i], config['log10_obs_max'][i], config['n_obs'][i]+1, endpoint=True)
+                for iobs in range(config['n_obs'][i]):
+                    cond_bin = (config['obs_arr_fine']>obs_edges[iobs]) & (config['obs_arr_fine']<=obs_edges[iobs+1]) 
+                    obs_func_integrated.append(np.sum(obs_func_fine[cond_bin])/np.sum(cond_bin))
+                obs_func = np.array(obs_func_integrated)
+        else:
+            obs_func = obs_func_interp(obs_arr[i])
         # if the input observable depends on redshift then take the weighted average of it.
         if z_obs is not None:
             # print('z_obs is not None')
