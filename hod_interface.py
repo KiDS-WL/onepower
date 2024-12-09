@@ -84,7 +84,7 @@ def load_data(file_name):
 
 def setup(options):
 
-    # TODO: Change the bining of the observable such that nbins can be larger than 1 if inputs are read through a file.
+    # (low priority) TODO: Change the bining of the observable such that nbins can be larger than 1 if inputs are read through a file.
 
     # output section name for HOD related outputs.
     hod_section_name = options.get_string(option_section, 'hod_section_name').lower()
