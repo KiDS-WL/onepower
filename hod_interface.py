@@ -481,15 +481,8 @@ def execute(block, config):
 
         obs_func = hod.obs_func(mass, phi_lf, dn_dlnM_zmedian)
             
-        # AD: CHECK THE h HERE!
-        # AD: Should be without as the h is carried through in the first place!
-        # AD: ln(10) factor added to the output and multiplication with M/L to get to the usual units data are in 99% reported in!
-
-        obs_h = obs_range#*(h**2.) #note that the _h subscript avoids mixing h conventions while computing the clf_quantities
-        obs_func = obs_func
-
         # x value for the observable function (e.g. stellar masses)
-        block.put_double_array_1d(observable_section_name,'obs_val_med',obs_h)
+        block.put_double_array_1d(observable_section_name,'obs_val_med',obs_range)
         #block.put_double_array_1d('observable_function' + suffix,'obs_func_med',obs_func)
 
         # TODO: change the name of obs_func
@@ -497,7 +490,7 @@ def execute(block, config):
         # Φ(m∗) ∆m∗ = sum 1.0/V_max (e.g. eq 1 of 0901.0706)
         # Φ(m∗) m* dm*/m*  = Φ(m∗) m* dln m*= Φ(m∗) m* ln(10) dlog10_m* = sum 1.0/V_max
         # Φ(m∗) m* ln(10)  = 1/dlog10_m*  sum 1.0/V_max
-        block.put_double_array_1d(observable_section_name,'obs_func_med',np.log(10.)*obs_func*obs_h)
+        block.put_double_array_1d(observable_section_name,'obs_func_med',np.log(10.)*obs_func*obs_range)
 
         #Mean value of the observable for central galaxies
         mean_obs_cen = hod.cal_mean_obs_c(mass, hod_par)
