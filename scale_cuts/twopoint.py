@@ -1,6 +1,5 @@
 from astropy.io import fits
 import astropy.units
-from astropy.table import Table
 from enum import Enum
 import numpy as np
 import copy
@@ -127,14 +126,10 @@ class OnePointMeasurement(object):
     def from_fits(cls, extension):
         # load in the 1-pt data
         data = extension.data
-        header = extension.header
+        # header = extension.header
 
         i = 1
-        #name = 'VALUE{}'.format(i)
         name = 'BIN{}'.format(i)
-        name_x = 'ANG{}'.format(i)
-        name_low = 'ANGLEMIN{}'.format(i)
-        name_high = 'ANGGLEMAX{}'.format(i)
         nobs = []
         obs = []
         obs_low = []
@@ -166,7 +161,8 @@ class OnePointMeasurement(object):
         N = cls(extension.name, obs, nobs, obs_low, obs_high)
 
         return N
-
+    
+    # TODO: this is a hack so that it works with one SMF it need to be fixed.
     def to_fits(self):
         header = fits.Header()
         header[ONEPOINT_SENTINEL] = True
@@ -177,15 +173,24 @@ class OnePointMeasurement(object):
 
         columns = []
 
+        # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         for i in range(self.nbin):
-            name = 'VALUE{}'.format(i + 1)
-            columns.append(fits.Column(name=name, array=self.nobs[i], format='D'))
-            columns.append(fits.Column(name='ANG{}'.format(i + 1), array=self.obs[i], format='D'))
+            name = 'BIN{}'.format(i + 1)
+            # print(self.nobs[i])
+            # print(self.obs[i])
+            # print(self.obs_low[i])
+            # print(self.obs_high[i])
+            if self.nbin ==1:
+                columns.append(fits.Column(name=name, array=self.nobs, format='D'))
+            else:
+                columns.append(fits.Column(name=name, array=self.nobs[i], format='D'))
+            columns.append(fits.Column(name='OBS{}'.format(i + 1), array=self.obs[i], format='D'))
             if self.obs_low is not None:
-                columns.append(fits.Column(name='ANGLEMIN{}'.format(i + 1), array=self.obs_low[i], format='D'))
+                columns.append(fits.Column(name='OBS_LOW{}'.format(i + 1), array=self.obs_low[i], format='D'))
             if self.obs_high is not None:
-                columns.append(fits.Column(name='ANGLEMAX{}'.format(i + 1), array=self.obs_high[i], format='D'))
-            
+                columns.append(fits.Column(name='OBS_HIGH{}'.format(i + 1), array=self.obs_high[i], format='D'))
+        # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
         extension = fits.BinTableHDU.from_columns(columns, header=header)
         return extension
 
