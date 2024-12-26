@@ -450,10 +450,10 @@ def execute(block, config):
     COF_s = hod.COF_sat(obs_range[:,np.newaxis], mass[:,np.newaxis], hod_par)
     COF = COF_c + COF_s
 
-    np.savetxt('COF_s_z0_2.txt',COF_s[0,:,:])
-    np.savetxt('COF_c_z0_2.txt',COF_c[0,:,:])
-    np.savetxt('halo_mass_2.txt',mass)
-    np.savetxt('observable_2.txt',obs_range[nb,:])
+    # np.savetxt('COF_s_z0_2.txt',COF_s[0,:,:])
+    # np.savetxt('COF_c_z0_2.txt',COF_c[0,:,:])
+    # np.savetxt('halo_mass_2.txt',mass)
+    # np.savetxt('observable_2.txt',obs_range[nb,:])
     # exit()
     
     # TODO: What is this one for? There is already f_start for the bins.
