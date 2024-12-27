@@ -164,7 +164,6 @@ def compute_avg_halo_mass(mass, hod_x, dn_dlnM_normalised):
 
 def compute_galaxy_linear_bias(mass, hod_x, halo_bias, dn_dlnM_normalised):
     """
-    TODO: Is this used anywhere? How is it used?
     Mean linear halo bias for the given population of galaxies.
     b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
     """

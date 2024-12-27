@@ -2,7 +2,7 @@
 import numpy as np
 from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
 from scipy.integrate import simps, quad
-from scipy.special import erf
+# from scipy.special import erf
 from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d
 import warnings
@@ -179,6 +179,17 @@ def get_normalised_profile(block, mass, z_vec):
         raise Exception('The profile z values are different to the input z values.')
     return u_dm,u_sat,k_udm
 
+# TODO: Try this method instead of RegularGridInterpolator
+"""
+def pofk_interpolator(pofk, k, z=None):
+    if z is None:
+        intp = scipy.interpolate.InterpolatedUnivariateSpline(np.log(k), np.log(pofk))
+        return lambda k: np.exp(intp(np.log(k))).squeeze()
+    else:
+        intp = scipy.interpolate.RectBivariateSpline(z, np.log(k), np.log(pofk))
+        return lambda k, z: np.exp(intp(z, np.log(k), grid=True)).squeeze()
+
+"""
 
 # TODO: Check if this interpolation works well
 def interpolate2d_HM(input_grid, x_in, y_in, x_out, y_out, method = 'linear'):
@@ -308,7 +319,10 @@ def matter_profile(mass, mean_density0, u_dm, fnu):
     Simple matter profile
     """
     
-    profile = compute_matter_profile(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis], u_dm, fnu[:,np.newaxis,np.newaxis])
+    profile = compute_matter_profile(mass[np.newaxis, np.newaxis, :], 
+                                     mean_density0[:, np.newaxis, np.newaxis], 
+                                     u_dm, 
+                                     fnu[:,np.newaxis,np.newaxis])
     
     return profile
 
@@ -342,7 +356,8 @@ def matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m,
     return profile
 
 
-def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, mb, fstar, omega_c, omega_m, omega_b, fnu):
+def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, mb, 
+                                                                   fstar, omega_c, omega_m, omega_b, fnu):
     """
     Total matter profile for a general baryonic feedback model
     using f* from HOD/CSMF/CLF that also provides for point mass estimate when used in the

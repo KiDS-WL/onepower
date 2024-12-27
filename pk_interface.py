@@ -35,7 +35,7 @@ gI: galaxy-intrinsic alignment
 mI: matter-intrinsic alignment
 """
 
-# TODO: extend this so that it can accept any profile.
+# TODO: IMPORTANT 1h term is too small compared to mead2020, see where this is coming from
 
 # NOTE: no truncation (halo exclusion problem) applied!
 
@@ -46,8 +46,6 @@ import pk_lib
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
-
-# TODO: change the name of this file and pk_lib file to make it clear what these do.
 
 # [pk_bright]
 # file= %(HM_PATH)s/pk_interface.py
@@ -182,7 +180,7 @@ def execute(block, config):
     # Reads in the Fourier transform of the normalised dark matter halo profile 
     u_dm, u_sat, k_vec  = pk_lib.get_normalised_profile(block, mass, z_vec)
 
-    nk = len(k_vec)
+    # nk = len(k_vec)
 
     # Interpolates in z only
     k_vec_original, plin_original = pk_lib.get_linear_power_spectrum(block, z_vec)
@@ -207,7 +205,8 @@ def execute(block, config):
         if block.has_value('bnl', 'beta_interp'):
             beta_interp = block.get_double_array_nd('bnl', 'beta_interp')
         else:
-            raise Exception("You've set bnl = True. Looked for beta_intep in bnl, but didn't find it. Run bnl_interface.py to set this up.\n")
+            raise Exception("You've set bnl = True. Looked for beta_intep in bnl, but didn't find it. \
+                            Run bnl_interface.py to set this up.\n")
         if beta_interp.shape == np.array([0.0]).shape:
             raise ValueError('Non-linear halo bias module bnl is not initialised, or you have deleted it too early! \
                 This might be because you ran bnl_interface_delete.py before this module. \n')
