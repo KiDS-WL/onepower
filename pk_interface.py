@@ -1,4 +1,15 @@
 """
+This module has two modes: response and direct
+If in direct mode it will directly calculate the power spectra
+If in response mode it will calcualte the reponse of the hm to different power spectra with respect to P_mm 
+and multiply that to an input P_mm to estimate the desired power, for example:
+res_gg = P^hm_gg/P^hm_mm
+res_gm = P^hm_gm/P^hm_mm
+Then uses these in combination with input matter power spectra, P_mm, to create 3D power for P_gg and P_gm
+P_gg = res_gg P_mm
+P_gm = res_gm P_mm
+
+The following exaplains how P^hm_xy are calculated.
 Calculates 3D power spectra using the halo model approach: 
 See section 2 of https://arxiv.org/pdf/2303.08752.pdf for details
 
@@ -36,6 +47,9 @@ mI: matter-intrinsic alignment
 """
 
 # TODO: IMPORTANT 1h term is too small compared to mead2020, see where this is coming from
+# MA: It is smaller when mnu>0. because of the fnu factor in matter profile. It might be a better approximation
+# compared to simulations with nuetrinos. We need to check this. I tried to comapred with Euclid and Bacco emulator but
+# had difficulties running them. 
 
 # NOTE: no truncation (halo exclusion problem) applied!
 
@@ -56,16 +70,15 @@ cosmo_params = names.cosmological_parameters
 # zmax = %(zmax_def)s
 # nz = %(nz_def)s
 # nk = %(nk_def)s
-# pipeline = False
+# reponse = False
 # p_mm = False
 # p_gg = False
 # p_gm = False
 # p_gI = False
 # p_mI = False
 # p_II = False
-# two_halo_only = False
+# fortuna = False
 # hod_section_name = hod_KiDS_bright
-# name = red
 # poisson_type = scalar
 # point_mass = True
 
@@ -105,6 +118,10 @@ def setup(options):
     p_gI = options.get_bool(option_section, 'p_gI', default=False)
     p_mI = options.get_bool(option_section, 'p_mI', default=False)
     p_II = options.get_bool(option_section, 'p_II', default=False)
+
+    # If True calculate the response of the halmodel for the requested power spectra compared to matter power 
+    # multiplies this to input non-linear matter power spectra.
+    response = options.get_bool(option_section, 'response', default=False)
 
     # If true use the IA formalism of Fortuna et al. 2021: Truncated NLA at high k + 1-halo term 
     fortuna = options.get_bool(option_section, 'fortuna', default=False)
@@ -162,14 +179,14 @@ def setup(options):
     else:
         mead_correction = None
 
-    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, fortuna, \
+    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, \
            matter, galaxy, bnl, alignment, \
            one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
            hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name
 
 def execute(block, config):
 
-    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, fortuna, \
+    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, \
     matter, galaxy, bnl, alignment,\
     one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia,\
     hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name = config
@@ -180,8 +197,6 @@ def execute(block, config):
     # Reads in the Fourier transform of the normalised dark matter halo profile 
     u_dm, u_sat, k_vec  = pk_lib.get_normalised_profile(block, mass, z_vec)
 
-    # nk = len(k_vec)
-
     # Interpolates in z only
     k_vec_original, plin_original = pk_lib.get_linear_power_spectrum(block, z_vec)
     # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
@@ -189,15 +204,14 @@ def execute(block, config):
     # load growth factor and scale factor
     growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec, k_vec)
 
+    if response:
+        k_vec_original, pnl_original = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
+        # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
+        pk_mm_in = pk_lib.log_linear_interpolation_k(pnl_original, k_vec_original, k_vec)
+
     # Optionally de-wiggle linear power spectrum as in Mead 2020:
     if mead_correction in ['feedback', 'nofeedback'] or dewiggle == True:
         plin = pk_lib.dewiggle(plin, k_vec, block)
-
-    # AD: The following two lines only used for testing, need to be removed later on!
-    # k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
-    # pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
-    # block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
-    #block.replace_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pnl)
     
     # Add the non-linear P_hh to the 2h term
     if bnl == True:
@@ -249,28 +263,34 @@ def execute(block, config):
             # TODO: This one uses matter_profile not matter_profile_1h_mm. Shouldn't we use the same profile everywhere?
             # AD: No, I_NL and 2-halo functions should use the mater_profile, no 1h! 
             # The corrections applied do not hold true for 2h regime!
+            # MA: Which correction is that and why does it not hold? Can you explain a bit more?
             I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile, b_dm, b_dm,
                                 dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
     
-        if p_mm:
+        if p_mm or response:
             if bnl:
-                pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_bnl(k_vec, plin, mass, dn_dlnm,
+                pk_mm_1h, pk_mm_2h, pk_mm = pk_lib.compute_p_mm_bnl(k_vec, plin, mass, dn_dlnm,
                                                                     matter_profile_1h_mm, I_m, I_NL_mm,
                                                                     one_halo_ktrunc)
             else:
                 if mead_correction in ['feedback', 'nofeedback']:
                     sigma8_z = block['hmf', 'sigma8_z']
                     neff     = block['hmf', 'neff']
-                    pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm_mead(k_vec, plin, mass,
+                    pk_mm_1h, pk_mm_2h, pk_mm = pk_lib.compute_p_mm_mead(k_vec, plin, mass,
                                                                             dn_dlnm, matter_profile_1h_mm, 
                                                                             sigma8_z, neff)
                 else:
-                    pk_mm_1h, pk_mm_2h, pk_mm_tot = pk_lib.compute_p_mm(k_vec, plin, mass,
+                    pk_mm_1h, pk_mm_2h, pk_mm = pk_lib.compute_p_mm(k_vec, plin, mass,
                                                                         dn_dlnm, matter_profile_1h_mm, I_m,
                                                                         one_halo_ktrunc, two_halo_ktrunc)
-            block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h)
-            block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h)
-            block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_tot)
+            if response: 
+                block.put_grid('matter_power_hm', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h)
+                block.put_grid('matter_power_hm', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h)
+                block.put_grid('matter_power_hm', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm)
+            else:
+                block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h)
+                block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h)
+                block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm)
     # end of matter
     ##############################################################################################################
     if (galaxy == True) or (alignment == True):
@@ -431,25 +451,42 @@ def execute(block, config):
                     pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = pk_lib.compute_p_gg(k_vec, plin, 
                         mass, dn_dlnm, profile_c, profile_s, I_c, I_s, mass_avg, 
                         poisson_par, one_halo_ktrunc, two_halo_ktrunc)
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h)
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h)
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg)
-                block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear)
+                if response:
+                    block.put_grid(f'galaxy_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h)
+                    block.put_grid(f'galaxy_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h)
+                    block.put_grid(f'galaxy_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg)
+                    block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear)
+                    pk_gg_res = pk_gg/pk_mm *pk_mm_in
+                    block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_res)
+                else:
+                    block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h)
+                    block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h)
+                    block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg)
+                    block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear)
             # end of p_gg
             if p_gm:
                 if bnl:  # If bnl is True use the beyond linear halo bias formalism
-                    pk_1h, pk_2h, pk_tot, bgm_linear = pk_lib.compute_p_gm_bnl(k_vec, plin, 
+                    pk_1h, pk_2h, pk_gm, bgm_linear = pk_lib.compute_p_gm_bnl(k_vec, plin, 
                         mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c, I_s, I_m, 
                         I_NL_cm, I_NL_sm, one_halo_ktrunc)
                 else: # If bnl is not ture then just use linear halo bias
-                    pk_1h, pk_2h, pk_tot, bgm_linear = pk_lib.compute_p_gm(k_vec, plin, 
+                    pk_1h, pk_2h, pk_gm, bgm_linear = pk_lib.compute_p_gm(k_vec, plin, 
                         mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c, I_s, I_m, 
                         one_halo_ktrunc, two_halo_ktrunc)
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h)
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
-                block.put_grid(f'galaxy_matter_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 
-                               'bgm_linear', bgm_linear)
+                if response:
+                    block.put_grid(f'matter_galaxy_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
+                    block.put_grid(f'matter_galaxy_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h)
+                    block.put_grid(f'matter_galaxy_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm)
+                    block.put_grid(f'galaxy_matter_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 
+                                'bgm_linear', bgm_linear)
+                    pk_gm_res = pk_gm/pk_mm *pk_mm_in
+                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm_res)
+                else:
+                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
+                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h)
+                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm)
+                    block.put_grid(f'galaxy_matter_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 
+                                'bgm_linear', bgm_linear)
             # end of p_gm
     ########################################################################################################################
             # Intrinsic aligment power spectra (full halo model calculation)
@@ -483,9 +520,16 @@ def execute(block, config):
                             mass, dn_dlnm, s_align_profile, 
                             I_c_align_term, I_s_align_term, 
                             one_halo_ktrunc_ia, two_halo_ktrunc_ia)
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h)
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_II_2h)
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
+                if response:
+                    block.put_grid(f'intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h)
+                    block.put_grid(f'intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_II_2h)
+                    block.put_grid(f'intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
+                    pk_II_res = pk_II/pk_mm * pk_mm_in
+                    block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_res)
+                else:
+                    block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h)
+                    block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_II_2h)
+                    block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
             #  end of p_II
             if p_gI:
                 if fortuna:
@@ -500,9 +544,16 @@ def execute(block, config):
                         pk_gI_1h, pk_gI_2h, pk_gI = pk_lib.compute_p_gI(k_vec, plin, 
                             mass, dn_dlnm, profile_c, s_align_profile, I_c, 
                             I_c_align_term, I_s_align_term, one_halo_ktrunc_ia, two_halo_ktrunc_ia)
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h)
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gI_2h)
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
+                if response:
+                    block.put_grid(f'galaxy_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h)
+                    block.put_grid(f'galaxy_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gI_2h)
+                    block.put_grid(f'galaxy_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
+                    pk_gI_res = pk_gI/pk_mm * pk_mm_in
+                    block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI_res)
+                else:
+                    block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h)
+                    block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gI_2h)
+                    block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
             #  end of p_gI
             if p_mI:
                 if fortuna:
@@ -518,9 +569,16 @@ def execute(block, config):
                         pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI(k_vec, plin, 
                             mass, dn_dlnm, matter_profile_1h, s_align_profile, I_m, I_c_align_term, I_s_align_term,
                             one_halo_ktrunc_ia, two_halo_ktrunc_ia)
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h)
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mI_2h)
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)
+                if response:
+                    block.put_grid(f'matter_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h)
+                    block.put_grid(f'matter_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mI_2h)
+                    block.put_grid(f'matter_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)
+                    pk_mI_res = pk_mI/pk_mm * pk_mm_in
+                    block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI_res)
+                else:
+                    block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h)
+                    block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mI_2h)
+                    block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)
             #  end of p_mI
     return 0
 
