@@ -1,4 +1,3 @@
-from cosmosis.datablock import names as section_names
 from cosmosis.datablock import option_section
 from cosmosis.datablock.cosmosis_py import errors
 import configparser as cfp
@@ -103,7 +102,6 @@ def setup(options):
     config['use_stats']   = statsList
     config['use_stats_c'] = statsList_c
     TP_data.choose_data_sets(statsList_c)
-    #TP_data.plots('/net/home/fohlen13/dvornik/halo_model_mc/tests/pmm/test_run/mock_data/plots/mock_plots_scale_cuts', plot_cov=True, plot_kernel=True, plot_1pt=True)
     
     ## Extract the vector & matrix & put in config dict
     config['data']       = TP_data.makeMeanVector()
@@ -116,8 +114,6 @@ def setup(options):
     config['mock_filename'] = options.get_string(option_section, 'mock_filename', default="")
     if config['simulate']:
         config["TP_data"] = TP_data
-    ## Test
-    #wtp.printTwoPoint_fromObj(TP_data)
 
     return config
 
@@ -223,8 +219,6 @@ def execute(block, config):
         
     ## Make. Ta da!
     TP_theory = wtp.TwoPointWrapper.from_spectra(spectra, nobs=onept_theory, kernels=None, covmat_info=None)
-    #TP_theory = wtp.TwoPointWrapper.from_fits('twoPoint_PneE+PeeE.fits', covmat_name=None) ## For test
-
     
     ## Do scale cuts to theory
     scArgs = config['scale_cuts_arguments']

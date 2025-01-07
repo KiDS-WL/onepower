@@ -6,14 +6,9 @@
     ##  Version 2020.02.21    ##
     ##############################
 
-
-# import sys
 import collections as clt
 import numpy as np
-# import scipy as sp
-# import astropy.io.fits as fits
 import twopoint
-
 
 ###############################################################################
 ## Functions related to label convention

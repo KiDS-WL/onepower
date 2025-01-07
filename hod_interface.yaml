@@ -84,7 +84,7 @@ params:
     observable_h_unit:
         meaning: units of h for the observable, valid_units are 1/h and 1/h^2
         type: str
-        default: 1/h ?
+        default: 1/h^2
     observables_file:
         meaning: "(optional) text file containing the observable values, should contain 3 columns: z_bins, obs_min, obs_max"
                 Note these are not in log10 format

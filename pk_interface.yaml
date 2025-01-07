@@ -13,6 +13,17 @@ assumptions:
     - ""
 
 explanation: |
+  This module has two modes: response and direct
+  If in direct mode it will directly calculate the power spectra
+  If in response mode it will calcualte the reponse of the hm to different power spectra with respect to P_mm 
+  and multiply that to an input P_mm to estimate the desired power, for example:
+  res_gg = P^hm_gg/P^hm_mm
+  res_gm = P^hm_gm/P^hm_mm
+  Then uses these in combination with input matter power spectra, P_mm, to create 3D power for P_gg and P_gm
+  P_gg = res_gg P_mm
+  P_gm = res_gm P_mm
+
+  The following exaplains how P^hm_xy are calculated.
   Calculates 3D power spectra using the halo model approach: 
   See section 2 of https://arxiv.org/pdf/2303.08752.pdf for details
 
@@ -71,10 +82,15 @@ params:
           meaning: if True calculates galaxy-intrinsic power spectrum.
           type: bool
           default: False
+      response:
+          meaning: if True uses the response method to calculate power spectra, if False calculates power specra directly.
+                  See the explanation section for details. 
+          type: bool
+          default: False 
       fortuna:
           meaning: if True any p_*I calculated will use the Fortuna et al. 2021 methodology. 
                   If you want the non-linear matter power spectrum not to be calculated using halo model,
-                  use camb before this module.
+                  use camb before this module and set p_mm = False.
           type: bool
           default: False
       bnl:

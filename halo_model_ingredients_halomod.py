@@ -8,23 +8,6 @@ from halomod.halo_model import DMHaloModel
 from halomod.concentration import make_colossus_cm
 import halomod.profiles as profile_classes
 
-#import hmf.cosmology.growth_factor as gf
-# from hmf import MassFunction
-# from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
-#from scipy.optimize import root_scalar
-# from scipy.integrate import simps, solve_ivp, quad
-# from astropy.cosmology import FlatLambdaCDM, LambdaCDM
-#import time
-# import astropy.units as u
-# from halomod import bias as bias_func
-# from halomod.concentration import CMRelation, Bullock01
-# from halomod import concentration as conc_func
-# from halomod.profiles import Profile, NFWInf
-# from types import MethodType
-# from colossus.cosmology import cosmology as colossus_cosmology
-# from colossus.halo import concentration as colossus_concentration
-# import hmf.halos.mass_definitions as md
-
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
 
@@ -71,17 +54,17 @@ def setup(options):
     profile_value_name = options.get_string(option_section, 'profile_value_name', default='profile_parameters')
 
     # model name for halo mass functions
-    hmf_model = options[option_section, 'hmf_model']
+    hmf_model = options.get_string(option_section, 'hmf_model')
     # Type of mass definition for Haloes
-    mdef_model = options[option_section, 'mdef_model']
+    mdef_model = options.get_string(option_section, 'mdef_model')
     # Over density threshold
     overdensity = options[option_section, 'overdensity']
     # Concentration mass relation model
-    cm_model = options[option_section, 'cm_model']
+    cm_model = options.get_string(option_section, 'cm_model')
     # critical density contrast
     delta_c = options[option_section, 'delta_c']
     # Linear halo bias model
-    bias_model = options[option_section, 'bias_model']
+    bias_model = options.get_string(option_section, 'bias_model')
     # set mdef_params to {} for SOVirial model. Otherwise set it to use the overdensity {'overdensity':overdensity}
     mdef_params = {} if mdef_model in ['SOVirial'] else {'overdensity':overdensity}
     
@@ -108,8 +91,7 @@ def setup(options):
     # most general astropy cosmology initialisation,
     # gets updated as sampler runs with camb provided cosmology parameters.
     # setting some values to generate instance
-    initialise_cosmo=Flatw0waCDM(
-        H0=100.0, Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
+    initialise_cosmo=Flatw0waCDM(H0=100.0, Ob0=0.044, Om0=0.3, Tcmb0=2.7255, w0=-1., wa=0.)
 
     # Growth Factor from hmf
     #gf._GrowthFactor.supported_cosmos = (FlatLambdaCDM, Flatw0waCDM, LambdaCDM)
@@ -128,9 +110,6 @@ def setup(options):
                         halo_profile_model=hmu.get_bloated_profile(getattr(profile_classes, profile)),
                         halo_concentration_model=hmu.get_modified_concentration(make_colossus_cm(cm_model)))
 
-    # DM_hmf.cmz_relation
-    # print(DM_hmf.m,DM_hmf.cmz_relation)
-    # exit(1)
     # Array of halo masses 
     mass = DM_hmf.m
 
@@ -168,10 +147,13 @@ def execute(block, config):
 
     # Update the cosmological parameters
     this_cosmo_run=Flatw0waCDM(
-        H0=block[cosmo_params, 'hubble'], Ob0=block[cosmo_params, 'omega_b'],
-        Om0=block[cosmo_params, 'omega_m'], m_nu=[0, 0, block[cosmo_params, 'mnu']], Tcmb0=tcmb,
-    	w0=block[cosmo_params, 'w'], wa=block[cosmo_params, 'wa'] )
-
+        H0=block[cosmo_params, 'hubble'], 
+        Ob0=block[cosmo_params, 'omega_b'],
+        Om0=block[cosmo_params, 'omega_m'], 
+        m_nu=[0, 0, block[cosmo_params, 'mnu']], 
+        Tcmb0=tcmb,
+    	w0=block[cosmo_params, 'w'],
+        wa=block[cosmo_params, 'wa'] )
     ns      = block[cosmo_params, 'n_s']
     sigma_8 = block[cosmo_params, 'sigma_8']
     
@@ -190,8 +172,6 @@ def execute(block, config):
     neff      = np.empty([nz])
     sigma8_z  = np.empty([nz])
     f_nu      = np.empty([nz])
-    # h_z       = np.empty([nz])
-    # mean_density0  = np.empty([nz])
     mean_density_z = np.empty([nz])
     halo_overdensity_mean  = np.empty([nz])
     u_dm_cen  = np.empty([nz,nk,nmass_hmf])
