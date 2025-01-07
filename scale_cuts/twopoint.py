@@ -130,8 +130,7 @@ class OnePointMeasurement(object):
         header = extension.header
 
         i = 1
-        #name = 'VALUE{}'.format(i)
-        name = 'BIN{}'.format(i)
+        name = 'VALUE{}'.format(i)
         name_x = 'ANG{}'.format(i)
         name_low = 'ANGLEMIN{}'.format(i)
         name_high = 'ANGGLEMAX{}'.format(i)
@@ -143,20 +142,13 @@ class OnePointMeasurement(object):
         while name in data.names:
             obs_in = data[name]
             nobs.append(obs_in)
-            #obs.append(data['ANG{}'.format(i)])
-            #if 'ANGLEMIN{}'.format(i) in data.names:
-            #    obs_low.append(data['ANGLEMIN{}'.format(i)])
-            #if 'ANGLEMAX{}'.format(i) in data.names:
-            #    obs_high.append(data['ANGLEMAX{}'.format(i)])
-            #i += 1
-            #name = 'VALUE{}'.format(i)
-            obs.append(data['OBS{}'.format(i)])
-            if 'OBS_LOW{}'.format(i) in data.names:
-                obs_low.append(data['OBS_LOW{}'.format(i)])
-            if 'OBS_HIGH{}'.format(i) in data.names:
-                obs_high.append(data['OBS_HIGH{}'.format(i)])
+            obs.append(data['ANG{}'.format(i)])
+            if 'ANGLEMIN{}'.format(i) in data.names:
+                obs_low.append(data['ANGLEMIN{}'.format(i)])
+            if 'ANGLEMAX{}'.format(i) in data.names:
+                obs_high.append(data['ANGLEMAX{}'.format(i)])
             i += 1
-            name = 'BIN{}'.format(i)
+            name = 'VALUE{}'.format(i)
             
         if obs_low == []:
             obs_low = None
