@@ -205,14 +205,19 @@ def execute(block, config):
     growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec, k_vec)
 
     if response:
-        k_vec_original, pnl_original = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
-        # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating. 
-        pk_mm_in = pk_lib.log_linear_interpolation_k(pnl_original, k_vec_original, k_vec)
+        k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
+        # Using log-linear extrapolation which works better with power spectra, not so impotant when interpolating.
+        pk_mm_in = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
 
     # Optionally de-wiggle linear power spectrum as in Mead 2020:
     if mead_correction in ['feedback', 'nofeedback'] or dewiggle == True:
         plin = pk_lib.dewiggle(plin, k_vec, block)
     
+    # AD: The following line is only used for testing, will be removed when we start running final chains!
+    #k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
+    #pk_mm_in = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
+    #block.replace_grid('matter_power_nl_mead', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm_in)
+
     # Add the non-linear P_hh to the 2h term
     if bnl == True:
         # Reads beta_nl from the block
@@ -264,6 +269,7 @@ def execute(block, config):
             # AD: No, I_NL and 2-halo functions should use the mater_profile, no 1h! 
             # The corrections applied do not hold true for 2h regime!
             # MA: Which correction is that and why does it not hold? Can you explain a bit more?
+            # AD: That is the feedback and neutrino corrections to matter profile, it is quite nicely explained in Mead2020
             I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile, b_dm, b_dm,
                                 dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
     
