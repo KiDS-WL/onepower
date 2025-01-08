@@ -462,7 +462,7 @@ def execute(block, config):
                     block.put_grid(f'galaxy_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h)
                     block.put_grid(f'galaxy_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg)
                     block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear)
-                    pk_gg_res = pk_gg/pk_mm *pk_mm_in
+                    pk_gg_res = pk_gg / pk_mm * pk_mm_in
                     block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg_res)
                 else:
                     block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h)
@@ -485,7 +485,7 @@ def execute(block, config):
                     block.put_grid(f'matter_galaxy_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm)
                     block.put_grid(f'galaxy_matter_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 
                                 'bgm_linear', bgm_linear)
-                    pk_gm_res = pk_gm/pk_mm *pk_mm_in
+                    pk_gm_res = pk_gm / pk_mm * pk_mm_in
                     block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm_res)
                 else:
                     block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
@@ -530,7 +530,7 @@ def execute(block, config):
                     block.put_grid(f'intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h)
                     block.put_grid(f'intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_II_2h)
                     block.put_grid(f'intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II)
-                    pk_II_res = pk_II/pk_mm * pk_mm_in
+                    pk_II_res = pk_II / pk_mm * pk_mm_in
                     block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II_res)
                 else:
                     block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h)
@@ -554,7 +554,7 @@ def execute(block, config):
                     block.put_grid(f'galaxy_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h)
                     block.put_grid(f'galaxy_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gI_2h)
                     block.put_grid(f'galaxy_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI)
-                    pk_gI_res = pk_gI/pk_mm * pk_mm_in
+                    pk_gI_res = pk_gI / pk_mm * pk_mm_in
                     block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI_res)
                 else:
                     block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h)
@@ -579,7 +579,7 @@ def execute(block, config):
                     block.put_grid(f'matter_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h)
                     block.put_grid(f'matter_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mI_2h)
                     block.put_grid(f'matter_intrinsic_power_hm{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI)
-                    pk_mI_res = pk_mI/pk_mm * pk_mm_in
+                    pk_mI_res = pk_mI / pk_mm * pk_mm_in
                     block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI_res)
                 else:
                     block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h)

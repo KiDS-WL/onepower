@@ -262,7 +262,7 @@ def execute(block, config):
         sigma8_z[jz] = DM_hmf.normalised_filter.sigma(8.0)
         #pk_cold = DM_hmf.power * hmu.Tk_cold_ratio(DM_hmf.k, g, block[cosmo_params, 'ommh2'], block[cosmo_params, 'h0'], this_cosmo_run.Onu0/this_cosmo_run.Om0, this_cosmo_run.Neff, T_CMB=tcmb)**2.0
         #sigma8_z[jz] = hmu.sigmaR_cc(pk_cold, DM_hmf.k, 8.0)
-        if mead_correction != None:
+        if mead_correction is not None:
             eta_cen   = 0.1281 * sigma8_z[jz]**(-0.3644)
             if mead_correction == 'nofeedback':
                 norm_cen  = 5.196 #/3.85#1.0#(5.196/3.85) #0.85*1.299

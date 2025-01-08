@@ -805,8 +805,8 @@ def compute_I_NL_term(W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z
     integrand_22 = B_NL_k_z * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:] \
         * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
         * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] \
-        * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] \
-        * mass_1[np.newaxis,np.newaxis,:,np.newaxis])
+        * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
+        / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_2[np.newaxis,np.newaxis,:,np.newaxis])
     integral_M1 = simps(integrand_22, mass_1, axis=1)
     integral_M2 = simps(integral_M1, mass_2, axis=1)
     I_22 = integral_M2
