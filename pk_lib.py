@@ -1,5 +1,6 @@
 # Library of the power spectrum module
 import numpy as np
+import numexpr as ne
 from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
 from scipy.integrate import simps, quad
 # from scipy.special import erf
@@ -802,11 +803,26 @@ def compute_I_NL_term(W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z
 
     # Takes the integral over mass_1
     # TODO: check that these integrals do the correct thing, keep this TODO
+    """
     integrand_22 = B_NL_k_z * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:] \
         * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
         * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] \
         * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
         / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_2[np.newaxis,np.newaxis,:,np.newaxis])
+    """
+    buffer = np.zeros_like(B_NL_k_z)
+    W_1e = W_1[:,:,np.newaxis,:]
+    W_2e = W_2[:,np.newaxis,:,:]
+    b_1e = b_1[:,:,np.newaxis,np.newaxis]
+    b_2e = b_2[:,np.newaxis,:,np.newaxis]
+    dn_dlnm_z_1e =  dn_dlnm_z_1[:,:,np.newaxis,np.newaxis]
+    dn_dlnm_z_2e = dn_dlnm_z_2[:,np.newaxis,:,np.newaxis]
+    mass_1e = mass_1[np.newaxis,:,np.newaxis,np.newaxis]
+    mass_2e = mass_2[np.newaxis,np.newaxis,:,np.newaxis]
+    
+    # Using numexpr significantly speeds up the multiplication of these large arrays
+    integrand_22 = ne.evaluate('B_NL_k_z * W_1e * W_2e * b_1e * b_2e * dn_dlnm_z_1e * dn_dlnm_z_2e / (mass_1e * mass_2e)', out=buffer)
+    
     integral_M1 = simps(integrand_22, mass_1, axis=1)
     integral_M2 = simps(integral_M1, mass_2, axis=1)
     I_22 = integral_M2
