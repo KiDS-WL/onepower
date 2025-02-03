@@ -100,13 +100,13 @@ def setup(options):
     #Outputs estimates of the linear bias for the HOD 
     galaxy_bias_option = options.get_bool(option_section, 'do_galaxy_linear_bias', False)
 
-    save_observable   = options.get_bool(option_section, 'save_observable',True)
-    # options are: "obs_z" or "obs_zmed" or "obs_onebin" depending if you want to calculate 
+    save_observable   = options.get_bool(option_section, 'save_observable', True)
+    # options are: "obs_z" or "obs_zmed" or "obs_onebin" depending if you want to calculate
     # the observable function per each redshift or on the median z or for one broad z-bin
     # TODO: what is the difference between obs_zmed and obs_onebin?
-    observable_mode   = options.get_string(option_section, 'observable_mode','obs_z')
-    # This is the median z 
-    z_median          = options.get_double(option_section, 'z_median',0.1)
+    observable_mode   = options.get_string(option_section, 'observable_mode', 'obs_z')
+    # This is the median z
+    z_median          = options.get_double(option_section, 'z_median', 0.1)
 
     # The prediction for SMF is calculated using this: \Phi_x(O) = \int \Phi_x(O|M) n(M,z) dM
     # n(M,z) dM has units of Mpc^-3 h^-3

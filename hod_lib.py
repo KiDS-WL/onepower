@@ -6,7 +6,7 @@ from scipy.integrate import simps
 def convert_to_luminosity(abs_mag, abs_mag_sun):
 	# Luminosities [L_sun h^2]
 	logL = -0.4*(abs_mag - abs_mag_sun)	
-	return 10.**logL
+	return 10.0**logL
 	
     
 def convert_to_magnitudes(L, abs_mag_sun):
@@ -42,8 +42,8 @@ def COF_cen(obs, mass, hod_par):
     """
     
     mean_obs_c = cal_mean_obs_c(mass,hod_par) #O∗c
-    COF_c = 1./(np.sqrt(2.*np.pi)* np.log(10)* hod_par.sigma_log10_O_c*obs) \
-          * np.exp((-(np.log10(obs/mean_obs_c))**2)/(2*hod_par.sigma_log10_O_c**2.))
+    COF_c = 1.0/(np.sqrt(2.0*np.pi)* np.log(10.0)* hod_par.sigma_log10_O_c*obs) \
+          * np.exp((-(np.log10(obs/mean_obs_c))**2.0)/(2.0*hod_par.sigma_log10_O_c**2.0))
     
     return COF_c
 
@@ -56,7 +56,7 @@ def COF_sat(obs, mass, hod_par):
     Note Φs(O|M) is unitless.
     """
     
-    obs_s_star = hod_par.norm_s* cal_mean_obs_c(mass, hod_par)
+    obs_s_star = hod_par.norm_s * cal_mean_obs_c(mass, hod_par)
     obs_tilde = obs/obs_s_star
     phi_star_val = phi_star_s(mass, hod_par)
     COF_s = (phi_star_val/obs_s_star)*(obs_tilde**(hod_par.alpha_s))*np.exp(-obs_tilde**hod_par.beta_s)
@@ -93,7 +93,7 @@ def cal_mean_obs_c(mass, hod_par) :
     scale m_1, normalisation m_0 and slopes g_1 and g_2
     """
     # TODO: check this for log and non log. h factors? 
-    mean_obs_c = hod_par.Obs_norm_c* (mass/hod_par.M_char)**hod_par.g_1/(1.+(mass/hod_par.M_char))**(hod_par.g_1-hod_par.g_2)
+    mean_obs_c = hod_par.Obs_norm_c * ((mass/hod_par.M_char)**hod_par.g_1)/((1.0+(mass/hod_par.M_char))**(hod_par.g_1-hod_par.g_2))
     return mean_obs_c
 
 
@@ -107,8 +107,8 @@ def phi_star_s(mass, hod_par):
     """
 
     logM_pivot = np.log10(mass) - hod_par.pivot
-    log_phi_s = hod_par.b0 + hod_par.b1*logM_pivot + hod_par.b2*(logM_pivot**2.)
-    return 10.**log_phi_s
+    log_phi_s = hod_par.b0 + hod_par.b1*logM_pivot + hod_par.b2*(logM_pivot**2.0)
+    return 10.0**log_phi_s
 
 
 # ------------------------------------------#

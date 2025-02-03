@@ -7,6 +7,8 @@ import hmf
 from halomod.halo_model import DMHaloModel
 from halomod.concentration import make_colossus_cm
 import halomod.profiles as profile_classes
+import halomod.concentration as concentration_classes
+import time
 
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
@@ -113,30 +115,32 @@ def setup(options):
     # Array of halo masses 
     mass = DM_hmf.m
 
-    return {"z_vec": z_vec,
-            "nz": nz,
-            "mass": mass,
-            "DM_hmf": DM_hmf,
-            "mdef_model": mdef_model,
-            "overdensity": overdensity,
-            "delta_c": delta_c,
-            "mead_correction": mead_correction,
-            "nk":nk,
-            "profile_value_name":profile_value_name}
+    config = {'z_vec': z_vec,
+            'nz': nz,
+            'mass': mass,
+            'DM_hmf': DM_hmf,
+            'mdef_model': mdef_model,
+            'overdensity': overdensity,
+            'delta_c': delta_c,
+            'mead_correction': mead_correction,
+            'nk':nk,
+            'profile_value_name':profile_value_name}
+            
+    return config
 
 def execute(block, config):
 
     # Read in the config as returned by setup
-    z_vec = config["z_vec"]
-    nz = config["nz"]
-    mass = config["mass"]
-    DM_hmf = config["DM_hmf"]
-    mdef_model = config["mdef_model"]
-    overdensity = config["overdensity"]
-    delta_c = config["delta_c"]
-    mead_correction= config["mead_correction"]
-    nk = config["nk"]
-    profile_value_name = config["profile_value_name"]
+    z_vec = config['z_vec']
+    nz = config['nz']
+    mass = config['mass']
+    DM_hmf = config['DM_hmf']
+    mdef_model = config['mdef_model']
+    overdensity = config['overdensity']
+    delta_c = config['delta_c']
+    mead_correction= config['mead_correction']
+    nk = config['nk']
+    profile_value_name = config['profile_value_name']
 
     # astropy cosmology requires the CMB temprature as an input. 
     # If it exists in the values file read it from there otherwise set to its default value
@@ -196,19 +200,13 @@ def execute(block, config):
     transfer_k    = block['matter_power_transfer_func', 'k_h']
     transfer_func = block['matter_power_transfer_func', 't_k']
 
+    DM_hmf.update(cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns,
+                  transfer_model='FromArray',
+                  transfer_params={'k':transfer_k, 'T':transfer_func})
+ 
     # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
     for jz,z_iter in enumerate(z_vec):
-        if mdef_model in ['SOVirial'] and mead_correction is None:
-            # The critical overdensity for collapse for a given redshift and Omega_m
-            delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter)))
-            # Update the cosmology for the halo mass function, this takes a little while the first time it is called
-            # Then it is faster becayse it only updates the redshift and the corresponding delta_c
-            DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, 
-                          delta_c=delta_c_z, transfer_model='FromArray', 
-                          transfer_params={'k':transfer_k, 'T':transfer_func})
-            # The halo overdensity with respect to the mean background.
-            halo_overdensity_mean[jz] = DM_hmf.halo_overdensity_mean
-        elif mead_correction is not None:
+        if mead_correction is not None:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=UserWarning)
                 # This disables the warning from hmf. hmf is just telling us what we know
@@ -222,23 +220,25 @@ def execute(block, config):
                 a = this_cosmo_run.scale_factor(z_iter)
                 g = growth(a)
                 G = hmu.get_accumulated_growth(a, growth)
-                delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), 
+                delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter),
                                     this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
-                halo_overdensity_mean[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), 
+                halo_overdensity_mean[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter),
                                         this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
-                mdef_mead = hmu.SOVirial_Mead 
+                mdef_mead = hmu.SOVirial_Mead
                 DM_hmf.ERROR_ON_BAD_MDEF = False
-                DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, 
-                              n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  
-                              mdef_params={'overdensity':halo_overdensity_mean[jz]}, disable_mass_conversion=True, 
-                              transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
-        else: #Neither mead_correction or SOVirial
-            halo_overdensity_mean[jz] = overdensity
-            delta_c_z = delta_c
-            DM_hmf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, 
-                          delta_c=delta_c_z, mdef_params={'overdensity':halo_overdensity_mean[jz]}, 
-                          transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
+                DM_hmf.update(z=z_iter, delta_c=delta_c_z, mdef_model=mdef_mead,
+                              mdef_params={'overdensity':halo_overdensity_mean[jz]}, disable_mass_conversion=True)
         
+        elif mdef_model in ['SOVirial'] and mead_correction is None:
+            # The critical overdensity for collapse for a given redshift and Omega_m
+            delta_c_z = (3.0/20.0) * (12.0*np.pi)**(2.0/3.0) * (1.0 + 0.0123*np.log10(this_cosmo_run.Om(z_iter)))
+            DM_hmf.update(z=z_iter, delta_c=delta_c_z)
+            halo_overdensity_mean[jz] = DM_hmf.halo_overdensity_mean
+        
+        else: #Neither mead_correction or SOVirial
+            DM_hmf.update(z=z_iter)
+            halo_overdensity_mean[jz] = overdensity
+            
         #Peak height, DM_hmf.nu from hmf is \left(\frac{\delta_c}{\sigma}\right)^2\), but we want \frac{\delta_c}{\sigma}
         nu[jz]        = DM_hmf.nu**0.5
         dndlnmh[jz]   = DM_hmf.dndlnm
@@ -286,8 +286,8 @@ def execute(block, config):
             u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
             r_s_sat[jz,:] = DM_hmf.halo_profile._rs_from_m(DM_hmf.m)
             rvir_sat[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
-        else: #No mead_correction 
-            DM_hmf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run}, 
+        else: #No mead_correction
+            DM_hmf.update(halo_profile_params={'eta_bloat':eta_cen, 'nu':list(nu[jz]), 'cosmo':this_cosmo_run},
                           halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns})
             conc_cen[jz,:] = DM_hmf.cmz_relation
             nfw_cen = DM_hmf.halo_profile.u(k, DM_hmf.m, c=conc_cen[jz,:], norm='m', coord='k')
@@ -342,6 +342,8 @@ def execute(block, config):
     # Fraction of neutrinos to total matter,  f_nu = Ω_nu /Ω_m
     f_nu = this_cosmo_run.Onu0/this_cosmo_run.Om0
     block[cosmo_params, 'fnu'] = f_nu
+
+    config['DM_hmf'] = DM_hmf
 
     return 0
 

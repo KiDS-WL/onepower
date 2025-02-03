@@ -109,9 +109,6 @@ def get_string_or_none(options, name, default):
 
 def setup(options):
 
-    # Read in the minimum and maximum halo mass
-    # These are the same as the values that go into the halo model ingredients and the HOD sections, but they don't have to be.
-
     p_mm = options.get_bool(option_section, 'p_mm', default=False)
     p_gg = options.get_bool(option_section, 'p_gg', default=False)
     p_gm = options.get_bool(option_section, 'p_gm', default=False)
@@ -230,6 +227,10 @@ def execute(block, config):
             raise ValueError('Non-linear halo bias module bnl is not initialised, or you have deleted it too early! \
                 This might be because you ran bnl_interface_delete.py before this module. \n')
                 
+        integrand_12 = pk_lib.prepare_I12_integrand(b_dm, b_dm, mass, mass, dn_dlnm, dn_dlnm, beta_interp)
+        integrand_21 = pk_lib.prepare_I21_integrand(b_dm, b_dm, mass, mass, dn_dlnm, dn_dlnm, beta_interp)
+        integrand_22 = pk_lib.prepare_I22_integrand(b_dm, b_dm, mass, mass, dn_dlnm, dn_dlnm, beta_interp)
+                
     # Accounts for the missing low mass haloes in the integrals for the 2h term.
     # Assumes all missing mass is in haloes of mass M_min.
     # This is calculated separately for each redshift
@@ -271,7 +272,7 @@ def execute(block, config):
             # MA: Which correction is that and why does it not hold? Can you explain a bit more?
             # AD: That is the feedback and neutrino corrections to matter profile, it is quite nicely explained in Mead2020
             I_NL_mm = pk_lib.I_NL(mass, mass, matter_profile, matter_profile, b_dm, b_dm,
-                                dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
+                                dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
     
         if p_mm or response:
             if bnl:
@@ -347,23 +348,23 @@ def execute(block, config):
                 if bnl == True:
                     if p_gg == True:
                         I_NL_cs = pk_lib.I_NL(mass, mass, profile_c, profile_s, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
                         I_NL_ss = pk_lib.I_NL(mass, mass, profile_s, profile_s, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
                         I_NL_cc = pk_lib.I_NL(mass, mass, profile_c, profile_c, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
                     if p_gm == True:
                         I_NL_cm = pk_lib.I_NL(mass, mass, profile_c, matter_profile, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
                         I_NL_sm = pk_lib.I_NL(mass, mass, profile_s, matter_profile, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
             # end of galaxy setup
             ##############################################################################################################
             # setup for intrinsic correlations
             if alignment == True:
                 # AD: Will probably be removed after some point when we get all the Bnl terms for IA added!
                 # load the 2h (effective) amplitude of the alignment signal from the data block. 
-            # This already includes the luminosity dependence if set. Double array [nz].
+                # This already includes the luminosity dependence if set. Double array [nz].
                 alignment_gi = block[f'ia_large_scale_alignment{suffix}', 'alignment_gi']
                 alignment_amplitude_2h, alignment_amplitude_2h_II, C1 = pk_lib.compute_two_halo_alignment(alignment_gi, pop_name,
                                                                                             growth_factor, mean_density0)
@@ -393,26 +394,27 @@ def execute(block, config):
                 # TODO: does this need the A_term?
                 I_c_align_term = pk_lib.Ig_align_term(mass, c_align_profile, b_dm, dn_dlnm, mean_density0, A_term)
                 I_s_align_term = pk_lib.Ig_align_term(mass, s_align_profile, b_dm, dn_dlnm, mean_density0, A_term)
+                
                 if bnl == True:
                     if p_mI == True:
                         I_NL_ia_cm = pk_lib.I_NL(mass, mass, c_align_profile, matter_profile, b_dm, b_dm, 
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
-                        I_NL_ia_sm = pk_lib.I_NL(mass, mass, s_align_profile, matter_profile, b_dm, b_dm, 
-                            dn_dlnm, dn_dlnm,  A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        I_NL_ia_sm = pk_lib.I_NL(mass, mass, s_align_profile, matter_profile, b_dm, b_dm,
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
             
                     if p_II == True:
                         I_NL_ia_cc = pk_lib.I_NL(mass, mass, c_align_profile, c_align_profile, b_dm, b_dm, 
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
-                        I_NL_ia_cs = pk_lib.I_NL(mass, mass, c_align_profile, s_align_profile, b_dm, b_dm, 
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
-                        I_NL_ia_ss = pk_lib.I_NL(mass, mass, s_align_profile, s_align_profile, b_dm, b_dm, 
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        I_NL_ia_cs = pk_lib.I_NL(mass, mass, c_align_profile, s_align_profile, b_dm, b_dm,
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        I_NL_ia_ss = pk_lib.I_NL(mass, mass, s_align_profile, s_align_profile, b_dm, b_dm,
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
             
                     if p_gI == True:
                         I_NL_ia_gc = pk_lib.I_NL(mass, mass, c_align_profile, profile_c, b_dm, b_dm, 
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
-                        I_NL_ia_gs = pk_lib.I_NL(mass, mass, s_align_profile, profile_s, b_dm, b_dm, 
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp)
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        I_NL_ia_gs = pk_lib.I_NL(mass, mass, s_align_profile, profile_s, b_dm, b_dm,
+                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
             # end of IA setup
             ##############################################################################################################         
             # compute the power spectra and galaxy bias
@@ -423,11 +425,11 @@ def execute(block, config):
                 if poisson_type == 'scalar':
                     # P= poisson
                     poisson_par = {'poisson_type': poisson_type,
-                        "poisson": block['pk_parameters', 'poisson']}
+                        'poisson': block['pk_parameters', 'poisson']}
                 elif poisson_type == 'power_law':
                     # P = poisson x (M/M_0)^slope
                     poisson_par = {'poisson_type': poisson_type,
-                                    "poisson": block['pk_parameters', 'poisson'], 
+                                    'poisson': block['pk_parameters', 'poisson'],
                                     'M_0': 10**block['pk_parameters', 'M_0'],
                                     'slope' : block['pk_parameters', 'slope']}
                 elif poisson_type != '':

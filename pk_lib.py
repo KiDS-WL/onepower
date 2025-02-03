@@ -2,7 +2,7 @@
 import numpy as np
 import numexpr as ne
 from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
-from scipy.integrate import simps, quad
+from scipy.integrate import simps, quad, trapz
 # from scipy.special import erf
 from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d
@@ -70,7 +70,7 @@ mI: matter-intrinsic alignment
 # Read in from block
 # -------------------------------------------------------------------------------------------------------------------- #
 
-def interpolate_in_z(input_grid, z_in, z_out,axis=0):
+def interpolate_in_z(input_grid, z_in, z_out, axis=0):
     """
     Interpolation in redshift
     Default redshift axis is the first one. 
@@ -146,19 +146,14 @@ def get_halo_functions(block):
     # load the halo mass function
     mass_hmf    = block['hmf', 'm_h']
     z_hmf       = block['hmf', 'z']
-    dndlnmh = block['hmf', 'dndlnmh']
+    dndlnmh     = block['hmf', 'dndlnmh']
     
     # load the halo bias
     mass_hbf     = block['halobias', 'm_h']
     z_hbf        = block['halobias', 'z']
-    halobias = block['halobias', 'b_hb']
+    halobias     = block['halobias', 'b_hb']
     
-    if((mass_hmf!=mass_hbf).any()):
-        raise Exception('The mass values are different between hmf and hbf values.')
-    if((z_hmf!=z_hbf).any()):
-        raise Exception('The redshift values are different between hmf and hbf.')
-    
-    return dndlnmh, halobias, mass_hmf, z_hmf 
+    return dndlnmh, halobias, mass_hmf, z_hmf
 
 def get_normalised_profile(block, mass, z_vec):
     """
@@ -168,17 +163,19 @@ def get_normalised_profile(block, mass, z_vec):
     z_udm    = block['fourier_nfw_profile', 'z']
     mass_udm = block['fourier_nfw_profile', 'm_h']
     k_udm    = block['fourier_nfw_profile', 'k_h']
-    u_dm     = block['fourier_nfw_profile', 'ukm']
-    u_sat    = block['fourier_nfw_profile', 'uksat']
-    # For now we assume that centrals are in the centre of the haloes so no need for 
+    u_dm  = block['fourier_nfw_profile', 'ukm']
+    u_sat = block['fourier_nfw_profile', 'uksat']
+    # For now we assume that centrals are in the centre of the haloes so no need for
     # defnining their profile
     # u_cen    = block['fourier_nfw_profile', 'ukcen']
+    
+    #u_dm = interpolate_in_z(u_dm_in, z_udm, z_vec)
+    #u_sat = interpolate_in_z(u_sat_in, z_udm, z_vec)
 
     if((mass_udm!=mass).any()):
         raise Exception('The profile mass values are different to the input mass values.')
-    if((z_udm!=z_vec).any()):
-        raise Exception('The profile z values are different to the input z values.')
-    return u_dm,u_sat,k_udm
+    
+    return u_dm, u_sat, k_udm
 
 # TODO: Try this method instead of RegularGridInterpolator
 """
@@ -238,7 +235,10 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     numdensat_hod = block[section_name, f'number_density_sat{suffix}']
     f_c_hod = block[section_name, f'central_fraction{suffix}']
     f_s_hod = block[section_name, f'satellite_fraction{suffix}']
-    mass_avg_hod = block[section_name, f'average_halo_mass{suffix}']  
+    mass_avg_hod = block[section_name, f'average_halo_mass{suffix}']
+    
+    if((m_hod!=mass).any()):
+        raise Exception('The HOD mass values are different to the input mass values.')
     
     #If we're using an unconditional HOD, we need to define the stellar fraction with zeros
     try:
@@ -246,10 +246,13 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     except:
         f_star = np.zeros((len(z_hod), len(m_hod)))  
     
+    #interp_Ncen  = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=0.0)
+    #interp_Nsat  = RegularGridInterpolator((m_hod.T, z_hod.T), Nsat_hod.T, bounds_error=False, fill_value=0.0)
+    #interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=0.0)
     
-    interp_Ncen  = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=0.0)
-    interp_Nsat  = RegularGridInterpolator((m_hod.T, z_hod.T), Nsat_hod.T, bounds_error=False, fill_value=0.0)
-    interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=0.0)
+    interp_Ncen  = interp1d(z_hod, Ncen_hod, fill_value='extrapolate', bounds_error=False, axis=0)
+    interp_Nsat  = interp1d(z_hod, Nsat_hod, fill_value='extrapolate', bounds_error=False, axis=0)
+    interp_fstar = interp1d(z_hod, f_star, fill_value='extrapolate', bounds_error=False, axis=0)
     
     # AD: Is extrapolation warranted here? Maybe make whole calculation on same grid/spacing/thingy!?
     interp_numdencen = interp1d(z_hod, numdencen_hod, fill_value='extrapolate', bounds_error=False)
@@ -258,10 +261,13 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     interp_f_s = interp1d(z_hod, f_s_hod, fill_value=0.0, bounds_error=False)
     interp_mass_avg = interp1d(z_hod, mass_avg_hod, fill_value=0.0, bounds_error=False)
     
-    mm, zz = np.meshgrid(mass, z_vec, sparse=True)
-    Ncen  = interp_Ncen((mm.T, zz.T)).T
-    Nsat  = interp_Nsat((mm.T, zz.T)).T
-    fstar = interp_fstar((mm.T, zz.T)).T
+    #mm, zz = np.meshgrid(mass, z_vec, sparse=True)
+    #Ncen  = interp_Ncen((mm.T, zz.T)).T
+    #Nsat  = interp_Nsat((mm.T, zz.T)).T
+    #fstar = interp_fstar((mm.T, zz.T)).T
+    Ncen = interp_Ncen(z_vec)
+    Nsat = interp_Nsat(z_vec)
+    fstar = interp_fstar(z_vec)
     
     numdencen = interp_numdencen(z_vec)
     numdensat = interp_numdensat(z_vec)
@@ -785,7 +791,54 @@ def Ig_align_term(mass, profile_align, b_m, dn_dlnm, mean_density0, A_term):
     return I_g_align + A_term * profile_align[:,:,0] * mean_density0[:,np.newaxis] / mass[0]
 
 
-def compute_I_NL_term(W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_mean, B_NL_k_z):
+def prepare_I22_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_NL_k_z):
+    
+    integrand_22 = B_NL_k_z * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
+        * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] \
+        * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
+        / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_2[np.newaxis,np.newaxis,:,np.newaxis])
+    """
+    b_1e = b_1[:,:,np.newaxis,np.newaxis]
+    b_2e = b_2[:,np.newaxis,:,np.newaxis]
+    dn_dlnm_z_1e = dn_dlnm_z_1[:,:,np.newaxis,np.newaxis]
+    dn_dlnm_z_2e = dn_dlnm_z_2[:,np.newaxis,:,np.newaxis]
+    mass_1e = mass_1[np.newaxis,:,np.newaxis,np.newaxis]
+    mass_2e = mass_2[np.newaxis,np.newaxis,:,np.newaxis]
+    
+    integrand_22 = ne.evaluate('B_NL_k_z * b_1e * b_2e * dn_dlnm_z_1e * dn_dlnm_z_2e / (mass_1e * mass_2e)')
+    """
+    return integrand_22
+
+def prepare_I12_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_NL_k_z):
+    
+    integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
+        * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
+    """
+    B_NL_k_z_e = B_NL_k_z[:,:,0,:]
+    b_2e = b_2[:,:,np.newaxis]
+    dn_dlnm_z_2e = dn_dlnm_z_2[:,:,np.newaxis]
+    mass_2e = mass_2[np.newaxis,:,np.newaxis]
+    
+    integrand_12 = ne.evaluate('B_NL_k_z_e * b_2e * dn_dlnm_z_2e / mass_2e')
+    """
+    return integrand_12
+    
+def prepare_I21_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_NL_k_z):
+    
+    integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
+        * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
+    """
+    B_NL_k_z_e = B_NL_k_z[:,0,:,:]
+    b_1e = b_1[:,:,np.newaxis]
+    dn_dlnm_z_1e = dn_dlnm_z_1[:,:,np.newaxis]
+    mass_1e = mass_1[np.newaxis,:,np.newaxis]
+    
+    integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dn_dlnm_z_1e / mass_1e')
+    """
+    return integrand_21
+
+
+def I_NL(mass_1, mass_2, W_1, W_2, b_1, b_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_mean, B_NL_k_z, integrand_12_part, integrand_21_part, integrand_22_part):
     """
     uses eqs A.7 to A.10 fo Mead and Verde 2021, 2011.08858 to calculate the integral over beta_nl
     """
@@ -803,43 +856,27 @@ def compute_I_NL_term(W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z
 
     # Takes the integral over mass_1
     # TODO: check that these integrals do the correct thing, keep this TODO
-    """
-    integrand_22 = B_NL_k_z * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:] \
-        * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
-        * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] \
-        * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
-        / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_2[np.newaxis,np.newaxis,:,np.newaxis])
-    """
-    buffer = np.zeros_like(B_NL_k_z)
-    W_1e = W_1[:,:,np.newaxis,:]
-    W_2e = W_2[:,np.newaxis,:,:]
-    b_1e = b_1[:,:,np.newaxis,np.newaxis]
-    b_2e = b_2[:,np.newaxis,:,np.newaxis]
-    dn_dlnm_z_1e =  dn_dlnm_z_1[:,:,np.newaxis,np.newaxis]
-    dn_dlnm_z_2e = dn_dlnm_z_2[:,np.newaxis,:,np.newaxis]
-    mass_1e = mass_1[np.newaxis,:,np.newaxis,np.newaxis]
-    mass_2e = mass_2[np.newaxis,np.newaxis,:,np.newaxis]
-    
-    # Using numexpr significantly speeds up the multiplication of these large arrays
-    integrand_22 = ne.evaluate('B_NL_k_z * W_1e * W_2e * b_1e * b_2e * dn_dlnm_z_1e * dn_dlnm_z_2e / (mass_1e * mass_2e)', out=buffer)
-    
-    integral_M1 = simps(integrand_22, mass_1, axis=1)
-    integral_M2 = simps(integral_M1, mass_2, axis=1)
+   
+    integrand_22 = integrand_22_part * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:]
+    #W_1e = W_1[:,:,np.newaxis,:]
+    #W_2e = W_2[:,np.newaxis,:,:]
+    #integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
+
+    integral_M1 = trapz(integrand_22, mass_1, axis=1)
+    integral_M2 = trapz(integral_M1, mass_2, axis=1)
     I_22 = integral_M2
     
     # TODO: Compare this with pyhalomodel, keep this TODO
 
-    I_11 = B_NL_k_z[:,0,0,:] * ((A**2.0) * W_1[:,0,:] * W_2[:,0,:] \
-            * (rho_mean[:,np.newaxis]**2.0)) / (mass_1[0] * mass_2[0])
+    I_11 = B_NL_k_z[:,0,0,:] * ((A*A) * W_1[:,0,:] * W_2[:,0,:] \
+            * (rho_mean[:,np.newaxis] * rho_mean[:,np.newaxis])) / (mass_1[0] * mass_2[0])
     
-    integrand_12 = B_NL_k_z[:,:,0,:] * W_2[:,:,:] * b_2[:,:,np.newaxis] \
-        * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
-    integral_12 = simps(integrand_12, mass_2, axis=1)
+    integrand_12 = integrand_12_part * W_2[:,:,:]
+    integral_12 = trapz(integrand_12, mass_2, axis=1)
     I_12 = A * W_1[:,0,:] * integral_12 * rho_mean[:,np.newaxis] / mass_1[0]
     
-    integrand_21 = B_NL_k_z[:,0,:,:] * W_1[:,:,:] * b_1[:,:,np.newaxis] \
-        * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
-    integral_21 = simps(integrand_21, mass_1, axis=1)
+    integrand_21 = integrand_21_part * W_1[:,:,:]
+    integral_21 = trapz(integrand_21, mass_1, axis=1)
     I_21 = A * W_2[:,0,:] * integral_21 * rho_mean[:,np.newaxis] / mass_2[0]
     
     I_NL = I_11 + I_12 + I_21 + I_22
@@ -847,12 +884,6 @@ def compute_I_NL_term(W_1, W_2, b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z
     return I_NL
 
 
-def I_NL(mass_1, mass_2, factor_1, factor_2, bias_1, bias_2,
-         dn_dlnm_1, dn_dlnm_2, A, rho_mean, beta_interp=None):
-    I_NL = compute_I_NL_term(factor_1, factor_2, bias_1, bias_2, mass_1, mass_2, dn_dlnm_1, dn_dlnm_2, A, rho_mean, beta_interp)
-    return I_NL
-
-    
 def low_k_truncation(k_vec, k_trunc):
     """
     Beta_nl low-k truncation
@@ -993,12 +1024,14 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     k = np.logspace(-3.0, np.log10(200), lenk)
     beta_nl_interp_i = np.empty(len(z), dtype=object)
     beta_func = compute_bnl_darkquest(0.01, np.log10(M), np.log10(M), k, emulator, block, kmax)
+    beta_nl_interp_i = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], beta_func, fill_value=None, bounds_error=False, method='nearest')
+    """
     for i,zi in enumerate(zc):
         #M = np.logspace(M_lo, M_up - 3.0*np.log10(1+zi), lenM)
         #beta_func = compute_bnl_darkquest(zi, np.log10(M), np.log10(M), k, emulator, block, kmax)
-        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], 
+        beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)],
                                                       beta_func, fill_value=None, bounds_error=False, method='nearest')
-    
+    """
     return beta_nl_interp_i
 
 
@@ -1187,7 +1220,7 @@ def compute_p_gg(k_vec, pk_lin, mass, dn_dln_m, central_profile,
     pk_2h = pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
     pk_tot = pk_1h + pk_2h
     # galaxy linear bias
-    galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
+    galaxy_linear_bias = np.sqrt(I_c_term * I_c_term + I_s_term * I_s_term + 2.0 * I_s_term * I_c_term)
     return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
 
 def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profile, 
@@ -1218,7 +1251,7 @@ def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
     pk_2h = pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h
     pk_tot = pk_1h + pk_2h
     # galaxy linear bias
-    galaxy_linear_bias = np.sqrt(I_c_term ** 2. + I_s_term ** 2. + 2. * I_s_term * I_c_term)
+    galaxy_linear_bias = np.sqrt(I_c_term * I_c_term + I_s_term * I_s_term + 2.0 * I_s_term * I_c_term)
     return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
 
 # galaxy-matter power spectrum
