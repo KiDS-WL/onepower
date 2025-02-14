@@ -51,19 +51,17 @@ def execute(block, config):
     cosmo_model_data = config['cosmo_model_data']
 
     # Check if the length of zmin, zmax, nbins match
-    if not np.all(np.array([len(config['zmin']), len(config['zmax'])]) == nbins):
-        raise Exception('Error: zmin, zmax need to be of same length as \
-                         the number of bins provided.')
+    if len(zmin) != nbins or len(zmax) != nbins:
+        raise ValueError('Error: zmin, zmax need to be of the same length as the number of bins provided.')
+
                         
     # Adopting the same cosmology object as in halo_model_ingredients module
-    try:
-        tcmb = block[cosmo_params, 'TCMB']
-    except:
-        tcmb = 2.7255
+    tcmb = block.get_double(cosmo_params, 'TCMB', default=2.7255)
     cosmo_model_run = Flatw0waCDM(
         H0=block[cosmo_params, 'hubble'], Ob0=block[cosmo_params, 'omega_b'],
         Om0=block[cosmo_params, 'omega_m'], m_nu=[0, 0, block[cosmo_params, 'mnu']],
-        Tcmb0=tcmb, w0=block[cosmo_params, 'w'], wa=block[cosmo_params, 'wa'] )
+        Tcmb0=tcmb, w0=block[cosmo_params, 'w'], wa=block[cosmo_params, 'wa']
+        )
     h_run = cosmo_model_run.h
     
     # number of bins for the observable this is given via saved nbins value

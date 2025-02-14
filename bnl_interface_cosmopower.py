@@ -24,21 +24,19 @@ def get_linear_power_spectrum(block, z_vec):
     k_vec = block['matter_power_lin', 'k_h']
     z_pl = block['matter_power_lin', 'z']
     matter_power_lin = block['matter_power_lin', 'p_k']
+    
     growth_factor_zlin = block['growth_parameters', 'd_z'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
     scale_factor_zlin = block['growth_parameters', 'a'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
+    
     gf_interp = interp1d(z_pl, growth_factor_zlin, axis=0)
     growth_factor = gf_interp(z_vec)
+    
     a_interp = interp1d(z_pl, scale_factor_zlin, axis=0)
     scale_factor = a_interp(z_vec)
-    # interpolate in redshift
-    plin = interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec)
+
+    plin_interp = interp1d(z_pl, matter_power_lin, axis=0)
+    plin = plin_interp(z_vec)
     return k_vec, plin, growth_factor, scale_factor
-    
-    
-def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
-    f_interp = interp1d(z_pl, matter_power_lin, axis=0)
-    pk_interpolated = f_interp(z_vec)
-    return pk_interpolated
 
 
 def test_cosmo(cparam_in):
@@ -87,11 +85,8 @@ def setup(options):
     config['M_up'] = options[option_section, 'log_mass_max']
     config['M_low'] = options[option_section, 'log_mass_min']
     config['len_Mvec'] = options[option_section, 'nmass']
-    config['M_vec'] = np.logspace(config['M_low'], config['M_up'], config['len_Mvec'])
-    lower_limit = 10.0**12.0
-    upper_limit = 10.0**14.0
-    config['M_vec'][config['M_vec'] < lower_limit] = lower_limit
-    config['M_vec'][config['M_vec'] > upper_limit] = upper_limit
+    config['M_vec'] = np.logspace(config['M_low'], config['M_up'], config['len_Mvec'], endpoint=False)
+    config['M_vec'] = np.clip(config['M_vec'], 10.0**12.0, 10.0**14.0)
 
     config['k_vec'] = np.logspace(np.log10(1e-3), np.log10(100.0), num=1000)
     config['len_kvec'] = len(config['k_vec'])
@@ -99,7 +94,7 @@ def setup(options):
     bnl = options.get_bool(option_section, 'bnl', default=False)
     config['bnl'] = bnl
     
-    if bnl == True:
+    if bnl:
         #initialise emulator
         path_2_trained_emulator = options.get_string(option_section, 'path_2_trained_emulator')
         config['bnl_emulator'] = cp.cosmopower_NN(restore=True, restore_filename = path_2_trained_emulator)
@@ -125,7 +120,10 @@ def get_cosmopower_inputs(block, z_vec, len_zvec, len_Mvec, M_vec):
                 log10M1_list.append(np.log10(M_vec[j]))
                 log10M2_list.append(np.log10(M_vec[k]))
     # AD: Just thinking out loud, is this creating a set of all combinations?
-    # This must be easier to do with itertools...
+    # Something like this, but need to test it out:
+    #z_list = np.repeat(z_vec, len_Mvec * len_Mvec)
+    #log10M1_list = np.tile(np.repeat(np.log10(M_vec), len_Mvec), len_zvec)
+    #log10M2_list = np.tile(np.log10(M_vec), len_zvec * len_Mvec)
 
     ombh2 = block['cosmological_parameters', 'ombh2']
     omch2 = block['cosmological_parameters', 'omch2'] # - 0.00064 #need to subtract the neutrino density to get h right in DQ emulator!
@@ -158,7 +156,7 @@ def execute(block, config):
     bnl  = config['bnl']
     use_specific_k_modes = config['use_specific_k_modes']
     
-    if bnl == True:
+    if bnl:
         params_bnl = get_cosmopower_inputs(block, config['z_vec'], config['len_zvec'], config['len_Mvec'], config['M_vec'])
         bnl_functions = bnl_emulator.predictions_np(params_bnl).reshape(config['len_zvec'], config['len_Mvec'], config['len_Mvec'], config['len_kvec']) - 1.0
         print('bnl read from emulator, creating 3D array')

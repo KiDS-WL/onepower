@@ -792,7 +792,7 @@ def Ig_align_term(mass, profile_align, b_m, dn_dlnm, mean_density0, A_term):
 
 
 def prepare_I22_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_NL_k_z):
-    
+    """
     integrand_22 = B_NL_k_z * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
         * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] \
         * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
@@ -806,11 +806,11 @@ def prepare_I22_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_
     mass_2e = mass_2[np.newaxis,np.newaxis,:,np.newaxis]
     
     integrand_22 = ne.evaluate('B_NL_k_z * b_1e * b_2e * dn_dlnm_z_1e * dn_dlnm_z_2e / (mass_1e * mass_2e)')
-    """
+    
     return integrand_22
 
 def prepare_I12_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_NL_k_z):
-    
+    """
     integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
         * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
     """
@@ -820,11 +820,11 @@ def prepare_I12_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_
     mass_2e = mass_2[np.newaxis,:,np.newaxis]
     
     integrand_12 = ne.evaluate('B_NL_k_z_e * b_2e * dn_dlnm_z_2e / mass_2e')
-    """
+    
     return integrand_12
     
 def prepare_I21_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_NL_k_z):
-    
+    """
     integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
         * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
     """
@@ -834,7 +834,7 @@ def prepare_I21_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_
     mass_1e = mass_1[np.newaxis,:,np.newaxis]
     
     integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dn_dlnm_z_1e / mass_1e')
-    """
+    
     return integrand_21
 
 
@@ -857,10 +857,10 @@ def I_NL(mass_1, mass_2, W_1, W_2, b_1, b_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_me
     # Takes the integral over mass_1
     # TODO: check that these integrals do the correct thing, keep this TODO
    
-    integrand_22 = integrand_22_part * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:]
-    #W_1e = W_1[:,:,np.newaxis,:]
-    #W_2e = W_2[:,np.newaxis,:,:]
-    #integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
+    #integrand_22 = integrand_22_part * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:]
+    W_1e = W_1[:,:,np.newaxis,:]
+    W_2e = W_2[:,np.newaxis,:,:]
+    integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
 
     integral_M1 = trapz(integrand_22, mass_1, axis=1)
     integral_M2 = trapz(integral_M1, mass_2, axis=1)

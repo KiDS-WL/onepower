@@ -144,10 +144,7 @@ def execute(block, config):
 
     # astropy cosmology requires the CMB temprature as an input. 
     # If it exists in the values file read it from there otherwise set to its default value
-    try:
-        tcmb = block[cosmo_params, 'TCMB']
-    except:
-        tcmb = 2.7255
+    tcmb = block.get_double(cosmo_params, 'TCMB', default=2.7255)
 
     # Update the cosmological parameters
     this_cosmo_run=Flatw0waCDM(

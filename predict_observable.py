@@ -71,8 +71,8 @@ def setup(options):
 
     # Check if the length of log10_obs_min, log10_obs_max, n_obs match
     if not np.all(np.array([len(config['log10_obs_min']), len(config['log10_obs_max']), len(config['n_obs'])]) == len(config['suffixes'])):
-        raise Exception('Error: log10_obs_min, log10_obs_max, n_obs need to be of same length as \
-                         the number of suffixes provided or equal to one.')
+        raise ValueError('log10_obs_min, log10_obs_max, n_obs need to be of same length as the number of suffixes provided or equal to one.')
+
 
     # observable array this is not in log10
     config['obs_arr']   = []
@@ -92,10 +92,10 @@ def setup(options):
                 # read in number of galaxies within a narrow observable bin from file
                 config['obs_dist'] = np.loadtxt(obs_dist_file,comments='#')
             else:
-                nObins = 10000
-                config['obs_arr_fine'] = np.linspace(config['log10_obs_min'].min(), config['log10_obs_max'].max(), nObins, endpoint=True)
+                config['obs_arr_fine'] = np.linspace(config['log10_obs_min'].min(), config['log10_obs_max'].max(), 10000, endpoint=True)
         else:
-            raise ErrorValue('Error: please provide edge values for observables to do weighted binning.')
+            raise ValueError('Please provide edge values for observables to do weighted binning.')
+
     
     return config
 	
@@ -108,62 +108,50 @@ def execute(block, config):
     suffixes = config['suffixes']
     nbins    = config['nbins']
 
+
     # TODO: find the binned value of obs_func_binned = \sum_O_{min}^O_{max} Phi(O_i) * N(O_i) / \sum_O_{min}^O_{max} N(O_i)
     # N(O_i) is the number of galaxies with obs = O_i in a fine bin around O_i
-    # This should be closer to the estimated obs_func. 
+    # This should be closer to the estimated obs_func.
     # number of bins for the observable this is given via len(suffixes)
     for i in range(nbins):
         # reads in and produce the interpolator for obs_func. z_obs is read if it exists.
-        z_obs, obs_func_interp = load_and_interpolate_obs(block, input_section_name, suffixes[i], extrapolate_option=0.0)
+        z_obs, obs_func_interp = load_and_interpolate_obs(block, input_section_name, suffixes[i])
+
         if config['weighted_binning']:
-            # if nbins>1:
-            #     raise ErrorValue('Error: currently only supported for single redshift bin.')
             try:
-                obs_values=config['obs_dist'][:,0]
-                obs_dist=config['obs_dist'][:,1]
-                # TODO: This is a hack, might need to change it. 
-                if z_obs is not None:
-                    obs_func_fine= obs_func_interp(10**obs_values)[0]
-                else:
-                    obs_func_fine= obs_func_interp(10**obs_values)
-                obs_func_binned = []
+                obs_values, obs_dist = config['obs_dist'][:, 0], config['obs_dist'][:, 1]
+                obs_func_fine = obs_func_interp(10 ** obs_values) if z_obs is None else obs_func_interp(10 ** obs_values)[0]
                 obs_edges = np.linspace(config['log10_obs_min'][i], config['log10_obs_max'][i], config['n_obs'][i]+1, endpoint=True)
-                for iobs in range(len(obs_arr[i])):
-                    cond_bin = (obs_values>obs_edges[iobs]) & (obs_values<=obs_edges[iobs+1]) 
-                    obs_func_binned.append(np.sum(obs_func_fine[cond_bin]*obs_dist[cond_bin])/np.sum(obs_dist[cond_bin]))
-                obs_func = np.array(obs_func_binned)
+
+                obs_func_binned = np.array([
+                    np.sum(obs_func_fine[cond_bin] * obs_dist[cond_bin]) / np.sum(obs_dist[cond_bin])
+                    for cond_bin in [(obs_values > obs_edges[j]) & (obs_values <= obs_edges[j+1]) for j in range(len(obs_arr[i]))]
+                ])
+                obs_func = obs_func_binned
+
             except:
-                obs_func_integrated = []
-                 # TODO: This is a hack, might need to change it. 
-                if z_obs is not None:
-                    obs_func_fine= obs_func_interp(10**config['obs_arr_fine'])[0]
-                else:
-                    obs_func_fine= obs_func_interp(10**config['obs_arr_fine'])
+                obs_func_fine = obs_func_interp(10 ** config['obs_arr_fine']) if z_obs is None else obs_func_interp(10 ** config['obs_arr_fine'])[0]
                 obs_edges = np.linspace(config['log10_obs_min'][i], config['log10_obs_max'][i], config['n_obs'][i]+1, endpoint=True)
-                for iobs in range(config['n_obs'][i]):
-                    cond_bin = (config['obs_arr_fine']>obs_edges[iobs]) & (config['obs_arr_fine']<=obs_edges[iobs+1]) 
-                    obs_func_integrated.append(np.sum(obs_func_fine[cond_bin])/np.sum(cond_bin))
-                obs_func = np.array(obs_func_integrated)
+
+                obs_func_integrated = np.array([
+                    np.sum(obs_func_fine[cond_bin]) / np.sum(cond_bin)
+                    for cond_bin in [(config['obs_arr_fine'] > obs_edges[j]) & (config['obs_arr_fine'] <= obs_edges[j+1]) for j in range(config['n_obs'][i])]
+                ])
+                obs_func = obs_func_integrated
         else:
             obs_func = obs_func_interp(obs_arr[i])
-        # if the input observable depends on redshift then take the weighted average of it.
+
         if z_obs is not None:
-            # print('z_obs is not None')
-            # Reads in the redshift distribution for the observables. 
-            # Interpolates it for z_obs
-            nz = load_redshift(block, config['sample'], i+1, z_obs, extrapolate_option=0.0)
-            # int dz n(z) x (observable function) = weighted average of the observable over redshift
-            obs_func = simps(nz[:,np.newaxis]*obs_func, z_obs, axis=0)
-        block.put_double_array_1d(output_section_name, f'bin_{i+1}', obs_func)
-        block.put_double_array_1d(output_section_name, f'obs_{i+1}', obs_arr[i])
+            nz = load_redshift(block, config['sample'], i+1, z_obs)
+            obs_func = simps(nz[:, np.newaxis] * obs_func, z_obs, axis=0)
+
+        block.put_double_array_1d(output_section_name, f'bin_{i + 1}', obs_func)
+        block.put_double_array_1d(output_section_name, f'obs_{i + 1}', obs_arr[i])
     
     block[output_section_name, 'nbin'] = nbins
+    block[output_section_name, 'sample'] = config['sample'] if config['sample'] is not None else 'None'
     # block[output_section_name, 'sep_name'] = 'mstar'
     # block[output_section_name, 'save_name'] = ''
-    if config['sample'] is not None:
-        block[output_section_name, 'sample'] = config['sample']
-    else:
-        block[output_section_name, 'sample'] = 'None'
 
     return 0
 

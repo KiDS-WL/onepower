@@ -4,16 +4,16 @@ from scipy.integrate import simps
 # Conversion functions
 
 def convert_to_luminosity(abs_mag, abs_mag_sun):
-	# Luminosities [L_sun h^2]
-	logL = -0.4*(abs_mag - abs_mag_sun)	
-	return 10.0**logL
+    """Convert absolute magnitude to luminosity."""
+    logL = -0.4 * (abs_mag - abs_mag_sun)
+    return 10.0**logL
 	
     
 def convert_to_magnitudes(L, abs_mag_sun):
-	logL = np.log10(L)
-	# Mr -5 log(h)
-	Mr = -2.5*logL+abs_mag_sun
-	return Mr
+    """Convert luminosity to absolute magnitude."""
+    logL = np.log10(L)
+    Mr = -2.5 * logL + abs_mag_sun
+    return Mr
 
 
 
@@ -35,31 +35,28 @@ The halo mass dependence comes in through pivot observable values denoted by *, 
 
 def COF_cen(obs, mass, hod_par):
     """
-    COF for Central galaxies
+    COF for Central galaxies.
     eq 17 of D23: 2210.03110:
-    Φc(O|M) =1/[√(2π) ln(10) σ_c O] exp[ -log(O/O∗c)^2/ (2 σ_c^2) ]
+    Φc(O|M) = 1/[√(2π) ln(10) σ_c O] exp[ -log(O/O∗c)^2/ (2 σ_c^2) ]
     Note Φc(O|M) is unitless.
     """
-    
-    mean_obs_c = cal_mean_obs_c(mass,hod_par) #O∗c
-    COF_c = 1.0/(np.sqrt(2.0*np.pi)* np.log(10.0)* hod_par.sigma_log10_O_c*obs) \
-          * np.exp((-(np.log10(obs/mean_obs_c))**2.0)/(2.0*hod_par.sigma_log10_O_c**2.0))
-    
+    mean_obs_c = cal_mean_obs_c(mass, hod_par)  # O∗c
+    COF_c = (1.0 / (np.sqrt(2.0 * np.pi) * np.log(10.0) * hod_par.sigma_log10_O_c * obs) *
+             np.exp(-(np.log10(obs / mean_obs_c))**2 / (2.0 * hod_par.sigma_log10_O_c**2)))
     return COF_c
 
-
+    
 def COF_sat(obs, mass, hod_par):
     """
-    COF for satellite galaxies
+    COF for satellite galaxies.
     eq 18 of D23: 2210.03110:
-    Φs(O|M) =ϕ∗s/O∗s  (O/O∗s)^α_s exp [−(O/O∗s)^2], O*s is O∗s(M) = 0.56 O∗c(M)
+    Φs(O|M) = ϕ∗s/O∗s (O/O∗s)^α_s exp [−(O/O∗s)^2], O*s is O∗s(M) = 0.56 O∗c(M)
     Note Φs(O|M) is unitless.
     """
-    
     obs_s_star = hod_par.norm_s * cal_mean_obs_c(mass, hod_par)
-    obs_tilde = obs/obs_s_star
+    obs_tilde = obs / obs_s_star
     phi_star_val = phi_star_s(mass, hod_par)
-    COF_s = (phi_star_val/obs_s_star)*(obs_tilde**(hod_par.alpha_s))*np.exp(-obs_tilde**hod_par.beta_s)
+    COF_s = (phi_star_val / obs_s_star) * (obs_tilde**hod_par.alpha_s) * np.exp(-obs_tilde**hod_par.beta_s)
     return COF_s
 
 
@@ -75,7 +72,7 @@ def obs_func(mass, phi_x, dn_dlnM_normalised, axis=-1):
     obs_func unit is h^3 Mpc^{-3} dex^-1
     """
 
-    integrand = phi_x*dn_dlnM_normalised/mass
+    integrand = phi_x * dn_dlnM_normalised / mass
     obs_function = simps(integrand, mass, axis=axis)
     return obs_function
 
@@ -92,8 +89,8 @@ def cal_mean_obs_c(mass, hod_par) :
     returns the observable given halo mass. Assumed to be a double power law with characteristic
     scale m_1, normalisation m_0 and slopes g_1 and g_2
     """
-    # TODO: check this for log and non log. h factors? 
-    mean_obs_c = hod_par.Obs_norm_c * ((mass/hod_par.M_char)**hod_par.g_1)/((1.0+(mass/hod_par.M_char))**(hod_par.g_1-hod_par.g_2))
+    mean_obs_c = (hod_par.Obs_norm_c * (mass / hod_par.M_char)**hod_par.g_1 /
+                  (1.0 + (mass / hod_par.M_char))**(hod_par.g_1 - hod_par.g_2))
     return mean_obs_c
 
 
@@ -107,7 +104,7 @@ def phi_star_s(mass, hod_par):
     """
 
     logM_pivot = np.log10(mass) - hod_par.pivot
-    log_phi_s = hod_par.b0 + hod_par.b1*logM_pivot + hod_par.b2*(logM_pivot**2.0)
+    log_phi_s = hod_par.b0 + hod_par.b1 * logM_pivot + hod_par.b2 * (logM_pivot**2.0)
     return 10.0**log_phi_s
 
 
@@ -135,7 +132,7 @@ def compute_stellar_fraction(obs, phi_x):
     f_star = int_{O_low}^{O_high} Φx(O|M) O dO
     """
     
-    integral = simps(phi_x*obs, obs)
+    integral = simps(phi_x * obs, obs)
     return integral
 
 
@@ -146,7 +143,7 @@ def compute_number_density(mass, hod_x, dn_dlnM_normalised):
     Nx = int ⟨Nx|M⟩ n(M) dM
     """
     
-    integrand = hod_x*dn_dlnM_normalised/mass
+    integrand = hod_x * dn_dlnM_normalised / mass
     n_density = simps(integrand, mass)
     return n_density
 
@@ -157,7 +154,7 @@ def compute_avg_halo_mass(mass, hod_x, dn_dlnM_normalised):
     M_mean = int ⟨Nx|M⟩ M n(M) dM
     """
 
-    integrand = hod_x*dn_dlnM_normalised
+    integrand = hod_x * dn_dlnM_normalised
     mean_halo_mass = simps(integrand, mass)
     return mean_halo_mass
 
@@ -168,6 +165,6 @@ def compute_galaxy_linear_bias(mass, hod_x, halo_bias, dn_dlnM_normalised):
     b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
     """
     
-    bg_integrand = hod_x*halo_bias*dn_dlnM_normalised/mass
+    bg_integrand = hod_x * halo_bias * dn_dlnM_normalised / mass
     bg_integral = simps(bg_integrand, mass)
     return bg_integral

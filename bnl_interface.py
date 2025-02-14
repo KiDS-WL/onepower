@@ -37,21 +37,19 @@ def get_linear_power_spectrum(block, z_vec):
     k_vec = block['matter_power_lin', 'k_h']
     z_pl = block['matter_power_lin', 'z']
     matter_power_lin = block['matter_power_lin', 'p_k']
+    
     growth_factor_zlin = block['growth_parameters', 'd_z'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
     scale_factor_zlin = block['growth_parameters', 'a'].flatten()[:,np.newaxis] * np.ones(k_vec.size)
+    
     gf_interp = interp1d(z_pl, growth_factor_zlin, axis=0)
     growth_factor = gf_interp(z_vec)
+    
     a_interp = interp1d(z_pl, scale_factor_zlin, axis=0)
     scale_factor = a_interp(z_vec)
-    # interpolate in redshift
-    plin = interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec)
+
+    plin_interp = interp1d(z_pl, matter_power_lin, axis=0)
+    plin = plin_interp(z_vec)
     return k_vec, plin, growth_factor, scale_factor
-     
-     
-def interpolate1d_matter_power_lin(matter_power_lin, z_pl, z_vec):
-    f_interp = interp1d(z_pl, matter_power_lin, axis=0)
-    pk_interpolated = f_interp(z_vec)
-    return pk_interpolated
     
 
     
@@ -66,8 +64,7 @@ def setup(options):
     log_mass_max = options[option_section, 'log_mass_max']
     nmass = options[option_section, 'nmass']
     # log-spaced mass in units of M_sun/h
-    dlog10m = (log_mass_max-log_mass_min)/nmass
-    mass = 10.0 ** np.arange(log_mass_min, log_mass_max, dlog10m)
+    mass = np.logspace(log_mass_min, log_mass_max, nmass, endpoint=False)
 
     # TODO: We might need to specify the mass bining of bnl, but for now it is not user accessible!
     #nmass_bnl = options[option_section, 'nmass_bnl']
@@ -79,18 +76,14 @@ def setup(options):
     z_vec = np.linspace(zmin, zmax, nz)
 
     nk = options[option_section, 'nk']
-
     bnl = options.get_bool(option_section, 'bnl', default=False)
-    # TODO: Interpolatation option currently not working, will need to implement in the future!
-    interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl', default=True)
+    interpolate_bnl = options.get_bool(option_section, 'interpolate_bnl', default=True) # TODO: Interpolatation option currently not working, will need to implement in the future!
     
-    if bnl == True:
-        #initialise emulator
+    if bnl:
         emulator = darkemu.base_class()
-        cached_bnl = {}
-        cached_bnl['num_calls'] = 0
-        cached_bnl['cached_bnl'] = None
-        cached_bnl['update_bnl'] = options[option_section, 'update_bnl']
+        cached_bnl = {'num_calls': 0,
+                      'cached_bnl': None,
+                      'update_bnl': options[option_section, 'update_bnl']}
     else:
         emulator = None
         cached_bnl = None

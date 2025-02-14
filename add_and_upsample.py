@@ -198,19 +198,10 @@ def setup(options):
     name_red = options.get_string(option_section, 'input_power_suffix_red', default='red').lower()
     name_blue = options.get_string(option_section, 'input_power_suffix_blue', default='blue').lower()
     
-    if name_extrap != '':
-        suffix_extrap = f'_{name_extrap}'
-    else:
-        suffix_extrap = ''
-    if name_red != '':
-        suffix_red = f'_{name_red}'
-    else:
-        suffix_red = ''
-    if name_blue != '':
-        suffix_blue = f'_{name_blue}'
-    else:
-        suffix_blue = ''
-			
+    suffix_extrap = f'_{name_extrap}'  if name_extrap != '' else ''
+    suffix_red = f'_{name_red}' if name_red != '' else ''
+    suffix_blue = f'_{name_blue}' if name_blue != '' else ''
+        
     return z_fred, f_red, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, suffix_extrap, suffix_red, suffix_blue, hod_section_name_extrap, hod_section_name_red, hod_section_name_blue
 	
 
@@ -238,32 +229,20 @@ def execute(block, config):
 
         hod_bins_extrap = block[hod_section_name_extrap, 'nbins']
         observables_z = block[hod_section_name_extrap, 'observable_z']
-        
-        if observables_z == True:
-            extrapolate_option = 'extrapolate'
-        if observables_z == False:
-            extrapolate_option = 0.0
+        extrapolate_option = 'extrapolate' if observables_z else 0.0
         
         for nb in range(0,hod_bins_extrap):
-            if hod_bins_extrap != 1:
-                suffix_extrap = f'{suffix0_extrap}_{nb+1}'
-                suffix_out = f'_{nb+1}'
-            else:
-                suffix_extrap = suffix0_extrap
-                suffix_out = ''
+            suffix_extrap = f'{suffix0_extrap}_{nb+1}' if hod_bins_extrap != 1 else suffix0_extrap
+            suffix_out = f'_{nb+1}' if hod_bins_extrap != 1 else ''
                 
             if p_gg_option == 'extrapolate':
                 extrapolate_power(block, suffix_out, suffix_extrap, 'galaxy_power', z_lin, k_lin, extrapolate_option)
-                
             if p_gm_option == 'extrapolate':
                 extrapolate_power(block, suffix_out, suffix_extrap, 'matter_galaxy_power', z_lin, k_lin, extrapolate_option)
-                
             if p_mI_option == 'extrapolate':
                 extrapolate_power(block, suffix_out, suffix_extrap, 'matter_intrinsic_power', z_lin, k_lin, extrapolate_option)
-                
             if p_II_option == 'extrapolate':
                 extrapolate_power(block, suffix_out, suffix_extrap, 'intrinsic_power', z_lin, k_lin, extrapolate_option)
-                
             if p_gI_option == 'extrapolate':
                 extrapolate_power(block, suffix_out, suffix_extrap, 'galaxy_intrinsic_power', z_lin, k_lin, extrapolate_option)
         
@@ -273,24 +252,16 @@ def execute(block, config):
         hod_bins_red = block[hod_section_name_red, 'nbins']
         hod_bins_blue = block[hod_section_name_blue, 'nbins']
         
-        observables_z_red = block[hod_section_name_red, 'observable_z']
-        if observables_z_red == True:
-            extrapolate_option = 'extrapolate'
-        if observables_z_red == False:
-            extrapolate_option = 0
-        
-        if not hod_bins_red == hod_bins_blue:
+        if hod_bins_red != hod_bins_blue:
             raise Exception('Error: number of red and blue stellar mass bins should be the same.')
-    
+        
+        observables_z_red = block[hod_section_name_red, 'observable_z']
+        extrapolate_option = 'extrapolate' if observables_z_red else 0
+        
         for nb in range(0,hod_bins_red):
-            if hod_bins_red != 1:
-                suffix_red = f'{suffix0_red}_{nb+1}'
-                suffix_blue = f'{suffix0_blue}_{nb+1}'
-                suffix_out = f'_{nb+1}'
-            else:
-                suffix_red = suffix0_red
-                suffix_blue = suffix0_blue
-                suffix_out = ''
+            suffix_red = f'{suffix0_red}_{nb+1}' if hod_bins_red != 1 else suffix0_red
+            suffix_blue = f'{suffix0_blue}_{nb+1}' if hod_bins_red != 1 else suffix0_blue
+            suffix_out = f'_{nb+1}' if hod_bins_red != 1 else ''
         
             if p_gg_option == 'add_and_extrapolate':
                 # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):

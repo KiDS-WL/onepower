@@ -77,8 +77,8 @@ class HODpar :
 # Used for reading data from a text file.
 def load_data(file_name):
     z_data, min_magnitude, max_magnitude = np.loadtxt(file_name, usecols = (0,1,2), unpack=True, dtype=float)
-    if (min_magnitude[0]>max_magnitude[0]):
-        raise ErrorValue('Error: in the magnitues_file, the minimum magnitude must be more negative than the maximum magnitude.')
+    if min_magnitude[0] > max_magnitude[0]:
+        raise ValueError('Minimum magnitude must be more negative than the maximum magnitude.')
     return z_data, min_magnitude, max_magnitude
 
 
@@ -89,9 +89,9 @@ def setup(options):
     # output section name for HOD related outputs.
     hod_section_name = options.get_string(option_section, 'hod_section_name').lower()
     # where to read the values of parameters in the value.ini
-    values_name      = options.get_string(option_section, 'values_name','hod_parameters').lower()
+    values_name = options.get_string(option_section, 'values_name','hod_parameters').lower()
     # output section name for the observable related quantities.
-    observable_section_name  = options.get_string(option_section, 'observable_section_name', default='stellar_mass_function').lower()
+    observable_section_name = options.get_string(option_section, 'observable_section_name', default='stellar_mass_function').lower()
 
     # read this from the ini file
     # number of bins used for defining observable functions within each observable-redshift bin, usually a larger number
@@ -100,13 +100,13 @@ def setup(options):
     #Outputs estimates of the linear bias for the HOD 
     galaxy_bias_option = options.get_bool(option_section, 'do_galaxy_linear_bias', False)
 
-    save_observable   = options.get_bool(option_section, 'save_observable', True)
+    save_observable = options.get_bool(option_section, 'save_observable', True)
     # options are: "obs_z" or "obs_zmed" or "obs_onebin" depending if you want to calculate
     # the observable function per each redshift or on the median z or for one broad z-bin
     # TODO: what is the difference between obs_zmed and obs_onebin?
-    observable_mode   = options.get_string(option_section, 'observable_mode', 'obs_z')
+    observable_mode = options.get_string(option_section, 'observable_mode', 'obs_z')
     # This is the median z
-    z_median          = options.get_double(option_section, 'z_median', 0.1)
+    z_median = options.get_double(option_section, 'z_median', 0.1)
 
     # The prediction for SMF is calculated using this: \Phi_x(O) = \int \Phi_x(O|M) n(M,z) dM
     # n(M,z) dM has units of Mpc^-3 h^-3
@@ -115,44 +115,46 @@ def setup(options):
     # 
     observable_h_unit = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
     valid_units = ['1/h', '1/h^2']
-    if not observable_h_unit in valid_units:
-        raise Exception('Currently supported h factors in obserable are {valid_units}')
+    
+    if observable_h_unit not in valid_units:
+        raise ValueError(f'Currently supported h factors in observable are {valid_units}')
+
 
     # if file name is given then use it otherwise use values in the ini file # in units of O_sun/h2
     if options.has_value(option_section, 'observables_file'):
         observables_z = True
-        file_name     = options.get_string(option_section, 'observables_file')
+        file_name = options.get_string(option_section, 'observables_file')
         z_bins, obs_min, obs_max = load_data(file_name)
-        nz     = len(z_bins)
-        log_obs_min = np.log10(obs_min)[np.newaxis,:]
-        log_obs_max = np.log10(obs_max)[np.newaxis,:]
-        z_bins = z_bins[np.newaxis,:]
+        nz = len(z_bins)
+        log_obs_min = np.log10(obs_min)[np.newaxis, :]
+        log_obs_max = np.log10(obs_max)[np.newaxis, :]
+        z_bins = z_bins[np.newaxis, :]
         # number of bins in the observable, for example you might have divided your sample into 3 stellar mass bins
         # With a file input we are assuming that eveything is part of the same bin currently. 
-        nbins  = 1
+        nbins = 1
     # TODO: the names of these sections don't match their function: mass_lim and mass_lim_low
     # Suggest changing to obs_min_file and obs_max_file instead
     elif options.has_value(option_section, 'mass_lim') and options.has_value(option_section, 'mass_lim_low'):
         observables_z = True
-        file_name     = options.get_string(option_section, 'mass_lim')
+        file_name = options.get_string(option_section, 'mass_lim')
         file_name_low = options.get_string(option_section, 'mass_lim_low')
         z_bins = np.linspace(options[option_section, 'zmin'], options[option_section, 'zmax'], options[option_section, 'nz'])
-        
+
         with open(file_name, 'rb') as dill_file:
             fit_func_inv = pickle.load(dill_file)
-        
+
         with open(file_name_low, 'rb') as dill_file:
             fit_func_low = pickle.load(dill_file)
-        
+
         obs_min = fit_func_inv(z_bins)
         obs_max = fit_func_low(z_bins)
-        nz      = options[option_section, 'nz']
-        log_obs_min = np.log10(obs_min)[np.newaxis,:]
-        log_obs_max = np.log10(obs_max)[np.newaxis,:]
-        z_bins = z_bins[np.newaxis,:]
+        nz = options[option_section, 'nz']
+        log_obs_min = np.log10(obs_min)[np.newaxis, :]
+        log_obs_max = np.log10(obs_max)[np.newaxis, :]
+        z_bins = z_bins[np.newaxis, :]
         # number of bins in the observable, for example you might have divided your sample into 3 stellar mass bins
         # With a file input we are assuming that eveything is part of the same bin currently.
-        nbins  = 1
+        nbins = 1
     else:
         observables_z = False
         # These are the values used to define the edges of the observable-redshift bins. 
@@ -164,13 +166,12 @@ def setup(options):
         zmin = np.asarray([options[option_section, 'zmin']]).flatten()
         zmax = np.asarray([options[option_section, 'zmax']]).flatten()
         # number of redshift bins used for each observable-redshift bin
-        nz      = options[option_section, 'nz']
+        nz = options[option_section, 'nz']
         # Check if the length of obs_min, obs_max, zmin and zmax match.
         if not np.all(np.array([len(obs_min), len(obs_max), len(zmin), len(zmax)]) == len(obs_min)):
-            raise Exception('Error: obs_min, obs_max, zmin and zmax need to be of same length.')
-        else:
-            # nbins is the number of observable bins.
-            nbins = len(obs_min)
+            raise ValueError('obs_min, obs_max, zmin, and zmax need to be of the same length.')
+
+        nbins = len(obs_min)
         
         # Arrays using starting and end values of zmin and zmax 
         z_bins = np.array([np.linspace(zmin_i, zmax_i, nz) for zmin_i, zmax_i in zip(zmin, zmax)])
@@ -192,13 +193,7 @@ def setup(options):
     # nbins: number of observable-redshift bins
     # nz: number of redshift bins inside each observable-redshift bin
     # nobs: number of observable bins inside each observable-redshift bin
-    obs_simps = np.empty([nbins,nz,nobs])
-    for nb in range(0,nbins):
-        for jz in range(0,nz):
-            obs_minz = log_obs_min[nb,jz]
-            obs_maxz = log_obs_max[nb,jz]
-            obs_simps[nb,jz] = np.logspace(obs_minz, obs_maxz, nobs)
-            # print ('%f %f %f' %(z_bins[nb,jz], obs_minz, obs_maxz))
+    obs_simps = np.array([[np.logspace(log_obs_min[nb, jz], log_obs_max[nb, jz], nobs) for jz in range(nz)] for nb in range(nbins)])
 
     return  {"obs_simps": obs_simps,
              "nbins": nbins,
@@ -236,8 +231,7 @@ def execute(block, config):
     valid_units = config["valid_units"]
 
     #---- loading hod value from the values.ini file ----#
-    #centrals
-
+    # centrals
     # all observable masses in units of log10(M_sun h^-2)
     log10_obs_norm_c = block[values_name, 'log10_obs_norm_c'] #O_0, O_norm_c
     log10_M_ch       = block[values_name, 'log10_m_ch'] # log10 M_char
@@ -245,13 +239,9 @@ def execute(block, config):
     g2               = block[values_name, 'g2'] # gamma_2
     sigma_log10_O_c  = block[values_name, 'sigma_log10_O_c'] # sigma_log10_O_c
 
-    # TODO: check how this works
-    if block.has_value(values_name, 'A_cen'):
-        A_cen = block[values_name, 'A_cen']
-    else:
-        A_cen = None
-
-    #satellites
+    A_cen = block[values_name, 'A_cen'] if block.has_value(values_name, 'A_cen') else None
+        
+    # satellites
     norm_s   = block[values_name, 'norm_s'] # normalisation
     alpha_s  = block[values_name, 'alpha_s'] # goes into the conditional stellar mass function COF_sat(M*|M)
     beta_s   = block[values_name, 'beta_s'] # goes into the conditional stellar mass function COF_sat(M*|M)
@@ -261,11 +251,7 @@ def execute(block, config):
     b1 = block[values_name, 'b1']
     b2 = block[values_name, 'b2']
     
-    # TODO: check how this works
-    if block.has_value(values_name, 'A_sat'):
-        A_sat = block[values_name, 'A_sat']
-    else:
-        A_sat = None
+    A_sat = block[values_name, 'A_sat'] if block.has_value(values_name, 'A_sat') else None
 
     hod_par = HODpar(10.**log10_obs_norm_c, 10.**log10_M_ch, g1, g2, 
                      sigma_log10_O_c, norm_s, pivot, alpha_s, beta_s, b0, b1, b2)
@@ -280,10 +266,7 @@ def execute(block, config):
     
     # Loop through the observable-redshift bins
     for nb in range(0,nbins):
-        if nbins != 1:
-            suffix = f'_{nb+1}'
-        else:
-            suffix = ''
+        suffix = f'_{nb+1}' if nbins != 1 else ''
         
         # set interpolator for the halo mass function
         f_int_dndlnM = interp1d(z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate',
@@ -310,10 +293,8 @@ def execute(block, config):
         # N_x(M) =int_{O_low}^{O_high} Φx(O|M) dO
         N_sat  = np.array([hod.compute_hod(obs_simps_z, COF_s_z) for obs_simps_z, COF_s_z in zip(obs_simps[nb], COF_s)])
         N_cen  = np.array([hod.compute_hod(obs_simps_z, COF_c_z) for obs_simps_z, COF_c_z in zip(obs_simps[nb], COF_c)])
-        if((N_sat<0).any() or (N_cen<0).any()):
-            raise Exception('Error: some of the values in the hod are negative.'+
-                            'This is likely because nobs was not large enough.'+
-                            'Try increasing it to make the integral more stable.')
+        if (N_sat < 0).any() or (N_cen < 0).any():
+            raise ValueError('Some HOD values are negative. Increase nobs for a more stable integral.')
 
         # f_star = int_{O_low}^{O_high} Φx(O|M) O dO
         # TODO: check the h units are correct
@@ -403,13 +384,9 @@ def execute(block, config):
             obs_func_tmp_s = hod.obs_func(mass[np.newaxis,:,np.newaxis], COF_s, dndlnM[:,:,np.newaxis], axis=-2)
     
             # interpolate in z to have a consistent grid
-            for jz in range(0,nz):
-                interp = interp1d(obs_simps[nb,jz], obs_func_tmp[jz], kind='linear', bounds_error=False, fill_value=(0,0))
-                obs_func[jz] = interp(obs_range)
-                interp = interp1d(obs_simps[nb,jz], obs_func_tmp_c[jz], kind='linear', bounds_error=False, fill_value=(0,0))
-                obs_func_c[jz] = interp(obs_range)
-                interp = interp1d(obs_simps[nb,jz], obs_func_tmp_s[jz], kind='linear', bounds_error=False, fill_value=(0,0))
-                obs_func_s[jz] = interp(obs_range)
+            obs_func = np.array([interp1d(obs_simps[nb, jz], obs_func_tmp[jz], kind='linear', bounds_error=False, fill_value=(0, 0))(obs_range) for jz in range(nz)])
+            obs_func_c = np.array([interp1d(obs_simps[nb, jz], obs_func_tmp_c[jz], kind='linear', bounds_error=False, fill_value=(0, 0))(obs_range) for jz in range(nz)])
+            obs_func_s = np.array([interp1d(obs_simps[nb, jz], obs_func_tmp_s[jz], kind='linear', bounds_error=False, fill_value=(0, 0))(obs_range) for jz in range(nz)])
             
             # We save Φ(m∗) m* ln(10) because in the data we save 1/dlog10_m*  sum 1.0/V_max
             # Φ(m∗) ∆m∗ = sum 1.0/V_max (e.g. eq 1 of 0901.0706)
@@ -437,9 +414,7 @@ def execute(block, config):
     f_mass_z_one = interp1d(z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
     dn_dlnM_one = f_mass_z_one(z_bins_one)
     
-    obs_range = np.empty([nl_z,nl_obs])
-    for jz in range(0,nl_z):
-        obs_range[jz] = np.logspace(np.log10(obs_simps.min()),np.log10(obs_simps.max()), nl_obs)
+    obs_range = np.array([np.logspace(np.log10(obs_simps.min()), np.log10(obs_simps.max()), nl_obs) for _ in range(nl_z)])
     obs_func = np.empty([nl_z,nl_obs])
     
     COF_c = hod.COF_cen(obs_range[:,np.newaxis], mass[:,np.newaxis], hod_par)

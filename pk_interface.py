@@ -146,18 +146,12 @@ def setup(options):
     
     hod_section_name = options.get_string(option_section, 'hod_section_name')
 
-    if ((p_mm == True) or (p_gm == True) or (p_mI == True)):
-        matter = True
-    if (p_gg == True) or (p_gm == True) or (p_gI == True) or (p_mI == True) or (p_II == True):
-        galaxy = True
-    if (p_gI == True) or (p_mI == True) or (p_II == True):
-        alignment = True
+    matter = p_mm or p_gm or p_mI
+    galaxy = p_gg or p_gm or p_gI or p_mI or p_II
+    alignment = p_gI or p_mI or p_II
 
     population_name = options.get_string(option_section, 'output_suffix', default='').lower()
-    if population_name != '':
-        pop_name = f'_{population_name}'
-    else:
-        pop_name = ''
+    pop_name = f'_{population_name}' if population_name else ''
 
     check_mead    = options.has_value(option_section, 'use_mead2020_corrections')
     if check_mead:
@@ -207,7 +201,7 @@ def execute(block, config):
         pk_mm_in = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
 
     # Optionally de-wiggle linear power spectrum as in Mead 2020:
-    if mead_correction in ['feedback', 'nofeedback'] or dewiggle == True:
+    if mead_correction in ['feedback', 'nofeedback'] or dewiggle:
         plin = pk_lib.dewiggle(plin, k_vec, block)
     
     # AD: The following line is only used for testing, will be removed when we start running final chains!
@@ -305,12 +299,9 @@ def execute(block, config):
         
         # check number of observable-redshift bins and read in the input for the HOD of each bin
         for nb in range(0,hod_bins):
-            if hod_bins != 1:
-                suffix = f'{pop_name}_{nb+1}'
-                suffix_hod = f'_{nb+1}'
-            else:
-                suffix = f'{pop_name}'
-                suffix_hod = ''
+            suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
+            suffix_hod = f'_{nb+1}' if hod_bins != 1 else ''
+                
             # mass_avg is the averange halo mass per redshift bin.
             N_cen, N_sat, numdencen, numdensat,\
             f_cen, f_sat, mass_avg, fstar = pk_lib.load_hods(block, 

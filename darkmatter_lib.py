@@ -24,8 +24,7 @@ def scale_radius(rvir, conc):
             halo, in units of Mpc/h
     conc : array-2d [nz,nmass]. The concentration of the halo, computed from one of the available fitting functions.
     """
-    r_s = rvir/conc
-    return r_s
+    return rvir / conc
 
 
 def norm_fourier(x, c):
@@ -39,8 +38,7 @@ def norm_fourier(x, c):
     costerm = np.cos(x) * (ci - ci2)
     # note that the factor 4 pi rho_s r_s^3 appears both in the numerator than in the mass, so it can be simplified
     rescaled_mass = np.log(1. + c) - c / (1. + c)
-    u_fourier = (sinterm + costerm) / rescaled_mass
-    return u_fourier
+    return (sinterm + costerm) / rescaled_mass
     
 
 def compute_u_dm(k_vec, rs, conc, mass):
@@ -52,11 +50,11 @@ def compute_u_dm(k_vec, rs, conc, mass):
     return: array-3d
     """
     
-    nz = np.size(conc, axis=0)
-    nk = np.size(k_vec)
+    nz = conc.shape[0]
+    nk = k_vec.size
     
     u_dm = norm_fourier(k_vec[:,np.newaxis] * rs[:,np.newaxis,:], conc[:,np.newaxis,:])
-    u_dm = u_dm/np.expand_dims(u_dm[:,0,:], 1) # Force normalisation to 1!
+    u_dm /= np.expand_dims(u_dm[:, 0, :], 1)  # Normalize to 1
     """
     # This works but needs further refinement before we can completely replace the default NFW
     #print(u_dm.shape)
