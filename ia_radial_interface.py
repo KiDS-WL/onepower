@@ -1,6 +1,6 @@
 from cosmosis.datablock import option_section
 import numpy as np
-from uell_radial_dependent_alignment_lib import IA_uell_gamma_r_hankel, wkm_f_ell
+from uell_radial_dependent_alignment_lib import wkm_f_ell, compute_uell_gamma_r_hankel
 from hankel import HankelTransform
 
 
@@ -34,9 +34,9 @@ def setup(options):
     # Needs more testing to be sure what the optimal defaults are though
     # TODO:  I have not yet tested the resolution in the z-dimension
 
-    nmass = options.get_int(option_section, 'nmass',default=5)
-    kmin = options.get_double(option_section, 'kmin',default=1e-3)
-    kmax = options.get_double(option_section, 'kmax',default=1e3)
+    nmass = options.get_int(option_section, 'nmass', default=5)
+    kmin = options.get_double(option_section, 'kmin', default=1e-3)
+    kmax = options.get_double(option_section, 'kmax', default=1e3)
     nk = options.get_int(option_section, 'nk', default=10)
     k_vec = np.logspace(np.log10(kmin), np.log10(kmax), nk)
 
@@ -59,7 +59,7 @@ def setup(options):
 
     N_hankel = options.get_int(option_section, 'N_hankel', default=350)
     h_hankel = np.pi/N_hankel
-    h_transform = [HankelTransform(ell+0.5,N_hankel,h_hankel) for ell in range(0,ell_max+1,2)]
+    h_transform = [HankelTransform(ell+0.5, N_hankel, h_hankel) for ell in range(0, ell_max+1, 2)]
 
     return k_vec, nmass, suffix, h_transform, ell_max
 
@@ -94,7 +94,7 @@ def execute(block, config):
     k = k_setup
     # uell[l,z,m,k]
     # AD: THIS FUNCTION IS THE SLOWEST PART!
-    uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max, h_transform, truncate=False)
+    uell = compute_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max, h_transform, truncate=False)
     theta_k = np.pi/2.0
     phi_k = 0.0
     wkm = wkm_f_ell(uell, theta_k, phi_k, ell_max, gamma_1h_slope)  #This has low-res dimension [nz,nmass,nk]

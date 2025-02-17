@@ -981,8 +981,8 @@ def compute_two_halo_alignment(alignment_gi, suffix, growth_factor, mean_density
     C1 = 5e-14
 
     # Calculate alignment amplitudes using broadcasting
-    alignment_amplitude_2h = -alignment_gi[:, np.newaxis] * (C1 * mean_density0 / growth_factor)
-    alignment_amplitude_2h_II = (alignment_gi[:, np.newaxis] * C1 * mean_density0 / growth_factor) ** 2.0
+    alignment_amplitude_2h = -alignment_gi[:, np.newaxis] * (C1 * mean_density0[:, np.newaxis] / growth_factor)
+    alignment_amplitude_2h_II = (alignment_gi[:, np.newaxis] * C1 * mean_density0[:, np.newaxis] / growth_factor) ** 2.0
 
     # Return the alignment amplitudes and the reshaped alignment_gi
     return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * alignment_gi[:, np.newaxis, np.newaxis]

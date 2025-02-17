@@ -182,11 +182,12 @@ def vector_step_function(x, threshold):
 def radvir(m, rho_halo):
     return (3.0 * m / (4.0 * np.pi * rho_halo))**(1.0 / 3.0)
 
-
-def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z, r_s, rvir, c, mass, ell, h_transf, truncate=False):
-    mnfw = mass_nfw(r_s, c)
-    uk_l = np.zeros([z.size, mass.size, k_vec.size])
-
+   
+def compute_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass, ell_max, h_transf, truncate=False):
+    """
+    Computes a 4D array containing u_ell as a function of l, z, m, and k.
+    uell[l, z, m, k]
+    """
     #h_transf = HankelTransform(ell+0.5,N_hankel,pi/N_hankel)
     #Note even though ell is not used in this function, h_transf depends on ell
     #We initialise the class in setup as it only depends on predefined ell values
@@ -197,24 +198,18 @@ def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z,
     #settings, but it's slower than using the Hankel transform for all k values.
     #It's also difficult to decide how to define the transition between the two methods.
     #Given that low-k accuracy is unimportant for IA, I've decided to use the Hankel transform for all k values.
+    ell_values = np.arange(0, ell_max+1, 2)
+    mnfw = mass_nfw(r_s, c)
+    uk_l = np.zeros([ell_values.size, z.size, mass.size, k.size])
 
-    for jz in range(z.size):
-        for im in range(mass.size):
-            nfw_f = lambda x: gamma_r_nfw_profile(x, r_s[jz, im], rvir[im], gamma_1h_amplitude[jz], gamma_b, truncate=truncate) * np.sqrt((x * np.pi) / 2.0)
-            uk_l[jz, im, :] = h_transf.transform(nfw_f, k_vec)[0] / (k_vec**0.5 * mnfw[jz, im])
+    for i, ell in enumerate(ell_values):
+        for jz in range(z.size):
+            for im in range(mass.size):
+                nfw_f = lambda x: gamma_r_nfw_profile(x, r_s[jz, im], rvir[im], gamma_1h_amplitude[jz], gamma_b, truncate=truncate) * np.sqrt((x * np.pi) / 2.0)
+                uk_l[i, jz, im, :] = h_transf[i].transform(nfw_f, k)[0] / (k**0.5 * mnfw[jz, im])
+
     return uk_l
 
-
-#------------------------------ uell -----------------------------------#
-
-def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass, ell_max, h_transf, truncate=False):
-    """
-    create a 4dim array containing u_ell as a function of l,z,m and k
-    uell[l,z,m,k]
-    """
-    uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il, h_transf[i], truncate=truncate) for i, il in enumerate(range(0, ell_max+1, 2))]
-    return np.array(uell_ia)
-    
 
 #------------------------------ w(k|m) ---------------------------------#
 
@@ -223,7 +218,7 @@ def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass
 
 def wkm_f_ell(uell, theta_k, phi_k, ell_max, gamma_b):
     nz, nm, nk = uell.shape[1], uell.shape[2], uell.shape[3]
-    sum_ell = np.zeros([nz, nm, nk])
+    sum_ell = np.zeros([nz, nm, nk], dtype=complex)
 
     for ell in range(0, ell_max+1, 2):
         angular = calculate_f_ell(theta_k, phi_k, ell, gamma_b)
