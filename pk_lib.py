@@ -1162,6 +1162,39 @@ def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term * I_c_term + I_s_term * I_s_term + 2.0 * I_s_term * I_c_term)
     return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
+    
+
+def compute_p_gg_bnl2(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profile,
+                     I_c_term, I_s_term, I_NL_gg,
+                     mass_avg, poisson_par, one_halo_ktrunc):
+    """
+    p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
+    """
+    
+    # 2-halo term:
+    pk_cs_2h = pk_lin * I_c_term * I_s_term
+    pk_cc_2h = pk_lin * I_c_term * I_c_term
+    pk_ss_2h = pk_lin * I_s_term * I_s_term
+
+    # send the possion parameter to compute_1h_term as part of the profile.
+    # if poisson is mass dependent we need to take it into the 1h term integral
+    poisson = poisson_func(poisson_par, mass)
+
+    # 1-halo term:
+    pk_cs_1h = compute_1h_term(central_profile, satellite_profile,
+                               mass[np.newaxis,np.newaxis,:],
+                               dn_dln_m[:,np.newaxis,:])* one_halo_truncation(k_vec, one_halo_ktrunc)
+    pk_ss_1h = compute_1h_term(satellite_profile * poisson, satellite_profile,
+                               mass[np.newaxis,np.newaxis,:],
+                               dn_dln_m[:,np.newaxis,:]) * one_halo_truncation(k_vec, one_halo_ktrunc)
+
+    pk_1h = 2.0*pk_cs_1h + pk_ss_1h
+    pk_2h = pk_cc_2h + pk_ss_2h + 2.0*pk_cs_2h + pk_lin*I_NL_gg
+    pk_tot = pk_1h + pk_2h
+    # galaxy linear bias
+    galaxy_linear_bias = np.sqrt(I_c_term * I_c_term + I_s_term * I_s_term + 2.0 * I_s_term * I_c_term)
+    return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
+    
 
 # galaxy-matter power spectrum
 def compute_p_gm(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profile, 
@@ -1210,6 +1243,31 @@ def compute_p_gm_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile,
                 
     pk_1h = pk_cm_1h + pk_sm_1h
     pk_2h = pk_cm_2h + pk_sm_2h
+    pk_tot = pk_1h + pk_2h
+    # galaxy-matter linear bias
+    galaxy_matter_linear_bias = np.sqrt(I_c_term * I_m_term + I_s_term * I_m_term)
+    return pk_1h, pk_2h, pk_tot, galaxy_matter_linear_bias
+    
+    
+def compute_p_gm_bnl2(k_vec, pk_lin, mass, dn_dln_m, central_profile,
+                     satellite_profile, matter_profile,
+                     I_c_term, I_s_term, I_m_term, I_NL_gm,
+                     one_halo_ktrunc):
+    """
+    p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
+    """
+    
+    # 2-halo term:
+    pk_cm_2h = pk_lin * I_c_term * I_m_term
+    pk_sm_2h = pk_lin * I_s_term * I_m_term
+        # 1-halo term
+    pk_cm_1h = compute_1h_term(central_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) \
+                * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
+    pk_sm_1h = compute_1h_term(satellite_profile, matter_profile, mass, dn_dln_m[:,np.newaxis]) \
+                * one_halo_truncation(k_vec, one_halo_ktrunc)[np.newaxis,:]
+                
+    pk_1h = pk_cm_1h + pk_sm_1h
+    pk_2h = pk_cm_2h + pk_sm_2h + pk_lin*I_NL_gm
     pk_tot = pk_1h + pk_2h
     # galaxy-matter linear bias
     galaxy_matter_linear_bias = np.sqrt(I_c_term * I_m_term + I_s_term * I_m_term)
@@ -1281,6 +1339,23 @@ def compute_p_mI_bnl(k_vec, p_lin, mass, dn_dln_m, matter_profile,
     pk_sm_2h = (-1.0) * p_lin * I_m_term * I_s_align_term - p_lin * I_NL_ia_sm
     pk_cm_2h = (-1.0) * p_lin * I_m_term * I_c_align_term - p_lin * I_NL_ia_cm
     pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
+    
+    return pk_sm_1h, pk_cm_2h+pk_sm_2h, pk_tot
+    
+    
+def compute_p_mI_bnl2(k_vec, p_lin, mass, dn_dln_m, matter_profile,
+                     s_align_factor, I_m_term, I_c_align_term, I_s_align_term,
+                     I_NL_ia_gm, one_halo_ktrunc):
+    """
+    p_tot = p_sm_mI_1h + f_cen*p_cm_mI_2h + O(any other combination)
+    """
+    
+    pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) \
+                * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
+    #pk_cm_1h = (-1.0) * compute_1h_term(matter_profile, c_align_factor, mass, dn_dln_m[:,np.newaxis]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
+    pk_sm_2h = (-1.0) * p_lin * I_m_term * I_s_align_term
+    pk_cm_2h = (-1.0) * p_lin * I_m_term * I_c_align_term
+    pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h - p_lin * I_NL_ia_gm
     
     return pk_sm_1h, pk_cm_2h+pk_sm_2h, pk_tot
 

@@ -338,16 +338,20 @@ def execute(block, config):
                     
                 if bnl == True:
                     if p_gg == True:
-                        I_NL_cs = pk_lib.I_NL(mass, mass, profile_c, profile_s, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
-                        I_NL_ss = pk_lib.I_NL(mass, mass, profile_s, profile_s, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
-                        I_NL_cc = pk_lib.I_NL(mass, mass, profile_c, profile_c, b_dm, b_dm,
+                        #I_NL_cs = pk_lib.I_NL(mass, mass, profile_c, profile_s, b_dm, b_dm,
+                        #    dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        #I_NL_ss = pk_lib.I_NL(mass, mass, profile_s, profile_s, b_dm, b_dm,
+                        #    dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        #I_NL_cc = pk_lib.I_NL(mass, mass, profile_c, profile_c, b_dm, b_dm,
+                        #    dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        I_NL_gg = pk_lib.I_NL(mass, mass, profile_c + profile_s, profile_c + profile_s, b_dm, b_dm,
                             dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
                     if p_gm == True:
-                        I_NL_cm = pk_lib.I_NL(mass, mass, profile_c, matter_profile, b_dm, b_dm,
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
-                        I_NL_sm = pk_lib.I_NL(mass, mass, profile_s, matter_profile, b_dm, b_dm,
+                        #I_NL_cm = pk_lib.I_NL(mass, mass, profile_c, matter_profile, b_dm, b_dm,
+                        #    dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        #I_NL_sm = pk_lib.I_NL(mass, mass, profile_s, matter_profile, b_dm, b_dm,
+                        #    dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        I_NL_gm = pk_lib.I_NL(mass, mass, profile_c + profile_s, matter_profile, b_dm, b_dm,
                             dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
             # end of galaxy setup
             ##############################################################################################################
@@ -388,9 +392,11 @@ def execute(block, config):
                 
                 if bnl == True:
                     if p_mI == True:
-                        I_NL_ia_cm = pk_lib.I_NL(mass, mass, c_align_profile, matter_profile, b_dm, b_dm, 
-                            dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
-                        I_NL_ia_sm = pk_lib.I_NL(mass, mass, s_align_profile, matter_profile, b_dm, b_dm,
+                        #I_NL_ia_cm = pk_lib.I_NL(mass, mass, c_align_profile, matter_profile, b_dm, b_dm,
+                        #    dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        #I_NL_ia_sm = pk_lib.I_NL(mass, mass, s_align_profile, matter_profile, b_dm, b_dm,
+                        #    dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
+                        I_NL_ia_gm = pk_lib.I_NL(mass, mass, c_align_profile + s_align_profile, matter_profile, b_dm, b_dm,
                             dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
             
                     if p_II == True:
@@ -428,8 +434,11 @@ def execute(block, config):
                                     Choose from scalar and power_law or the default value to avoid using this parameter.')
                
                 if bnl: # If bnl is True use the beyond linear halo bias formalism
-                    pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = pk_lib.compute_p_gg_bnl(k_vec, plin, 
-                        mass, dn_dlnm, profile_c, profile_s, I_c, I_s, I_NL_cs, I_NL_cc, I_NL_ss, 
+                    #pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = pk_lib.compute_p_gg_bnl(k_vec, plin,
+                    #    mass, dn_dlnm, profile_c, profile_s, I_c, I_s, I_NL_cs, I_NL_cc, I_NL_ss,
+                    #    mass_avg, poisson_par, one_halo_ktrunc)
+                    pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = pk_lib.compute_p_gg_bnl2(k_vec, plin,
+                        mass, dn_dlnm, profile_c, profile_s, I_c, I_s, I_NL_gg,
                         mass_avg, poisson_par, one_halo_ktrunc)
                 else: # If bnl is not ture then just use linear halo bias
                     """
@@ -465,9 +474,12 @@ def execute(block, config):
             # end of p_gg
             if p_gm:
                 if bnl:  # If bnl is True use the beyond linear halo bias formalism
-                    pk_1h, pk_2h, pk_gm, bgm_linear = pk_lib.compute_p_gm_bnl(k_vec, plin, 
-                        mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c, I_s, I_m, 
-                        I_NL_cm, I_NL_sm, one_halo_ktrunc)
+                    #pk_1h, pk_2h, pk_gm, bgm_linear = pk_lib.compute_p_gm_bnl(k_vec, plin,
+                    #    mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c, I_s, I_m,
+                    #    I_NL_cm, I_NL_sm, one_halo_ktrunc)
+                    pk_1h, pk_2h, pk_gm, bgm_linear = pk_lib.compute_p_gm_bnl2(k_vec, plin,
+                        mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c, I_s, I_m,
+                        I_NL_gm, one_halo_ktrunc)
                 else: # If bnl is not ture then just use linear halo bias
                     pk_1h, pk_2h, pk_gm, bgm_linear = pk_lib.compute_p_gm(k_vec, plin, 
                         mass, dn_dlnm, profile_c, profile_s, matter_profile_1h, I_c, I_s, I_m, 
@@ -561,9 +573,12 @@ def execute(block, config):
                         f_cen, one_halo_ktrunc_ia, two_halo_ktrunc_ia)
                 else:
                     if bnl:
-                        pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_bnl(k_vec, plin, 
-                            mass, dn_dlnm, matter_profile_1h, s_align_profile, I_m, I_c_align_term, I_s_align_term, 
-                            I_NL_ia_cm, I_NL_ia_sm, one_halo_ktrunc_ia)
+                        #pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_bnl(k_vec, plin,
+                        #    mass, dn_dlnm, matter_profile_1h, s_align_profile, I_m, I_c_align_term, I_s_align_term,
+                        #    I_NL_ia_cm, I_NL_ia_sm, one_halo_ktrunc_ia)
+                        pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI_bnl2(k_vec, plin,
+                            mass, dn_dlnm, matter_profile_1h, s_align_profile, I_m, I_c_align_term, I_s_align_term,
+                            I_NL_ia_gm, one_halo_ktrunc_ia)
                     else:
                         pk_mI_1h, pk_mI_2h, pk_mI = pk_lib.compute_p_mI(k_vec, plin, 
                             mass, dn_dlnm, matter_profile_1h, s_align_profile, I_m, I_c_align_term, I_s_align_term,
