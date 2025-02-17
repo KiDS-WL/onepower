@@ -94,7 +94,7 @@ def execute(block, config):
     k = k_setup
     # uell[l,z,m,k]
     # AD: THIS FUNCTION IS THE SLOWEST PART!
-    uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max, h_transform)
+    uell = IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_1h_slope, k, c, z, r_s, rvir, mass, ell_max, h_transform, truncate=False)
     theta_k = np.pi/2.0
     phi_k = 0.0
     wkm = wkm_f_ell(uell, theta_k, phi_k, ell_max, gamma_1h_slope)  #This has low-res dimension [nz,nmass,nk]

@@ -75,26 +75,19 @@ def interpolate_in_z(input_grid, z_in, z_out, axis=0):
     Interpolation in redshift
     Default redshift axis is the first one. 
     """
-    
     f_interp = interp1d(z_in, input_grid, axis=axis)
-    interpolated_grid = f_interp(z_out)
-    
-    return interpolated_grid
+    return f_interp(z_out)
 
-# Reads in linear matter power spectrum 
+
 def get_linear_power_spectrum(block, z_vec):
     """
     Reads in linear matter power spectrum and downsamples
     """
-    
     k_vec = block['matter_power_lin', 'k_h']
-    z_pl  = block['matter_power_lin', 'z']
-    matter_power_lin   = block['matter_power_lin', 'p_k']
-    
-    # interpolate in redshift
-    plin = interpolate_in_z(matter_power_lin, z_pl, z_vec)
-    
-    return k_vec, plin
+    z_pl = block['matter_power_lin', 'z']
+    matter_power_lin = block['matter_power_lin', 'p_k']
+    return k_vec, interpolate_in_z(matter_power_lin, z_pl, z_vec)
+
 
 # Reads in the growth factor
 def get_growth_factor(block, z_vec, k_vec):
@@ -102,17 +95,14 @@ def get_growth_factor(block, z_vec, k_vec):
     Loads and interpolates the growth factor
     and scale factor
     """
-    z_in  = block['growth_parameters', 'z']
-    
     # reads in the growth factor and turns it into a 2D array that has this dimensions: len(z) x len(k)
     # all columns are identical
-    growth_factor_in  = block['growth_parameters', 'd_z']
+    z_in = block['growth_parameters', 'z']
+    growth_factor_in = block['growth_parameters', 'd_z']
     growth_factor = interpolate_in_z(growth_factor_in, z_in, z_vec)
-    growth_factor = growth_factor.flatten()[:,np.newaxis] * np.ones(k_vec.size)
- 
-    scale_factor  = 1./(1.+z_vec)
-    scale_factor  = scale_factor.flatten()[:,np.newaxis] * np.ones(k_vec.size)
-    
+    growth_factor = growth_factor.flatten()[:, np.newaxis] * np.ones(k_vec.size)
+    scale_factor = 1.0 / (1.0 + z_vec)
+    scale_factor = scale_factor.flatten()[:, np.newaxis] * np.ones(k_vec.size)
     return growth_factor, scale_factor
 
 
@@ -120,13 +110,10 @@ def get_nonlinear_power_spectrum(block, z_vec):
     """
     Reads in the non-linear matter power specturm and downsamples
     """
-    
     k_nl = block['matter_power_nl', 'k_h']
     z_nl = block['matter_power_nl', 'z']
     matter_power_nl = block['matter_power_nl', 'p_k']
-    p_nl = interpolate_in_z(matter_power_nl, z_nl, z_vec)
-    
-    return k_nl, p_nl
+    return k_nl, interpolate_in_z(matter_power_nl, z_nl, z_vec)
 
 
 def log_linear_interpolation_k(power_in, k_in, k_out, axis=1, kind='linear'):
@@ -135,35 +122,31 @@ def log_linear_interpolation_k(power_in, k_in, k_out, axis=1, kind='linear'):
     Ideally we want to have a different routine for interpolation (spline) and extrapolation (log-linear)
     """
     power_interp = interp1d(np.log(k_in), np.log(power_in), axis=axis, kind=kind, fill_value='extrapolate')
-    power_out = np.exp(power_interp(np.log(k_out)))
-    return power_out
+    return np.exp(power_interp(np.log(k_out)))
+    
     
 def get_halo_functions(block):
     """
     Loads the halo mass function and linear halo bias
     """
-    
-    # load the halo mass function
-    mass_hmf    = block['hmf', 'm_h']
-    z_hmf       = block['hmf', 'z']
-    dndlnmh     = block['hmf', 'dndlnmh']
-    
-    # load the halo bias
-    mass_hbf     = block['halobias', 'm_h']
-    z_hbf        = block['halobias', 'z']
-    halobias     = block['halobias', 'b_hb']
-    
+    mass_hmf = block['hmf', 'm_h']
+    z_hmf = block['hmf', 'z']
+    dndlnmh = block['hmf', 'dndlnmh']
+    mass_hbf = block['halobias', 'm_h']
+    z_hbf = block['halobias', 'z']
+    halobias = block['halobias', 'b_hb']
     return dndlnmh, halobias, mass_hmf, z_hmf
+
 
 def get_normalised_profile(block, mass, z_vec):
     """
     Reads the Fourier transform of the normalised Dark matter halo profile U.
     Checks that mass, redshift and k match the input.
     """
-    z_udm    = block['fourier_nfw_profile', 'z']
+    z_udm = block['fourier_nfw_profile', 'z']
     mass_udm = block['fourier_nfw_profile', 'm_h']
-    k_udm    = block['fourier_nfw_profile', 'k_h']
-    u_dm  = block['fourier_nfw_profile', 'ukm']
+    k_udm = block['fourier_nfw_profile', 'k_h']
+    u_dm = block['fourier_nfw_profile', 'ukm']
     u_sat = block['fourier_nfw_profile', 'uksat']
     # For now we assume that centrals are in the centre of the haloes so no need for
     # defnining their profile
@@ -171,11 +154,10 @@ def get_normalised_profile(block, mass, z_vec):
     
     #u_dm = interpolate_in_z(u_dm_in, z_udm, z_vec)
     #u_sat = interpolate_in_z(u_sat_in, z_udm, z_vec)
-
-    if((mass_udm!=mass).any()):
-        raise Exception('The profile mass values are different to the input mass values.')
-    
+    if (mass_udm != mass).any():
+        raise ValueError('The profile mass values are different to the input mass values.')
     return u_dm, u_sat, k_udm
+    
 
 # TODO: Try this method instead of RegularGridInterpolator
 """
@@ -191,12 +173,13 @@ def pofk_interpolator(pofk, k, z=None):
 
 # TODO: Check if this interpolation works well
 def interpolate2d_HM(input_grid, x_in, y_in, x_out, y_out, method = 'linear'):
-    
+    """
+    2D interpolation using RegularGridInterpolator.
+    """
     f_interp = RegularGridInterpolator((x_in.T, y_in.T), input_grid.T, method=method, bounds_error=False, fill_value=None)
     xx, yy = np.meshgrid(x_out, y_out, sparse=True)
-    interpolated = f_interp((xx.T, yy.T)).T
-    
-    return interpolated
+    return f_interp((xx.T, yy.T)).T
+
 
 def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
     """
@@ -204,22 +187,19 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
     """
     # here I am assuming that the redshifts used in wkm_module and the pk_module match!
     wkm = np.empty([z_vec.size, mass.size, k_vec.size])
-
-    for jz in range(0,z_vec.size):
-
-        wkm_tmp  = block['wkm',f'w_km_{jz}{suffix}']
-        k_wkm    = block['wkm',f'k_h_{jz}{suffix}']
-        mass_wkm = block['wkm',f'mass_{jz}{suffix}']
-
+    for jz in range(z_vec.size):
+        wkm_tmp = block['wkm', f'w_km_{jz}{suffix}']
+        k_wkm = block['wkm', f'k_h_{jz}{suffix}']
+        mass_wkm = block['wkm', f'mass_{jz}{suffix}']
         #CH: I've tested different approaches here and find interpolating log(w(k|m)/k^2) provides the best accuracy
         #given a low-resolution grid in logk and logm.
-        lg_w_interp2d = RegularGridInterpolator((np.log10(k_wkm).T, np.log10(mass_wkm).T), np.log10(wkm_tmp/k_wkm**2).T, bounds_error=False, fill_value=None)
-        
+        lg_w_interp2d = RegularGridInterpolator((np.log10(k_wkm).T, np.log10(mass_wkm).T),
+                                                np.log10(wkm_tmp / k_wkm**2).T, bounds_error=False, fill_value=None)
         lgkk, lgmm = np.meshgrid(np.log10(k_vec), np.log10(mass), sparse=True)
         lg_wkm_interpolated = lg_w_interp2d((lgkk.T, lgmm.T)).T
-        wkm[jz] = 10**(lg_wkm_interpolated)*k_vec**2
-
+        wkm[jz] = 10.0**(lg_wkm_interpolated) * k_vec**2.0
     return wkm
+
 
 def load_hods(block, section_name, suffix, z_vec, mass):
     """
@@ -237,8 +217,8 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     f_s_hod = block[section_name, f'satellite_fraction{suffix}']
     mass_avg_hod = block[section_name, f'average_halo_mass{suffix}']
     
-    if((m_hod!=mass).any()):
-        raise Exception('The HOD mass values are different to the input mass values.')
+    if (m_hod != mass).any():
+        raise ValueError('The HOD mass values are different to the input mass values.')
     
     #If we're using an unconditional HOD, we need to define the stellar fraction with zeros
     try:
@@ -253,8 +233,6 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     interp_Ncen  = interp1d(z_hod, Ncen_hod, fill_value='extrapolate', bounds_error=False, axis=0)
     interp_Nsat  = interp1d(z_hod, Nsat_hod, fill_value='extrapolate', bounds_error=False, axis=0)
     interp_fstar = interp1d(z_hod, f_star, fill_value='extrapolate', bounds_error=False, axis=0)
-    
-    # AD: Is extrapolation warranted here? Maybe make whole calculation on same grid/spacing/thingy!?
     interp_numdencen = interp1d(z_hod, numdencen_hod, fill_value='extrapolate', bounds_error=False)
     interp_numdensat = interp1d(z_hod, numdensat_hod, fill_value='extrapolate', bounds_error=False)
     interp_f_c = interp1d(z_hod, f_c_hod, fill_value=0.0, bounds_error=False)
@@ -268,7 +246,6 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     Ncen = interp_Ncen(z_vec)
     Nsat = interp_Nsat(z_vec)
     fstar = interp_fstar(z_vec)
-    
     numdencen = interp_numdencen(z_vec)
     numdensat = interp_numdensat(z_vec)
     f_c = interp_f_c(z_vec)
@@ -306,38 +283,35 @@ def load_hods(block, section_name, suffix, z_vec, mass):
 
 def compute_matter_profile(mass, mean_density0, u_dm, fnu):
     """
-    This is the matter halo profile. Feedback can be included through u_dm
+    Compute the matter halo profile with a correction for neutrino mass fraction.
+    Feedback can be included through u_dm
     We lower the amplitude of W(M, k,z) in the one-halo term by the factor 1− fν ,
     where fν = Ων /Ωm is the neutrino mass fraction, to account for the fact that
     we assume that hot neutrinos cannot cluster in haloes and therefore
     do not contribute power to the one-halo term. Therefore W(M, k → 0,z) = (1− fν )M/ρ¯ and has units of volume
     This is the same as Mead et al. 2021
     """
-
     Wm_0 = mass / mean_density0
-    Wm   = Wm_0 * u_dm * (1.0 - fnu)
-    
-    return Wm
+    return Wm_0 * u_dm * (1.0 - fnu)
 
 
 def matter_profile(mass, mean_density0, u_dm, fnu):
     """
-    Compute the grid in z, k, and M of the quantities described above
-    Simple matter profile
+    Compute the matter profile grid in z, k, and M.
     """
-    
-    profile = compute_matter_profile(mass[np.newaxis, np.newaxis, :], 
-                                     mean_density0[:, np.newaxis, np.newaxis], 
-                                     u_dm, 
-                                     fnu[:,np.newaxis,np.newaxis])
-    
-    return profile
+    return compute_matter_profile(
+        mass[np.newaxis, np.newaxis, :],
+        mean_density0[:, np.newaxis, np.newaxis],
+        u_dm,
+        fnu[:, np.newaxis, np.newaxis]
+    )
 
-
+    
 def compute_matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m, omega_b, log10T_AGN, fnu):
     """
+    Compute the matter profile including feedback as modelled by hmcode2020.
+    
     eq 25 of 2009.01858
-    matter profile including feedback as modelled by hmcode2020
     W(M, k) = [Ω_c/Ω_m+ fg(M)]W(M, k) + f∗ M/ρ¯
     The parameter 0 < f∗ < Ω_b/Ω_m can be thought of as an effective halo stellar mass fraction.
     
@@ -348,50 +322,65 @@ def compute_matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, 
     This profile does not have 1-fnu correction as that is already accounted for in  dm_to_matter_frac
     """
     fstar = fs(log10T_AGN, z)
-
-    dm_to_matter_frac = omega_c/omega_m
+    dm_to_matter_frac = omega_c / omega_m
     f_gas = fg(mass, fstar, log10T_AGN, z, omega_b, omega_m)
+
     Wm_0 = mass / mean_density0
     Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
     #Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
     return Wm
 
 def matter_profile_with_feedback(mass, mean_density0, u_dm, z, omega_c, omega_m, omega_b, log10T_AGN, fnu):
-    profile = compute_matter_profile_with_feedback(mass[np.newaxis, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis],
-                                                    u_dm, z[:, np.newaxis, np.newaxis], omega_c, omega_m, omega_b,
-                                                    log10T_AGN, fnu[:,np.newaxis,np.newaxis])
-    return profile
-
-
-def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, mb, 
-                                                                   fstar, omega_c, omega_m, omega_b, fnu):
     """
-    Total matter profile for a general baryonic feedback model
-    using f* from HOD/CSMF/CLF that also provides for point mass estimate when used in the
+    Compute the matter profile grid with feedback.
+    """
+    return compute_matter_profile_with_feedback(
+        mass[np.newaxis, np.newaxis, :],
+        mean_density0[:, np.newaxis, np.newaxis],
+        u_dm,
+        z[:, np.newaxis, np.newaxis],
+        omega_c,
+        omega_m,
+        omega_b,
+        log10T_AGN,
+        fnu[:, np.newaxis, np.newaxis]
+    )
+    
+    
+def compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, mb, fstar, omega_c, omega_m, omega_b, fnu):
+    """
+    Compute the matter profile using stellar fraction from observations.
+    
+    Using f* from HOD/CSMF/CLF that also provides for point mass estimate when used in the
     GGL power spectra
     
     This profile does not have 1-fnu correction as that is already accounted for in  dm_to_matter_frac
     """
-    
-    #fstar = block['pk_parameters', 'fstar'] # For now specified by the point mass!
-    #ratio = 2.01*0.01 / np.median(fstar, axis=2)
-    #fstar = fstar * ratio[:,:,np.newaxis] * 10.0**(z*(0.409))
-    #print(ratio)
-    #Tagn = 2.01/0.3 - fstar/(0.01*0.3)
-    #print(np.max(np.abs(Tagn)))
-    dm_to_matter_frac = omega_c/omega_m
+    dm_to_matter_frac = omega_c / omega_m
     Wm_0 = mass / mean_density0
     f_gas_fit = fg_fit(mass, mb, fstar, z, omega_b, omega_m)
-    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
-    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
-    return Wm
 
+    Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
+    #Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
+    return Wm
+    
+    
 def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, u_dm, z, mb, fstar, omega_c, omega_m, omega_b, fnu):
-    profile = compute_matter_profile_with_feedback_stellar_fraction_from_obs(mass[np.newaxis, np.newaxis, :],
-                                                        mean_density0[:, np.newaxis, np.newaxis], u_dm,
-                                                        z[:, np.newaxis, np.newaxis], mb, fstar[:,np.newaxis,:],
-                                                        omega_c, omega_m, omega_b, fnu[:,np.newaxis,np.newaxis])
-    return profile
+    """
+    Compute the matter profile grid using stellar fraction from observations.
+    """
+    return compute_matter_profile_with_feedback_stellar_fraction_from_obs(
+        mass[np.newaxis, np.newaxis, :],
+        mean_density0[:, np.newaxis, np.newaxis],
+        u_dm,
+        z[:, np.newaxis, np.newaxis],
+        mb,
+        fstar[:, np.newaxis, :],
+        omega_c,
+        omega_m,
+        omega_b,
+        fnu[:, np.newaxis, np.newaxis]
+    )
 
 # ----------------#
 # Galaxy Profiles
@@ -400,35 +389,51 @@ def matter_profile_with_feedback_stellar_fraction_from_obs(mass, mean_density0, 
 # galaxy profile for a sample of galaxies, for example centrals and satellites.
 # set u_sample to ones if centrals are in the centre of the halo
 def galaxy_profile(N_sample, numden_sample, f_sample, u_sample):
-    # profile = fraction * Ngal * u_gal / mean_number_density
-    profile = f_sample[:,np.newaxis,np.newaxis] * N_sample[:,np.newaxis,:] * u_sample / numden_sample[:,np.newaxis,np.newaxis]
-    # profile = compute_galaxy_profile(N_sample[:,np.newaxis,:], numden_sample[:,np.newaxis,np.newaxis],
-                                    #   f_sample[:,np.newaxis,np.newaxis], u_sample)
-    return profile
+    return f_sample[:,np.newaxis,np.newaxis] * N_sample[:,np.newaxis,:] * u_sample / numden_sample[:,np.newaxis,np.newaxis]
 
 
 # ----------------#
-# Aignment Profiles
+# Alignment Profiles
 # ----------------#
 
-def compute_central_galaxy_alignment_profile(scale_factor, growth_factor, f_c, C1, mass):
-    return f_c * (C1  / growth_factor) * mass# * scale_factor**2.0
+def compute_central_galaxy_alignment_profile(scale_factor, growth_factor, f_c, C1, mass, beta=None, mpivot=None, mass_avg=None):
+    if beta is not None and mpivot is not None and mass_avg is not None:
+        additional_term = (mass_avg / mpivot) ** beta
+    else:
+        additional_term = 1.0
+    return f_c * (C1  / growth_factor) * mass * additional_term# * scale_factor**2.0
 
 
-def compute_satellite_galaxy_alignment_profile(Nsat, numdenssat, f_s, wkm_sat):
-    return f_s * Nsat * wkm_sat / numdenssat
+def compute_satellite_galaxy_alignment_profile(Nsat, numdenssat, f_s, wkm_sat, beta=None, mpivot=None, mass_avg=None):
+    if beta is not None and mpivot is not None and mass_avg is not None:
+        additional_term = (mass_avg / mpivot) ** beta
+    else:
+        additional_term = 1.0
+    return f_s * Nsat * wkm_sat / numdenssat * additional_term
 
-
-def compute_central_galaxy_alignment_profile_halo(growth_factor, f_c, C1, mass, beta, mpivot, mass_avg):
-    return f_c * (C1  / growth_factor) * mass * (mass_avg/mpivot)**beta
-
-
-def compute_satellite_galaxy_alignment_profile_halo(Nsat, numdenssat, f_s, wkm_sat, beta_sat, mpivot, mass_avg):
-    return f_s * Nsat * wkm_sat / numdenssat * (mass_avg/mpivot)**beta_sat
+# alignment - centrals
+def central_alignment_profile(mass, scale_factor, growth_factor, f_cen, C1, beta=None, mpivot=None, mass_avg=None):
+    """
+    Prepare the grid in z, k and mass for the central alignment
+    f_cen/n_cen N_cen gamma_hat(k,M)
+    where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
+    times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
+    """
+    
+    return compute_central_galaxy_alignment_profile(
+        scale_factor[:,:,np.newaxis],
+        growth_factor[:,:,np.newaxis],
+        f_cen[:,np.newaxis,np.newaxis],
+        C1,
+        mass[np.newaxis, np.newaxis, :],
+        beta,
+        mpivot,
+        mass_avg[:,np.newaxis,np.newaxis]
+    )
 
 
 # alignment - satellites
-def satellite_alignment_profile(Nsat, numdensat, f_sat, wkm):
+def satellite_alignment_profile(Nsat, numdensat, f_sat, wkm, beta_sat=None, mpivot=None, mass_avg=None):
     """
     Prepare the grid in z, k and mass for the satellite alignment
     f_sat/n_sat N_sat gamma_hat(k,M)
@@ -436,67 +441,15 @@ def satellite_alignment_profile(Nsat, numdensat, f_sat, wkm):
     times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
     """
     
-    s_align_factor = compute_satellite_galaxy_alignment_profile(Nsat[:,np.newaxis,:], 
-                                                                numdensat[:,np.newaxis,np.newaxis], 
-                                                                f_sat[:,np.newaxis,np.newaxis], 
-                                                                wkm.transpose(0,2,1))
-    
-    return s_align_factor
-    
-# alignment - centrals
-def central_alignment_profile(mass, scale_factor, growth_factor, f_cen, C1):
-    """
-    Prepare the grid in z, k and mass for the central alignment
-    f_cen/n_cen N_cen gamma_hat(k,M)
-    where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
-    times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
-    """
-    
-    c_align_factor = compute_central_galaxy_alignment_profile(scale_factor[:,:,np.newaxis], 
-                                                              growth_factor[:,:,np.newaxis], 
-                                                              f_cen[:,np.newaxis,np.newaxis], 
-                                                              C1, 
-                                                              mass[np.newaxis, np.newaxis, :])
-    
-    return c_align_factor
-    
-# alignment - centrals 2h: halo mass dependence
-def central_alignment_profile_grid_halo(mass, growth_factor, f_cen, C1, beta, mpivot, mass_avg):
-    """
-    Prepare the grid in z, k and mass for the central alignment
-    f_cen/n_cen N_cen gamma_hat(k,M)
-    where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
-    times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
-    """
-    
-    c_align_factor = compute_central_galaxy_alignment_profile_halo(growth_factor[:,:,np.newaxis], 
-                                                                   f_cen[:,np.newaxis,np.newaxis], 
-                                                                   C1, 
-                                                                   mass[np.newaxis, np.newaxis, :], 
-                                                                   beta, 
-                                                                   mpivot, 
-                                                                   mass_avg[:,np.newaxis,np.newaxis])
-    
-    return c_align_factor
-
-# alignment - satellites 1h: halo mass dependence
-def satellite_alignment_profile_grid_halo(Nsat, numdensat, f_sat, wkm, beta_sat, mpivot, mass_avg):
-    """
-    Prepare the grid in z, k and mass for the satellite alignment
-    f_sat/n_sat N_sat gamma_hat(k,M)
-    where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
-    times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
-    """
-
-    s_align_factor = compute_satellite_galaxy_alignment_profile_halo(Nsat[:,np.newaxis,:], 
-                                                                     numdensat[:,np.newaxis,np.newaxis], 
-                                                                     f_sat[:,np.newaxis,np.newaxis], 
-                                                                     wkm.transpose(0,2,1), 
-                                                                     beta_sat, 
-                                                                     mpivot, 
-                                                                     mass_avg[:,np.newaxis,np.newaxis])
-    
-    return s_align_factor
+    return compute_satellite_galaxy_alignment_profile(
+        Nsat[:,np.newaxis,:],
+        numdensat[:,np.newaxis,np.newaxis],
+        f_sat[:,np.newaxis,np.newaxis],
+        wkm.transpose(0,2,1),
+        beta_sat,
+        mpivot,
+        mass_avg[:,np.newaxis,np.newaxis]
+    )
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -511,14 +464,13 @@ def one_halo_truncation(k_vec, k_trunc=0.1):
     if k_trunc == None:
         return np.ones_like(k_vec)
     k_frac = k_vec/k_trunc
-    return (k_frac**4.0)/(1.0 + k_frac**4.0)
+    return (k_frac**4.0) / (1.0 + k_frac**4.0)
 
 
 def two_halo_truncation(k_vec, k_trunc=2.0):
     """
     2-halo term truncation at larger k-values (large k)
     """
-    #TO-DO: figure out what ad-hoc values for f and nd are!
     #k_frac = k_vec/k_trunc
     #return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
     if k_trunc == None:
@@ -526,21 +478,26 @@ def two_halo_truncation(k_vec, k_trunc=2.0):
     k_d = 0.05699#0.07
     nd = 2.853
     k_frac = k_vec/k_d
-    
     return 1.0 - 0.05 * (k_frac**nd)/(1.0 + k_frac**nd)
     #return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
 
 def one_halo_truncation_ia(k_vec, k_trunc=4.0):
+    """
+    1-halo term truncation for IA.
+    """
     if k_trunc == None:
         return np.ones_like(k_vec)
-    return 1.-np.exp(-(k_vec/k_trunc)**2.)
+    return 1.0 - np.exp(-(k_vec/k_trunc)**2.0)
 
 
 def two_halo_truncation_ia(k_vec, k_trunc=6.0):
+    """
+    2-halo term truncation for IA.
+    """
     if k_trunc == None:
         return np.ones_like(k_vec)
-    return np.exp(-(k_vec/k_trunc)**2.)
+    return np.exp(-(k_vec/k_trunc)**2.0)
 
 
 def one_halo_truncation_mead(k_vec, sigma8_in):
@@ -548,13 +505,11 @@ def one_halo_truncation_mead(k_vec, sigma8_in):
     1-halo term truncation in 2009.01858
     eq 17 and table 2
     """
-    
     sigma8_z = sigma8_in[:,np.newaxis]
     # One-halo term damping wavenumber
     k_star = 0.05618 * sigma8_z**(-1.013) # h/Mpc
     k_frac = k_vec/k_star
-    
-    return (k_frac**4.0)/(1.0 + k_frac**4.0)
+    return (k_frac**4.0) / (1.0 + k_frac**4.0)
 
 
 def two_halo_truncation_mead(k_vec, sigma8_in):
@@ -565,13 +520,11 @@ def two_halo_truncation_mead(k_vec, sigma8_in):
     unity for k << kd and (1 − f) for k >> kd.
     This damping is used instead of the regular 2-halo term integrals
     """
-    
     sigma8_z = sigma8_in[:,np.newaxis]
     f = 0.2696 * sigma8_z**(0.9403)
     k_d = 0.05699 * sigma8_z**(-1.089)
     nd = 2.853
     k_frac = k_vec/k_d
-    
     return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
 
 
@@ -584,18 +537,16 @@ def transition_smoothing(neff, k_vec, p_1h, p_2h):
     Delta^2(k) = k^3/(2 pi^2) P(k)
     ∆^2_hmcode(k,z) = {[∆^2_2h(k,z)]^α +[∆^2_1h(k,z)]^α}^1/α
     """
-    
-    delta_prefac = (k_vec**3.0)/(2.0*np.pi**2.0)
+    delta_prefac = (k_vec**3.0) / (2.0 * np.pi**2.0)
     alpha = (1.875 * (1.603**neff[:,np.newaxis]))
     Delta_1h = delta_prefac * p_1h
     Delta_2h = delta_prefac * p_2h
     Delta_hmcode = (Delta_1h**alpha + Delta_2h**alpha)**(1.0/alpha)
-    
-    return Delta_hmcode/delta_prefac
+    return Delta_hmcode / delta_prefac
 
 # We are already taking the discreteness of the satellites into account by using the poisson parameter
 def compute_1h_term(profile_u, profile_v, mass, dn_dlnm_z):
-    '''
+    """
     For two fields u,v e.g. matter, galaxy, intrinsic alignment, we calculate the 1 halo term.
     P^1h_uv(k)= int W_u(k,z,M) W_v(k,z,M) n(M) dM
     If the fields are the same and they correspond to discrete tracers (e.g. satellite galaxies):
@@ -615,12 +566,9 @@ def compute_1h_term(profile_u, profile_v, mass, dn_dlnm_z):
     :param mass: array 1d (nmass)
     :param dn_dlnm_z: array 3d (nz,1,nmass), the halo mass function at the given redshift z
     :return: array 2d (nz,nk), the integral along the mass axis
-    '''
-
+    """
     integrand = profile_u * profile_v * dn_dlnm_z / mass
-    integral_1h = simps(integrand, mass)
-    
-    return integral_1h
+    return simps(integrand, mass)
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # Gas fraction
@@ -641,11 +589,9 @@ def fg(mass, fstar, log10T_AGN, z, omega_b, omega_m, beta=2):
     table 4 of 2009.01858, units of M_sun/h
     """
     theta_agn = log10T_AGN - 7.8
-    mb = np.power(10.0, 13.87 + 1.81*theta_agn) * np.power(10.0, z*(0.195*theta_agn - 0.108))
-    baryon_to_matter_fraction = omega_b/omega_m
-    fg = (baryon_to_matter_fraction - fstar) * (mass/mb)**beta / (1.0+(mass/mb)**beta)
-    
-    return fg
+    mb = np.power(10.0, 13.87 + 1.81 * theta_agn) * np.power(10.0, z * (0.195 * theta_agn - 0.108))
+    baryon_to_matter_fraction = omega_b / omega_m
+    return (baryon_to_matter_fraction - fstar) * (mass / mb)**beta / (1.0 + (mass / mb)**beta)
 
 
 def fg_fit(mass, mb, fstar, z, omega_b, omega_m):
@@ -660,12 +606,10 @@ def fg_fit(mass, mb, fstar, z, omega_b, omega_m):
     
     Gas fraction for a general baryonic feedback model
     """
-    
     #mb = 10**13.87#block['pk_parameters', 'm_b'] # free parameter.
-    baryon_to_matter_fraction = omega_b/omega_m
-    f = (baryon_to_matter_fraction - fstar) * (mass/mb)**2.0 / (1.0+(mass/mb)**2.0)
-    
-    return f
+    baryon_to_matter_fraction = omega_b / omega_m
+    return (baryon_to_matter_fraction - fstar) * (mass / mb)**2.0 / (1.0 + (mass / mb)**2.0)
+
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # Stellar fraction
@@ -677,36 +621,26 @@ def fs(log10T_AGN, z):
     Stellar fraction from table 4 and eq 26 of 2009.01858 (Mead et al. 2021)
     f*(z) = f*_0 10^(z f*_z)
     """
-    
     theta_agn = log10T_AGN - 7.8
-    fstar_0 = (2.01 - 0.3*theta_agn)*0.01
-    fstar_z = 0.409 + 0.0224*theta_agn
-    fstar = fstar_0 * np.power(10.0, z*fstar_z)
-    
-    return fstar
+    fstar_0 = (2.01 - 0.3 * theta_agn) * 0.01
+    fstar_z = 0.409 + 0.0224 * theta_agn
+    return fstar_0 * np.power(10.0, z * fstar_z)
 
 
 def load_fstar_mm(block, section_name, z_vec, mass):
     """
-    load stellar fraction that is calculated with the Cacciato HOD
+    Load stellar fraction that is calculated with the Cacciato HOD
     """
-    
-    if block.has_value(section_name,'f_star_extended'):
+    if block.has_value(section_name, 'f_star_extended'):
         f_star = block[section_name, 'f_star_extended']
-        m_hod  = block[section_name, 'mass_extended']
-        z_hod  = block[section_name, 'z_extended']
+        m_hod = block[section_name, 'mass_extended']
+        z_hod = block[section_name, 'z_extended']
     else:
-        raise ValueError(f'f_star_extended does NOT exist in {section_name}. \
-            You have asked for stellar_fraction_from_observable_feedback which needs this quantity.\
-            This is calculated as part of the hod_interface, if use_mead2020_corrections is set to stellar_fraction_from_observable_feedback. \
-            Note that if hod_interface_unconditional does not predict this quantity.' )
-    
+        raise ValueError('f_star_extended does not exist in the provided section.')
+
     interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=None)
     mm, zz = np.meshgrid(mass, z_vec, sparse=True)
-    fstar = interp_fstar((mm.T, zz.T)).T
-    
-    return fstar
-
+    return interp_fstar((mm.T, zz.T)).T
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -731,18 +665,15 @@ def compute_A_term(mass, b_dm, dn_dlnm, mean_density0):
     int_0^infty M n(M) dM = ρ¯ .
     This ρ¯ is the mean matter density at that redshift. 
     """
-    
-    integrand_m1 = b_dm * dn_dlnm * (1. / mean_density0)
-    A = 1. - simps(integrand_m1, mass)
-    if (A < 0.).any():
+    integrand_m1 = b_dm * dn_dlnm * (1.0 / mean_density0)
+    A = 1.0 - simps(integrand_m1, mass)
+    if (A < 0.0).any():
         warnings.warn('Warning: Mass function/bias correction is negative!', RuntimeWarning)
-        
     return A
 
 
 def missing_mass_integral(mass, b_dm, dn_dlnm, mean_density0):
-    A_term = compute_A_term(mass[np.newaxis,np.newaxis,:], b_dm[:,np.newaxis,:], dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
-    return A_term
+    return compute_A_term(mass[np.newaxis, np.newaxis, :], b_dm[:, np.newaxis, :], dn_dlnm[:, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis])
 
 
 def Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term):
@@ -750,15 +681,12 @@ def Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term):
     # eq 35 of Asgari, Mead, Heymans 2023: 2303.08752
     # 2-halo term integral for matter, I_m = int_0^infty dM b(M) W_m(M,k) n(M) = int_0^infty dM b(M) M/rho_bar U_m(M,k) n(M)
     """
-    
-    I_m_term = compute_Im_term(mass[np.newaxis,np.newaxis,:], u_dm, b_dm[:,np.newaxis,:], 
-                               dn_dlnm[:,np.newaxis,:], mean_density0[:,np.newaxis,np.newaxis])
+    I_m_term = compute_Im_term(mass[np.newaxis, np.newaxis, :], u_dm, b_dm[:, np.newaxis, :], dn_dlnm[:, np.newaxis, :], mean_density0[:, np.newaxis, np.newaxis])
     return I_m_term + A_term
 
 def compute_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
     integrand_m = b_dm * dn_dlnm * u_dm * (1. / mean_density0)
-    I_m = simps(integrand_m, mass)
-    return I_m
+    return simps(integrand_m, mass)
 
 # TODO: write one that extrapolates intead of using A_term
 # TODO: compare results 
@@ -770,24 +698,25 @@ def Im_term_v2(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term):
 
 def compute_Ig_term(profile, mass, dn_dlnm_z, b_m):
     integrand = profile * b_m * dn_dlnm_z / mass
-    I_g = simps(integrand, mass)
-    return I_g
+    return simps(integrand, mass)
+
 
 def Ig_term(mass, profile, b_m, dn_dlnm):
-    I_term = compute_Ig_term(profile, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
-    return I_term
-
-# def Is_term(mass, profile_satellites, b_m, dn_dlnm):
-#     I_s = compute_Ig_term(profile_satellites, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
-#     return I_s
-
-# def Ic_term(mass, profile_centrals, b_m, dn_dlnm, nk):
-#     I_c = np.tile(np.array([compute_Ig_term(profile_centrals, mass[np.newaxis,:], dn_dlnm, b_m)]).T, [1,nk])
-#     return I_c
+    return compute_Ig_term(
+        profile,
+        mass[np.newaxis,np.newaxis,:],
+        dn_dlnm[:,np.newaxis,:],
+        b_m[:,np.newaxis,:]
+    )
 
 
 def Ig_align_term(mass, profile_align, b_m, dn_dlnm, mean_density0, A_term):
-    I_g_align = compute_Ig_term(profile_align, mass[np.newaxis,np.newaxis,:], dn_dlnm[:,np.newaxis,:], b_m[:,np.newaxis,:])
+    I_g_align = compute_Ig_term(
+        profile_align,
+        mass[np.newaxis,np.newaxis,:],
+        dn_dlnm[:,np.newaxis,:],
+        b_m[:,np.newaxis,:]
+    )
     return I_g_align + A_term * profile_align[:,:,0] * mean_density0[:,np.newaxis] / mass[0]
 
 
@@ -806,7 +735,6 @@ def prepare_I22_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_
     mass_2e = mass_2[np.newaxis,np.newaxis,:,np.newaxis]
     
     integrand_22 = ne.evaluate('B_NL_k_z * b_1e * b_2e * dn_dlnm_z_1e * dn_dlnm_z_2e / (mass_1e * mass_2e)')
-    
     return integrand_22
 
 def prepare_I12_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_NL_k_z):
@@ -820,7 +748,6 @@ def prepare_I12_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_
     mass_2e = mass_2[np.newaxis,:,np.newaxis]
     
     integrand_12 = ne.evaluate('B_NL_k_z_e * b_2e * dn_dlnm_z_2e / mass_2e')
-    
     return integrand_12
     
 def prepare_I21_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_NL_k_z):
@@ -834,7 +761,6 @@ def prepare_I21_integrand(b_1, b_2, mass_1, mass_2, dn_dlnm_z_1, dn_dlnm_z_2, B_
     mass_1e = mass_1[np.newaxis,:,np.newaxis]
     
     integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dn_dlnm_z_1e / mass_1e')
-    
     return integrand_21
 
 
@@ -904,18 +830,18 @@ def minimum_halo_mass(emu):
     Minimum halo mass for the set of cosmological parameters [Msun/h]
     """
 
-    np_min = 200.    # Minimum number of halo particles
-    npart = 2048.    # Cube root of number of simulation particles
-    Lbox_HR = 1000. # Box size for high-resolution simulations [Mpc/h]
-    Lbox_LR = 2000. # Box size for low-resolution simulations [Mpc/h]
+    np_min = 200.0    # Minimum number of halo particles
+    npart = 2048.0    # Cube root of number of simulation particles
+    Lbox_HR = 1000.0  # Box size for high-resolution simulations [Mpc/h]
+    Lbox_LR = 2000.0  # Box size for low-resolution simulations [Mpc/h]
     
     Om_m = emu.cosmo.get_Omega0()
     rhom = 2.77536627e11 * Om_m
     
-    Mbox_HR = rhom*Lbox_HR**3
-    mmin = Mbox_HR*np_min/npart**3
+    Mbox_HR = rhom*Lbox_HR**3.0
+    mmin = Mbox_HR*np_min/npart**3.0
     
-    vmin = Lbox_HR**3 * np_min/npart**3
+    vmin = Lbox_HR**3.0 * np_min/npart**3.0
     rmin = ((3.0*vmin) / (4.0*np.pi))**(1.0/3.0)
     
     return mmin, 2.0*np.pi/rmin
@@ -929,44 +855,48 @@ def rvir(emu, mass):
 
 def hl_envelopes_idx(data, dmin=1, dmax=1):
     """
-    Input :
-    data: 1d-array, data signal from which to extract high and low envelopes
-    dmin, dmax: int, optional, size of chunks, use this if the size of the input signal is too big
-    Output :
-    lmin,lmax : high/low envelope idx of input signal s
-    """
+    Extract high and low envelope indices from a 1D data signal.
 
-    # locals min
+    Parameters:
+    data (1d-array): Data signal from which to extract high and low envelopes.
+    dmin (int): Size of chunks for local minima, use this if the size of the input signal is too big.
+    dmax (int): Size of chunks for local maxima, use this if the size of the input signal is too big.
+
+    Returns:
+    lmin, lmax (tuple of arrays): Indices of high and low envelopes of the input signal.
+    """
+    # Find local minima indices
     lmin = (np.diff(np.sign(np.diff(data))) > 0).nonzero()[0] + 1
-    # locals max
+    # Find local maxima indices
     lmax = (np.diff(np.sign(np.diff(data))) < 0).nonzero()[0] + 1
     
-    # global min of dmin-chunks of locals min
+    # Global min of dmin-chunks of local minima
     lmin = lmin[[i+np.argmin(data[lmin[i:i+dmin]]) for i in range(0,len(lmin),dmin)]]
-    # global max of dmax-chunks of locals max
+    # Global max of dmax-chunks of local maxima
     lmax = lmax[[i+np.argmax(data[lmax[i:i+dmax]]) for i in range(0,len(lmax),dmax)]]
     
-    return lmin,lmax
+    return lmin, lmax
 
 
 def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
     M1 = 10.0**log10M1
     M2 = 10.0**log10M2
-    # Parameters
+
     # Large 'linear' scale for linear halo bias [h/Mpc]
     klin = np.array([0.05])
-    
+
     # Calculate beta_NL by looping over mass arrays
     beta_func = np.zeros((len(M1), len(M2), len(k)))
-    b01 = np.zeros(len(M1))
-    #b02 = np.zeros(len(M2))
+
     # Linear power
     Pk_lin = emulator.get_pklin_from_z(k, z)
-    #klin = np.array([k[np.argmax(Pk_lin)]])
     Pk_klin = emulator.get_pklin_from_z(klin, z)
-    
+
+    # Calculate b01 for all M1
+    b01 = np.zeros(len(M1))
+    #b02 = np.zeros(len(M2))
     for iM, M0 in enumerate(M1):
-        b01[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z)/Pk_klin)
+        b01[iM] = np.sqrt(emulator.get_phh_mass(klin, M0, M0, z) / Pk_klin)
     
     for iM1, M01 in enumerate(M1):
         for iM2, M02 in enumerate(M2):
@@ -1035,46 +965,28 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     return beta_nl_interp_i
 
 
-# TODO: go through the alignment module before fixing this 
+# TODO: go through the alignment module before fixing this
 def compute_two_halo_alignment(alignment_gi, suffix, growth_factor, mean_density0):
     """
     The IA amplitude at large scales, including the IA prefactors.
 
-    :param block: the CosmoSIS datablock
-    :param nz: int, number of redshift bins
-    :param nk: int, number of wave vector bins
-    :param growth_factor: double array 2d (nz, nk), growth factor normalised to be 1 at z=0
+    :param alignment_gi: double array 1d (nz), alignment coefficient for GI
+    :param suffix: str, suffix for the data block key
+    :param growth_factor: double array 2d (nz, nk), growth factor normalized to be 1 at z=0
     :param mean_density0: double, mean matter density of the Universe at redshift z=0
-    Set in the option section.
-    :return: double array 2d (nz, nk), double array 2d (nz, nk) : the large scale alignment amplitudes (GI and II)
+    :return: tuple of double array 2d (nz, nk), the large scale alignment amplitudes (GI and II)
     """
-    
-    # linear alignment coefficients
+
+    # Linear alignment coefficient
     C1 = 5e-14
-    # load the 2h (effective) amplitude of the alignment signal from the data block. 
-    # This already includes the luminosity dependence if set. Double array [nz].
-    # alignment_gi = block[f'ia_large_scale_alignment{suffix}', 'alignment_gi']
-    #alignment_ii = block[f'ia_large_scale_alignment{suffix}', 'alignment_ii']
-    
-    # Removing the loops!
-    alignment_amplitude_2h = -alignment_gi[:,np.newaxis] * (C1 * mean_density0[:,np.newaxis] / growth_factor)
-    alignment_amplitude_2h_II = (alignment_gi[:,np.newaxis] * C1 * mean_density0[:,np.newaxis] / growth_factor) ** 2.
-    
-    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * alignment_gi[:,np.newaxis,np.newaxis]
 
+    # Calculate alignment amplitudes using broadcasting
+    alignment_amplitude_2h = -alignment_gi[:, np.newaxis] * (C1 * mean_density0 / growth_factor)
+    alignment_amplitude_2h_II = (alignment_gi[:, np.newaxis] * C1 * mean_density0 / growth_factor) ** 2.0
 
-# def poisson_func(block, type, mass_avg):
-    
-#     if type == 'scalar':
-#         poisson_num = block['pk_parameters', 'poisson'] * np.ones_like(mass_avg)
-#     elif type == 'power_law':
-#         poisson_num = block['pk_parameters', 'poisson'] * (mass_avg/block['pk_parameters', 'M_0'])**block['pk_parameters', 'slope']
-#     elif type == '':
-#         poisson_num = np.ones_like(mass_avg)
-#     else:
-#         raise ValueError(f'Not a recognised poission_type={type}. Choose from scalar and power_law or the default value to avoid using this parameter.')
-        
-#     return poisson_num
+    # Return the alignment amplitudes and the reshaped alignment_gi
+    return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * alignment_gi[:, np.newaxis, np.newaxis]
+
 
 # TODO: change this to calculate things for the same masses as in n(M)
 def poisson_func(params, mass_avg):
@@ -1082,7 +994,7 @@ def poisson_func(params, mass_avg):
     if params['poisson_type'] == 'scalar':
         poisson_num = params['poisson'] * np.ones_like(mass_avg)
     elif params['poisson_type'] == 'power_law':
-        poisson_num = params['poisson'] * (mass_avg/params['M_0'])**params['slope']
+        poisson_num = params['poisson'] * (mass_avg / params['M_0'])**params['slope']
     elif params['poisson_type'] == '':
         poisson_num = np.ones_like(mass_avg)
 
@@ -1093,29 +1005,27 @@ def Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB=2.7255):
     """
     No-wiggle transfer function from astro-ph:9709112
     """
-    # These only needs to be calculated once
-    rb = ombh2/ommh2     # Baryon ratio
-    s = 44.5*np.log(9.83/ommh2)/np.sqrt(1.+10.*ombh2**0.75)              # Equation (26)
-    alpha = 1.-0.328*np.log(431.*ommh2)*rb+0.38*np.log(22.3*ommh2)*rb**2 # Equation (31)
+    rb = ombh2 / ommh2 # Baryon ratio
+    s = 44.5 * np.log(9.83 / ommh2) / np.sqrt(1.0 + 10.0 * ombh2**0.75) # Equation (26)
+    alpha = 1.0 - 0.328 * np.log(431.0 * ommh2) * rb + 0.38 * np.log(22.3 * ommh2) * rb**2.0 # Equation (31)
 
-    # Functions of k
-    Gamma = (ommh2/h)*(alpha+(1.-alpha)/(1.+(0.43*k*s*h)**4)) # Equation (30)
-    q = k*(T_CMB/2.7)**2/Gamma # Equation (28)
-    L = np.log(2.*np.e+1.8*q)  # Equation (29)
-    C = 14.2+731./(1.+62.5*q)  # Equation (29)
-    Tk_nw = L/(L+C*q**2)       # Equation (29)
+    Gamma = (ommh2 / h) * (alpha + (1. - alpha) / (1. + (0.43 * k * s * h)**4)) # Equation (30)
+    q = k * (T_CMB / 2.7)**2.0 / Gamma # Equation (28)
+    L = np.log(2.0 * np.e + 1.8 * q) # Equation (29)
+    C = 14.2 + 731. / (1. + 62.5 * q) # Equation (29)
+    Tk_nw = L / (L + C * q**2.0) # Equation (29)
     return Tk_nw
     
     
 def sigmaV(power, k):
-    # In the limit where r -> 0.
+    # In the limit where r -> 0
     dlnk = np.log(k[1] / k[0])
     # we multiply by k because our steps are in logk.
     integ = power * k
-    sigma = (0.5 / np.pi**2) * simps(integ, dx=dlnk, axis=-1)
-    return np.sqrt(sigma/3.0)
+    sigma = (0.5 / np.pi**2.0) * simps(integ, dx=dlnk, axis=-1)
+    return np.sqrt(sigma / 3.0)
     
-    
+
 def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25):
     """
     Extract the wiggle from the linear power spectrum
@@ -1124,29 +1034,28 @@ def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25)
     """
     if not np.isclose(np.all(np.diff(k)-np.diff(k)[0]), 0.):
         raise ValueError('Dewiggle only works with linearly-spaced k array')
-    dlnk = np.log(k[1]/k[0])
-    sigma = sigma_dlnk/dlnk
-    
-    Pk_nowiggle = (k**ns)*Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB)**2
-    Pk_ratio = Pk_lin/Pk_nowiggle
+
+    dlnk = np.log(k[1] / k[0])
+    sigma = sigma_dlnk / dlnk
+
+    Pk_nowiggle = (k**ns) * Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB)**2
+    Pk_ratio = Pk_lin / Pk_nowiggle
     Pk_ratio = gaussian_filter1d(Pk_ratio, sigma)
-    Pk_smooth = Pk_ratio*Pk_nowiggle
-    Pk_wiggle = Pk_lin-Pk_smooth
+    Pk_smooth = Pk_ratio * Pk_nowiggle
+    Pk_wiggle = Pk_lin - Pk_smooth
     return Pk_wiggle
     
 
 def dewiggle(plin, k, block):
-    try:
-        tcmb = block['cosmological_parameters', 'TCMB']
-    except:
-        tcmb = 2.7255
+    tcmb = block.get_double('cosmological_parameters', 'TCMB', default=2.7255)
     sigma = sigmaV(plin, k)
-    pk_wig = get_Pk_wiggle(k, plin, block['cosmological_parameters', 'h0'],
-                                    block['cosmological_parameters', 'ombh2'],
-                                    block['cosmological_parameters', 'ommh2'],
-                                    block['cosmological_parameters', 'n_s'],
-                                    tcmb)
-    plin_dw = plin - (1.0 - np.exp(-(k[np.newaxis,:]*sigma[:,np.newaxis])**2)) * pk_wig
+    pk_wig = get_Pk_wiggle(k, plin,
+                           block['cosmological_parameters', 'h0'],
+                           block['cosmological_parameters', 'ombh2'],
+                           block['cosmological_parameters', 'ommh2'],
+                           block['cosmological_parameters', 'n_s'],
+                           tcmb)
+    plin_dw = plin - (1.0 - np.exp(-(k[np.newaxis, :] * sigma[:, np.newaxis])**2.0)) * pk_wig
     return plin_dw
 
 

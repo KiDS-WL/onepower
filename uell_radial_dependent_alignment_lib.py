@@ -104,8 +104,8 @@ from scipy.special import legendre, binom
 
 def I_x(a,b):
     eps = 1e-10
-    x = np.linspace(-1.+eps,1.-eps,500)
-    int = simps((1.-x**2.)**(a/2.)*x**b,x)
+    x = np.linspace(-1.0 + eps, 1.0 - eps, 500)
+    int = simps((1.0 - x**2.0)**(a/2.0) * x**b, x)
     return int
     
 def legendre_coefficients(l,m):
@@ -119,41 +119,27 @@ def calculate_f_ell(theta_k, phi_k, l, gamma_b):
     Eq. (C8) in `Fortuna et al. 2021 <https://arxiv.org/abs/2003.02700>`
     """
 
-    phase = np.cos(2.*phi_k) + 1j*np.sin(2.*phi_k)
+    phase = np.cos(2.0 * phi_k) + 1j * np.sin(2.0 * phi_k)
 
-    # Follow CCL by hard-coding for most common cases (b=0, b=-2) to gain speed 
+    # Follow CCL by hard-coding for most common cases (b=0, b=-2) to gain speed
     # (in CCL gain is ~1.3sec - gain here depends on how many times this is called).
-    if theta_k==np.pi/2.:
-        if gamma_b==0:
-            pre_calc_f_ell = np.array([0,0,2.77582637, 0 , -0.19276603, 0,
-                                   0.04743899, 0, -0.01779024, 0,
-                                   0.00832446, 0, -0.00447308, 0])
-            return pre_calc_f_ell[l]*phase
-    
-        if gamma_b==-2:
-            pre_calc_f_ell = np.array([0,0,4.71238898, 0, -2.61799389, 0,
-                                         2.06167032, 0, -1.76714666, 0,
-                                        1.57488973, 0, -1.43581368, 0])
-            return pre_calc_f_ell[l]*phase
+    if theta_k == np.pi / 2.:
+        pre_calc_f_ell = {
+            0: np.array([0, 0, 2.77582637, 0, -0.19276603, 0, 0.04743899, 0, -0.01779024, 0, 0.00832446, 0, -0.00447308, 0]),
+            -2: np.array([0, 0, 4.71238898, 0, -2.61799389, 0, 2.06167032, 0, -1.76714666, 0, 1.57488973, 0, -1.43581368, 0])
+        }
+        return pre_calc_f_ell.get(gamma_b)[l] * phase
 
     # If either of the above expressions are met the return statement is executed and the function ends.
     # Otherwise, the function continues to calculate the general case.
-    gj = np.array([0, 0, np.pi / 2, 0, np.pi / 2, 0, 15 * np.pi / 32,
-                       0, 7 * np.pi / 16, 0, 105 * np.pi / 256, 0])
-    
-    sum1 = 0.
-    for m in range(0,l+1):
-        sum2=0.
-        for j in range(0,m+1):
-            sum2 += binom(m,j) * gj[j] * np.sin(theta_k)**(j) * np.cos(theta_k)**(m-j) * I_x(j+gamma_b,m-j)
-        sum1 += binom(l,m)*binom(0.5*(l+m-1.),l)*sum2
-    return 2.**l * sum1*phase
-
-            
-def compare_leg_coeff(l,m):
-    print(legendre_coefficients(l,m))
-    print(2.**l * binom(l,m)*binom(0.5*(l+m-1.),l))
-    return
+    gj = np.array([0, 0, np.pi / 2, 0, np.pi / 2, 0, 15 * np.pi / 32, 0, 7 * np.pi / 16, 0, 105 * np.pi / 256, 0])
+    sum1 = 0.0
+    for m in range(l + 1):
+        sum2 = 0.0
+        for j in range(m + 1):
+            sum2 += binom(m, j) * gj[j] * np.sin(theta_k)**j * np.cos(theta_k)**(m-j) * I_x(j+gamma_b, m-j)
+        sum1 += binom(l, m) * binom(0.5 * (l+m-1.0), l) * sum2
+    return 2.0**l * sum1 * phase
 
 
 #-----------------------------------------------------------------------#
@@ -164,42 +150,24 @@ def compare_leg_coeff(l,m):
 # Since we are interested on the normalised nfw profile only, 
 # here rho_s is removed both in the nfw profile and in the nfw mass 
 def nfw_profile(r, rs):
-    x = r/rs
-    f_x = x*(1.+x)**2
-    rho_nfw = 1./f_x
-    return rho_nfw
+    x = r / rs
+    return 1. / (x * (1.0 + x)**2.0)
 
 
 def mass_nfw(r_s, c):
-    mnfw =  4.*np.pi*(r_s**3.)*(np.log(1.+c)-c/(1.+c))
-    return mnfw
+    return 4.0 * np.pi * r_s**3.0 * (np.log(1.0 + c) - c / (1.0 + c))
 
 
 def nfw_profile_trunc(r, rs, rvir):
-    mask_above_rvir = r>=rvir
-    nfw = nfw_profile(r, rs)
-    nfw[mask_above_rvir] = 0.0
-    return nfw
+    return np.where(r >= rvir, 0.0, nfw_profile(r, rs))
     
-
-def gamma_r_nfw_profile_trunc(r, rs, rvir, A, b, rcore=0.06):
-    mask_small_r = r<rcore
-    gamma = A*(r/rvir)**b
-    # note that in the case of non-radial dependent alignment, this cut is not recommendable since it introduces ringing
-    gamma[mask_small_r] = A*(rcore/rvir)**b
-    gamma[gamma > 0.3] = 0.3
-    gamma_weighted = gamma * nfw_profile_trunc(r,rs,rvir)
-    return gamma_weighted
-
-
-def gamma_r_nfw_profile_notrunc(r, rs, rvir, A, b, rcore=0.06):
-    mask_small_r = r<rcore
-    gamma = A*(r/rvir)**b
-    # note that in the case of non-radial dependent alignment, this cut is not recommendable since it introduces ringing
-    gamma[mask_small_r] = A*(rcore/rvir)**b
-    gamma[gamma > 0.3] = 0.3
-    gamma_weighted = gamma * nfw_profile(r,rs)
-    return gamma_weighted
+    
+def gamma_r_nfw_profile(r, rs, rvir, A, b, rcore=0.06, truncate=True):
+    gamma = A * (r / rvir)**b
+    gamma = np.where(r < rcore, A * (rcore / rvir)**b, gamma)
+    gamma = np.clip(gamma, None, 0.3)
+    nfw = nfw_profile_trunc(r, rs, rvir) if truncate else nfw_profile(r, rs)
+    return gamma * nfw
 
 
 # not used
@@ -210,53 +178,43 @@ def vector_step_function(x, threshold):
     return y
 
 
-# virial radius 	
+# virial radius
 def radvir(m, rho_halo):
-    radvir_constants = 3./(4.*np.pi*rho_halo)
-    r_vir = (m*radvir_constants)**(1./3.) #Mpc/h
-    return r_vir
-    
+    return (3.0 * m / (4.0 * np.pi * rho_halo))**(1.0 / 3.0)
 
-def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z, r_s, rvir, c, mass, ell, h_transf):
-    msize = np.size(mass)
-    zsize = np.size(z)
+
+def uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k_vec, z, r_s, rvir, c, mass, ell, h_transf, truncate=False):
     mnfw = mass_nfw(r_s, c)
+    uk_l = np.zeros([z.size, mass.size, k_vec.size])
 
     #h_transf = HankelTransform(ell+0.5,N_hankel,pi/N_hankel)
     #Note even though ell is not used in this function, h_transf depends on ell
     #We initialise the class in setup as it only depends on predefined ell values
     
-    uk_l = np.zeros([zsize, msize, k_vec.size])
-
-    #Note: I experimented coding the use of Simpson integration for where the Bessel function is flat 
+    #Note: I experimented coding the use of Simpson integration for where the Bessel function is flat
     #and then switching to the Hankel transform for where the Bessel function oscillates.
-    #This is more accurate than using the Hankel transform for all k values with lower accuracy 
+    #This is more accurate than using the Hankel transform for all k values with lower accuracy
     #settings, but it's slower than using the Hankel transform for all k values.
     #It's also difficult to decide how to define the transition between the two methods.
     #Given that low-k accuracy is unimportant for IA, I've decided to use the Hankel transform for all k values.
-    
-    for jz in range(zsize):
-        for im in range(msize):
-            #The python lambda "anonymous function" is new to me so an explaination is in order:
-            #this line connects nfw_f to the executable function gamma_r_nfw_profile varying x and keeping the other parameters fixed
-            nfw_f = lambda x: gamma_r_nfw_profile(x, r_s[jz,im], rvir[im], gamma_1h_amplitude[jz], gamma_b) * np.sqrt((x*np.pi)/2.0)
-            uk_l[jz, im, :] = h_transf.transform(nfw_f, k_vec)[0] / (k_vec**0.5 * mnfw[jz,im])
+
+    for jz in range(z.size):
+        for im in range(mass.size):
+            nfw_f = lambda x: gamma_r_nfw_profile(x, r_s[jz, im], rvir[im], gamma_1h_amplitude[jz], gamma_b, truncate=truncate) * np.sqrt((x * np.pi) / 2.0)
+            uk_l[jz, im, :] = h_transf.transform(nfw_f, k_vec)[0] / (k_vec**0.5 * mnfw[jz, im])
     return uk_l
 
 
 #------------------------------ uell -----------------------------------#
 
-def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass, ell_max, h_transf):
+def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass, ell_max, h_transf, truncate=False):
     """
     create a 4dim array containing u_ell as a function of l,z,m and k
     uell[l,z,m,k]
     """
-    
-    # AD: This is just adding another loop in ell around the above function. Might want to combine...
-    uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile_notrunc, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il, h_transf[i]) for i,il in enumerate(range(0,ell_max+1,2))]
+    uell_ia = [uell_gamma_r_nfw(gamma_r_nfw_profile, gamma_1h_amplitude, gamma_b, k, z, r_s, rvir, c, mass, il, h_transf[i], truncate=truncate) for i, il in enumerate(range(0, ell_max+1, 2))]
     return np.array(uell_ia)
-
-#-----------------------------------------------------------------------#
+    
 
 #------------------------------ w(k|m) ---------------------------------#
 
@@ -264,21 +222,17 @@ def IA_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir, mass
 #assuming theta_e=theta, phi_e=phi (perfect radial alignment)
 
 def wkm_f_ell(uell, theta_k, phi_k, ell_max, gamma_b):
-    nz = uell.shape[1]
-    nm = uell.shape[2]
-    nk = uell.shape[3]
-    
-    sum_ell = np.zeros([nz,nm,nk])
-    for ell in range(0,ell_max+1,2):
-        angular = calculate_f_ell(theta_k, phi_k, ell, gamma_b)
-        c_ = np.real(angular)
-        d_ = np.imag(angular)
-        radial = (1j)**(ell) * (2.*ell + 1.) * uell[int(ell/2),:,:,:]
-        a_ = np.real(radial)
-        b_ = np.imag(radial)
-        sum_ell = sum_ell + (a_*c_ - b_*d_)  + 1j*(a_*d_ + b_*c_)
+    nz, nm, nk = uell.shape[1], uell.shape[2], uell.shape[3]
+    sum_ell = np.zeros([nz, nm, nk])
 
-    return np.sqrt(np.real(sum_ell)**2.+np.imag(sum_ell)**2.)
+    for ell in range(0, ell_max+1, 2):
+        angular = calculate_f_ell(theta_k, phi_k, ell, gamma_b)
+        c_, d_ = np.real(angular), np.imag(angular)
+        radial = (1j)**ell * (2.0 * ell + 1.0) * uell[ell // 2, :, :, :]
+        a_, b_ = np.real(radial), np.imag(radial)
+        sum_ell += (a_ * c_ - b_ * d_) + 1j * (a_ * d_ + b_ * c_)
+
+    return np.sqrt(np.real(sum_ell)**2 + np.imag(sum_ell)**2)
 
 #Note CCL only calculates the real parts of w(k|m)f_ell and doesn't take the absolute value....
 #which means you'll get negative values for wkm in CCL: they take the absolute value later.

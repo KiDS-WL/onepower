@@ -371,14 +371,14 @@ def execute(block, config):
                 if block[f'ia_small_scale_alignment{pop_name}', 'instance'] == 'halo_mass':
                     beta_sat = block[f'ia_small_scale_alignment{pop_name}', 'beta_sat']
                     M_pivot  = block[f'ia_small_scale_alignment{pop_name}', 'M_pivot']
-                    s_align_profile = pk_lib.satellite_alignment_profile_grid_halo(N_sat, numdensat, f_sat, wkm,
+                    s_align_profile = pk_lib.satellite_alignment_profile(N_sat, numdensat, f_sat, wkm,
                                                                                 beta_sat,  M_pivot, mass_avg)
                 else:
                     s_align_profile = pk_lib.satellite_alignment_profile(N_sat, numdensat, f_sat, wkm)
                 if block[f'ia_large_scale_alignment{pop_name}', 'instance'] == 'halo_mass':
                     beta    = block[f'ia_large_scale_alignment{pop_name}', 'beta']
                     M_pivot = block[f'ia_large_scale_alignment{pop_name}', 'M_pivot']
-                    c_align_profile = pk_lib.central_alignment_profile_grid_halo(mass, growth_factor,
+                    c_align_profile = pk_lib.central_alignment_profile(mass, scale_factor, growth_factor,
                                                                                 f_cen, C1, beta,  M_pivot, mass_avg)
                 else:
                     c_align_profile = pk_lib.central_alignment_profile(mass, scale_factor, growth_factor, f_cen, C1)
