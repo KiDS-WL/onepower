@@ -142,7 +142,7 @@ def execute(block, config):
     nk = config['nk']
     profile_value_name = config['profile_value_name']
 
-    # astropy cosmology requires the CMB temprature as an input. 
+    # astropy cosmology requires the CMB temprature as an input.
     # If it exists in the values file read it from there otherwise set to its default value
     tcmb = block.get_double(cosmo_params, 'TCMB', default=2.7255)
 

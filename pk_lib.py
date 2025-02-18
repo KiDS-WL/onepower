@@ -989,16 +989,30 @@ def compute_two_halo_alignment(alignment_gi, suffix, growth_factor, mean_density
 
 
 # TODO: change this to calculate things for the same masses as in n(M)
-def poisson_func(params, mass_avg):
+def poisson_func(mass, **kwargs):
+    """
+    Calculates the Poisson parameter for use in Pgg integrals.
+    Can be either a scalar (P = poisson) or a power law (P = poisson x (M/M_0)^slope).
+    Further models can be added to this function if necessary.
 
-    if params['poisson_type'] == 'scalar':
-        poisson_num = params['poisson'] * np.ones_like(mass_avg)
-    elif params['poisson_type'] == 'power_law':
-        poisson_num = params['poisson'] * (mass_avg / params['M_0'])**params['slope']
-    elif params['poisson_type'] == '':
-        poisson_num = np.ones_like(mass_avg)
+    :param mass: halo mass array
+    :param kwargs: keyword arguments for different options
+    :return: poisson_num, same shape as mass
+    """
+    poisson_type = kwargs.get('poisson_type', '')
+    if poisson_type == 'scalar':
+        poisson = kwargs.get('poisson', 1.0)
+        return poisson * np.ones_like(mass)
 
-    return poisson_num
+    if poisson_type == 'power_law':
+        poisson = kwargs.get('poisson', 1.0)
+        M_0 = kwargs.get('M_0', None)
+        slope = kwargs.get('slope', None)
+        if M_0 is None or slope is None:
+            raise ValueError("M_0 and slope must be provided for 'power_law' poisson_type.")
+        return poisson * (mass / (10.0**M_0))**slope
+
+    return np.ones_like(mass)
 
 
 def Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB=2.7255):
@@ -1117,7 +1131,7 @@ def compute_p_gg(k_vec, pk_lin, mass, dn_dln_m, central_profile,
 
     # send the possion parameter to compute_1h_term as part of the profile.
     # if poisson is mass dependent we need to take it into the 1h term integral
-    poisson = poisson_func(poisson_par, mass)
+    poisson = poisson_func(mass, **poisson_par)
 
     # 1-halo term:
     pk_cs_1h = compute_1h_term(central_profile, satellite_profile, mass[np.newaxis,np.newaxis,:], 
@@ -1146,7 +1160,7 @@ def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
 
     # send the possion parameter to compute_1h_term as part of the profile.
     # if poisson is mass dependent we need to take it into the 1h term integral
-    poisson = poisson_func(poisson_par, mass)
+    poisson = poisson_func(mass, **poisson_par)
 
     # 1-halo term:
     pk_cs_1h = compute_1h_term(central_profile, satellite_profile, 
@@ -1178,7 +1192,7 @@ def compute_p_gg_bnl2(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_
 
     # send the possion parameter to compute_1h_term as part of the profile.
     # if poisson is mass dependent we need to take it into the 1h term integral
-    poisson = poisson_func(poisson_par, mass)
+    poisson = poisson_func(mass, **poisson_par)
 
     # 1-halo term:
     pk_cs_1h = compute_1h_term(central_profile, satellite_profile,

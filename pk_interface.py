@@ -83,20 +83,22 @@ cosmo_params = names.cosmological_parameters
 # point_mass = True
 
 
-def get_string_or_none(options, name, default):
+def get_string_or_none(cosmosis_block, section, name, default):
     """
     A helper function to return a number or None explicitly from config files
+    or return None if no value is present
     """
-    if options.has_value(option_section, name):
-        test_param = options.get(option_section, name)
+    if cosmosis_block.has_value(section, name):
+        test_param = cosmosis_block.get(section, name)
         if isinstance(test_param, numbers.Number):
-            param = options.get_double(option_section, name, default)
+            param = cosmosis_block.get_double(section, name, default)
         if isinstance(test_param, str):
-            str_in = options.get_string(option_section, name)
+            str_in = cosmosis_block.get_string(section, name)
             if str_in == 'None':
                 param = None
     else:
-        param = options.get_double(option_section, name, default)
+        #param = cosmosis_block.get_double(section, name, default)
+        param = None
 
     if not isinstance(param, (numbers.Number, type(None))):
         raise ValueError(f'Parameter {name} is not an instance of a number or NoneType!')
@@ -133,11 +135,11 @@ def setup(options):
     # Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
     # and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
     # The user can change these values.
-    one_halo_ktrunc_ia = get_string_or_none(options, 'one_halo_ktrunc_ia', default=4.0) # h/Mpc or None
-    two_halo_ktrunc_ia = get_string_or_none(options, 'two_halo_ktrunc_ia', default=6.0) # h/Mpc or None
+    one_halo_ktrunc_ia = get_string_or_none(options, option_section, 'one_halo_ktrunc_ia', default=4.0) # h/Mpc or None
+    two_halo_ktrunc_ia = get_string_or_none(options, option_section, 'two_halo_ktrunc_ia', default=6.0) # h/Mpc or None
     # General truncation of non-IA terms:
-    one_halo_ktrunc = get_string_or_none(options, 'one_halo_ktrunc', default=0.1) # h/Mpc or None
-    two_halo_ktrunc = get_string_or_none(options, 'two_halo_ktrunc', default=2.0) # h/Mpc or None
+    one_halo_ktrunc = get_string_or_none(options, option_section, 'one_halo_ktrunc', default=0.1) # h/Mpc or None
+    two_halo_ktrunc = get_string_or_none(options, option_section, 'two_halo_ktrunc', default=2.0) # h/Mpc or None
     
     # initiate pipeline parameters
     matter = False
@@ -419,19 +421,10 @@ def execute(block, config):
             
             if p_gg:
                 # first check if the poisson distribution for the satellites is disturbed.
-                if poisson_type == 'scalar':
-                    # P= poisson
-                    poisson_par = {'poisson_type': poisson_type,
-                        'poisson': block['pk_parameters', 'poisson']}
-                elif poisson_type == 'power_law':
-                    # P = poisson x (M/M_0)^slope
-                    poisson_par = {'poisson_type': poisson_type,
-                                    'poisson': block['pk_parameters', 'poisson'],
-                                    'M_0': 10**block['pk_parameters', 'M_0'],
-                                    'slope' : block['pk_parameters', 'slope']}
-                elif poisson_type != '':
-                    raise ValueError(f'Not a recognised poission_type={poisson_type}. \
-                                    Choose from scalar and power_law or the default value to avoid using this parameter.')
+                poisson_par = {'poisson_type': poisson_type,
+                               'poisson': get_string_or_none(block, 'pk_parameters', 'poisson', default=None),
+                               'M_0': get_string_or_none(block, 'pk_parameters', 'M_0', default=None),
+                               'slope': get_string_or_none(block, 'pk_parameters', 'slope', default=None)}
                
                 if bnl: # If bnl is True use the beyond linear halo bias formalism
                     #pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = pk_lib.compute_p_gg_bnl(k_vec, plin,
