@@ -109,21 +109,9 @@ def get_cosmopower_inputs(block, z_vec, len_zvec, len_Mvec, M_vec):
 
     # Get parameters from block and give them the
     # names and form that class expects
-
-    z_list = []
-    log10M1_list = []
-    log10M2_list = []
-    for i in range(len_zvec):
-        for j in range(len_Mvec):
-            for k in range(len_Mvec):
-                z_list.append(z_vec[i])
-                log10M1_list.append(np.log10(M_vec[j]))
-                log10M2_list.append(np.log10(M_vec[k]))
-    # AD: Just thinking out loud, is this creating a set of all combinations?
-    # Something like this, but need to test it out:
-    #z_list = np.repeat(z_vec, len_Mvec * len_Mvec)
-    #log10M1_list = np.tile(np.repeat(np.log10(M_vec), len_Mvec), len_zvec)
-    #log10M2_list = np.tile(np.log10(M_vec), len_zvec * len_Mvec)
+    z_list = np.repeat(z_vec, len_Mvec * len_Mvec)
+    log10M1_list = np.tile(np.repeat(np.log10(M_vec), len_Mvec), len_zvec)
+    log10M2_list = np.tile(np.log10(M_vec), len_zvec * len_Mvec)
 
     ombh2 = block['cosmological_parameters', 'ombh2']
     omch2 = block['cosmological_parameters', 'omch2'] # - 0.00064 #need to subtract the neutrino density to get h right in DQ emulator!

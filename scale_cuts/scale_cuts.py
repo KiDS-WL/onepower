@@ -250,15 +250,4 @@ def execute(block, config):
             if config["mock_filename"] != "":
                 config["TP_data"].to_fits(config["mock_filename"]+".fits", overwrite=True)
     
-    ## Some print functions for debug
-    #print()
-    #print(block.keys())
-    #print(block.sections())
-    #print(block['nz_kv450_5bin', 'nbin'])
-    #print()
-    
-    #wtp.printTwoPoint_fromObj(TP_theory)
-    #print(block[output_section_name, 'data'].shape)
-    #print(block[output_section_name, 'theory'].shape)
-    #print(block[output_section_name, 'covariance'].shape)
     return 0
