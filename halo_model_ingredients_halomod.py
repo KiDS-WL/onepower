@@ -10,6 +10,9 @@ import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
 import time
 
+# Silencing a warning from hmf for which the nonlinear mass is still correctly calculated
+warnings.filterwarnings("ignore", message="Nonlinear mass outside mass range")
+
 # cosmological parameters section name in block
 cosmo_params = names.cosmological_parameters
 
