@@ -195,40 +195,40 @@ def setup(options):
     # nobs: number of observable bins inside each observable-redshift bin
     obs_simps = np.array([[np.logspace(log_obs_min[nb, jz], log_obs_max[nb, jz], nobs) for jz in range(nz)] for nb in range(nbins)])
 
-    return  {"obs_simps": obs_simps,
-             "nbins": nbins,
-             "nz": nz,
-             "nobs": nobs,
-             "z_bins": z_bins,
-             "z_median": z_median,
-             "galaxy_bias_option": galaxy_bias_option,
-             "save_observable": save_observable,
-             "observable_mode": observable_mode,
-             "hod_section_name": hod_section_name,
-             "values_name":values_name,
-             "observables_z": observables_z,
-             "observable_section_name": observable_section_name,
-             "observable_h_unit":observable_h_unit, 
-             "valid_units": valid_units}
+    return  {'obs_simps': obs_simps,
+             'nbins': nbins,
+             'nz': nz,
+             'nobs': nobs,
+             'z_bins': z_bins,
+             'z_median': z_median,
+             'galaxy_bias_option': galaxy_bias_option,
+             'save_observable': save_observable,
+             'observable_mode': observable_mode,
+             'hod_section_name': hod_section_name,
+             'values_name':values_name,
+             'observables_z': observables_z,
+             'observable_section_name': observable_section_name,
+             'observable_h_unit':observable_h_unit, 
+             'valid_units': valid_units}
 
 
 def execute(block, config):
 
-    obs_simps= config["obs_simps"]
-    nbins=config["nbins"]
-    nz=config["nz"]
-    nobs=config["nobs"]
-    z_bins=config["z_bins"]
-    z_median=config["z_median"]
-    galaxy_bias_option=config["galaxy_bias_option"]
-    save_observable=config["save_observable"]
-    observable_mode=config["observable_mode"]
-    hod_section_name=config["hod_section_name"]
-    values_name=config["values_name"]
-    observables_z=config["observables_z"]
-    observable_section_name=config["observable_section_name"]
-    observable_h_unit=config["observable_h_unit"]
-    valid_units = config["valid_units"]
+    obs_simps= config['obs_simps']
+    nbins=config['nbins']
+    nz=config['nz']
+    nobs=config['nobs']
+    z_bins=config['z_bins']
+    z_median=config['z_median']
+    galaxy_bias_option=config['galaxy_bias_option']
+    save_observable=config['save_observable']
+    observable_mode=config['observable_mode']
+    hod_section_name=config['hod_section_name']
+    values_name=config['values_name']
+    observables_z=config['observables_z']
+    observable_section_name=config['observable_section_name']
+    observable_h_unit=config['observable_h_unit']
+    valid_units = config['valid_units']
 
     #---- loading hod value from the values.ini file ----#
     # centrals

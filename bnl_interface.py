@@ -14,12 +14,12 @@ cosmo = names.cosmological_parameters
 
 def test_cosmo(cparam_in):
     # Returns the edge values for DarkQuest emulator if the values are outside the emulator range
-    cparam_range = OrderedDict((["omegab", [0.0211375, 0.0233625]],
-                          ["omegac", [0.10782, 0.13178]],
-                          ["Omagede", [0.54752, 0.82128]],
-                          ["ln(10^10As)", [2.4752, 3.7128]],
-                          ["ns", [0.916275, 1.012725]],
-                          ["w", [-1.2, -0.8]]))
+    cparam_range = OrderedDict((['omegab', [0.0211375, 0.0233625]],
+                          ['omegac', [0.10782, 0.13178]],
+                          ['Omagede', [0.54752, 0.82128]],
+                          ['ln(10^10As)', [2.4752, 3.7128]],
+                          ['ns', [0.916275, 1.012725]],
+                          ['w', [-1.2, -0.8]]))
 
     cparam_in = cparam_in.reshape(1, 6)
     cparam_out = np.copy(cparam_in)
