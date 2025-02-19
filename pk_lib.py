@@ -1477,8 +1477,8 @@ def compute_p_gI_bnl(k_vec, p_lin, mass, dn_dln_m, central_profile,
     
     pk_cs_1h = compute_1h_term(central_profile, s_align_factor, mass, dn_dln_m[:,np.newaxis]) \
                 * one_halo_truncation_ia(k_vec, one_halo_ktrunc)[np.newaxis,:]
-    pk_cc_2h = p_lin * I_c_term * I_c_align_term + p_lin*(I_NL_ia_gc)
-    pk_cs_2h = p_lin * I_c_term * I_s_align_term + p_lin*(I_NL_ia_gs)
+    pk_cc_2h = p_lin * I_c_term * I_c_align_term + p_lin*I_NL_ia_gc
+    pk_cs_2h = p_lin * I_c_term * I_s_align_term + p_lin*I_NL_ia_gs
 
     pk_tot = pk_cs_1h + pk_cs_2h + pk_cc_2h
     

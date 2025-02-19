@@ -97,8 +97,10 @@ def get_string_or_none(cosmosis_block, section, name, default):
             if str_in == 'None':
                 param = None
     else:
-        #param = cosmosis_block.get_double(section, name, default)
-        param = None
+        try:
+            param = cosmosis_block.get_double(section, name, default)
+        except:
+            param = None
 
     if not isinstance(param, (numbers.Number, type(None))):
         raise ValueError(f'Parameter {name} is not an instance of a number or NoneType!')
