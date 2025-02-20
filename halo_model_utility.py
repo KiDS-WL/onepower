@@ -237,7 +237,7 @@ def sigmaR_cc(power, k, r):
     return np.sqrt(sigma)
 
 
-
+# To be incorporated in hmf
 class SOVirial_Mead(SphericalOverdensity):
     """
     SOVirial overdensity definition from Mead et al. (2021)
@@ -257,10 +257,10 @@ class SOVirial_Mead(SphericalOverdensity):
         return "SOVirial"
 
 
-
+# To be incorporated in halomod
 def get_modified_concentration(base):
     """
-    Sends a modified concentration class to hmf
+    Sends a modified concentration class to halomod
     This class inherits from base = halomod.concentration
     """
     class NormConc(base):
@@ -290,10 +290,10 @@ def get_modified_concentration(base):
             
     return NormConc
     
-
+# To be removed, incorporated the functionality in the halomod
 def get_bloated_profile(base):
     """
-    Sends a new profile class to hmf.
+    Sends a new profile class to halomod.
     This class inherits from base = halomod.profiles
     https://halomod.readthedocs.io/en/latest/_autosummary/halomod.profiles.html
     """

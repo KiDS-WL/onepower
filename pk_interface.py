@@ -157,22 +157,23 @@ def setup(options):
     population_name = options.get_string(option_section, 'output_suffix', default='').lower()
     pop_name = f'_{population_name}' if population_name else ''
 
-    check_mead    = options.has_value(option_section, 'use_mead2020_corrections')
-    if check_mead:
-        use_mead = options[option_section, 'use_mead2020_corrections']
-        if use_mead == 'mead2020':
-            mead_correction = 'nofeedback'
-        elif use_mead == 'mead2020_feedback':
-            mead_correction = 'feedback'
-        elif use_mead == 'fit_feedback':
-            mead_correction = 'fit'
-            if not options.has_value(option_section, 'hod_section_name'):
-                raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon \
-                                  feedback one needs to provide the hod section name of used hod!')
-        else:
-            mead_correction = None
-    else:
-        mead_correction = None
+    # Option to set similar corrections to HMcode2020
+    use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
+    
+    # Mapping of use_mead values to mead_correction values
+    mead_correction_map = {
+        'mead2020': 'nofeedback',
+        'mead2020_feedback': 'feedback',
+        'fit_feedback': 'fit',
+        # Add more mappings here if needed
+    }
+
+    # Determine the mead_correction based on the mapping
+    mead_correction = mead_correction_map.get(use_mead, None)
+    if mead_correction == 'fit':
+        if not options.has_value(option_section, 'hod_section_name'):
+            raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon \
+                                feedback one needs to provide the hod section name of used hod!')
 
     return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, \
            matter, galaxy, bnl, alignment, \
