@@ -5,7 +5,7 @@ from astropy.cosmology import Flatw0waCDM
 import halo_model_utility as hmu
 import hmf
 from halomod.halo_model import DMHaloModel
-from halomod.concentration import make_colossus_cm
+from halomod.concentration import make_colossus_cm, get_modified_concentration
 import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
 import time
@@ -68,7 +68,10 @@ def setup(options):
         cm_func = 'Duffy08' # Dummy cm model, correct one calculated in execute
         disable_mass_conversion = True
     if mead_correction is None:
-        cm_func = hmu.get_modified_concentration(make_colossus_cm(cm_model))
+        try:
+            cm_func = get_modified_concentration(getattr(concentration_classes, cm_model))
+        except:
+            cm_func = get_modified_concentration(make_colossus_cm(cm_model))
         disable_mass_conversion = False
     
     # Initialize cosmology model
@@ -190,6 +193,8 @@ def execute(block, config):
     # Power spectrum transfer function used to update the transfer function in hmf
     transfer_k    = block['matter_power_transfer_func', 'k_h']
     transfer_func = block['matter_power_transfer_func', 't_k']
+    growth_z    = block['growth_parameters', 'z']
+    growth_func = block['growth_parameters', 'd_z']
 
     DM_hmf.update(
         cosmo_model=this_cosmo_run,
@@ -197,7 +202,9 @@ def execute(block, config):
         n=ns,
         transfer_model='FromArray',
         transfer_params={'k':transfer_k, 'T':transfer_func},
-        halo_profile_params={'cosmo':this_cosmo_run}
+        halo_profile_params={'cosmo':this_cosmo_run},
+        growth_model='FromArray',
+        growth_params={'z':growth_z, 'd':growth_func}
     )
  
     # loop over a series of redshift values defined by z_vec = np.linspace(zmin, zmax, nz)
