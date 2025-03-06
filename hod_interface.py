@@ -43,6 +43,9 @@ def setup(options):
     
     if observable_h_unit not in valid_units:
         raise ValueError(f'Currently supported h factors in observable are {valid_units}')
+        
+    if hod_model != 'Cacciato' and save_observable:
+        raise ValueError(f'Observable function cannot be calculated for non-conditional observable function based HODs')
 
     if options.has_value(option_section, 'observables_file'):
         observables_z = True
