@@ -5,7 +5,7 @@ from astropy.cosmology import Flatw0waCDM
 import halo_model_utility as hmu
 import hmf
 from halomod.halo_model import DMHaloModel
-from halomod.concentration import make_colossus_cm, get_modified_concentration
+from halomod.concentration import make_colossus_cm, interp_concentration
 import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
 import time
@@ -69,9 +69,9 @@ def setup(options):
         disable_mass_conversion = True
     if mead_correction is None:
         try:
-            cm_func = get_modified_concentration(getattr(concentration_classes, cm_model))
+            cm_func = interp_concentration(getattr(concentration_classes, cm_model))
         except:
-            cm_func = get_modified_concentration(make_colossus_cm(cm_model))
+            cm_func = interp_concentration(make_colossus_cm(cm_model))
         disable_mass_conversion = False
     
     # Initialize cosmology model
@@ -268,7 +268,7 @@ def execute(block, config):
                 z=z_iter,
                 delta_c=delta_c_z,
                 halo_profile_params={'eta_bloat':eta_cen},
-                halo_concentration_params={'norm':norm_cen, 'sigma8':sigma_8, 'ns':ns}
+                halo_concentration_params={'norm':norm_cen}
                 )
             
             conc_cen[jz,:] = DM_hmf.cmz_relation
@@ -278,7 +278,7 @@ def execute(block, config):
             rvir_cen[jz,:] = DM_hmf.halo_profile.halo_mass_to_radius(DM_hmf.m)
         
             DM_hmf.update(halo_profile_params={'eta_bloat':eta_sat},
-                          halo_concentration_params={'norm':norm_sat, 'sigma8':sigma_8, 'ns':ns})
+                          halo_concentration_params={'norm':norm_sat})
             conc_sat[jz,:] = DM_hmf.cmz_relation
             nfw_sat = DM_hmf.halo_profile.u(k, DM_hmf.m)
             u_dm_sat[jz,:,:] = nfw_sat/np.expand_dims(nfw_sat[0,:], 0)
