@@ -26,42 +26,6 @@ from darkmatter_lib import radvir_from_mass, scale_radius, compute_u_dm
 cosmo_params = names.cosmological_parameters
 
 
-# This patches hmf caching!
-def obj_eq_fix(ob1, ob2):
-    """Test equality of objects that is numpy-aware."""
-    try:
-        return bool(ob1 == ob2)
-    except ValueError:
-        # Could be a numpy array.
-        #return np.array_equiv(ob1, ob2)#(ob1 == ob2).all()
-        try:
-            return np.array_equal(ob1, ob2)
-        except ValueError:
-            if ob1.keys() != ob2.keys():
-                return False
-            return all(np.array_equal(ob1[key], ob2[key]) for key in ob1)
-hmf._internals._cache.obj_eq = obj_eq_fix
-
-
-class SOVirial_Mead(SphericalOverdensity):
-    """
-    SOVirial overdensity definition from Mead et al. 2020
-    """
-    _defaults = {"overdensity": 200}
-        
-    def halo_density(self, z=0, cosmo=Planck15):
-        """The density of haloes under this definition."""
-        return self.params["overdensity"] * self.mean_density(z, cosmo)
-        
-    @property
-    def colossus_name(self):
-        return "200c"
-            
-    def __str__(self):
-        """Describe the halo definition in standard notation."""
-        return "SOVirial"
-
-
 # TODO: concentration is saved into multiple folders. Check if these can be merged.
 def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
     """
@@ -80,7 +44,7 @@ def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
     if isinstance(mdef, str):
         mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
     else:
-        mdef = SOVirial_Mead(overdensity=overdensity)
+        mdef = hmu.SOVirial_Mead(overdensity=overdensity)
     
     # This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
     # MA: Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
@@ -266,7 +230,7 @@ def execute(block, config):
                 delta_c_z = hmu.dc_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
                 halo_overdensity_mean[jz] = hmu.Dv_Mead(a, this_cosmo_run.Om(z_iter)+this_cosmo_run.Onu(z_iter), this_cosmo_run.Onu0/(this_cosmo_run.Om0+this_cosmo_run.Onu0), g, G)
                 #dolag = (growth(LCDMcosmo.scale_factor(10.0))/growth_LCDM(LCDMcosmo.scale_factor(10.0)))*(growth_LCDM(a)/growth(a))
-                mdef_mead = SOVirial_Mead#'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
+                mdef_mead = hmu.SOVirial_Mead#'SOMean' # Need to use SOMean to correcly parse the Mead overdensity as calculated above! Otherwise the code again uses the Bryan & Norman function!
                 mdef_conc = mdef_mead
                 mf.ERROR_ON_BAD_MDEF = False
                 mf.update(z=z_iter, cosmo_model=this_cosmo_run, sigma_8=sigma_8, n=ns, delta_c=delta_c_z, mdef_model=mdef_mead,  mdef_params={'overdensity':halo_overdensity_mean[jz]}, disable_mass_conversion=True, transfer_model='FromArray', transfer_params={'k':transfer_k, 'T':transfer_func})
