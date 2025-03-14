@@ -256,7 +256,7 @@ class CosmosisTransformer(Transformer):
         block[self.output_section, "sample"] = self.sample
         block[self.output_section, "rp"] = rp
         block[self.output_section, "sep_name"] = "rp"
-        block[self.output_section, "save_name"] = ""
+        block[self.output_section, "save_name"] = self.corr_type
 
     def load_kernel(self, block, kernel_section, bin, z_ext, extrapolate_option):
 
