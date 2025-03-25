@@ -7,7 +7,7 @@ The number of bins and the mass range can be different to what is calculated in 
 from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.integrate import simps
+from scipy.integrate import simpson as simps
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 
 cosmo_params = names.cosmological_parameters

@@ -4,7 +4,7 @@ import scipy.interpolate
 import pyfftlog
 import numpy as np
 from cosmosis.datablock import option_section
-from scipy.integrate import simps
+from scipy.integrate import simpson as simp
 from hankel import HankelTransform
 
 import matplotlib.pyplot as pl

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.integrate import simps, solve_ivp, quad
+from scipy.integrate import simpson as simps 
+from scipy.integrate import solve_ivp, quad
 from astropy.cosmology import Planck15
 from hmf.halos.mass_definitions import SphericalOverdensity
 from hmf.cosmology.cosmo import astropy_to_colossus

@@ -7,7 +7,7 @@ The number of bins and the mass range can be different to what is calculated in 
 from cosmosis.datablock import option_section
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.integrate import simps
+from scipy.integrate import simpson as simps
 
 # z_obs, obs_ext = load_and_interpolate_obs(block, input_section_name, suffixes[i], obs_arr[i], 0.0)
 def load_and_interpolate_obs(block, obs_section, suffix_in, extrapolate_option=0.0):

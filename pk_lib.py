@@ -1,7 +1,7 @@
 # Library of the power spectrum module
 import numpy as np
 from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
-from scipy.integrate import simps, quad
+from scipy.integrate import simpson as simps
 # from scipy.special import erf
 from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d

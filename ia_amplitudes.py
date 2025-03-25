@@ -22,7 +22,7 @@
 
 from cosmosis.datablock import option_section
 import numpy as np
-from scipy.integrate import simps
+from scipy.integrate import simpson as simps
 from astropy.io import fits
 
 

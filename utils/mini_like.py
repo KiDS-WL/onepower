@@ -16,6 +16,9 @@ def execute(block, config):
     mu = block[input_section_name, "theory"]
     print('data:',np.round(d,decimals=4))
     print('theory:',np.round(mu,decimals=4)) 
+    # dir(block)
+    # for key in block.keys('hod_parameters_bright'):
+    #     print(key, '=', block[key])
 
     inv_cov = block[input_section_name, "inv_covariance"]
     r = d - mu

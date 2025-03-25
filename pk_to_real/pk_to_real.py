@@ -4,7 +4,7 @@ import scipy.interpolate
 import pyfftlog
 import numpy as np
 from cosmosis.datablock import option_section
-from scipy.integrate import simps
+from scipy.integrate import simpson as simps
 
 # These are the ones the user can use
 TRANSFORM_WP = "wp"
