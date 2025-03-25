@@ -1,11 +1,7 @@
 from cosmosis.datablock import names, option_section
 import numpy as np
 
-
 cosmo = names.cosmological_parameters
-
-
-# --------- COSMOSIS MODULE ----------- #
 
 def setup(options):
     # This function is called once per processor per chain.
@@ -17,7 +13,7 @@ def setup(options):
 
     # Determine whether to delete the bnl array
     delete_bnl = sampler_name != 'test' and not keep_bnl
-    
+
     return delete_bnl
 
 
@@ -31,7 +27,7 @@ def execute(block, config):
     if block.has_value('bnl', 'beta_interp') and delete_bnl:
         block.replace_double_array_nd('bnl', 'beta_interp', np.array([0.0]))
         print('Deleting the large beta_interp array. If you want to keep this set keep_bnl = True')
-        
+
     return 0
 
 
@@ -39,5 +35,3 @@ def cleanup(config):
     # Usually python modules do not need to do anything here.
     # We just leave it in out of pedantic completeness.
     pass
-
-

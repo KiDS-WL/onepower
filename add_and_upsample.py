@@ -1,14 +1,14 @@
 """
-This module combines the red and blue power spectra. It interpolates and extrapolates the 
+This module combines the red and blue power spectra. It interpolates and extrapolates the
 different power spectra in input to match the range and sampling of the matter_power_nl.
-The extrapolation method is not particurlarly advanced (numpy.interp) and would be good
-to replace it with something more robust. 
+The extrapolation method is not particularly advanced (numpy.interp) and would be good
+to replace it with something more robust.
 
-The red fraction as a function of redshift must be provided by the user ad a txt file with
+The red fraction as a function of redshift must be provided by the user as a txt file with
 columns (z, f_red(z)). The z-binning can be arbitrary (it is interpolated inside the code)
-but it safe to provide the largest range possible to avoid substantial extrapolations. 
+but it is safe to provide the largest range possible to avoid substantial extrapolations.
 
-The code assume the red and blue power spectra to be computed on the same z and k binning.
+The code assumes the red and blue power spectra to be computed on the same z and k binning.
 
 Step 1: interpolate f_red to the z-bins of the pk of interest
 Step 2: add red and blue power spectra
@@ -16,14 +16,13 @@ Step 3: interpolate to the z and k-binning of the matter_power_nl
 
 NO CROSS TERMS ARE CURRENTLY IMPLEMENTED.
 
-For each redshift, the power spectra are combined as following:
+For each redshift, the power spectra are combined as follows:
 
-GI -> pk_tot = f_red * pk_red + (1-f_red) * pk_blue 
+GI -> pk_tot = f_red * pk_red + (1-f_red) * pk_blue
 II -> pk_tot = f_red**2. * pk_red + (1-f_red)**2. * pk_blue
 gI -> pk_tot = f_red**2. * pk_red + (1-f_red)**2. * pk_blue
 gg -> pk_tot = f_red**2. * pk_red + (1-f_red)**2. * pk_blue
 gm -> pk_tot = f_red * pk_red + (1-f_red) * pk_blue
-
 """
 
 from cosmosis.datablock import names, option_section
@@ -37,21 +36,20 @@ cosmo = names.cosmological_parameters
 
 
 def extrapolate_nan(z, k, z_ext, k_ext, pk_tot, extrapolate_option):
-    
     pk_extz = np.empty([len(z_ext), len(k)])
     for i in range(len(k)):
-        pki = pk_tot[:,i][np.isfinite(pk_tot[:,i])]
-        zi = z[np.isfinite(pk_tot[:,i])]
+        pki = pk_tot[:, i][np.isfinite(pk_tot[:, i])]
+        zi = z[np.isfinite(pk_tot[:, i])]
         inter_func = interp1d(zi, pki, kind='linear', fill_value=extrapolate_option, bounds_error=False)
-        pk_extz[:,i] = inter_func(z_ext)
-    
+        pk_extz[:, i] = inter_func(z_ext)
+
     pk_extk = np.empty([len(z), len(k_ext)])
     for j in range(len(z)):
-        pki = pk_extz[j,:][np.isfinite(pk_extz[j,:])]
-        ki = k[np.isfinite(pk_extz[j,:])]
+        pki = pk_extz[j, :][np.isfinite(pk_extz[j, :])]
+        ki = k[np.isfinite(pk_extz[j, :])]
         inter_func = interp1d(np.log10(ki), np.log10(pki) + 1.0, kind='linear', fill_value='extrapolate', bounds_error=False)
-        pk_extk[j,:] = 10.0**inter_func(np.log10(k_ext)) - 1.0
-    
+        pk_extk[j, :] = 10.0**inter_func(np.log10(k_ext)) - 1.0
+
     return pk_extk
 
 
@@ -61,117 +59,108 @@ def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, po
     z = block[f'{power_section}{suffix_red}', 'z']
     pk_red = block[f'{power_section}{suffix_red}', 'p_k']
     pk_blue = block[f'{power_section}{suffix_blue}', 'p_k']
-		
+
     # TODO: Add the cross terms
-    # This is not optimised, but it is good to first choose what do we want to implement
+    # This is not optimised, but it is good to first choose what we want to implement
     # in terms of cross terms.
     if power_section in ['intrinsic_power', 'galaxy_power', 'galaxy_intrinsic_power']:
-        pk_tot = f_red[:,np.newaxis]**2.*pk_red + (1.-f_red[:,np.newaxis])**2.*pk_blue
+        pk_tot = f_red[:, np.newaxis]**2. * pk_red + (1. - f_red[:, np.newaxis])**2. * pk_blue
     else:
-        pk_tot = f_red[:,np.newaxis]*pk_red + (1.-f_red[:,np.newaxis])*pk_blue
+        pk_tot = f_red[:, np.newaxis] * pk_red + (1. - f_red[:, np.newaxis]) * pk_blue
 
     # For matter-intrinsic and galaxy-intrinsic, pk_tot will usually be negative (for A_IA > 0)
     # And at very high k can be as large as -100!
     # If we're interpolating over log10(pk_tot) negative power is problematic
-    # Check to see if it is negative, and take the absolute value 
-    if np.sum(pk_tot)<0:
+    # Check to see if it is negative, and take the absolute value
+    if np.sum(pk_tot) < 0:
         pk_tot = pk_tot * -1
-        changed_sign=True
-    else:    
-        changed_sign=False
+        changed_sign = True
+    else:
+        changed_sign = False
 
-    #warnings.warn('No cross terms between red and blue galaxies implemented.
-    #This is only valid for IA in the regime of negligible blue galaxy alignment.')
-    #IT 02/03/22: Commented line 86 to execute the code
-    
+    # warnings.warn('No cross terms between red and blue galaxies implemented.
+    # This is only valid for IA in the regime of negligible blue galaxy alignment.')
+    # IT 02/03/22: Commented line 86 to execute the code
+
     # extrapolate
-    #inter_func_z = interp1d(z, np.nan_to_num(np.log10(pk_tot + 1.0), nan=0.0, posinf=0.0, neginf=0.0), kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
-    #pk_tot_ext_z = 10.0**inter_func_z(z_ext) - 1.0
-    # In redshift direction this seems to be more stable:
     inter_func_z = interp1d(z, pk_tot, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
     pk_tot_ext_z = inter_func_z(z_ext)
-    
-    #inter_func_k = interp1d(np.log10(k), np.log10(np.nan_to_num(pk_tot_ext_z, nan=0.0, posinf=0.0, neginf=0.0) + 1.0), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
-    #pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
+
     inter_func_k = interp1d(np.log10(k), pk_tot_ext_z, kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
     pk_tot_ext = inter_func_k(np.log10(k_ext))
-    
-    #pk_tot_ext = extrapolate_nan(z, k, z_ext, k_ext, pk_tot, extrapolate_option)
-    
+
+    # pk_tot_ext = extrapolate_nan(z, k, z_ext, k_ext, pk_tot, extrapolate_option)
+
     """
     zz, kk = np.meshgrid(z, np.log10(k))
     zz2, kk2 = np.meshgrid(z_ext, np.log10(k_ext))
     import matplotlib.pyplot as pl
     fig = pl.figure()
     ax = fig.add_subplot(projection='3d')
-    #ax.scatter(xg.ravel(), yg.ravel(), data.ravel(), s=60, c='k', label='data')
-    ax.plot_wireframe(zz.T, kk.T, np.log10(pk_tot), color='red')#,rstride=3, cstride=3, alpha=0.4, label='Spectra')
+    # ax.scatter(xg.ravel(), yg.ravel(), data.ravel(), s=60, c='k', label='data')
+    ax.plot_wireframe(zz.T, kk.T, np.log10(pk_tot), color='red')  # ,rstride=3, cstride=3, alpha=0.4, label='Spectra')
     ax.plot_wireframe(zz2.T, kk2.T, np.log10(pk_tot_ext))
     pl.legend()
     pl.show()
     """
-    
+
     # Introduce the sign convention back for the GI terms
     if changed_sign:
-        pk_tot_ext=pk_tot_ext*-1
+        pk_tot_ext = pk_tot_ext * -1
 
     block.put_grid(f'{power_section}{suffix_out}', 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
+
 
 
 def extrapolate_power(block, suffix_out, suffix_in, power_section, z_ext, k_ext, extrapolate_option):
     k = block[f'{power_section}{suffix_in}', 'k_h']
     z = block[f'{power_section}{suffix_in}', 'z']
     pk_in = block[f'{power_section}{suffix_in}', 'p_k']
-    
+
     # For matter-intrinsic and galaxy-intrinsic, pk_tot will usually be negative (for A_IA > 0)
     # If we're interpolating over log10(pk_tot) negative power is problematic
     # Check to see if it is negative, and take the absolute value
-    if np.sum(pk_in)<0:
+    if np.sum(pk_in) < 0:
         pk_in = pk_in * -1
-        changed_sign=True
+        changed_sign = True
     else:
-        changed_sign=False
-    
-    #inter_func_z = interp1d(z, np.nan_to_num(np.log10(pk_in + 1.0), nan=0.0, posinf=0.0, neginf=0.0), kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
-    #pk_tot_ext_z = 10.0**inter_func_z(z_ext) - 1.0
-    # In redshift direction this seems to be more stable:
+        changed_sign = False
+
     inter_func_z = interp1d(z, pk_in, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
     pk_tot_ext_z = inter_func_z(z_ext)
-    
-    #inter_func_k = interp1d(np.log10(k), np.log10(np.nan_to_num(pk_tot_ext_z, nan=0.0, posinf=0.0, neginf=0.0) + 1.0), kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
-    #pk_tot_ext = 10.0**inter_func_k(np.log10(k_ext)) - 1.0
+
     inter_func_k = interp1d(np.log10(k), pk_tot_ext_z, kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
     pk_tot_ext = inter_func_k(np.log10(k_ext))
-    
-    #pk_tot_ext = extrapolate_nan(z, k, z_ext, k_ext, pk_in, extrapolate_option)
-    
+
+    # pk_tot_ext = extrapolate_nan(z, k, z_ext, k_ext, pk_in, extrapolate_option)
+
     """
     zz, kk = np.meshgrid(z, np.log10(k))
     zz2, kk2 = np.meshgrid(z_ext, np.log10(k_ext))
     import matplotlib.pyplot as pl
     fig = pl.figure()
     ax = fig.add_subplot(projection='3d')
-    #ax.scatter(xg.ravel(), yg.ravel(), data.ravel(), s=60, c='k', label='data')
-    ax.plot_wireframe(zz.T, kk.T, np.log10(pk_in), color='red')#,rstride=3, cstride=3, alpha=0.4, label='Spectra')
+    # ax.scatter(xg.ravel(), yg.ravel(), data.ravel(), s=60, c='k', label='data')
+    ax.plot_wireframe(zz.T, kk.T, np.log10(pk_in), color='red')  # ,rstride=3, cstride=3, alpha=0.4, label='Spectra')
     ax.plot_wireframe(zz2.T, kk2.T, np.log10(pk_tot_ext))
     pl.legend()
     pl.show()
     """
-        
+
     # Introduce the sign convention back for the GI terms
     if changed_sign:
-        pk_tot_ext=pk_tot_ext*-1
-        
+        pk_tot_ext = pk_tot_ext * -1
+
     block.put_grid(f'{power_section}{suffix_out}', 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
  
  
 #--------------------------------------------------------------------------------#	
 
 def setup(options):
-    #This function is called once per processor per chain.
-    #It is a chance to read any fixed options from the configuration file,
-    #load any data, or do any calculations that are fixed once.
-		
+    # This function is called once per processor per chain.
+    # It is a chance to read any fixed options from the configuration file,
+    # load any data, or do any calculations that are fixed once.
+
     # matter
     p_mm_option = options[option_section, 'do_p_mm']
     # clustering
@@ -197,44 +186,42 @@ def setup(options):
     name_extrap = options.get_string(option_section, 'input_power_suffix_extrap', default='').lower()
     name_red = options.get_string(option_section, 'input_power_suffix_red', default='red').lower()
     name_blue = options.get_string(option_section, 'input_power_suffix_blue', default='blue').lower()
-    
-    suffix_extrap = f'_{name_extrap}'  if name_extrap != '' else ''
+
+    suffix_extrap = f'_{name_extrap}' if name_extrap != '' else ''
     suffix_red = f'_{name_red}' if name_red != '' else ''
     suffix_blue = f'_{name_blue}' if name_blue != '' else ''
-        
+
     return z_fred, f_red, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, suffix_extrap, suffix_red, suffix_blue, hod_section_name_extrap, hod_section_name_red, hod_section_name_blue
-	
 
 def execute(block, config):
-    #This function is called every time you have a new sample of cosmological and other parameters.
-    #It is the main workhorse of the code. The block contains the parameters and results of any
-    #earlier modules, and the config is what we loaded earlier.
-	
+    # This function is called every time you have a new sample of cosmological and other parameters.
+    # It is the main workhorse of the code. The block contains the parameters and results of any
+    # earlier modules, and the config is what we loaded earlier.
+
     z_fred_file, f_red_file, p_mm_option, p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option, suffix0_extrap, suffix0_red, suffix0_blue, hod_section_name_extrap, hod_section_name_red, hod_section_name_blue = config
 
     # load matter_power_nl k and z:
     z_lin = block['matter_power_lin', 'z']
     k_lin = block['matter_power_lin', 'k_h']
-    
-    
+
     if p_mm_option == 'extrapolate':
         extrapolate_power(block, '', '', 'matter_power_nl', z_lin, k_lin, 'extrapolate')
-        # TODO: Remove  once extrapolation of NL power spectra is validated
+        # TODO: Remove once extrapolation of NL power spectra is validated
         try:
             extrapolate_power(block, '', '', 'matter_power_nl_mead', z_lin, k_lin, 'extrapolate')
         except:
             pass
-    
+
     if any(option == 'extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
 
         hod_bins_extrap = block[hod_section_name_extrap, 'nbins']
         observables_z = block[hod_section_name_extrap, 'observable_z']
         extrapolate_option = 'extrapolate' if observables_z else 0.0
-        
-        for nb in range(0,hod_bins_extrap):
+
+        for nb in range(0, hod_bins_extrap):
             suffix_extrap = f'{suffix0_extrap}_{nb+1}' if hod_bins_extrap != 1 else suffix0_extrap
             suffix_out = f'_{nb+1}' if hod_bins_extrap != 1 else ''
-                
+
             if p_gg_option == 'extrapolate':
                 extrapolate_power(block, suffix_out, suffix_extrap, 'galaxy_power', z_lin, k_lin, extrapolate_option)
             if p_gm_option == 'extrapolate':
@@ -245,57 +232,55 @@ def execute(block, config):
                 extrapolate_power(block, suffix_out, suffix_extrap, 'intrinsic_power', z_lin, k_lin, extrapolate_option)
             if p_gI_option == 'extrapolate':
                 extrapolate_power(block, suffix_out, suffix_extrap, 'galaxy_intrinsic_power', z_lin, k_lin, extrapolate_option)
-        
-        
+
     if any(option == 'add_and_extrapolate' for option in [p_gg_option, p_gm_option, p_mI_option, p_II_option, p_gI_option]):
 
         hod_bins_red = block[hod_section_name_red, 'nbins']
         hod_bins_blue = block[hod_section_name_blue, 'nbins']
-        
+
         if hod_bins_red != hod_bins_blue:
             raise Exception('Error: number of red and blue stellar mass bins should be the same.')
-        
+
         observables_z_red = block[hod_section_name_red, 'observable_z']
         extrapolate_option = 'extrapolate' if observables_z_red else 0
-        
-        for nb in range(0,hod_bins_red):
+
+        for nb in range(0, hod_bins_red):
             suffix_red = f'{suffix0_red}_{nb+1}' if hod_bins_red != 1 else suffix0_red
             suffix_blue = f'{suffix0_blue}_{nb+1}' if hod_bins_red != 1 else suffix0_blue
             suffix_out = f'_{nb+1}' if hod_bins_red != 1 else ''
-        
+
             if p_gg_option == 'add_and_extrapolate':
                 # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
                 z_hm = block[f'galaxy_power{suffix_red}', 'z']
                 f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
                 add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red(z_hm), 'galaxy_power', z_lin, k_lin, extrapolate_option)
-                
+
             if p_gm_option == 'add_and_extrapolate':
                 # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
                 z_hm = block[f'matter_galaxy_power{suffix_red}', 'z']
-                #IT Added bounds_error=False and fill_value extrapolate
+                # IT Added bounds_error=False and fill_value extrapolate
                 f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
                 add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red(z_hm), 'matter_galaxy_power', z_lin, k_lin, extrapolate_option)
-                
+
             if p_mI_option == 'add_and_extrapolate':
                 # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
                 z_hm = block[f'matter_intrinsic_power{suffix_red}', 'z']
                 f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
                 add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red(z_hm), 'matter_intrinsic_power', z_lin, k_lin, extrapolate_option)
-                
+
             if p_II_option == 'add_and_extrapolate':
                 # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
                 z_hm = block[f'intrinsic_power{suffix_red}', 'z']
                 f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
                 add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red(z_hm), 'intrinsic_power', z_lin, k_lin, extrapolate_option)
-                
+
             if p_gI_option == 'add_and_extrapolate':
                 # load halo model k and z (red and blue are expected to be with the same red/blue ranges and z,k-samplings!):
                 z_hm = block[f'galaxy_intrinsic_power{suffix_red}', 'z']
                 f_red = interp1d(z_fred_file, f_red_file, 'linear', bounds_error=False, fill_value='extrapolate')
                 add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red(z_hm), 'galaxy_intrinsic_power', z_lin, k_lin, extrapolate_option)
-				
-    return 0
 
+    return 0
 
 def cleanup(config):
     # Usually python modules do not need to do anything here.
