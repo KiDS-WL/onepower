@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.optimize import root_scalar
-from scipy.integrate import simps, solve_ivp, quad
+from scipy.integrate import simpson, solve_ivp, quad
 from astropy.cosmology import Planck15
 from hmf.halos.mass_definitions import SphericalOverdensity
 from hmf.cosmology.cosmo import astropy_to_colossus
@@ -218,7 +218,7 @@ def sigmaR_cc(power, k, r):
     # we multiply by k because our steps are in logk.
     rest = power * k ** 3
     integ = rest * k_space ** 2
-    sigma = (0.5 / np.pi**2) * simps(integ, dx=dlnk, axis=-1)
+    sigma = (0.5 / np.pi**2) * simpson(integ, dx=dlnk, axis=-1)
     return np.sqrt(sigma)
 
 # To be maybe incorporated in hmf

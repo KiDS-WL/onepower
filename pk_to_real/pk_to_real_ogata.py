@@ -4,7 +4,7 @@ import scipy.interpolate
 import pyfftlog
 import numpy as np
 from cosmosis.datablock import option_section
-from scipy.integrate import simps
+from scipy.integrate import simpson
 from hankel import HankelTransform
 
 import matplotlib.pyplot as pl
@@ -175,7 +175,7 @@ class projection():
                 rp, xi[j,:] = self.project.evaluate(k, pk[j,:])
             # Integrate over n(z)
             nz = self.load_kernel(block, self.sample, b1, z, 0.0)
-            xi = simps(nz[:,np.newaxis]*xi, z, axis=0)
+            xi = simpson(nz[:,np.newaxis]*xi, z, axis=0)
             #pl.plot(rp, xi)
             
             # Save results back to cosmosis

@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.integrate import simps
+from scipy.integrate import simpson
 from scipy.special import erf
 
 class HOD:
@@ -21,7 +21,7 @@ class HOD:
         Nx = int ⟨Nx|M⟩ n(M) dM
         """
         integrand = self.compute_hod_cen * self.dn_dlnM_normalised / self.mass.T
-        return simps(integrand, self.mass.T)
+        return simpson(integrand, self.mass.T)
 
     @property
     def compute_number_density_sat(self):
@@ -31,7 +31,7 @@ class HOD:
         Nx = int ⟨Nx|M⟩ n(M) dM
         """
         integrand = self.compute_hod_sat * self.dn_dlnM_normalised / self.mass.T
-        return simps(integrand, self.mass.T)
+        return simpson(integrand, self.mass.T)
 
     @property
     def compute_number_density(self):
@@ -41,7 +41,7 @@ class HOD:
         Nx = int ⟨Nx|M⟩ n(M) dM
         """
         integrand = self.compute_hod * self.dn_dlnM_normalised / self.mass.T
-        return simps(integrand, self.mass.T)
+        return simpson(integrand, self.mass.T)
 
     @property
     def compute_avg_halo_mass_cen(self):
@@ -50,7 +50,7 @@ class HOD:
         M_mean = int ⟨Nx|M⟩ M n(M) dM
         """
         integrand = self.compute_hod_cen * self.dn_dlnM_normalised
-        return simps(integrand, self.mass.T)
+        return simpson(integrand, self.mass.T)
 
     @property
     def compute_avg_halo_mass_sat(self):
@@ -59,7 +59,7 @@ class HOD:
         M_mean = int ⟨Nx|M⟩ M n(M) dM
         """
         integrand = self.compute_hod_sat * self.dn_dlnM_normalised
-        return simps(integrand, self.mass.T)
+        return simpson(integrand, self.mass.T)
 
     @property
     def compute_avg_halo_mass(self):
@@ -68,7 +68,7 @@ class HOD:
         M_mean = int ⟨Nx|M⟩ M n(M) dM
         """
         integrand = self.compute_hod * self.dn_dlnM_normalised
-        return simps(integrand, self.mass.T)
+        return simpson(integrand, self.mass.T)
 
     def compute_galaxy_linear_bias_cen(self, halo_bias):
         """
@@ -76,7 +76,7 @@ class HOD:
         b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
         """
         bg_integrand = self.compute_hod_cen * halo_bias * self.dn_dlnM_normalised / self.mass.T
-        return simps(bg_integrand, self.mass.T)
+        return simpson(bg_integrand, self.mass.T)
 
     def compute_galaxy_linear_bias_sat(self, halo_bias):
         """
@@ -84,7 +84,7 @@ class HOD:
         b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
         """
         bg_integrand = self.compute_hod_sat * halo_bias * self.dn_dlnM_normalised / self.mass.T
-        return simps(bg_integrand, self.mass.T)
+        return simpson(bg_integrand, self.mass.T)
 
     def compute_galaxy_linear_bias(self, halo_bias):
         """
@@ -92,7 +92,7 @@ class HOD:
         b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
         """
         bg_integrand = self.compute_hod * halo_bias * self.dn_dlnM_normalised / self.mass.T
-        return simps(bg_integrand, self.mass.T)
+        return simpson(bg_integrand, self.mass.T)
 
 class Cacciato(HOD):
     """
@@ -179,7 +179,7 @@ class Cacciato(HOD):
         obs_func unit is h^3 Mpc^{-3} dex^-1
         """
         integrand = self.COF_cen * self.dn_dlnM_normalised[:, :, np.newaxis] / self.mass[np.newaxis, :, :]
-        obs_function = simps(integrand, self.mass[:, 0], axis=axis)
+        obs_function = simpson(integrand, self.mass[:, 0], axis=axis)
         return obs_function
 
     def obs_func_sat(self, axis=-2):
@@ -194,7 +194,7 @@ class Cacciato(HOD):
         obs_func unit is h^3 Mpc^{-3} dex^-1
         """
         integrand = self.COF_sat * self.dn_dlnM_normalised[:, :, np.newaxis] / self.mass[np.newaxis, :, :]
-        obs_function = simps(integrand, self.mass[:, 0], axis=axis)
+        obs_function = simpson(integrand, self.mass[:, 0], axis=axis)
         return obs_function
 
     def obs_func(self, axis=-2):
@@ -209,7 +209,7 @@ class Cacciato(HOD):
         obs_func unit is h^3 Mpc^{-3} dex^-1
         """
         integrand = self.COF * self.dn_dlnM_normalised[:, :, np.newaxis] / self.mass[np.newaxis, :, :]
-        obs_function = simps(integrand, self.mass[:, 0], axis=axis)
+        obs_function = simpson(integrand, self.mass[:, 0], axis=axis)
         return obs_function
 
     @property
@@ -249,7 +249,7 @@ class Cacciato(HOD):
         eq 23 of D23: 2210.03110
         ⟨Nx|M⟩ =int_{O_low}^{O_high} Φx(O|M) dO
         """
-        N_cen = simps(self.COF_cen, self.obs)
+        N_cen = simpson(self.COF_cen, self.obs)
         if self.A_cen is not None:
             delta_pop_c = self.A_cen * np.fmin(N_cen, 1.0 - N_cen)
             N_cen = N_cen + delta_pop_c
@@ -262,7 +262,7 @@ class Cacciato(HOD):
         eq 23 of D23: 2210.03110
         ⟨Nx|M⟩ =int_{O_low}^{O_high} Φx(O|M) dO
         """
-        N_sat = simps(self.COF_sat, self.obs)
+        N_sat = simpson(self.COF_sat, self.obs)
         if self.A_sat is not None:
             delta_pop_s = self.A_sat * N_sat
             N_sat = N_sat + delta_pop_s
@@ -279,7 +279,7 @@ class Cacciato(HOD):
         O is weighted by the number of galaxies with the property O for each halo mass: Φx(O|M)
         f_star = int_{O_low}^{O_high} Φx(O|M) O dO
         """
-        return simps(self.COF_cen * self.obs, self.obs)
+        return simpson(self.COF_cen * self.obs, self.obs)
 
     @property
     def compute_stellar_fraction_sat(self):
@@ -288,7 +288,7 @@ class Cacciato(HOD):
         O is weighted by the number of galaxies with the property O for each halo mass: Φx(O|M)
         f_star = int_{O_low}^{O_high} Φx(O|M) O dO
         """
-        return simps(self.COF_sat * self.obs, self.obs)
+        return simpson(self.COF_sat * self.obs, self.obs)
 
     @property
     def compute_stellar_fraction(self):
@@ -297,7 +297,7 @@ class Cacciato(HOD):
         O is weighted by the number of galaxies with the property O for each halo mass: Φx(O|M)
         f_star = int_{O_low}^{O_high} Φx(O|M) O dO
         """
-        return simps(self.COF * self.obs, self.obs)
+        return simpson(self.COF * self.obs, self.obs)
 
 class Simple(HOD):
     """

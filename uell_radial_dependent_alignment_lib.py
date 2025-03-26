@@ -90,7 +90,7 @@ satellite.
 """
 
 import numpy as np
-from scipy.integrate import simps
+from scipy.integrate import simpson
 from scipy.special import legendre, binom
 
 
@@ -99,7 +99,7 @@ from scipy.special import legendre, binom
 def I_x(a, b):
     eps = 1e-10
     x = np.linspace(-1.0 + eps, 1.0 - eps, 500)
-    integral = simps((1.0 - x**2.0)**(a / 2.0) * x**b, x)
+    integral = simpson((1.0 - x**2.0)**(a / 2.0) * x**b, x)
     return integral
 
 def legendre_coefficients(l, m):
@@ -176,7 +176,7 @@ def compute_uell_gamma_r_hankel(gamma_1h_amplitude, gamma_b, k, c, z, r_s, rvir,
     # Note even though ell is not used in this function, h_transf depends on ell
     # We initialize the class in setup as it only depends on predefined ell values
 
-    # Note: I experimented coding the use of Simpson integration for where the Bessel function is flat
+    # Note: I experimented coding the use of simpsonon integration for where the Bessel function is flat
     # and then switching to the Hankel transform for where the Bessel function oscillates.
     # This is more accurate than using the Hankel transform for all k values with lower accuracy
     # settings, but it's slower than using the Hankel transform for all k values.

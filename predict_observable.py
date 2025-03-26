@@ -7,7 +7,7 @@ The number of bins and the mass range can be different to what is calculated in 
 from cosmosis.datablock import option_section
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.integrate import simps
+from scipy.integrate import simpson
 
 def load_and_interpolate_obs(block, obs_section, suffix_in, extrapolate_option=0.0):
     """
@@ -145,7 +145,7 @@ def execute(block, config):
 
         if z_obs is not None:
             nz = load_redshift(block, config['sample'], i + 1, z_obs)
-            obs_func = simps(nz[:, np.newaxis] * obs_func, z_obs, axis=0)
+            obs_func = simpson(nz[:, np.newaxis] * obs_func, z_obs, axis=0)
 
         block.put_double_array_1d(output_section_name, f'bin_{i + 1}', obs_func)
         block.put_double_array_1d(output_section_name, f'obs_{i + 1}', obs_arr[i])

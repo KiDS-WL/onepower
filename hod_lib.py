@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.integrate import simps
+from scipy.integrate import simpson
 
 # Conversion functions
 
@@ -66,7 +66,7 @@ def obs_func(mass, phi_x, dn_dlnM_normalised, axis=-1):
     obs_func unit is h^3 Mpc^{-3} dex^-1
     """
     integrand = phi_x * dn_dlnM_normalised / mass
-    obs_function = simps(integrand, mass, axis=axis)
+    obs_function = simpson(integrand, mass, axis=axis)
     return obs_function
 
 def cal_mean_obs_c(mass, hod_par):
@@ -106,7 +106,7 @@ def compute_hod(obs, COF_x):
     eq 23 of D23: 2210.03110
     ⟨Nx|M⟩ =int_{O_low}^{O_high} Φx(O|M) dO
     """
-    hod_x = simps(COF_x, obs)
+    hod_x = simpson(COF_x, obs)
     return hod_x
 
 def compute_stellar_fraction(obs, phi_x):
@@ -115,7 +115,7 @@ def compute_stellar_fraction(obs, phi_x):
     O is weighted by the number of galaxies with the peroperty O for each halo mass: Φx(O|M)
     f_star = int_{O_low}^{O_high} Φx(O|M) O dO
     """
-    integral = simps(phi_x * obs, obs)
+    integral = simpson(phi_x * obs, obs)
     return integral
 
 def compute_number_density(mass, hod_x, dn_dlnM_normalised):
@@ -125,7 +125,7 @@ def compute_number_density(mass, hod_x, dn_dlnM_normalised):
     Nx = int ⟨Nx|M⟩ n(M) dM
     """
     integrand = hod_x * dn_dlnM_normalised / mass
-    n_density = simps(integrand, mass)
+    n_density = simpson(integrand, mass)
     return n_density
 
 def compute_avg_halo_mass(mass, hod_x, dn_dlnM_normalised):
@@ -134,7 +134,7 @@ def compute_avg_halo_mass(mass, hod_x, dn_dlnM_normalised):
     M_mean = int ⟨Nx|M⟩ M n(M) dM
     """
     integrand = hod_x * dn_dlnM_normalised
-    mean_halo_mass = simps(integrand, mass)
+    mean_halo_mass = simpson(integrand, mass)
     return mean_halo_mass
 
 def compute_galaxy_linear_bias(mass, hod_x, halo_bias, dn_dlnM_normalised):
@@ -143,5 +143,5 @@ def compute_galaxy_linear_bias(mass, hod_x, halo_bias, dn_dlnM_normalised):
     b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
     """
     bg_integrand = hod_x * halo_bias * dn_dlnM_normalised / mass
-    bg_integral = simps(bg_integrand, mass)
+    bg_integral = simpson(bg_integrand, mass)
     return bg_integral

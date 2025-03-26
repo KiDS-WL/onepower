@@ -2,7 +2,7 @@
 import numpy as np
 import numexpr as ne
 from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
-from scipy.integrate import simps, quad, trapz
+from scipy.integrate import simpson, quad, trapezoid
 # from scipy.special import erf
 from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d
@@ -10,7 +10,7 @@ import warnings
 
 # from darkmatter_lib import compute_u_dm, radvir_from_mass
 
-# TODO: check simps integration
+# TODO: check simpson integration
 
 """
 Calculates 3D power spectra using the halo model approach:
@@ -529,7 +529,7 @@ def compute_1h_term(profile_u, profile_v, mass, dn_dlnm_z):
     :return: array 2d (nz,nk), the integral along the mass axis
     """
     integrand = profile_u * profile_v * dn_dlnm_z / mass
-    return simps(integrand, mass)
+    return simpson(integrand, mass)
 
 # Gas fraction
 
@@ -615,7 +615,7 @@ def compute_A_term(mass, b_dm, dn_dlnm, mean_density0):
     This ρ¯ is the mean matter density at that redshift.
     """
     integrand_m1 = b_dm * dn_dlnm * (1.0 / mean_density0)
-    A = 1.0 - simps(integrand_m1, mass)
+    A = 1.0 - simpson(integrand_m1, mass)
     if (A < 0.0).any():
         warnings.warn('Warning: Mass function/bias correction is negative!', RuntimeWarning)
     return A
@@ -633,7 +633,7 @@ def Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term):
 
 def compute_Im_term(mass, u_dm, b_dm, dn_dlnm, mean_density0):
     integrand_m = b_dm * dn_dlnm * u_dm * (1. / mean_density0)
-    return simps(integrand_m, mass)
+    return simpson(integrand_m, mass)
 
 # TODO: write one that extrapolates instead of using A_term
 # TODO: compare results
@@ -643,7 +643,7 @@ def Im_term_v2(mass, u_dm, b_dm, dn_dlnm, mean_density0, A_term):
 
 def compute_Ig_term(profile, mass, dn_dlnm_z, b_m):
     integrand = profile * b_m * dn_dlnm_z / mass
-    return simps(integrand, mass)
+    return simpson(integrand, mass)
 
 def Ig_term(mass, profile, b_m, dn_dlnm):
     return compute_Ig_term(
@@ -729,18 +729,18 @@ def I_NL(mass_1, mass_2, W_1, W_2, b_1, b_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_me
     W_2e = W_2[:, np.newaxis, :, :]
     integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
 
-    integral_M1 = trapz(integrand_22, mass_1, axis=1)
-    integral_M2 = trapz(integral_M1, mass_2, axis=1)
+    integral_M1 = trapezoid(integrand_22, mass_1, axis=1)
+    integral_M2 = trapezoid(integral_M1, mass_2, axis=1)
     I_22 = integral_M2
 
     I_11 = B_NL_k_z[:, 0, 0, :] * ((A * A) * W_1[:, 0, :] * W_2[:, 0, :] * (rho_mean[:, np.newaxis] * rho_mean[:, np.newaxis])) / (mass_1[0] * mass_2[0])
 
     integrand_12 = integrand_12_part * W_2[:, :, :]
-    integral_12 = trapz(integrand_12, mass_2, axis=1)
+    integral_12 = trapezoid(integrand_12, mass_2, axis=1)
     I_12 = A * W_1[:, 0, :] * integral_12 * rho_mean[:, np.newaxis] / mass_1[0]
 
     integrand_21 = integrand_21_part * W_1[:, :, :]
-    integral_21 = trapz(integrand_21, mass_1, axis=1)
+    integral_21 = trapezoid(integrand_21, mass_1, axis=1)
     I_21 = A * W_2[:, 0, :] * integral_21 * rho_mean[:, np.newaxis] / mass_2[0]
 
     I_NL = I_11 + I_12 + I_21 + I_22
@@ -958,7 +958,7 @@ def sigmaV(power, k):
     dlnk = np.log(k[1] / k[0])
     # we multiply by k because our steps are in logk.
     integ = power * k
-    sigma = (0.5 / np.pi**2.0) * simps(integ, dx=dlnk, axis=-1)
+    sigma = (0.5 / np.pi**2.0) * simpson(integ, dx=dlnk, axis=-1)
     return np.sqrt(sigma / 3.0)
 
 def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25):

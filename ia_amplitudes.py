@@ -19,16 +19,16 @@
 
 from cosmosis.datablock import option_section
 import numpy as np
-from scipy.integrate import simps
+from scipy.integrate import simpson
 from astropy.io import fits
 
 def mean_l_l0_to_beta(xlum, pdf, l0, beta):
-    return simps(pdf * (xlum / l0) ** beta, xlum)
+    return simpson(pdf * (xlum / l0) ** beta, xlum)
 
 def broken_powerlaw(xlum, pdf, gamma_2h_lum, l0, beta, beta_low):
     alignment_ampl = np.where(xlum > l0, gamma_2h_lum * (xlum / l0) ** beta,
                               gamma_2h_lum * (xlum / l0) ** beta_low)
-    return simps(pdf * alignment_ampl, xlum)
+    return simpson(pdf * alignment_ampl, xlum)
 
 def compute_luminosity_pdf(z_loglum_file, zmin, zmax, nz, nlbins):
     galfile = fits.open(z_loglum_file)[1].data
