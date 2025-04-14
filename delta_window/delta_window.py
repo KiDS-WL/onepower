@@ -1,21 +1,21 @@
-from cosmosis.datablock import option_section
-from cosmosis.datablock import names
+from cosmosis.datablock import option_section, names
 import numpy as np
 import scipy.integrate
 
 def setup(options):
-    z = options[option_section, "z"]
+    z = options[option_section, 'z']
     section = options.get_string(
-        option_section, "output_section", names.wl_number_density)
-    zmin = options.get_double(option_section, "zmin", 0.)
-    zmax = options.get_double(option_section, "zmax", 3.)
-    dz = options.get_double(option_section, "dz", 0.01)
-    # in case just one bin, convert to arrays:
+        option_section, 'output_section', names.wl_number_density
+    )
+    zmin = options.get_double(option_section, 'zmin', 0.0)
+    zmax = options.get_double(option_section, 'zmax', 3.0)
+    dz = options.get_double(option_section, 'dz', 0.01)
+
+    # In case there is just one bin, convert to arrays
     if np.isscalar(z):
         z = [z]
 
-    return (z, section, zmin, zmax, dz)
-
+    return z, section, zmin, zmax, dz
 
 def delta(x, mu):
     idx = (np.abs(x - mu)).argmin()
@@ -23,27 +23,27 @@ def delta(x, mu):
     ddf[idx] = 1.0
     return ddf
 
-
 def execute(block, config):
-    (mu, section, zmin, zmax, dz) = config
+    mu, section, zmin, zmax, dz = config
     nbin = len(mu)
-    # Set up z array.  Make sure ZMAX is inclusive
-    z = np.arange(zmin, zmax+dz, dz)
+
+    # Set up z array. Make sure ZMAX is inclusive
+    z = np.arange(zmin, zmax + dz, dz)
 
     # Save Z array and count info
-    block[section, "Z"] = z
-    block[section, "NZ"] = len(z)
-    block[section, "NBIN"] = nbin
+    block[section, 'Z'] = z
+    block[section, 'NZ'] = len(z)
+    block[section, 'NBIN'] = nbin
 
     for i in range(1, nbin + 1):
-        # generate simple gaussian window
+        # Generate simple Gaussian window
         nz_bin = delta(z, mu[i - 1])
         # Save n(z)
-        block[section, "BIN_%d" % i] = nz_bin
+        block[section, f'BIN_{i}'] = nz_bin
+
     return 0
 
-
 def cleanup(config):
-    # nothing to do here!  We just include this
+    # nothing to do here! We just include this
     # for completeness
     return 0

@@ -130,8 +130,7 @@ class OnePointMeasurement(object):
         header = extension.header
 
         i = 1
-        #name = 'VALUE{}'.format(i)
-        name = 'BIN{}'.format(i)
+        name = 'VALUE{}'.format(i)
         name_x = 'ANG{}'.format(i)
         name_low = 'ANGLEMIN{}'.format(i)
         name_high = 'ANGGLEMAX{}'.format(i)
@@ -143,20 +142,13 @@ class OnePointMeasurement(object):
         while name in data.names:
             obs_in = data[name]
             nobs.append(obs_in)
-            #obs.append(data['ANG{}'.format(i)])
-            #if 'ANGLEMIN{}'.format(i) in data.names:
-            #    obs_low.append(data['ANGLEMIN{}'.format(i)])
-            #if 'ANGLEMAX{}'.format(i) in data.names:
-            #    obs_high.append(data['ANGLEMAX{}'.format(i)])
-            #i += 1
-            #name = 'VALUE{}'.format(i)
-            obs.append(data['OBS{}'.format(i)])
-            if 'OBS_LOW{}'.format(i) in data.names:
-                obs_low.append(data['OBS_LOW{}'.format(i)])
-            if 'OBS_HIGH{}'.format(i) in data.names:
-                obs_high.append(data['OBS_HIGH{}'.format(i)])
+            obs.append(data['ANG{}'.format(i)])
+            if 'ANGLEMIN{}'.format(i) in data.names:
+                obs_low.append(data['ANGLEMIN{}'.format(i)])
+            if 'ANGLEMAX{}'.format(i) in data.names:
+                obs_high.append(data['ANGLEMAX{}'.format(i)])
             i += 1
-            name = 'BIN{}'.format(i)
+            name = 'VALUE{}'.format(i)
             
         if obs_low == []:
             obs_low = None
@@ -877,15 +869,15 @@ class TwoPointFile(object):
                 w_full = np.where((spectrum.bin1 == b1) &
                                   (spectrum.bin2 == b2))[0]
                 if (spectrum.name, b1, b2) in bin_cuts:
-                    print("Removing {} bin ({},{}) altogether.".format(
-                        spectrum.name, b1, b2))
+                    #print("Removing {} bin ({},{}) altogether.".format(
+                    #    spectrum.name, b1, b2))
                     mask[w_full] = False
                     continue
 
                 cut = cuts.get((spectrum.name, b1, b2))
                 if cut is None:
-                    print("No cut specified for {} bin ({},{})".format(
-                        spectrum.name, b1, b2))
+                    #print("No cut specified for {} bin ({},{})".format(
+                    #    spectrum.name, b1, b2))
                     continue
 
                 # Actually do the cut
@@ -893,14 +885,14 @@ class TwoPointFile(object):
                 w = np.where((spectrum.bin1 == b1) & (spectrum.bin2 == b2) &
                              ((spectrum.angle < ang_min) | (spectrum.angle > ang_max)))[0]
 
-                print("Cutting {} bin pair ({},{}) to angle range ({} - {}):"
-                      " this removes {} values out of {}".format(
-                    spectrum.name, b1, b2, ang_min, ang_max, len(w), len(w_full)))
+                #print("Cutting {} bin pair ({},{}) to angle range ({} - {}):"
+                #      " this removes {} values out of {}".format(
+                #    spectrum.name, b1, b2, ang_min, ang_max, len(w), len(w_full)))
 
                 mask[w] = False
             masks.append(mask)
             spectrum.apply_mask(mask)
-            print("")
+            #print("")
         if self.nobs is not None:
             for obs in self.nobs:
                 mask = np.ones(sum(obs.nsample), dtype=bool)
@@ -921,8 +913,8 @@ class TwoPointFile(object):
                 mask = (spectrum.angle > min_scale) & (
                     spectrum.angle < max_scale)
                 spectrum.apply_mask(mask)
-                print("Masking {} values in {} because they had ell or theta outside ({},{})".format(
-                    mask.size - mask.sum(), spectrum.name, min_scale, max_scale))
+                #print("Masking {} values in {} because they had ell or theta outside ({},{})".format(
+                #    mask.size - mask.sum(), spectrum.name, min_scale, max_scale))
                 # record the mask vector as we will need it to mask the covmat
                 masks.append(mask)
         if self.nobs is not None:

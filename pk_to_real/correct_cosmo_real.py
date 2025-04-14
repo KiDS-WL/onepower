@@ -1,7 +1,7 @@
 """
 This module corrects the individually calculated observables (stellar mass function)
 for the difference in input data cosmology to the predicted output cosmology
-by multiplication of ratio of volumes according to More et al. 2013 and More et al. 2015
+by multiplication of the ratio of volumes according to More et al. 2013 and More et al. 2015.
 """
 
 from cosmosis.datablock import names, option_section
@@ -14,11 +14,12 @@ cosmo_params = names.cosmological_parameters
 
 def setup(options):
     config = {}
-    # Input and output section names
-    config['section_name'] = options.get_string(option_section, 'section_name', default='obs_out')
 
-    config['zmin'] = np.asarray([options[option_section, 'zmin']]).flatten()
-    config['zmax'] = np.asarray([options[option_section, 'zmax']]).flatten()
+    # Input and output section names
+    config['section_name'] = options.get_string(option_section, 'section_name')
+    config['z'] = options[option_section, 'z']
+    if np.isscalar(config['z']):
+        config['z'] = [config['z']]
 
     # Maybe we should do this also for the model cosmology and in halo_model_ingredients?
     # At least to specify the exact cosmology model, even though it should be as close as general
@@ -32,7 +33,7 @@ def setup(options):
         )
     )
 
-    # Requested cosmology class from astropy:
+    # Requested cosmology class from astropy
     cosmo_class = options.get_string(
         option_section, 'astropy_cosmology_class', default='LambdaCDM'
     )
@@ -46,15 +47,14 @@ def setup(options):
 
 def execute(block, config):
     section_name = config['section_name']
-    zmin = config['zmin']
-    zmax = config['zmax']
     nbins = block[section_name, 'nbin']
     h_data = config['h_data']
     cosmo_model_data = config['cosmo_model_data']
+    corr_type = block[section_name, 'save_name']
+    z = config['z']
 
-    # Check if the length of zmin, zmax, nbins match
-    if len(zmin) != nbins or len(zmax) != nbins:
-        raise ValueError('Error: zmin, zmax need to be of the same length as the number of bins provided.')
+    if len(z) != nbins:
+        raise ValueError('Error: z needs to be of the same length as the number of bins provided.')
 
     # Adopting the same cosmology object as in halo_model_ingredients module
     tcmb = block.get_double(cosmo_params, 'TCMB', default=2.7255)
@@ -63,29 +63,45 @@ def execute(block, config):
         Ob0=block[cosmo_params, 'omega_b'],
         Om0=block[cosmo_params, 'omega_m'],
         m_nu=[0, 0, block[cosmo_params, 'mnu']],
-        Tcmb0=tcmb, w0=block[cosmo_params, 'w'],
+        Tcmb0=tcmb,
+        w0=block[cosmo_params, 'w'],
         wa=block[cosmo_params, 'wa']
     )
     h_run = cosmo_model_run.h
+    z_s = 0.6
 
-    # number of bins for the observable this is given via saved nbins value
+    # Number of bins for the observable this is given via saved nbins value
     for i in range(nbins):
-        obs_func = block[section_name, f'bin_{i+1}']
-        #obs_arr = block[section_name, f'obs_{i+1}']
+        func = block[section_name, f'bin_{i + 1}']
+        arr = block[section_name, 'rp']
+        zi = z[i]
 
-        comoving_volume_data = ((cosmo_model_data.comoving_distance(zmax[i])**3.0
-                                 - cosmo_model_data.comoving_distance(zmin[i])**3.0)
-                                * h_data**3.0)
-        comoving_volume_model = ((cosmo_model_run.comoving_distance(zmax[i])**3.0
-                                  - cosmo_model_run.comoving_distance(zmin[i])**3.0)
-                                 * h_run**3.0)
+        ratio = (
+            (cosmo_model_run.comoving_distance(zi)) /
+            (cosmo_model_data.comoving_distance(zi))
+        ) * (h_run / h_data)
 
-        ratio_obs = comoving_volume_model / comoving_volume_data
-        obs_func_new = obs_func * ratio_obs
+        if corr_type == 'wp':
+            ratio_corr = (
+                cosmo_model_data.efunc(zi) / cosmo_model_run.efunc(zi)
+            ) * (h_data / h_run)
+        elif corr_type == 'ds':
+            ratio_corr = (
+                (cosmo_model_data.angular_diameter_distance(z_s) *
+                 cosmo_model_run.angular_diameter_distance_z1z2(zi, z_s) *
+                 cosmo_model_run.angular_diameter_distance(zi)) /
+                (cosmo_model_run.angular_diameter_distance(z_s) *
+                 cosmo_model_data.angular_diameter_distance_z1z2(zi, z_s) *
+                 cosmo_model_data.angular_diameter_distance(zi))
+            ) * (h_run / h_data)
+        else:
+            raise ValueError('Unrecognized correlation type')
 
-        block.replace_double_array_1d(section_name, f'bin_{i+1}', obs_func_new)
-        # AD: I think there is no change to the obs values (the stellar masses)
-        #block.replace_double_array_1d(section_name, f'obs_{i+1}', obs_arr_new)
+        func_new = func * ratio_corr
+        arr_new = arr * ratio
+
+        block.replace_double_array_1d(section_name, f'bin_{i + 1}', func_new)
+        block.replace_double_array_1d(section_name, 'rp', arr_new)
 
     return 0
 

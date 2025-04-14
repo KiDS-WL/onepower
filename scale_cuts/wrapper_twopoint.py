@@ -6,14 +6,9 @@
     ##  Version 2020.02.21    ##
     ##############################
 
-
-# import sys
 import collections as clt
 import numpy as np
-# import scipy as sp
-# import astropy.io.fits as fits
 import twopoint
-
 
 ###############################################################################
 ## Functions related to label convention
@@ -261,6 +256,9 @@ class TwoPointWrapper(twopoint.TwoPointFile):
 
         for i, spectrum in enumerate(self.spectra):
             spectrum.value = data[idx[i]:idx[i+1]]
+        if self.nobs is not None:
+            for i, obs in enumerate(self.nobs):
+                obs.nobs[i] = np.array(data[idx[len(self.spectra)+i]:idx[len(self.spectra)+i+1]]).flatten()
         
     def cutScales(self, cutCross=False, statsTag_tomoInd_tomoInd_list=[], statsTag_binIndList_dict={}):
         if cutCross:

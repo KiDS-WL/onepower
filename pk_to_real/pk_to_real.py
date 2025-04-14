@@ -4,7 +4,7 @@ import scipy.interpolate
 import pyfftlog
 import numpy as np
 from cosmosis.datablock import option_section
-from scipy.integrate import simps
+from scipy.integrate import simpson
 
 # These are the ones the user can use
 TRANSFORM_WP = "wp"
@@ -248,7 +248,7 @@ class CosmosisTransformer(Transformer):
                 rp, xi[j,:] = super(CosmosisTransformer, self).__call__(k, pk[j,:])
             # Integrate over n(z)
             nz = self.load_kernel(block, self.sample, b1, z, 0.0)
-            xi = simps(nz[:,np.newaxis]*xi*density, z, axis=0)
+            xi = simpson(nz[:,np.newaxis]*xi*density, z, axis=0)
             # Save results back to cosmosis
             block[self.output_section, output_name] = xi
             
@@ -256,7 +256,7 @@ class CosmosisTransformer(Transformer):
         block[self.output_section, "sample"] = self.sample
         block[self.output_section, "rp"] = rp
         block[self.output_section, "sep_name"] = "rp"
-        block[self.output_section, "save_name"] = ""
+        block[self.output_section, "save_name"] = self.corr_type
 
     def load_kernel(self, block, kernel_section, bin, z_ext, extrapolate_option):
 
