@@ -16,7 +16,7 @@ explanation: |
    Halo model calculations require setting the halo model ingredients. Here we use halomod and hmf python libraries
    to allow for a range of ingredients to be defined in a consistent way.  
 
-   Note that the concentration-mass relations are calculated in colossus and they each have their own mass and redshift limits:
+   Note that the concentration-mass relations are either calculated in halomod and colossus. The colossus implementations have their own mass and redshift limits:
    https://bdiemer.bitbucket.io/colossus/halo_concentration.html
 
 # List of parameters that can go in the params.ini file in the section for this module    
@@ -59,11 +59,11 @@ params:
           type: str
           default: profile_parameters
       hmf_model:
-          meaning: "Model name for halo mass function, choose from: "
+          meaning: "Model name for halo mass function, choose from options available in hmf"
           type: str
           default: 
       mdef_model:
-          meaning: "Halo mass definition, choose from: "
+          meaning: "Halo mass definition, choose from options availalbe in hmf"
           type: str
           default: 
       overdensity:
@@ -73,7 +73,7 @@ params:
       use_mead2020_corrections:
           meaning: Choose from mead2020, mead2020_feedback and None. 
                   If not None sets the ingredients to match Mead+ 2021, HMCode2020 paper.
-          type: str 
+          type: str
           default: None
 inputs:
     cosmological_parameters:
@@ -88,24 +88,24 @@ inputs:
             default: 
     profile_value_name:
         norm_cen:
-            meaning: Normalisation for central galaxies
-            type: real 
+            meaning: Normalisation of c(M) relation for central galaxies / matter
+            type: real
             default: 
         norm_sat:
-            meaning: Normalisation for satellite galaxies
+            meaning: Normalisation of c(M) relation for satellite galaxies
             type: real
             default:
         eta_cen:
-            meaning: 
+            meaning: Halo bloating for central galaxies / matter
             type: real
             default:
-        eta_sat:
-            meaning: 
+        eta_sat: Halo bloating for satellite galaxies
+            meaning:
             type: real
             default:
     matter_power_lin:
         k_h:
-          meaning: Wavenumbers k of samples in Mpc/h. 
+          meaning: Linear matter power spectrum
           type: real 1D
           default:
     matter_power_transfer_func:
@@ -117,10 +117,19 @@ inputs:
           meaning: Linear transfer function at z=0.
           type: real 1D
           default:
+    growth_parameters:
+        z:
+          eaning: Redshift samples of d_z
+          type: real 1D
+          default:
+        d_z:
+          meaning: Growth factor D(z)
+          type: real 1D
+          default:
 outputs:
     concentration_m:
         c:
-          meaning: concentration for matter (centrals)
+          meaning: concentration for centrals / matter
           type: real 2D
         z:
           meaning: redshift at which c is calculated

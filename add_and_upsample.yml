@@ -1,0 +1,294 @@
+name: add_and_upsample
+version: May2025
+purpose: "Add together the power spectra for red and blue galaxies, upsamples the input power spectra to the default CAMB z and k grid"
+url: ""
+interface: add_and_upsample.py
+attribution: [Andrej Dvornik, Marika Asgari, Maria-Cristina Fortuna]
+rules:
+    "If you use this module then please cite the papers below"
+cite:
+    - ""
+
+assumptions:
+    - ""
+
+explanation: |
+   To speed up the code the halo model power spectra are evaluated at a coarser redshift and wavenumber grid as the linear power spectrum as returned by CAMB. 
+   In order to have the final power spectra, redshift, wavenumbers and distances on the same grids for the projection module, this module upsamples the powerspectra to 
+   the CAMB values. If there is two different power spectra for red and blue galaxies (or any other split) this module also adds those together with the fractions provided by the user
+
+# List of parameters that can go in the params.ini file in the section for this module    
+params:
+      do_p_mm:
+          meaning: "Perform summation and upsampling, or only upsampling on P_mm?"
+          type: str
+          default:
+      do_p_gm:
+          meaning: "Perform summation and upsampling, or only upsampling on P_gm?"
+          type: str
+          default:
+      do_p_gg:
+          meaning: "Perform summation and upsampling, or only upsampling on P_gg?"
+          type: str
+          default:
+      do_p_mI:
+          meaning: "Perform summation and upsampling, or only upsampling on P_mI?"
+          type: str
+          default:
+      do_p_II:
+          meaning: "Perform summation and upsampling, or only upsampling on P_II?"
+          type: str
+          default:
+      do_p_gI:
+          meaning: "Perform summation and upsampling, or only upsampling on P_gI?"
+          type: str
+          default:
+      hod_section_name_extrap:
+          meaingin: "Section name for the HOD for the power spectra that need extrapolation"
+          type: str
+          default: hod
+      hod_section_name_red:
+          meaingin: "Section name for the HOD for the red power spectra"
+          type: str
+          default: hod_red
+      hod_section_name_blue:
+          meaingin: "Section name for the HOD for the blue power spectra"
+          type: str
+          default: hod_blue
+      input_power_suffix_extrap:
+          meaingin: "Suffix of the power spectra block that needs extrapolation"
+          type: str
+          default:
+      input_power_suffix_red:
+          meaingin: "Suffix of the red power spectra block"
+          type: str
+          default: red
+      input_power_suffix_blue:
+          meaingin: "Suffix of the blue power spectra block"
+          type: str
+          default: blue
+inputs:
+    hod:
+        nbins:
+            meaning: Number of bins
+            type: int
+            default:
+        observable_z:
+            meaning:  type of HOD redshift dependence
+            type: str
+            default:
+    hod_red:
+        nbins:
+            meaning: Number of bins
+            type: int
+            default:
+        observable_z:
+            meaning:  type of HOD redshift dependence
+            type: str
+            default:
+    hod_blue:
+        nbins:
+            meaning: Number of bins
+            type: int
+            default:
+        observable_z:
+            meaning:  type of HOD redshift dependence
+            type: str
+            default:
+    matter_power_lin:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Linear power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    matter_power_nl:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Non-linear power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    galaxy_power_red{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Red galaxy power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    galaxy_power_blue{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Blue galaxy power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    matter_galaxy_power_red{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Red matter-galaxy power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    matter_galaxy_power_blue{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Blue matter-galaxy power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    matter_intrinsic_power_red{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Red matter-intrinsic power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    matter_intrinsic_power_blue{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Blue matter-intrinsic power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    intrinsic_power_red{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Red intrinsic power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    intrinsic_power_blue{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Blue intrinsic power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    galaxy_intrinsic_power_red{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Red galaxy-intrinsic power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    galaxy_intrinsic_power_blue{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Blue galaxy-intrinsic power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+outputs:
+        matter_power_lin:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Linear power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    matter_power_nl:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Non-linear power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    galaxy_power{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Galaxy power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    matter_galaxy_power{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Matter-galaxy power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    matter_intrinsic_power{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Matter-intrinsic power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    intrinsic_power{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Intrinsic power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+    galaxy_intrinsic_power{_i}:
+        z:
+            meaning: Redshifts of samples.
+            type: real 1d
+        k_h:
+            meaning: Wavenumbers k of samples in Mpc/h.
+            type: real 1d
+        p_k:
+            meaning: Galaxy-intrinsic power spectrum at samples in (Mpc/h)^-3.
+            type: real 2d
+        
+        
+
+
+
+

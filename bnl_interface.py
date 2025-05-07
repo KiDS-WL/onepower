@@ -34,26 +34,6 @@ def test_cosmo(cparam_in):
 
     return cparam_out
 
-def get_linear_power_spectrum(block, z_vec):
-    # AD: growth factor should be computed from camb/hmf directly, this way we can load Plin directly without this functions!
-    k_vec = block['matter_power_lin', 'k_h']
-    z_pl = block['matter_power_lin', 'z']
-    matter_power_lin = block['matter_power_lin', 'p_k']
-
-    growth_factor_zlin = block['growth_parameters', 'd_z'].flatten()[:, np.newaxis] * np.ones(k_vec.size)
-    scale_factor_zlin = block['growth_parameters', 'a'].flatten()[:, np.newaxis] * np.ones(k_vec.size)
-
-    gf_interp = interp1d(z_pl, growth_factor_zlin, axis=0)
-    growth_factor = gf_interp(z_vec)
-
-    a_interp = interp1d(z_pl, scale_factor_zlin, axis=0)
-    scale_factor = a_interp(z_vec)
-
-    plin_interp = interp1d(z_pl, matter_power_lin, axis=0)
-    plin = plin_interp(z_vec)
-
-    return k_vec, plin, growth_factor, scale_factor
-
 def setup(options):
     # This function is called once per processor per chain.
     # It is a chance to read any fixed options from the configuration file,
@@ -100,7 +80,7 @@ def execute(block, config):
     mass, nmass, z_vec, nz, nk, bnl, interpolate_bnl, emulator, cached_bnl = config
 
     # load linear power spectrum
-    k_vec_original, plin_original, growth_factor_original, scale_factor_original = get_linear_power_spectrum(block, z_vec)
+    k_vec_original = block['matter_power_lin', 'k_h']
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=nk)
 
     if bnl:

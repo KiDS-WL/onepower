@@ -1,0 +1,40 @@
+name: bnl_interface
+version: May2025
+purpose: "Removes the non-linear halo bias correction from datablock"
+url: ""
+interface: bnl_interface.py
+attribution: [Andrej Dvornik, Marika Asgari, Maria-Cristina Fortuna]
+rules:
+    "If you use this module then please cite the papers below"
+cite:
+    - ""
+
+assumptions:
+    - ""
+
+explanation: |
+   Removes the non-linear halo bias correction from datablock. Mostly useful if the test sampler is used as 
+   it avoids writing out the ND numpy array to file which can be a few GB in size.
+
+# List of parameters that can go in the params.ini file in the section for this module    
+params:
+     keep_bnl:
+          meaning: "Keep bnl?"
+          type: real
+          default: False
+inputs:
+    bnl:
+        beta_interp:
+          meaning: non-linear halo bias correction
+          type: real ND
+outputs:
+    bnl:
+        beta_interp:
+          meaning: non-linear halo bias correction, replace with a 1D array with one 0 as a single element
+          type: real 1D
+        
+        
+
+
+
+

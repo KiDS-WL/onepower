@@ -248,9 +248,9 @@ def execute(block, config):
                                                                     dn_dlnm, matter_profile_1h_mm, I_m,
                                                                     one_halo_ktrunc, two_halo_ktrunc)
             if response:
-                block.put_grid('matter_power_hm', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h)
-                block.put_grid('matter_power_hm', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h)
-                block.put_grid('matter_power_hm', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm)
+                block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h)
+                block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h)
+                block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm)
             else:
                 block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h)
                 block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h)
@@ -301,9 +301,8 @@ def execute(block, config):
 
             if alignment:
                 # Load the 2h (effective) amplitude of the alignment signal from the data block.
-                alignment_gi = block[f'ia_large_scale_alignment{suffix}', 'alignment_gi']
-                alignment_amplitude_2h, alignment_amplitude_2h_II, C1 = pk_lib.compute_two_halo_alignment(alignment_gi, pop_name,
-                                                                                                        growth_factor, mean_density0)
+                alignment_gi = block[f'ia_large_scale_alignment{pop_name}', 'alignment_gi']
+                alignment_amplitude_2h, alignment_amplitude_2h_II, C1 = pk_lib.compute_two_halo_alignment(alignment_gi, growth_factor, mean_density0)
                 wkm = pk_lib.get_satellite_alignment(block, k_vec, mass, z_vec, pop_name)
                 # Preparing the central and satellite terms
                 if block[f'ia_small_scale_alignment{pop_name}', 'instance'] == 'halo_mass':
@@ -423,7 +422,7 @@ def execute(block, config):
                 k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
                 pnl = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
                 t_eff = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
-                pk_eff = (1. - t_eff) * pnl + t_eff * plin
+                pk_eff = (1.0 - t_eff) * pnl + t_eff * plin
 
             if p_II:
                 if fortuna:

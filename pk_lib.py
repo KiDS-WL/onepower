@@ -892,12 +892,11 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     return beta_nl_interp_i
 
 # TODO: go through the alignment module before fixing this
-def compute_two_halo_alignment(alignment_gi, suffix, growth_factor, mean_density0):
+def compute_two_halo_alignment(alignment_gi, growth_factor, mean_density0):
     """
     The IA amplitude at large scales, including the IA prefactors.
 
     :param alignment_gi: double array 1d (nz), alignment coefficient for GI
-    :param suffix: str, suffix for the data block key
     :param growth_factor: double array 2d (nz, nk), growth factor normalized to be 1 at z=0
     :param mean_density0: double, mean matter density of the Universe at redshift z=0
     :return: tuple of double array 2d (nz, nk), the large scale alignment amplitudes (GI and II)
