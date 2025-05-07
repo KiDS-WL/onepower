@@ -64,9 +64,9 @@ def add_red_and_blue_power(block, suffix_red, suffix_blue, suffix_out, f_red, po
     # This is not optimised, but it is good to first choose what we want to implement
     # in terms of cross terms.
     if power_section in ['intrinsic_power', 'galaxy_power', 'galaxy_intrinsic_power']:
-        pk_tot = f_red[:, np.newaxis]**2. * pk_red + (1. - f_red[:, np.newaxis])**2. * pk_blue
+        pk_tot = f_red[:, np.newaxis]**2.0 * pk_red + (1.0 - f_red[:, np.newaxis])**2.0 * pk_blue
     else:
-        pk_tot = f_red[:, np.newaxis] * pk_red + (1. - f_red[:, np.newaxis]) * pk_blue
+        pk_tot = f_red[:, np.newaxis] * pk_red + (1.0 - f_red[:, np.newaxis]) * pk_blue
 
     # For matter-intrinsic and galaxy-intrinsic, pk_tot will usually be negative (for A_IA > 0)
     # And at very high k can be as large as -100!
