@@ -27,6 +27,10 @@ params:
         meaning: Output section name to save the observable values to
         type: str
         default: obs_out
+    correct_cosmo:
+        meaning: To correct for fixed imput cosmology at which observable function was estiamted
+        tyle: bool
+        default: False
     suffixes:
         meaning: (optional) if given read from input. Otherwise set ot median.
               This determines if the observable_function is a function of redshift or 
@@ -46,7 +50,15 @@ params:
     log_10_obs_max:
         meaning: log10 of the maximum value{s} for the observable. For stellar mass function, these are given in log10 M_sun/h^2.
         type: real
-        default: 
+        default:
+    zmin:
+        meaning: minimum redshift value{s} for the observable.
+        type: real
+        default:
+    zmax:
+        meaning: maximum redshift value{s} for the observable.
+        type: real
+        default:
     n_obs:
         meaning: Number of observables to calculate the obervable function for. 
         type: int
@@ -71,6 +83,14 @@ params:
                 column 1 should be log10 observable and column 2 the weight (e.g. number of galaxies for the given value in column 1).
         type: str
         default: ""
+    cosmo_kwargs:
+        meaning: A string of a dictionary of input cosmology values
+        type: str
+        default: "{'H0':70.0, 'Om0':0.3, 'Ode0':0.7}"
+    astropy_cosmology_class:
+        meaning: A astropy cosmology class which was used to calculate input cosmology at
+        type: str
+        default: "LambdaCDM"
 inputs:
     input_section_name:
         obs_val_{i}:

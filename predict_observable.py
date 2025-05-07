@@ -2,12 +2,17 @@
 This module combines tomographic / stellar mass bins of the individually calculated observables.
 It produces the theoretical prediction for the observable for the full survey.
 The number of bins and the mass range can be different to what is calculated in the hod_interface.py module.
+
+Furthermore it corrects the individually calculated observables (stellar mass function)
+for the difference in input data cosmology to the predicted output cosmology
+by multiplication of ratio of volumes according to More et al. 2013 and More et al. 2015
 """
 
 from cosmosis.datablock import option_section
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.integrate import simpson
+from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
 
 def load_and_interpolate_obs(block, obs_section, suffix_in, extrapolate_option=0.0):
     """
@@ -58,6 +63,7 @@ def setup(options):
     # Input and output section names
     config['input_section_name'] = options.get_string(option_section, 'input_section_name', default='stellar_mass_function')
     config['output_section_name'] = options.get_string(option_section, 'output_section_name', default='obs_out')
+    config['correct_cosmo'] = options.get_bool(option_section, 'correct_cosmo', default=False)
 
     # Check if suffixes exists in the extrapolate_obs section of pipeline.ini
     if options.has_value(option_section, 'suffixes'):
@@ -73,6 +79,8 @@ def setup(options):
     config['weighted_binning'] = options.get_bool(option_section, 'weighted_binning', default=False)
     config['log10_obs_min'] = np.asarray([options[option_section, 'log10_obs_min']]).flatten()
     config['log10_obs_max'] = np.asarray([options[option_section, 'log10_obs_max']]).flatten()
+    config['zmin'] = np.asarray([options[option_section, 'zmin']]).flatten()
+    config['zmax'] = np.asarray([options[option_section, 'zmax']]).flatten()
     config['n_obs'] = np.asarray([options[option_section, 'n_obs']]).flatten()
     config['edges'] = options.get_bool(option_section, 'edges', default=False)
 
@@ -101,7 +109,30 @@ def setup(options):
                 config['obs_arr_fine'] = np.linspace(config['log10_obs_min'].min(), config['log10_obs_max'].max(), 10000, endpoint=True)
         else:
             raise ValueError('Please provide edge values for observables to do weighted binning.')
-
+    
+    if config['correct_cosmo']:
+        # Maybe we should do this also for the model cosmology and in halo_model_ingredients?
+        # At least to specify the exact cosmology model, even though it should be as close as general
+        # as in CAMB, for which we can safely assume Flatw0waCDM does the job...
+    
+        # cosmo_kwargs is to be a string containing a dictionary with all the arguments the
+        # requested cosmology accepts (see default)!
+        cosmo_kwargs = ast.literal_eval(
+            options.get_string(
+                option_section, 'cosmo_kwargs', default="{'H0':70.0, 'Om0':0.3, 'Ode0':0.7}"
+            )
+        )
+    
+        # Requested cosmology class from astropy:
+        cosmo_class = options.get_string(
+            option_section, 'astropy_cosmology_class', default='LambdaCDM'
+        )
+        cosmo_class_init = getattr(astropy.cosmology, cosmo_class)
+        cosmo_model_data = cosmo_class_init(**cosmo_kwargs)
+    
+        config['cosmo_model_data'] = cosmo_model_data
+        config['h_data'] = cosmo_model_data.h
+            
     return config
 
 def execute(block, config):
@@ -110,6 +141,28 @@ def execute(block, config):
     obs_arr = config['obs_arr']
     suffixes = config['suffixes']
     nbins = config['nbins']
+    
+    if config['correct_cosmo']:
+        zmin = config['zmin']
+        zmax = config['zmax']
+        h_data = config['h_data']
+        cosmo_model_data = config['cosmo_model_data']
+
+        # Check if the length of zmin, zmax, nbins match
+        if len(zmin) != nbins or len(zmax) != nbins:
+            raise ValueError('Error: zmin, zmax need to be of the same length as the number of bins provided.')
+
+        # Adopting the same cosmology object as in halo_model_ingredients module
+        tcmb = block.get_double(cosmo_params, 'TCMB', default=2.7255)
+        cosmo_model_run = Flatw0waCDM(
+            H0=block[cosmo_params, 'hubble'],
+            Ob0=block[cosmo_params, 'omega_b'],
+            Om0=block[cosmo_params, 'omega_m'],
+            m_nu=[0, 0, block[cosmo_params, 'mnu']],
+            Tcmb0=tcmb, w0=block[cosmo_params, 'w'],
+            wa=block[cosmo_params, 'wa']
+        )
+        h_run = cosmo_model_run.h
 
     # TODO: find the binned value of obs_func_binned = \sum_O_{min}^O_{max} Phi(O_i) * N(O_i) / \sum_O_{min}^O_{max} N(O_i)
     # N(O_i) is the number of galaxies with obs = O_i in a fine bin around O_i
@@ -147,6 +200,18 @@ def execute(block, config):
             nz = load_redshift(block, config['sample'], i + 1, z_obs)
             obs_func = simpson(nz[:, np.newaxis] * obs_func, z_obs, axis=0)
 
+        if config['correct_cosmo']:
+            obs_func_in = obs_func.copy()
+            comoving_volume_data = ((cosmo_model_data.comoving_distance(zmax[i])**3.0
+                                 - cosmo_model_data.comoving_distance(zmin[i])**3.0)
+                                * h_data**3.0)
+            comoving_volume_model = ((cosmo_model_run.comoving_distance(zmax[i])**3.0
+                                  - cosmo_model_run.comoving_distance(zmin[i])**3.0)
+                                 * h_run**3.0)
+
+            ratio_obs = comoving_volume_model / comoving_volume_data
+            obs_func = obs_func_in * ratio_obs
+            
         block.put_double_array_1d(output_section_name, f'bin_{i + 1}', obs_func)
         block.put_double_array_1d(output_section_name, f'obs_{i + 1}', obs_arr[i])
 
