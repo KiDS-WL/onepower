@@ -1,6 +1,6 @@
 from cosmosis.datablock import option_section
 import numpy as np
-from uell_radial_dependent_alignment_lib import wkm_f_ell, compute_uell_gamma_r_hankel
+from ia_radial_lib import wkm_f_ell, compute_uell_gamma_r_hankel
 from hankel import HankelTransform
 
 def downsample_halo_parameters(nmass_halo, nmass_setup, mass_halo, c_halo,
