@@ -247,9 +247,17 @@ def execute(block, config):
                     pk_mm_1h, pk_mm_2h, pk_mm = pk_lib.compute_p_mm(k_vec, plin, mass,
                                                                     dn_dlnm, matter_profile_1h_mm, I_m,
                                                                     one_halo_ktrunc, two_halo_ktrunc)
-            block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h)
-            block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h)
-            block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm)
+            if response:
+                # Here we save the computed Pmm to datablock as matter_power_hm,
+                # but not replacing the Pnl with it, as in the response
+                # method, the Pnl stays the same as one from CAMB
+                block.put_grid('matter_power_hm', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h)
+                block.put_grid('matter_power_hm', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h)
+                block.put_grid('matter_power_hm', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm)
+            else:
+                block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h)
+                block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h)
+                block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm)
 
     if galaxy or alignment:
         hod_bins = block[hod_section_name, 'nbins']
