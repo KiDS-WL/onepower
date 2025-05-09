@@ -342,7 +342,7 @@ def execute(block, config):
                     if p_gI:
                         I_NL_ia_gc = pk_lib.I_NL(mass, mass, c_align_profile, profile_c, b_dm, b_dm,
                                                  dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
-                        I_NL_ia_gs = pk_lib.I_NL(mass, mass, s_align_profile, profile_s, b_dm, b_dm,
+                        I_NL_ia_gs = pk_lib.I_NL(mass, mass, s_align_profile, profile_c, b_dm, b_dm,
                                                  dn_dlnm, dn_dlnm, A_term, mean_density0, beta_interp, integrand_12, integrand_21, integrand_22)
 
             if p_gg:
