@@ -104,14 +104,14 @@ def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25)
 
 class MatterSpectra:
     def __init__(self,
-            z_vec,
-            mass,
-            k_vec,
-            mean_density0,
-            dndlnm,
-            halobias,
-            matter_power_lin,
-            u_dm,
+            z_vec = None,
+            mass = None,
+            k_vec = None,
+            mean_density0 = None,
+            dndlnm = None,
+            halobias = None,
+            matter_power_lin = None,
+            u_dm = None,
             omega_c = 0.25,
             omega_m = 0.3,
             omega_b = 0.05,
@@ -125,8 +125,7 @@ class MatterSpectra:
             dewiggle = False,
             bnl = False,
             beta_nl = None,
-            mead_correction = None,
-            pointmass = False
+            mead_correction = None
         ):
         
         self.z_vec = z_vec
@@ -147,7 +146,6 @@ class MatterSpectra:
         self.u_dm = u_dm
         self.mead_correction = mead_correction
         self.bnl = bnl
-        self.pointmass = pointmass
 
         if self.mead_correction in ['feedback', 'nofeedback'] or dewiggle:
             self.matter_power_lin = self.dewiggle_plin(matter_power_lin)
@@ -603,14 +601,15 @@ class MatterSpectra:
 
 class GalaxySpectra(MatterSpectra):
     def __init__(self,
-            u_sat,
-            Ncen,
-            Nsat,
-            numdencen,
-            numdensat,
-            f_c,
-            f_s,
-            nbins,
+            u_sat = None,
+            Ncen = None,
+            Nsat = None,
+            numdencen = None,
+            numdensat = None,
+            f_c = None,
+            f_s = None,
+            nbins = None,
+            pointmass = None,
             **matter_spectra_kwargs
         ):
         
@@ -625,6 +624,7 @@ class GalaxySpectra(MatterSpectra):
         self.f_c = f_c
         self.f_s = f_s
         self.nbins = nbins
+        self.pointmass = pointmass
         
     @property
     def central_galaxy_profile(self):
@@ -765,9 +765,9 @@ class GalaxySpectra(MatterSpectra):
 
 class AlignmentSpectra(GalaxySpectra):
     def __init__(self,
-            alignment_gi,
-            wkm_sat,
-            t_eff = 0.0,
+            alignment_gi = None,
+            wkm_sat = None,
+            t_eff = None,
             beta_cen = None,
             beta_sat = None,
             mpivot_cen = None,

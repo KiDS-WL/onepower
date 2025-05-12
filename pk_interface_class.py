@@ -255,7 +255,7 @@ def execute(block, config):
         galaxy_kwargs['f_c'] = f_cen
         galaxy_kwargs['f_s'] = f_sat
         galaxy_kwargs['nbins'] = hod_bins
-        galaxy_kwargs['point_mass'] = point_mass
+        galaxy_kwargs['pointmass'] = point_mass
     
     if alignment:
         align_kwargs['fortuna'] = fortuna
@@ -279,17 +279,16 @@ def execute(block, config):
         else:
             align_kwargs['beta_cen'] = None
             align_kwargs['mpivot_cen'] = None
-            
-    galaxy_kwargs += matter_kwargs
-    align_kwargs += galaxy_kwargs
 
     if matter:
         fstar_mm = pk_lib.load_fstar_mm(block, hod_section_name, z_vec, mass)
         matter_power = MatterSpectra(**matter_kwargs)
     if galaxy:
-        galaxy_power = GalaxySpectra(**galaxy_kwargs)
+        comb_kwargs = {**matter_kwargs, **galaxy_kwargs}
+        galaxy_power = GalaxySpectra(**comb_kwargs)
     if alignment:
-        alignment_power = AlignmentSpectra(**align_kwargs)
+        comb_kwargs = {**matter_kwargs, **galaxy_kwargs, **align_kwargs}
+        alignment_power = AlignmentSpectra(**comb_kwargs)
 
     if p_mm:
         pk_mm_1h, pk_mm_2h, pk_mm, _ = matter_power.compute_power_spectrum_mm(
