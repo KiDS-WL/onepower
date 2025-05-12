@@ -125,7 +125,8 @@ class MatterSpectra:
             dewiggle = False,
             bnl = False,
             beta_nl = None,
-            mead_correction = None
+            mead_correction = None,
+            pointmass = False
         ):
         
         self.z_vec = z_vec
@@ -146,6 +147,7 @@ class MatterSpectra:
         self.u_dm = u_dm
         self.mead_correction = mead_correction
         self.bnl = bnl
+        self.pointmass = pointmass
 
         if self.mead_correction in ['feedback', 'nofeedback'] or dewiggle:
             self.matter_power_lin = self.dewiggle_plin(matter_power_lin)
@@ -733,7 +735,7 @@ class GalaxySpectra(MatterSpectra):
         for i in range(self.nbins):
             if self.mead_correction == 'feedback':
                 self.matter_profile_1h = self.matter_profile_with_feedback
-            elif self.mead_correction == 'fit' or pointmass:
+            elif self.mead_correction == 'fit' or self.pointmass:
                 self.matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs(fstar[i])
             else:
                 self.matter_profile_1h = self.matter_profile
@@ -929,7 +931,7 @@ class AlignmentSpectra(GalaxySpectra):
         for i in range(self.nbins):
             if self.mead_correction == 'feedback':
                 self.matter_profile_1h = self.matter_profile_with_feedback
-            elif self.mead_correction == 'fit' or pointmass:
+            elif self.mead_correction == 'fit' or self.pointmass:
                 self.matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs(fstar[i])
             else:
                 self.matter_profile_1h = self.matter_profile
