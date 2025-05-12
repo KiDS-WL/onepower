@@ -237,7 +237,6 @@ def execute(block, config):
             log10T_AGN = log10T_AGN,
             fnu = fnu,
             mb = mb,
-            fstar_mm = fstar_mm,
             dewiggle = dewiggle,
             bnl = bnl,
             beta_nl = beta_interp,
@@ -248,7 +247,8 @@ def execute(block, config):
             one_halo_ktrunc = one_halo_ktrunc,
             two_halo_ktrunc = two_halo_ktrunc,
             sigma8_z = sigma8_z,
-            neff = neff
+            neff = neff,
+            fstar = fstar_mm
         )
         
         if response:
@@ -316,7 +316,6 @@ def execute(block, config):
             log10T_AGN = log10T_AGN,
             fnu = fnu,
             mb = mb,
-            fstar_mm = fstar_mm,
             dewiggle = dewiggle,
             bnl = bnl,
             beta_nl = beta_interp,
@@ -328,12 +327,11 @@ def execute(block, config):
             numdensat = numdensat,
             f_c = f_cen,
             f_s = f_sat,
-            fstar = f_star,
             nbins = hod_bins,
         )
         
         if alignment:
-            aligment_power = AligmentSpectra(
+            alignment_power = AlignmentSpectra(
             z_vec = z_vec,
             mass = mass,
             k_vec = k_vec,
@@ -352,7 +350,6 @@ def execute(block, config):
             log10T_AGN = log10T_AGN,
             fnu = fnu,
             mb = mb,
-            fstar_mm = fstar_mm,
             dewiggle = dewiggle,
             bnl = bnl,
             beta_nl = beta_interp,
@@ -364,18 +361,18 @@ def execute(block, config):
             numdensat = numdensat,
             f_c = f_cen,
             f_s = f_sat,
-            fstar = f_star,
             nbins = hod_bins,
             alignment_gi = alignment_gi,
             wkm_sat = wkm,
             t_eff = t_eff,
             beta_cen = beta_cen,
-            mpivot_cen = mpivot_cen,
+            mpivot_cen = M_pivot_cen,
             beta_sat = beta_sat,
-            mpivot_sat = mpivot_sat,
+            mpivot_sat = M_pivot_sat,
             growth_factor = growth_factor,
             scale_factor = scale_factor,
             mass_avg = mass_avg,
+            fortuna = fortuna,
         )
         
         if p_gg:
@@ -384,14 +381,14 @@ def execute(block, config):
                 two_halo_ktrunc = two_halo_ktrunc,
                 sigma8_z = sigma8_z,
                 neff = neff,
-                poisson_par = poisson_par
+                poisson_par = poisson_par,
+                fstar = f_star
             )
             
             for nb in range(hod_bins):
                 suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
-                suffix_hod = f'_{nb+1}' if hod_bins != 1 else ''
                 
-                block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear)
+                block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear[nb])
                 if response:
                     block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h[nb] / pk_mm * pk_mm_in)
                     block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h[nb] / pk_mm * pk_mm_in)
@@ -407,35 +404,35 @@ def execute(block, config):
                 two_halo_ktrunc = two_halo_ktrunc,
                 sigma8_z = sigma8_z,
                 neff = neff,
-                poisson_par = poisson_par
+                poisson_par = poisson_par,
+                fstar = f_star
             )
 
             for nb in range(hod_bins):
                 suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
-                suffix_hod = f'_{nb+1}' if hod_bins != 1 else ''
             
-                block.put_grid(f'galaxy_matter_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bgm_linear', bgm_linear)
+                block.put_grid(f'galaxy_matter_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bgm_linear', bgm_linear[nb])
                 if response:
-                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h[nb] / pk_mm * pk_mm_in)
-                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h[nb] / pk_mm * pk_mm_in)
+                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gm_1h[nb] / pk_mm * pk_mm_in)
+                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gm_2h[nb] / pk_mm * pk_mm_in)
                     block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm[nb] / pk_mm * pk_mm_in)
                 else:
-                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h[nb])
-                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h[nb])
+                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gm_1h[nb])
+                    block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gm_2h[nb])
                     block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm[nb])
         if p_II:
         
-            pk_II_1h, pk_II_2h, pk_II, _ = aligment_power.compute_power_spectrum_ii(
+            pk_II_1h, pk_II_2h, pk_II, _ = alignment_power.compute_power_spectrum_ii(
                 one_halo_ktrunc = one_halo_ktrunc_ia,
                 two_halo_ktrunc = two_halo_ktrunc_ia,
                 sigma8_z = sigma8_z,
                 neff = neff,
-                poisson_par = poisson_par
+                poisson_par = poisson_par,
+                fstar = f_star
             )
             
             for nb in range(hod_bins):
                 suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
-                suffix_hod = f'_{nb+1}' if hod_bins != 1 else ''
             
                 if response:
                     block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h[nb] / pk_mm * pk_mm_in)
@@ -447,17 +444,17 @@ def execute(block, config):
                     block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II[nb])
         if p_gI:
         
-            pk_gI_1h, pk_gI_2h, pk_gI, _ = aligment.compute_power_spectrum_gi(
+            pk_gI_1h, pk_gI_2h, pk_gI, _ = alignment_power.compute_power_spectrum_gi(
                 one_halo_ktrunc = one_halo_ktrunc_ia,
                 two_halo_ktrunc = two_halo_ktrunc_ia,
                 sigma8_z = sigma8_z,
                 neff = neff,
-                poisson_par = poisson_par
+                poisson_par = poisson_par,
+                fstar = f_star
             )
             
             for nb in range(hod_bins):
                 suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
-                suffix_hod = f'_{nb+1}' if hod_bins != 1 else ''
                 
                 if response:
                     block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h[nb] / pk_mm * pk_mm_in)
@@ -469,17 +466,17 @@ def execute(block, config):
                     block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI[nb])
         if p_mI:
             
-            pk_mI_1h, pk_mI_2h, pk_mI, _ = aligment_power.compute_power_spectrum_mi(
+            pk_mI_1h, pk_mI_2h, pk_mI, _ = alignment_power.compute_power_spectrum_mi(
                 one_halo_ktrunc = one_halo_ktrunc_ia,
                 two_halo_ktrunc = two_halo_ktrunc_ia,
                 sigma8_z = sigma8_z,
                 neff = neff,
-                poisson_par = poisson_par
+                poisson_par = poisson_par,
+                fstar = f_star
             )
             
             for nb in range(hod_bins):
                 suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
-                suffix_hod = f'_{nb+1}' if hod_bins != 1 else ''
                 
                 if response:
                     block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h[nb] / pk_mm * pk_mm_in)
