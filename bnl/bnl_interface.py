@@ -8,7 +8,7 @@ from scipy.interpolate import interp1d, RegularGridInterpolator
 from dark_emulator import darkemu
 from collections import OrderedDict
 
-import bnl_util as pk_lib
+import bnl_util
 
 cosmo = names.cosmological_parameters
 
@@ -99,7 +99,7 @@ def execute(block, config):
             #print('cparam: ', cparam)
             emulator.set_cosmology(cparam)
 
-            beta_interp_tmp = pk_lib.create_bnl_interpolation_function(emulator, interpolate_bnl, z_vec, block)
+            beta_interp_tmp = bnl_util.create_bnl_interpolation_function(emulator, interpolate_bnl, z_vec, block)
 
             beta_interp = np.zeros((z_vec.size, mass.size, mass.size, k_vec.size))
             indices = np.vstack(np.meshgrid(np.arange(mass.size), np.arange(mass.size), np.arange(k_vec.size), copy=False)).reshape(3, -1).T
