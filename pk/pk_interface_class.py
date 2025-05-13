@@ -56,7 +56,7 @@ mI: matter-intrinsic alignment
 from cosmosis.datablock import names, option_section
 import numpy as np
 import numbers
-import pk_util as pk_lib
+import pk_util
 from pk_lib_class import MatterSpectra, GalaxySpectra, AlignmentSpectra
 
 cosmo_params = names.cosmological_parameters
@@ -163,15 +163,15 @@ def execute(block, config):
     align_kwargs = {}
 
     # Load the halo mass, halo bias, mass, and redshifts from the datablock
-    dndlnm, halobias, mass, z_vec = pk_lib.get_halo_functions(block)
+    dndlnm, halobias, mass, z_vec = pk_util.get_halo_functions(block)
     
     # Reads in the Fourier transform of the normalized dark matter halo profile
-    u_dm, u_sat, k_vec = pk_lib.get_normalised_profile(block, mass, z_vec)
+    u_dm, u_sat, k_vec = pk_util.get_normalised_profile(block, mass, z_vec)
 
     # Load the linear power spectrum and growth factor
-    k_vec_original, plin_original = pk_lib.get_linear_power_spectrum(block, z_vec)
-    plin = pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
-    growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec, k_vec)
+    k_vec_original, plin_original = pk_util.get_linear_power_spectrum(block, z_vec)
+    plin = pk_util.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
+    growth_factor, scale_factor = pk_util.get_growth_factor(block, z_vec, k_vec)
 
     matter_kwargs.update({
         'dndlnm': dndlnm,
@@ -184,8 +184,8 @@ def execute(block, config):
     })
 
     if response or fortuna:
-        k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
-        pk_mm_in = pk_lib.log_linear_interpolation_k(p_nl, k_nl, k_vec)
+        k_nl, p_nl = pk_util.get_nonlinear_power_spectrum(block, z_vec)
+        pk_mm_in = pk_util.log_linear_interpolation_k(p_nl, k_nl, k_vec)
         align_kwargs['matter_power_nl'] = pk_mm_in
 
 
@@ -227,7 +227,7 @@ def execute(block, config):
         }
         
         N_cen, N_sat, numdencen, numdensat, f_cen, f_sat, mass_avg, f_star = zip(*[
-            pk_lib.load_hods(block, hod_section_name, f'_{nb+1}' if hod_bins != 1 else '', z_vec, mass)
+            pk_util.load_hods(block, hod_section_name, f'_{nb+1}' if hod_bins != 1 else '', z_vec, mass)
             for nb in range(hod_bins)
         ])
 
@@ -250,7 +250,7 @@ def execute(block, config):
             'growth_factor': growth_factor,
             'scale_factor': scale_factor,
             'alignment_gi': block[f'ia_large_scale_alignment{pop_name}', 'alignment_gi'],
-            'wkm_sat': pk_lib.get_satellite_alignment(block, k_vec, mass, z_vec, pop_name),
+            'wkm_sat': pk_util.get_satellite_alignment(block, k_vec, mass, z_vec, pop_name),
             't_eff': block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0),
         })
 
@@ -277,7 +277,7 @@ def execute(block, config):
             })
 
     if matter:
-        fstar_mm = pk_lib.load_fstar_mm(block, hod_section_name, z_vec, mass)
+        fstar_mm = pk_util.load_fstar_mm(block, hod_section_name, z_vec, mass)
         matter_power = MatterSpectra(**matter_kwargs)
     if galaxy:
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs}
