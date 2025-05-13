@@ -8,7 +8,7 @@ from scipy.interpolate import interp1d, RegularGridInterpolator
 from dark_emulator import darkemu
 from collections import OrderedDict
 
-import pk_lib
+import bnl_util as pk_lib
 
 cosmo = names.cosmological_parameters
 
