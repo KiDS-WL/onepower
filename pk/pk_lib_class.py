@@ -58,7 +58,7 @@ from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d
 import warnings
 
-# Helper functions
+# Helper functions borrowed from Alex Mead
 def Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB=2.7255):
     """
     No-wiggle transfer function from astro-ph:9709112
