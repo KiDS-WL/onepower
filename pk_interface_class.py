@@ -330,7 +330,6 @@ def execute(block, config):
                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h[nb])
                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg[nb])
     if p_gm:
-    
         pk_gm_1h, pk_gm_2h, pk_gm, bgm_linear = galaxy_power.compute_power_spectrum_gm(
             one_halo_ktrunc = one_halo_ktrunc,
             two_halo_ktrunc = two_halo_ktrunc,
@@ -352,7 +351,6 @@ def execute(block, config):
                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gm_2h[nb])
                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm[nb])
     if p_II:
-    
         pk_II_1h, pk_II_2h, pk_II, _ = alignment_power.compute_power_spectrum_ii(
             one_halo_ktrunc = one_halo_ktrunc_ia,
             two_halo_ktrunc = two_halo_ktrunc_ia,
@@ -374,7 +372,6 @@ def execute(block, config):
                 block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_II_2h[nb])
                 block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II[nb])
     if p_gI:
-    
         pk_gI_1h, pk_gI_2h, pk_gI, _ = alignment_power.compute_power_spectrum_gi(
             one_halo_ktrunc = one_halo_ktrunc_ia,
             two_halo_ktrunc = two_halo_ktrunc_ia,
@@ -396,7 +393,6 @@ def execute(block, config):
                 block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gI_2h[nb])
                 block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI[nb])
     if p_mI:
-        
         pk_mI_1h, pk_mI_2h, pk_mI, _ = alignment_power.compute_power_spectrum_mi(
             one_halo_ktrunc = one_halo_ktrunc_ia,
             two_halo_ktrunc = two_halo_ktrunc_ia,

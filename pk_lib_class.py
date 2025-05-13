@@ -154,8 +154,6 @@ class MatterSpectra:
         
         if self.bnl:
             self.beta_nl = beta_nl
-        
-        if bnl:
             self.I12 = self.prepare_I12_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I21 = self.prepare_I21_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I22 = self.prepare_I22_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
@@ -586,14 +584,15 @@ class MatterSpectra:
             pk_2h = (self.matter_power_lin * self.Im_term * self.Im_term + self.matter_power_lin * I_NL) #* self.two_halo_truncation()[np.newaxis, :]
             pk_1h = self.compute_1h_term(self.matter_profile_1h, self.matter_profile_1h, self.mass[np.newaxis, np.newaxis, :], self.dndlnm[:, np.newaxis, :]) * self.one_halo_truncation(one_halo_ktrunc)
             pk_tot = pk_1h + pk_2h
-        elif mead_correction in ['feedback', 'no_feedback']:
-            pk_2h = self.matter_power_lin * self.two_halo_truncation_mead(sigma8_z)
-            pk_1h = self.compute_1h_term(self.matter_profile_1h, self.matter_profile_1h, self.mass[np.newaxis, np.newaxis, :], self.dndlnm[:, np.newaxis, :]) * self.one_halo_truncation_mead(sigma8_z)
-            pk_tot = self.transition_smoothing(neff, pk_1h, pk_2h)
-        else :
-            pk_2h = self.matter_power_lin * self.Im_term * self.Im_term * self.two_halo_truncation(two_halo_ktrunc)[np.newaxis, :]
-            pk_1h = self.compute_1h_term(self.matter_profile_1h, self.matter_profile_1h, self.mass[np.newaxis, np.newaxis, :], self.dndlnm[:, np.newaxis, :]) * self.one_halo_truncation(one_halo_ktrunc)
-            pk_tot = pk_1h + pk_2h
+        else:
+            if self.mead_correction in ['feedback', 'no_feedback']:
+                pk_2h = self.matter_power_lin * self.two_halo_truncation_mead(sigma8_z)
+                pk_1h = self.compute_1h_term(self.matter_profile_1h, self.matter_profile_1h, self.mass[np.newaxis, np.newaxis, :], self.dndlnm[:, np.newaxis, :]) * self.one_halo_truncation_mead(sigma8_z)
+                pk_tot = self.transition_smoothing(neff, pk_1h, pk_2h)
+            else :
+                pk_2h = self.matter_power_lin * self.Im_term * self.Im_term * self.two_halo_truncation(two_halo_ktrunc)[np.newaxis, :]
+                pk_1h = self.compute_1h_term(self.matter_profile_1h, self.matter_profile_1h, self.mass[np.newaxis, np.newaxis, :], self.dndlnm[:, np.newaxis, :]) * self.one_halo_truncation(one_halo_ktrunc)
+                pk_tot = pk_1h + pk_2h
     
         return [pk_1h], [pk_2h], [pk_tot], galaxy_linear_bias
 
