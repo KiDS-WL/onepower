@@ -17,7 +17,7 @@ explanation: |
   It produces the theoretical prediction for the observable for the full survey. 
   The number of bins and the mass range can be different to what is calculated in the hod_interface.py module.
 
-  List of parameters that can go in the params.ini file in the section for this module    
+# List of parameters that can go in the params.ini file in the section for this module    
 params:
     input_section_name:
         meaning: Input section name to get the observable values from (this is and optional output of the hod section)

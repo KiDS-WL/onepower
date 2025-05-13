@@ -44,7 +44,7 @@ explanation: |
    \Phi_x(O) = \int \Phi_x(O|M) n(M,z) dM
    where n(M,z) is the halo mass function. 
 
-  List of parameters that can go in the params.ini file in the section for this module    
+# List of parameters that can go in the params.ini file in the section for this module
 params:
     hod_section_name:
         meaning: output section name for the hod
@@ -73,8 +73,7 @@ params:
         type: bool
         default: True
     observable_mode:
-        meaning: "calculate the observable function for each redshift: obs_z, or on the median redshift: obs_zmed or 
-                    for one broad z-bin: obs_onebin"
+        meaning: "calculate the observable function for each redshift: obs_z, or on the median redshift: obs_zmed or for one broad z-bin: obs_onebin"
         type: str
         default: obs_z
     z_median:
@@ -87,51 +86,34 @@ params:
         default: 1/h^2
     observables_file:
         meaning: "(optional) text file containing the observable values, should contain 3 columns: z_bins, obs_min, obs_max"
-                Note these are not in log10 format
         type: str
         default: 
     mass_lim:
-        meaning: (optional) if observables_file not given, then look for a file that contains the minimum observables
-                Note these are not in log10 format
+        meaning: "(optional) if observables_file not given, then look for a file that contains the minimum observables"
         type: str
         default: 
     mass_lim_low:
-        meaning: (optional) if observables_file not given, then look for a file that contains the maximum observables
-                Note these are not in log10 format
+        meaning: "(optional) if observables_file not given, then look for a file that contains the maximum observables"
         type: str
         default:
     zmin:
-        meaning: (optional) if observables_file not given, but we use the observable files then look for a scalar zmin.
-                if no observable files are given, look for the minimum values for the redshift of each observable bin. 
-                zmin should have the same number of values as obs_min and obs_max. 
-                We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+        meaning: "(optional) if observables_file not given, but we use the observable files then look for a scalar zmin. if no observable files are given, look for the minimum values for the redshift of each observable bin. zmin should have the same number of values as obs_min and obs_max. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space)."
         type: real or real 1D
         default:
     zmax:
-        meaning: (optional) if observables_file not given, but we use the observable files then look for a scalar zmax.
-                If no observable files are given, look for the maximum values for the redshift of each observable bin. 
-                zmax should have the same number of values as obs_min and obs_max. 
-                We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
+        meaning: "(optional) if observables_file not given, but we use the observable files then look for a scalar zmax. If no observable files are given, look for the maximum values for the redshift of each observable bin. zmax should have the same number of values as obs_min and obs_max. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space)."
         type: real or real 1D
         default:
     nz:
-        meaning: (optional) if observables_file not given, then look for nz, with zmin and zmax make the number of redshift bins
-                for which the observable is caluclated at. If we have bin edges defined the nz is the number of redshift bins in 
-                each redshift-observable box.
+        meaning: "(optional) if observables_file not given, then look for nz, with zmin and zmax make the number of redshift bins for which the observable is caluclated at. If we have bin edges defined the nz is the number of redshift bins in each redshift-observable box."
         type: integer
         default:
     log10_obs_min:
-        meaning: (optional) if no observable files are given, look for the minimum values for observables. 
-                If using multiple bins for the observable then provide the minimum value for each bin. 
-                We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
-                Note this is in log10 format.
+        meaning: "(optional) if no observable files are given, look for the minimum values for observables. If using multiple bins for the observable then provide the minimum value for each bin. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space). Note this is in log10 format."
         type: real 1D
         default: 
     log10_obs_max:
-        meaning: (optional) if no observable files are given, look for the maximum values for observables. 
-                If using multiple bins for the observable then provide the maximum value for each bin. 
-                We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space).
-                Note this is in log10 format.
+        meaning: "(optional) if no observable files are given, look for the maximum values for observables. If using multiple bins for the observable then provide the maximum value for each bin. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space). Note this is in log10 format."
         type: real 1D
         default:
 inputs:
@@ -149,13 +131,10 @@ inputs:
             meaning:  gamma_2 the power for M_halo>>M_ch that determines the mean observable value for centrals
             type: real
         sigma_log10_O_c:
-            meaning: the variance of log10 observable for central galaxies. 
-              This can in principle depend on halo mass but here we assume that it doesn't.
+            meaning: the variance of log10 observable for central galaxies. This can in principle depend on halo mass but here we assume that it doesn't.
             type: real
         A_cen:
-            meaning: (optional) Assembly bias parameter, should be between -1 and 1. 
-                    This parameterisation is based on arXiv:1512.03050, Hearin+ 2016
-                    A_cen * np.fmin(n_cen, 1.0-n_cen)
+            meaning: (optional) Assembly bias parameter, should be between -1 and 1. This parameterisation is based on arXiv:1512.03050, Hearin+ 2016 A_cen * np.fmin(n_cen, 1.0-n_cen)
             type: real
         norm_s:
             meaning: Normalisation of the conditional observable function for satellites 
@@ -179,15 +158,11 @@ inputs:
             meaning: log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
             type: real
         A_sat:
-            meaning: (optional) Assembly bias parameter, should be between -1 and 1. 
-                    This parameterisation is based on arXiv:1512.03050, Hearin+ 2016
-                    delta_pop_s = A_sat * n_sat
-                    n_sat = n_sat + delta_pop_s
+            meaning: (optional) Assembly bias parameter, should be between -1 and 1. This parameterisation is based on arXiv:1512.03050, Hearin+ 2016 delta_pop_s = A_sat * n_sat n_sat = n_sat + delta_pop_s
             type: real
     hmf:
         dndlnmh:
-          meaning: The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)]
-            dn(m)/ dln m eq1 of 1306.6721
+          meaning: The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)] dn(m)/ dln m eq1 of 1306.6721
           type: real 1D
         m_h:
           meaning: Halo masses in M_sun h^-1
@@ -286,8 +261,7 @@ outputs:
             meaning: 
             type: real 1D
         obs_func{_i}:
-            meaning: This is the observable function times ln(10) times observable. 
-                    Φ(m*) m* ln(10) = 1/dlog10_m*  sum 1.0/V_max
+            meaning: This is the observable function times ln(10) times observable. Φ(m*) m* ln(10) = 1/dlog10_m*  sum 1.0/V_max
             type: real 2D
         observable_mode:
             meaning: 
