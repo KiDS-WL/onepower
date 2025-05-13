@@ -88,6 +88,7 @@ def get_string_or_none(cosmosis_block, section, name, default):
     return param
 
 def setup(options):
+    """Setup function to parse options and return configuration."""
     p_mm = options.get_bool(option_section, 'p_mm', default=False)
     p_gg = options.get_bool(option_section, 'p_gg', default=False)
     p_gm = options.get_bool(option_section, 'p_gm', default=False)
@@ -145,21 +146,21 @@ def setup(options):
 
     # Determine the mead_correction based on the mapping
     mead_correction = mead_correction_map.get(use_mead, None)
-    if mead_correction == 'fit':
-        if not options.has_value(option_section, 'hod_section_name'):
-            raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon '
-                             'feedback one needs to provide the hod section name of used hod!')
+    if mead_correction == 'fit' and not options.has_value(option_section, 'hod_section_name'):
+        raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon feedback one needs to provide the hod section name of used hod!')
 
     return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name
 
 def execute(block, config):
+    """Execute function to compute power spectra based on configuration."""
     p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name = config
 
-    matter_kwargs = {}
+    matter_kwargs = {
+        'mead_correction': mead_correction,
+        'dewiggle': dewiggle,
+    }
     galaxy_kwargs = {}
     align_kwargs = {}
-    matter_kwargs['mead_correction'] = mead_correction
-    matter_kwargs['dewiggle'] = dewiggle
 
     # Load the halo mass, halo bias, mass, and redshifts from the datablock
     dndlnm, halobias, mass, z_vec = pk_lib.get_halo_functions(block)
@@ -172,13 +173,15 @@ def execute(block, config):
     plin = pk_lib.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
     growth_factor, scale_factor = pk_lib.get_growth_factor(block, z_vec, k_vec)
 
-    matter_kwargs['dndlnm'] = dndlnm
-    matter_kwargs['halobias'] = halobias
-    matter_kwargs['mass'] = mass
-    matter_kwargs['z_vec'] = z_vec
-    matter_kwargs['u_dm'] = u_dm
-    matter_kwargs['k_vec'] = k_vec
-    matter_kwargs['matter_power_lin'] = plin
+    matter_kwargs.update({
+        'dndlnm': dndlnm,
+        'halobias': halobias,
+        'mass': mass,
+        'z_vec': z_vec,
+        'u_dm': u_dm,
+        'k_vec': k_vec,
+        'matter_power_lin': plin,
+    })
 
     if response or fortuna:
         k_nl, p_nl = pk_lib.get_nonlinear_power_spectrum(block, z_vec)
@@ -188,29 +191,29 @@ def execute(block, config):
 
     # Add the non-linear P_hh to the 2h term
     if bnl:
-        # Reads beta_nl from the block
         if block.has_value('bnl', 'beta_interp'):
             beta_interp = block.get_double_array_nd('bnl', 'beta_interp')
         else:
-            raise Exception("You've set bnl = True. Looked for beta_intep in bnl, but didn't find it. "
-                            "Run bnl_interface.py to set this up.\n")
+            raise Exception("You've set bnl = True. Looked for beta_intep in bnl, but didn't find it. Run bnl_interface.py to set this up.\n")
         if beta_interp.shape == np.array([0.0]).shape:
-            raise ValueError('Non-linear halo bias module bnl is not initialized, or you have deleted it too early! '
-                             'This might be because you ran bnl_interface_delete.py before this module. \n')
-        matter_kwargs['bnl'] = bnl
-        matter_kwargs['beta_nl'] = beta_interp
+            raise ValueError('Non-linear halo bias module bnl is not initialized, or you have deleted it too early! This might be because you ran bnl_interface_delete.py before this module. \n')
+        matter_kwargs.update({
+            'bnl': bnl,
+            'beta_nl': beta_interp,
+        })
 
-    matter_kwargs['mean_density0'] = block['density', 'mean_density0'] * np.ones(len(z_vec))
-    # f_nu = omega_nu / omega_m with the same length as redshift
-    matter_kwargs['fnu'] = block[cosmo_params, 'fnu'] * np.ones(len(z_vec))
-    matter_kwargs['omega_c'] = block[cosmo_params, 'omega_c']
-    matter_kwargs['omega_m'] = block[cosmo_params, 'omega_m']
-    matter_kwargs['omega_b'] = block[cosmo_params, 'omega_b']
-    matter_kwargs['h0'] = block[cosmo_params, 'h0']
-    matter_kwargs['n_s'] = block[cosmo_params, 'n_s']
-    matter_kwargs['tcmb'] = block.get_double(cosmo_params, 'TCMB', default=2.7255)
-    matter_kwargs['log10T_AGN'] = block['halo_model_parameters', 'logT_AGN']
-    matter_kwargs['mb'] = 10.0**block['halo_model_parameters', 'm_b']
+    matter_kwargs.update({
+        'mean_density0': block['density', 'mean_density0'] * np.ones(len(z_vec)),
+        'fnu': block[cosmo_params, 'fnu'] * np.ones(len(z_vec)),
+        'omega_c': block[cosmo_params, 'omega_c'],
+        'omega_m': block[cosmo_params, 'omega_m'],
+        'omega_b': block[cosmo_params, 'omega_b'],
+        'h0': block[cosmo_params, 'h0'],
+        'n_s': block[cosmo_params, 'n_s'],
+        'tcmb': block.get_double(cosmo_params, 'TCMB', default=2.7255),
+        'log10T_AGN': block['halo_model_parameters', 'logT_AGN'],
+        'mb': 10.0**block['halo_model_parameters', 'm_b'],
+    })
     sigma8_z = block['hmf', 'sigma8_z']
     neff = block['hmf', 'neff']
         
@@ -222,63 +225,56 @@ def execute(block, config):
             'M_0': get_string_or_none(block, 'pk_parameters', 'M_0', default=None),
             'slope': get_string_or_none(block, 'pk_parameters', 'slope', default=None)
         }
-
-        N_cen = []
-        N_sat = []
-        numdencen = []
-        numdensat = []
-        f_cen = []
-        f_sat = []
-        mass_avg = []
-        f_star = []
-        # Check number of observable-redshift bins and read in the input for the HOD of each bin
-        for nb in range(hod_bins):
-            suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
-            suffix_hod = f'_{nb+1}' if hod_bins != 1 else ''
-
-            N_cen_in, N_sat_in, numdencen_in, numdensat_in, f_cen_in, f_sat_in, mass_avg_in, fstar_in = pk_lib.load_hods(block,
-                                                                                                 hod_section_name, suffix_hod, z_vec, mass)
-            N_cen.append(N_cen_in)
-            N_sat.append(N_sat_in)
-            numdencen.append(numdencen_in)
-            numdensat.append(numdensat_in)
-            f_cen.append(f_cen_in)
-            f_sat.append(f_sat_in)
-            mass_avg.append(mass_avg_in)
-            f_star.append(fstar_in)
         
-        galaxy_kwargs['u_sat'] = u_sat
-        galaxy_kwargs['Ncen'] = N_cen
-        galaxy_kwargs['Nsat'] = N_sat
-        galaxy_kwargs['numdencen'] = numdencen
-        galaxy_kwargs['numdensat'] = numdensat
-        galaxy_kwargs['f_c'] = f_cen
-        galaxy_kwargs['f_s'] = f_sat
-        galaxy_kwargs['nbins'] = hod_bins
-        galaxy_kwargs['pointmass'] = point_mass
+        N_cen, N_sat, numdencen, numdensat, f_cen, f_sat, mass_avg, f_star = zip(*[
+            pk_lib.load_hods(block, hod_section_name, f'_{nb+1}' if hod_bins != 1 else '', z_vec, mass)
+            for nb in range(hod_bins)
+        ])
+
+        galaxy_kwargs.update({
+            'u_sat': u_sat,
+            'Ncen': N_cen,
+            'Nsat': N_sat,
+            'numdencen': numdencen,
+            'numdensat': numdensat,
+            'f_c': f_cen,
+            'f_s': f_sat,
+            'nbins': hod_bins,
+            'pointmass': point_mass,
+        })
     
     if alignment:
-        align_kwargs['fortuna'] = fortuna
-        align_kwargs['mass_avg'] = mass_avg
-        align_kwargs['growth_factor'] = growth_factor
-        align_kwargs['scale_factor'] = scale_factor
-        # Load the 2h (effective) amplitude of the alignment signal from the data block.
-        align_kwargs['alignment_gi'] = block[f'ia_large_scale_alignment{pop_name}', 'alignment_gi']
-        align_kwargs['wkm_sat'] = pk_lib.get_satellite_alignment(block, k_vec, mass, z_vec, pop_name)
-        align_kwargs['t_eff'] = block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0)
-        # Preparing the central and satellite terms
+        align_kwargs.update({
+            'fortuna': fortuna,
+            'mass_avg': mass_avg,
+            'growth_factor': growth_factor,
+            'scale_factor': scale_factor,
+            'alignment_gi': block[f'ia_large_scale_alignment{pop_name}', 'alignment_gi'],
+            'wkm_sat': pk_lib.get_satellite_alignment(block, k_vec, mass, z_vec, pop_name),
+            't_eff': block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0),
+        })
+
         if block[f'ia_small_scale_alignment{pop_name}', 'instance'] == 'halo_mass':
-            align_kwargs['beta_sat'] = block[f'ia_small_scale_alignment{pop_name}', 'beta_sat']
-            align_kwargs['mpivot_sat'] = block[f'ia_small_scale_alignment{pop_name}', 'M_pivot']
+            align_kwargs.update({
+                'beta_sat': block[f'ia_small_scale_alignment{pop_name}', 'beta_sat'],
+                'mpivot_sat': block[f'ia_small_scale_alignment{pop_name}', 'M_pivot'],
+            })
         else:
-            align_kwargs['eta_sat'] = None
-            align_kwargs['mpivot_sat'] = None
+            align_kwargs.update({
+                'eta_sat': None,
+                'mpivot_sat': None,
+            })
+
         if block[f'ia_large_scale_alignment{pop_name}', 'instance'] == 'halo_mass':
-            align_kwargs['beta_cen'] = block[f'ia_large_scale_alignment{pop_name}', 'beta']
-            align_kwargs['mpivot_cen'] = block[f'ia_large_scale_alignment{pop_name}', 'M_pivot']
+            align_kwargs.update({
+                'beta_cen': block[f'ia_large_scale_alignment{pop_name}', 'beta'],
+                'mpivot_cen': block[f'ia_large_scale_alignment{pop_name}', 'M_pivot'],
+            })
         else:
-            align_kwargs['beta_cen'] = None
-            align_kwargs['mpivot_cen'] = None
+            align_kwargs.update({
+                'beta_cen': None,
+                'mpivot_cen': None,
+            })
 
     if matter:
         fstar_mm = pk_lib.load_fstar_mm(block, hod_section_name, z_vec, mass)
@@ -290,7 +286,7 @@ def execute(block, config):
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs, **align_kwargs}
         alignment_power = AlignmentSpectra(**comb_kwargs)
 
-    if p_mm:
+    if p_mm or response:
         pk_mm_1h, pk_mm_2h, pk_mm, _ = matter_power.compute_power_spectrum_mm(
             one_halo_ktrunc = one_halo_ktrunc,
             two_halo_ktrunc = two_halo_ktrunc,
@@ -326,9 +322,9 @@ def execute(block, config):
             
             block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear[nb])
             if response:
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h[nb] / pk_mm * pk_mm_in)
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h[nb] / pk_mm * pk_mm_in)
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg[nb] / pk_mm * pk_mm_in)
+                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h[nb] / pk_mm[0] * pk_mm_in)
+                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h[nb] / pk_mm[0] * pk_mm_in)
+                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg[nb] / pk_mm[0] * pk_mm_in)
             else:
                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h[nb])
                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h[nb])
@@ -348,9 +344,9 @@ def execute(block, config):
         
             block.put_grid(f'galaxy_matter_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bgm_linear', bgm_linear[nb])
             if response:
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gm_1h[nb] / pk_mm * pk_mm_in)
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gm_2h[nb] / pk_mm * pk_mm_in)
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm[nb] / pk_mm * pk_mm_in)
+                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gm_1h[nb] / pk_mm[0] * pk_mm_in)
+                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gm_2h[nb] / pk_mm[0] * pk_mm_in)
+                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm[nb] / pk_mm[0] * pk_mm_in)
             else:
                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gm_1h[nb])
                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gm_2h[nb])
@@ -370,9 +366,9 @@ def execute(block, config):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
         
             if response:
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h[nb] / pk_mm * pk_mm_in)
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_II_2h[nb] / pk_mm * pk_mm_in)
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II[nb] / pk_mm * pk_mm_in)
+                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h[nb] / pk_mm[0] * pk_mm_in)
+                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_II_2h[nb] / pk_mm[0] * pk_mm_in)
+                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II[nb] / pk_mm[0] * pk_mm_in)
             else:
                 block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h[nb])
                 block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_II_2h[nb])
@@ -392,9 +388,9 @@ def execute(block, config):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             
             if response:
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h[nb] / pk_mm * pk_mm_in)
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gI_2h[nb] / pk_mm * pk_mm_in)
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI[nb] / pk_mm * pk_mm_in)
+                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h[nb] / pk_mm[0] * pk_mm_in)
+                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gI_2h[nb] / pk_mm[0] * pk_mm_in)
+                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI[nb] / pk_mm[0] * pk_mm_in)
             else:
                 block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h[nb])
                 block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gI_2h[nb])
@@ -414,9 +410,9 @@ def execute(block, config):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             
             if response:
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h[nb] / pk_mm * pk_mm_in)
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mI_2h[nb] / pk_mm * pk_mm_in)
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI[nb] / pk_mm * pk_mm_in)
+                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h[nb] / pk_mm[0] * pk_mm_in)
+                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mI_2h[nb] / pk_mm[0] * pk_mm_in)
+                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI[nb] / pk_mm[0] * pk_mm_in)
             else:
                 block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h[nb])
                 block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mI_2h[nb])
