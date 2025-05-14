@@ -233,12 +233,12 @@ def execute(block, config):
 
         galaxy_kwargs.update({
             'u_sat': u_sat,
-            'Ncen': N_cen,
-            'Nsat': N_sat,
-            'numdencen': numdencen,
-            'numdensat': numdensat,
-            'f_c': f_cen,
-            'f_s': f_sat,
+            'Ncen': np.array(N_cen),
+            'Nsat': np.array(N_sat),
+            'numdencen': np.array(numdencen),
+            'numdensat': np.array(numdensat),
+            'f_c': np.array(f_cen),
+            'f_s': np.array(f_sat),
             'nbins': hod_bins,
             'pointmass': point_mass,
         })
@@ -246,7 +246,7 @@ def execute(block, config):
     if alignment:
         align_kwargs.update({
             'fortuna': fortuna,
-            'mass_avg': mass_avg,
+            'mass_avg': np.array(mass_avg),
             'growth_factor': growth_factor,
             'scale_factor': scale_factor,
             'alignment_gi': block[f'ia_large_scale_alignment{pop_name}', 'alignment_gi'],
@@ -278,14 +278,22 @@ def execute(block, config):
 
     if matter:
         if mead_correction == 'fit':
-            fstar_mm = pk_util.load_fstar_mm(block, hod_section_name, z_vec, mass)
+            matter_kwargs['fstar'] = np.array(pk_util.load_fstar_mm(block, hod_section_name, z_vec, mass))
         else:
-            fstar_mm = None
+            matter_kwargs['fstar'] = None
         matter_power = MatterSpectra(**matter_kwargs)
     if galaxy:
+        if mead_correction == 'fit' or point_mass:
+            matter_kwargs['fstar'] = np.array(f_star)
+        else:
+            matter_kwargs['fstar'] = None
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs}
         galaxy_power = GalaxySpectra(**comb_kwargs)
     if alignment:
+        if mead_correction == 'fit' or point_mass:
+            matter_kwargs['fstar'] = np.array(f_star)
+        else:
+            matter_kwargs['fstar'] = None
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs, **align_kwargs}
         alignment_power = AlignmentSpectra(**comb_kwargs)
 
@@ -294,10 +302,8 @@ def execute(block, config):
             one_halo_ktrunc = one_halo_ktrunc,
             two_halo_ktrunc = two_halo_ktrunc,
             sigma8_z = sigma8_z,
-            neff = neff,
-            fstar = fstar_mm
+            neff = neff
         )
-        
         if response:
             # Here we save the computed Pmm to datablock as matter_power_hm,
             # but not replacing the Pnl with it, as in the response
@@ -316,10 +322,8 @@ def execute(block, config):
             two_halo_ktrunc = two_halo_ktrunc,
             sigma8_z = sigma8_z,
             neff = neff,
-            poisson_par = poisson_par,
-            fstar = f_star
+            poisson_par = poisson_par
         )
-        
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             
@@ -338,8 +342,7 @@ def execute(block, config):
             two_halo_ktrunc = two_halo_ktrunc,
             sigma8_z = sigma8_z,
             neff = neff,
-            poisson_par = poisson_par,
-            fstar = f_star
+            poisson_par = poisson_par
         )
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
@@ -359,10 +362,8 @@ def execute(block, config):
             two_halo_ktrunc = two_halo_ktrunc_ia,
             sigma8_z = sigma8_z,
             neff = neff,
-            poisson_par = poisson_par,
-            fstar = f_star
+            poisson_par = poisson_par
         )
-        
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
         
@@ -380,10 +381,8 @@ def execute(block, config):
             two_halo_ktrunc = two_halo_ktrunc_ia,
             sigma8_z = sigma8_z,
             neff = neff,
-            poisson_par = poisson_par,
-            fstar = f_star
+            poisson_par = poisson_par
         )
-        
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             
@@ -401,10 +400,8 @@ def execute(block, config):
             two_halo_ktrunc = two_halo_ktrunc_ia,
             sigma8_z = sigma8_z,
             neff = neff,
-            poisson_par = poisson_par,
-            fstar = f_star
+            poisson_par = poisson_par
         )
-        
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             
