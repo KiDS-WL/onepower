@@ -50,6 +50,7 @@ II: intrinsic-intrinsic alignments
 gI: galaxy-intrinsic alignment
 mI: matter-intrinsic alignment
 """
+from functools import cached_property
 import numpy as np
 import numexpr as ne
 from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
@@ -167,12 +168,6 @@ class MatterSpectra:
             self.I12 = self.prepare_I12_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I21 = self.prepare_I21_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I22 = self.prepare_I22_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
-            
-        self._matter_profile = None
-        self._matter_profile_with_feedback = None
-        self._matter_profile_with_feedback_stellar_fraction_from_obs = None
-        self._missing_mass_integral = None
-        self._Im_term = None
         
         
     def dewiggle_plin(self, plin):
@@ -196,19 +191,18 @@ class MatterSpectra:
         Wm_0 = mass / mean_density0
         return Wm_0 * u_dm * (1.0 - fnu)
 
-    @property
+    @cached_property
     def matter_profile(self):
         """
         Compute the matter profile grid in z, k, and M.
         """
-        if self._matter_profile is None:
-            self._matter_profile = self.compute_matter_profile(
-                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
-                self.u_dm[np.newaxis, :, :, :],
-                self.fnu[np.newaxis, :, np.newaxis, np.newaxis]
-            )
-        return self._matter_profile
+        profile = self.compute_matter_profile(
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
+            self.u_dm[np.newaxis, :, :, :],
+            self.fnu[np.newaxis, :, np.newaxis, np.newaxis]
+        )
+        return profile
 
     def compute_matter_profile_with_feedback(self, mass, mean_density0, u_dm, z, fnu):
         """
@@ -233,20 +227,19 @@ class MatterSpectra:
         #Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
         return Wm
 
-    @property
+    @cached_property
     def matter_profile_with_feedback(self):
         """
         Compute the matter profile grid with feedback.
         """
-        if self._matter_profile_with_feedback is None:
-            self._matter_profile_with_feedback = self.compute_matter_profile_with_feedback(
-                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
-                self.u_dm[np.newaxis, :, :, :],
-                self.z_vec[np.newaxis, :, np.newaxis, np.newaxis],
-                self.fnu[np.newaxis, :, np.newaxis, np.newaxis]
-            )
-        return self._matter_profile_with_feedback
+        profile = self.compute_matter_profile_with_feedback(
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
+            self.u_dm[np.newaxis, :, :, :],
+            self.z_vec[np.newaxis, :, np.newaxis, np.newaxis],
+            self.fnu[np.newaxis, :, np.newaxis, np.newaxis]
+        )
+        return profile
 
     def compute_matter_profile_with_feedback_stellar_fraction_from_obs(self, mass, mean_density0, u_dm, z, fnu, mb, fstar):
         """
@@ -264,22 +257,21 @@ class MatterSpectra:
         Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
         return Wm
 
-    @property
+    @cached_property
     def matter_profile_with_feedback_stellar_fraction_from_obs(self):
         """
         Compute the matter profile grid using stellar fraction from observations.
         """
-        if self._matter_profile_with_feedback_stellar_fraction_from_obs is None:
-            self._matter_profile_with_feedback_stellar_fraction_from_obs = self.compute_matter_profile_with_feedback_stellar_fraction_from_obs(
-                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
-                self.u_dm[np.newaxis, :, :, :],
-                self.z_vec[np.newaxis, :, np.newaxis, np.newaxis],
-                self.fnu[np.newaxis, :, np.newaxis, np.newaxis],
-                self.mb,
-                self.fstar[:, :, np.newaxis, :]
-            )
-        return self._matter_profile_with_feedback_stellar_fraction_from_obs
+        profile = self.compute_matter_profile_with_feedback_stellar_fraction_from_obs(
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
+            self.u_dm[np.newaxis, :, :, :],
+            self.z_vec[np.newaxis, :, np.newaxis, np.newaxis],
+            self.fnu[np.newaxis, :, np.newaxis, np.newaxis],
+            self.mb,
+            self.fstar[:, :, np.newaxis, :]
+        )
+        return profile
 
     def one_halo_truncation(self, k_trunc=0.1):
         """
@@ -400,37 +392,34 @@ class MatterSpectra:
             warnings.warn('Warning: Mass function/bias correction is negative!', RuntimeWarning)
         return A
 
-    @property
+    @cached_property
     def missing_mass_integral(self):
-        if self._missing_mass_integral is None:
-            self._missing_mass_integral = self.compute_A_term(
-                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                self.halobias[np.newaxis, :, np.newaxis, :],
-                self.dndlnm[np.newaxis, :, np.newaxis, :],
-                self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis]
-            )
-        return self._missing_mass_integral
+        missing_mass = self.compute_A_term(
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.halobias[np.newaxis, :, np.newaxis, :],
+            self.dndlnm[np.newaxis, :, np.newaxis, :],
+            self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis]
+        )
+        return missing_mass
 
-    @property
+    @cached_property
     def A_term(self):
         return self.missing_mass_integral
 
-    @property
+    @cached_property
     def Im_term(self):
         """
         eq 35 of Asgari, Mead, Heymans 2023: 2303.08752
         2-halo term integral for matter, I_m = int_0^infty dM b(M) W_m(M,k) n(M) = int_0^infty dM b(M) M/rho_bar U_m(M,k) n(M)
         """
-        if self._Im_term is None:
-            I_m_term = self.compute_Im_term(
-                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                self.u_dm[np.newaxis, :, :, :],
-                self.halobias[np.newaxis, :, np.newaxis, :],
-                self.dndlnm[np.newaxis, :, np.newaxis, :],
-                self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis]
-            )
-            self._Im_term = I_m_term + self.A_term
-        return self._Im_term
+        I_m_term = self.compute_Im_term(
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.u_dm[np.newaxis, :, :, :],
+            self.halobias[np.newaxis, :, np.newaxis, :],
+            self.dndlnm[np.newaxis, :, np.newaxis, :],
+            self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis]
+        )
+        return I_m_term + self.A_term
 
     def compute_Im_term(self, mass, u_dm, b_dm, dndlnm, mean_density0):
         integrand_m = b_dm * dndlnm * u_dm * (1. / mean_density0)
@@ -676,11 +665,6 @@ class GalaxySpectra(MatterSpectra):
             self.fstar = self.fstar * self.h0
         """
         
-        self._central_galaxy_profile = None
-        self._satellite_galaxy_profile = None
-        self._Ic_term = None
-        self._Is_term = None
-        
         
     def select_hod_model(self, val):
         r"""
@@ -692,51 +676,45 @@ class GalaxySpectra(MatterSpectra):
             return val
         return getattr(hod_lib_class, val)
         
-    @property
+    @cached_property
     def central_galaxy_profile(self):
         """
         galaxy profile for a sample of centrals galaxies.
         set u_sample to ones if centrals are in the centre of the halo
         """
-        if self._central_galaxy_profile is None:
-            self._central_galaxy_profile = self.f_c[:, :, np.newaxis, np.newaxis] * self.Ncen[:, :, np.newaxis, :] * np.ones_like(self.u_sat[np.newaxis, :, :, :]) / self.numdencen[:, :, np.newaxis, np.newaxis]
         print('Call')
-        return self._central_galaxy_profile
+        return self.f_c[:, :, np.newaxis, np.newaxis] * self.Ncen[:, :, np.newaxis, :] * np.ones_like(self.u_sat[np.newaxis, :, :, :]) / self.numdencen[:, :, np.newaxis, np.newaxis]
 
-    @property
+    @cached_property
     def satellite_galaxy_profile(self):
         """
         galaxy profile for a sample of satellite galaxies.
         """
-        if self._satellite_galaxy_profile is None:
-            self._satellite_galaxy_profile = self.f_s[:, :, np.newaxis, np.newaxis] * self.Nsat[:, :, np.newaxis, :] * self.u_sat[np.newaxis, :, :, :] / self.numdensat[:, :, np.newaxis, np.newaxis]
-        return self._satellite_galaxy_profile
+        return self.f_s[:, :, np.newaxis, np.newaxis] * self.Nsat[:, :, np.newaxis, :] * self.u_sat[np.newaxis, :, :, :] / self.numdensat[:, :, np.newaxis, np.newaxis]
 
     def compute_Ig_term(self, profile, mass, dndlnm, b_m):
         integrand = profile * b_m * dndlnm / mass
         return simpson(integrand, mass, axis=-1)
 
-    @property
+    @cached_property
     def Ic_term(self):
-        if self._Ic_term is None:
-            self._Ic_term = self.compute_Ig_term(
-                self.central_galaxy_profile,
-                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                self.dndlnm[np.newaxis, :, np.newaxis, :],
-                self.halobias[np.newaxis, :, np.newaxis, :]
-            )
-        return self._Ic_term
+        term = self.compute_Ig_term(
+            self.central_galaxy_profile,
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.dndlnm[np.newaxis, :, np.newaxis, :],
+            self.halobias[np.newaxis, :, np.newaxis, :]
+        )
+        return term
 
-    @property
+    @cached_property
     def Is_term(self):
-        if self._Is_term is None:
-            self._Is_term = self.compute_Ig_term(
-                self.satellite_galaxy_profile,
-                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                self.dndlnm[np.newaxis, :, np.newaxis, :],
-                self.halobias[np.newaxis, :, np.newaxis, :]
-            )
-        return self._Is_term
+        term = self.compute_Ig_term(
+            self.satellite_galaxy_profile,
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.dndlnm[np.newaxis, :, np.newaxis, :],
+            self.halobias[np.newaxis, :, np.newaxis, :]
+        )
+        return term
 
     def compute_power_spectrum_gg(
             self,
@@ -876,7 +854,7 @@ class AlignmentSpectra(GalaxySpectra):
             additional_term = 1.0
         return f_s * Nsat * wkm_sat / numdenssat * additional_term
 
-    @property
+    @cached_property
     def central_alignment_profile(self):
         """
         Prepare the grid in z, k and mass for the central alignment
@@ -884,20 +862,19 @@ class AlignmentSpectra(GalaxySpectra):
         where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
         times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
         """
-        if self._central_alignment_profile is None:
-            self._central_alignment_profile = self.compute_central_galaxy_alignment_profile(
-                self.scale_factor[np.newaxis, :, :, np.newaxis],
-                self.growth_factor[np.newaxis, :, :, np.newaxis],
-                self.f_c[:, :, np.newaxis, np.newaxis],
-                self.C1[np.newaxis, :, :, :],
-                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                self.beta_cen,
-                self.mpivot_cen,
-                self.mass_avg[:, :, np.newaxis, np.newaxis]
-            )
-        return self._central_alignment_profile
+        profile = self.compute_central_galaxy_alignment_profile(
+            self.scale_factor[np.newaxis, :, :, np.newaxis],
+            self.growth_factor[np.newaxis, :, :, np.newaxis],
+            self.f_c[:, :, np.newaxis, np.newaxis],
+            self.C1[np.newaxis, :, :, :],
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.beta_cen,
+            self.mpivot_cen,
+            self.mass_avg[:, :, np.newaxis, np.newaxis]
+        )
+        return profile
 
-    @property
+    @cached_property
     def satellite_alignment_profile(self):
         """
         Prepare the grid in z, k and mass for the satellite alignment
@@ -905,42 +882,37 @@ class AlignmentSpectra(GalaxySpectra):
         where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
         times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
         """
-        if self._satellite_alignment_profile is None:
-            self._satellite_alignment_profile = self.compute_satellite_galaxy_alignment_profile(
-                self.Nsat[:, :, np.newaxis, :],
-                self.numdensat[:, :, np.newaxis, np.newaxis],
-                self.f_s[:, :, np.newaxis, np.newaxis],
-                self.wkm_sat.transpose(0, 2, 1)[np.newaxis, :, :, :],
-                self.beta_sat,
-                self.mpivot_sat,
-                self.mass_avg[:, :, np.newaxis, np.newaxis]
-            )
-        return self._satellite_alignment_profile
+        profile = self.compute_satellite_galaxy_alignment_profile(
+            self.Nsat[:, :, np.newaxis, :],
+            self.numdensat[:, :, np.newaxis, np.newaxis],
+            self.f_s[:, :, np.newaxis, np.newaxis],
+            self.wkm_sat.transpose(0, 2, 1)[np.newaxis, :, :, :],
+            self.beta_sat,
+            self.mpivot_sat,
+            self.mass_avg[:, :, np.newaxis, np.newaxis]
+        )
+        return profile
 
 
-    @property
+    @cached_property
     def Ic_align_term(self):
-        if self._Ic_align_term is None:
-            I_g_align = self.compute_Ig_term(
-                self.central_alignment_profile,
-                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                self.dndlnm[np.newaxis, :, np.newaxis, :],
-                self.halobias[np.newaxis, :, np.newaxis, :]
-            )
-            self._Ic_align_term = I_g_align + self.A_term * self.central_alignment_profile[:, :, :, 0] * self.mean_density0[np.newaxis, :, np.newaxis] / self.mass[0]
-        return self._Ic_align_term
+        I_g_align = self.compute_Ig_term(
+            self.central_alignment_profile,
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.dndlnm[np.newaxis, :, np.newaxis, :],
+            self.halobias[np.newaxis, :, np.newaxis, :]
+        )
+        return I_g_align + self.A_term * self.central_alignment_profile[:, :, :, 0] * self.mean_density0[np.newaxis, :, np.newaxis] / self.mass[0]
         
-    @property
+    @cached_property
     def Is_align_term(self):
-        if self._Is_align_term is None:
-            I_g_align = self.compute_Ig_term(
-                self.satellite_alignment_profile,
-                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                self.dndlnm[np.newaxis, :, np.newaxis, :],
-                self.halobias[np.newaxis, :, np.newaxis, :]
-            )
-            self._Is_align_term = I_g_align + self.A_term * self.satellite_alignment_profile[:, :, :, 0] * self.mean_density0[np.newaxis, :, np.newaxis] / self.mass[0]
-        return self._Is_align_term
+        I_g_align = self.compute_Ig_term(
+            self.satellite_alignment_profile,
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.dndlnm[np.newaxis, :, np.newaxis, :],
+            self.halobias[np.newaxis, :, np.newaxis, :]
+        )
+        return I_g_align + self.A_term * self.satellite_alignment_profile[:, :, :, 0] * self.mean_density0[np.newaxis, :, np.newaxis] / self.mass[0]
     
     @property
     def compute_two_halo_alignment(self):
