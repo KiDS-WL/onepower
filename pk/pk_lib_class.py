@@ -432,12 +432,12 @@ class MatterSpectra:
             * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
             / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_2[np.newaxis,np.newaxis,:,np.newaxis])
         """
-        b_1e = b_1[:, :, np.newaxis, np.newaxis]
-        b_2e = b_2[:, np.newaxis, :, np.newaxis]
-        dndlnm_1e = dndlnm_1[:, :, np.newaxis, np.newaxis]
-        dndlnm_2e = dndlnm_2[:, np.newaxis, :, np.newaxis]
-        mass_1e = self.mass[np.newaxis, :, np.newaxis, np.newaxis]
-        mass_2e = self.mass[np.newaxis, np.newaxis, :, np.newaxis]
+        b_1e = b_1[np.newaxis, :, :, np.newaxis, np.newaxis]
+        b_2e = b_2[np.newaxis, :, np.newaxis, :, np.newaxis]
+        dndlnm_1e = dndlnm_1[np.newaxis, :, :, np.newaxis, np.newaxis]
+        dndlnm_2e = dndlnm_2[np.newaxis, :, np.newaxis, :, np.newaxis]
+        mass_1e = self.mass[np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
+        mass_2e = self.mass[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis]
 
         integrand_22 = ne.evaluate('B_NL_k_z * b_1e * b_2e * dndlnm_1e * dndlnm_2e / (mass_1e * mass_2e)')
         return integrand_22
@@ -447,10 +447,10 @@ class MatterSpectra:
         integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
             * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
         """
-        B_NL_k_z_e = B_NL_k_z[:, :, 0, :]
-        b_2e = b_2[:, :, np.newaxis]
-        dndlnm_2e = dndlnm_2[:, :, np.newaxis]
-        mass_2e = self.mass[np.newaxis, :, np.newaxis]
+        B_NL_k_z_e = B_NL_k_z[np.newaxis, :, :, 0, :]
+        b_2e = b_2[np.newaxis, :, :, np.newaxis]
+        dndlnm_2e = dndlnm_2[np.newaxis, :, :, np.newaxis]
+        mass_2e = self.mass[np.newaxis, np.newaxis, :, np.newaxis]
 
         integrand_12 = ne.evaluate('B_NL_k_z_e * b_2e * dndlnm_2e / mass_2e')
         return integrand_12
@@ -460,10 +460,10 @@ class MatterSpectra:
         integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
             * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
         """
-        B_NL_k_z_e = B_NL_k_z[:, 0, :, :]
-        b_1e = b_1[:, :, np.newaxis]
-        dndlnm_1e = dndlnm_1[:, :, np.newaxis]
-        mass_1e = self.mass[np.newaxis, :, np.newaxis]
+        B_NL_k_z_e = B_NL_k_z[np.newaxis, :, 0, :, :]
+        b_1e = b_1[np.newaxis, :, :, np.newaxis]
+        dndlnm_1e = dndlnm_1[np.newaxis, :, :, np.newaxis]
+        mass_1e = self.mass[np.newaxis, np.newaxis, :, np.newaxis]
 
         integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dndlnm_1e / mass_1e')
         return integrand_21
@@ -472,38 +472,27 @@ class MatterSpectra:
         """
         uses eqs A.7 to A.10 fo Mead and Verde 2021, 2011.08858 to calculate the integral over beta_nl
         """
-        # TODO: check if we need this now the profile_c is the same format as profile_s
-        # check the format of c_align_profile and s_align_profile
-        # if not also combine with I_NL.
-        if len(W_1.shape) < 3:
-            W_1 = W_1[:, np.newaxis, :]
-        if len(W_2.shape) < 3:
-            W_2 = W_2[:, np.newaxis, :]
-
-        W_1 = np.transpose(W_1, [0, 2, 1])
-        W_2 = np.transpose(W_2, [0, 2, 1])
-
-        # Takes the integral over mass_1
-        # TODO: check that these integrals do the correct thing, keep this TODO
+        W_1 = np.transpose(W_1, [0, 1, 3, 2])
+        W_2 = np.transpose(W_2, [0, 1, 3, 2])
         
         #integrand_22 = integrand_22_part * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:]
-        W_1e = W_1[:, :, np.newaxis, :]
-        W_2e = W_2[:, np.newaxis, :, :]
+        W_1e = W_1[:, :, :, np.newaxis, :]
+        W_2e = W_2[:, :, np.newaxis, :, :]
         integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
 
-        integral_M1 = trapezoid(integrand_22, self.mass, axis=1)
-        integral_M2 = trapezoid(integral_M1, self.mass, axis=1)
+        integral_M1 = trapezoid(integrand_22, self.mass, axis=2)
+        integral_M2 = trapezoid(integral_M1, self.mass, axis=2)
         I_22 = integral_M2
 
-        I_11 = B_NL_k_z[:, 0, 0, :] * ((A * A) * W_1[:, 0, :] * W_2[:, 0, :] * (rho_mean[:, np.newaxis] * rho_mean[:, np.newaxis])) / (self.mass[0] * self.mass[0])
+        I_11 = B_NL_k_z[np.newaxis, :, 0, 0, :] * ((A * A) * W_1[:, :, 0, :] * W_2[:, :, 0, :] * (rho_mean[np.newaxis, :, np.newaxis] * rho_mean[np.newaxis, :, np.newaxis])) / (self.mass[0] * self.mass[0])
 
-        integrand_12 = integrand_12_part * W_2[:, :, :]
-        integral_12 = trapezoid(integrand_12, self.mass, axis=1)
-        I_12 = A * W_1[:, 0, :] * integral_12 * rho_mean[:, np.newaxis] / self.mass[0]
+        integrand_12 = integrand_12_part * W_2[:, :, :, :]
+        integral_12 = trapezoid(integrand_12, self.mass, axis=2)
+        I_12 = A * W_1[:, :, 0, :] * integral_12 * rho_mean[np.newaxis, :, np.newaxis] / self.mass[0]
 
-        integrand_21 = integrand_21_part * W_1[:, :, :]
-        integral_21 = trapezoid(integrand_21, self.mass, axis=1)
-        I_21 = A * W_2[:, 0, :] * integral_21 * rho_mean[:, np.newaxis] / self.mass[0]
+        integrand_21 = integrand_21_part * W_1[:, :, :, :]
+        integral_21 = trapezoid(integrand_21, self.mass, axis=2)
+        I_21 = A * W_2[:, :, 0, :] * integral_21 * rho_mean[np.newaxis, :, np.newaxis] / self.mass[0]
 
         I_NL = I_11 + I_12 + I_21 + I_22
 
@@ -1029,8 +1018,8 @@ class AlignmentSpectra(GalaxySpectra):
         galaxy_linear_bias = None
         
         if self.bnl:
-            I_NL_cc = self.I_NL(self.central_galaxy_profile, self.central_alignment_profile, self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
-            I_NL_cs = self.I_NL(self.central_galaxy_profile, self.satellite_alignment_profile, self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
+            I_NL_cc = self.I_NL(self.central_alignment_profile, self.central_galaxy_profile, self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
+            I_NL_cs = self.I_NL(self.satellite_alignment_profile, self.central_galaxy_profile, self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
             pk_cc_2h = self.matter_power_lin * self.Ic_term * self.Ic_align_term + self.matter_power_lin * I_NL_cc
             pk_cs_2h = self.matter_power_lin * self.Ic_term * self.Is_align_term + self.matter_power_lin * I_NL_cs
         elif self.fortuna:
