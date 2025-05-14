@@ -277,7 +277,10 @@ def execute(block, config):
             })
 
     if matter:
-        fstar_mm = pk_util.load_fstar_mm(block, hod_section_name, z_vec, mass)
+        if mead_correction == 'fit':
+            fstar_mm = pk_util.load_fstar_mm(block, hod_section_name, z_vec, mass)
+        else:
+            fstar_mm = None
         matter_power = MatterSpectra(**matter_kwargs)
     if galaxy:
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs}

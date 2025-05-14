@@ -167,7 +167,7 @@ def execute(block, config):
         dndlnM = f_int_dndlnM(z_bins[nb])
         hod_kwargs['mass'] = mass
         hod_kwargs['obs'] = obs_simps[nb]
-        hod_kwargs['dn_dlnM_normalised'] = dndlnM
+        hod_kwargs['dndlnm'] = dndlnM
         hod_kwargs['nz'] = nz
 
         COF_class = getattr(hods, hod_model)(**hod_kwargs)
@@ -179,7 +179,7 @@ def execute(block, config):
             raise ValueError('Some HOD values are negative. Increase nobs for a more stable integral.')
 
         if hod_model == 'Cacciato':
-            f_star = COF_class.compute_stellar_fraction / mass
+            f_star = COF_class.compute_stellar_fraction
             if observable_h_unit == valid_units[1]:
                 f_star = f_star * block['cosmological_parameters', 'h0']
             block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'f_star{suffix}', f_star)
@@ -267,11 +267,11 @@ def execute(block, config):
         obs_func = np.empty([nl_z, nl_obs])
 
         hod_kwargs['obs'] = obs_range
-        hod_kwargs['dn_dlnM_normalised'] = dn_dlnM_one
+        hod_kwargs['dndlnm'] = dn_dlnM_one
         hod_kwargs['nz'] = nl_z
         COF_class_onebin = getattr(hods, hod_model)(**hod_kwargs)
 
-        f_star_mm = COF_class_onebin.compute_stellar_fraction / mass
+        f_star_mm = COF_class_onebin.compute_stellar_fraction
         if observable_h_unit == valid_units[1]:
             f_star_mm = f_star_mm * block['cosmological_parameters', 'h0']
         block.put_grid(hod_section_name, 'z_extended', z_bins_one, 'mass_extended', mass, 'f_star_extended', f_star_mm)
@@ -295,7 +295,7 @@ def execute(block, config):
             obs_range = np.logspace(np.log10(obs_simps.min()), np.log10(obs_simps.max()), nobs)
 
             hod_kwargs['obs'] = obs_range[np.newaxis, :]
-            hod_kwargs['dn_dlnM_normalised'] = dn_dlnM_zmedian[np.newaxis, :]
+            hod_kwargs['dndlnm'] = dn_dlnM_zmedian[np.newaxis, :]
             hod_kwargs['nz'] = 1
             COF_class_zmed = getattr(hods, hod_model)(**hod_kwargs)
 

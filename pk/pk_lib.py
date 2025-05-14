@@ -982,7 +982,7 @@ def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25)
 def dewiggle(plin, k, block):
     tcmb = block.get_double('cosmological_parameters', 'TCMB', default=2.7255)
     sigma = sigmaV(plin, k)
-    pk_wig = get_Pk_wiggle(k, plin, block['cosmological_parameters', 'h0'], block['cosmological_parameters', 'ombh2'], block['cosmological_parameters', 'ommh2'], block['cosmological_parameters', 'n_s'], tcmb)
+    pk_wig = get_Pk_wiggle(k, plin, block['cosmological_parameters', 'h0'], block['cosmological_parameters', 'ombh2'], block['cosmological_parameters', 'ommh2'], block['cosmological_parameters', 'n_s'], T_CMB=tcmb)
     plin_dw = plin - (1.0 - np.exp(-(k[np.newaxis, :] * sigma[:, np.newaxis])**2.0)) * pk_wig
     return plin_dw
 
