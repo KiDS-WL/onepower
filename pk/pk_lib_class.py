@@ -947,6 +947,13 @@ class AlignmentSpectra(GalaxySpectra):
     
         return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * self.alignment_gi[:, np.newaxis, np.newaxis]
 
+
+
+
+
+
+
+
     def compute_power_spectrum_mi(
             self,
             one_halo_ktrunc=None,
