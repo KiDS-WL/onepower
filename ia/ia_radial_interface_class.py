@@ -40,7 +40,6 @@ def execute(block, config):
         
     # Also load the redshift dimension
     z = block['concentration_m', 'z']
-    nz = z.size
 
     # Now I want to load the high resolution halo parameters calculated with the halo model module
     # and then downsample them to a lower resolution grid for the radial IA calculation
@@ -51,12 +50,25 @@ def execute(block, config):
     r_s_halo = block['nfw_scale_radius_m', 'rs']
     rvir_halo = block['virial_radius', 'rvir_m']
     
+    align_params = {}
+    align_params.update({
+        'mass': mass_halo,
+        'k_vec': k_vec,
+        'z_vec': z,
+        'c': c_halo,
+        'r_s': r_s_halo,
+        'rvir': rvir_halo,
+        'nmass': nmass,
+        'n_hankel': n_hankel,
+        'ell_max': ell_max,
+        'gamma_1h_slope': gamma_1h_slope,
+        'gamma_1h_amplitude': gamma_1h_amplitude
+    })
     
-    satellite_alignment = SatelliteAlignment(mass_halo, k_vec, z, c_halo, r_s_halo, rvir_halo, nmass, suffix, n_hankel, ell_max, gamma_1h_slope, gamma_1h_amplitude)
-    wkm, z, mass, k, suffix = satellite_alignment.calculate_wkm()
+    satellite_alignment = SatelliteAlignment(**align_params)
+    wkm, z, mass, k = satellite_alignment.wkm()
 
-    nz = z.size
-    for jz in range(nz):
+    for jz in range(z.size):
         block.put_grid(
             'wkm', f'mass_{jz}{suffix}', mass, f'k_h_{jz}{suffix}', k,
             f'w_km_{jz}{suffix}', wkm[jz, :, :]
