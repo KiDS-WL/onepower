@@ -208,6 +208,8 @@ class MatterSpectra:
     def matter_profile_2h(self):
         """
         Compute the matter profile grid in z, k, and M.
+        This is without the neutrino subtraction, as
+        the hot neutrinos do not cluster in haloes
         """
         profile = self.compute_matter_profile(
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
