@@ -696,7 +696,6 @@ class GalaxySpectra(MatterSpectra):
         galaxy profile for a sample of centrals galaxies.
         set u_sample to ones if centrals are in the centre of the halo
         """
-        print('Call')
         return self.f_c[:, :, np.newaxis, np.newaxis] * self.Ncen[:, :, np.newaxis, :] * np.ones_like(self.u_sat[np.newaxis, :, :, :]) / self.numdencen[:, :, np.newaxis, np.newaxis]
 
     @cached_property
