@@ -2,6 +2,9 @@ import numpy as np
 from scipy.integrate import simpson
 from scipy.special import erf
 
+
+# TO-DO: Add nbins as another dimension to all quantities to remove looping!
+
 class HOD:
     def __init__(
             self,

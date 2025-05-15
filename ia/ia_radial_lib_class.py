@@ -22,7 +22,7 @@ class SatelliteAlignment:
             truncate = False
         ):
         
-        self.k_vec = k_vec
+        self.k_vec_d = k_vec
         self.nmass = nmass
         self.n_hankel = n_hankel
         self.ell_max = ell_max
@@ -102,6 +102,9 @@ class SatelliteAlignment:
                        h   # Proxy for "size" of steps in integration)
         We've used hankel.get_h to set h, N is then h=pi/N, finding best_h = 0.05, best_N=62
         If you want perfect agreement with CCL use: N=50000, h=0.00006 (VERY SLOW!!)
+        
+        Ideally we need to find a way to just evaluate this part outside of the class
+        so it can work nicely with CosmoSIS setup function
         """
         self.h_hankel = np.pi / self.n_hankel
         return [
@@ -194,15 +197,28 @@ class SatelliteAlignment:
         Given that low-k accuracy is unimportant for IA, I've decided to use the Hankel transform for all k values.
         """
         mnfw = 4.0 * np.pi * self.r_s_d**3.0 * (np.log(1.0 + self.c_d) - self.c_d / (1.0 + self.c_d))
-        uk_l = np.zeros([self.ell_values.size, self.z_vec.size, self.mass_d.size, self.k_vec.size])
+        uk_l = np.zeros([self.ell_values.size, self.z_vec.size, self.mass_d.size, self.k_vec_d.size])
 
         for i, ell in enumerate(self.ell_values):
             for jz in range(self.z_vec.size):
                 for im in range(self.mass_d.size):
                     nfw_f = lambda x: self.gamma_r_nfw_profile(x, self.r_s_d[jz, im], self.rvir_d[im], self.gamma_1h_amplitude[jz], self.gamma_1h_slope, truncate=self.truncate) * np.sqrt((x * np.pi) / 2.0)
-                    uk_l[i, jz, im, :] = self.hankel[i].transform(nfw_f, self.k_vec)[0] / (self.k_vec**0.5 * mnfw[jz, im])
+                    uk_l[i, jz, im, :] = self.hankel[i].transform(nfw_f, self.k_vec_d)[0] / (self.k_vec_d**0.5 * mnfw[jz, im])
         return uk_l
 
     def wkm(self):
         #wkm_out = self.wkm_f_ell
-        return self.wkm_f_ell, self.z_vec, self.mass_d, self.k_vec
+        return self.wkm_f_ell, self.z_vec, self.mass_d, self.k_vec_d
+
+    def upsampled_wkm(k_vec, mass, z_vec):
+        """
+        Interpolates the wkm profiles and upsamples back to original grid
+        """
+        wkm_out = np.empty([z_vec.size, mass.size, k_vec.size])
+        for jz in range(z_vec.size):
+            lg_w_interp2d = RegularGridInterpolator((np.log10(self.k_vec_d).T, np.log10(self.mass_d).T),
+                                                    np.log10(self.wkm_f_ell / self.k_vec_d**2).T, bounds_error=False, fill_value=None)
+            lgkk, lgmm = np.meshgrid(np.log10(k_vec), np.log10(mass), sparse=True)
+            lg_wkm_interpolated = lg_w_interp2d((lgkk.T, lgmm.T)).T
+            wkm[jz] = 10.0**(lg_wkm_interpolated) * k_vec**2.0
+        return wkm
