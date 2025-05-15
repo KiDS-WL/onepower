@@ -203,6 +203,19 @@ class MatterSpectra:
             self.fnu[np.newaxis, :, np.newaxis, np.newaxis]
         )
         return profile
+        
+    @cached_property
+    def matter_profile_2h(self):
+        """
+        Compute the matter profile grid in z, k, and M.
+        """
+        profile = self.compute_matter_profile(
+            self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+            self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
+            self.u_dm[np.newaxis, :, :, :],
+            0.0
+        )
+        return profile
 
     def compute_matter_profile_with_feedback(self, mass, mean_density0, u_dm, z, fnu):
         """
@@ -432,12 +445,12 @@ class MatterSpectra:
             * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
             / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_2[np.newaxis,np.newaxis,:,np.newaxis])
         """
-        b_1e = b_1[np.newaxis, :, :, np.newaxis, np.newaxis]
-        b_2e = b_2[np.newaxis, :, np.newaxis, :, np.newaxis]
-        dndlnm_1e = dndlnm_1[np.newaxis, :, :, np.newaxis, np.newaxis]
-        dndlnm_2e = dndlnm_2[np.newaxis, :, np.newaxis, :, np.newaxis]
-        mass_1e = self.mass[np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
-        mass_2e = self.mass[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis]
+        b_1e = b_1[:, :, np.newaxis, np.newaxis]
+        b_2e = b_2[:, np.newaxis, :, np.newaxis]
+        dndlnm_1e = dndlnm_1[:, :, np.newaxis, np.newaxis]
+        dndlnm_2e = dndlnm_2[:, np.newaxis, :, np.newaxis]
+        mass_1e = self.mass[np.newaxis, :, np.newaxis, np.newaxis]
+        mass_2e = self.mass[np.newaxis, np.newaxis, :, np.newaxis]
 
         integrand_22 = ne.evaluate('B_NL_k_z * b_1e * b_2e * dndlnm_1e * dndlnm_2e / (mass_1e * mass_2e)')
         return integrand_22
@@ -447,10 +460,10 @@ class MatterSpectra:
         integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
             * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
         """
-        B_NL_k_z_e = B_NL_k_z[np.newaxis, :, :, 0, :]
-        b_2e = b_2[np.newaxis, :, :, np.newaxis]
-        dndlnm_2e = dndlnm_2[np.newaxis, :, :, np.newaxis]
-        mass_2e = self.mass[np.newaxis, np.newaxis, :, np.newaxis]
+        B_NL_k_z_e = B_NL_k_z[:, :, 0, :]
+        b_2e = b_2[:, :, np.newaxis]
+        dndlnm_2e = dndlnm_2[:, :, np.newaxis]
+        mass_2e = self.mass[np.newaxis, :, np.newaxis]
 
         integrand_12 = ne.evaluate('B_NL_k_z_e * b_2e * dndlnm_2e / mass_2e')
         return integrand_12
@@ -460,42 +473,52 @@ class MatterSpectra:
         integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
             * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
         """
-        B_NL_k_z_e = B_NL_k_z[np.newaxis, :, 0, :, :]
-        b_1e = b_1[np.newaxis, :, :, np.newaxis]
-        dndlnm_1e = dndlnm_1[np.newaxis, :, :, np.newaxis]
-        mass_1e = self.mass[np.newaxis, np.newaxis, :, np.newaxis]
+        B_NL_k_z_e = B_NL_k_z[:, 0, :, :]
+        b_1e = b_1[:, :, np.newaxis]
+        dndlnm_1e = dndlnm_1[:, :, np.newaxis]
+        mass_1e = self.mass[np.newaxis, :, np.newaxis]
 
         integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dndlnm_1e / mass_1e')
         return integrand_21
-
+        
+        
     def I_NL(self, W_1, W_2, b_1, b_2, dndlnm_1, dndlnm_2, A, rho_mean, B_NL_k_z, integrand_12_part, integrand_21_part, integrand_22_part):
         """
-        uses eqs A.7 to A.10 fo Mead and Verde 2021, 2011.08858 to calculate the integral over beta_nl
+        Uses eqs A.7 to A.10 from Mead and Verde 2021, 2011.08858 to calculate the integral over beta_nl
         """
+        # Transpose W_1 and W_2
         W_1 = np.transpose(W_1, [0, 1, 3, 2])
         W_2 = np.transpose(W_2, [0, 1, 3, 2])
-        
-        #integrand_22 = integrand_22_part * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:]
+    
+        # Reshape W_1 and W_2 for broadcasting
         W_1e = W_1[:, :, :, np.newaxis, :]
         W_2e = W_2[:, :, np.newaxis, :, :]
+    
+        # Calculate integrand_22 using broadcasting
+        #integrand_22 = integrand_22_part * W_1e * W_2e
         integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
-
+    
+        # Perform trapezoidal integration
         integral_M1 = trapezoid(integrand_22, self.mass, axis=2)
         integral_M2 = trapezoid(integral_M1, self.mass, axis=2)
         I_22 = integral_M2
-
-        I_11 = B_NL_k_z[np.newaxis, :, 0, 0, :] * ((A * A) * W_1[:, :, 0, :] * W_2[:, :, 0, :] * (rho_mean[np.newaxis, :, np.newaxis] * rho_mean[np.newaxis, :, np.newaxis])) / (self.mass[0] * self.mass[0])
-
-        integrand_12 = integrand_12_part * W_2[:, :, :, :]
+    
+        # Calculate I_11 using broadcasting
+        I_11 = B_NL_k_z[:, 0, 0, :] * ((A[:, :, :] * A[:, :, :]) * W_1[:, :, 0, :] * W_2[:, :, 0, :] * (rho_mean[:, np.newaxis] * rho_mean[:, np.newaxis])) / (self.mass[0] * self.mass[0])
+    
+        # Calculate I_12 using broadcasting
+        integrand_12 = integrand_12_part * W_2
         integral_12 = trapezoid(integrand_12, self.mass, axis=2)
-        I_12 = A * W_1[:, :, 0, :] * integral_12 * rho_mean[np.newaxis, :, np.newaxis] / self.mass[0]
-
-        integrand_21 = integrand_21_part * W_1[:, :, :, :]
+        I_12 = A * W_1[:, :, 0, :] * integral_12 * rho_mean[:, np.newaxis] / self.mass[0]
+    
+        # Calculate I_21 using broadcasting
+        integrand_21 = integrand_21_part * W_1
         integral_21 = trapezoid(integrand_21, self.mass, axis=2)
-        I_21 = A * W_2[:, :, 0, :] * integral_21 * rho_mean[np.newaxis, :, np.newaxis] / self.mass[0]
-
+        I_21 = A * W_2[:, :, 0, :] * integral_21 * rho_mean[:, np.newaxis] / self.mass[0]
+    
+        # Combine all terms
         I_NL = I_11 + I_12 + I_21 + I_22
-
+    
         return I_NL
 
     def fg(self, mass, z_vec, fstar, beta=2):
@@ -583,7 +606,7 @@ class MatterSpectra:
         else:
             matter_profile_1h = self.matter_profile
         if self.bnl:
-            I_NL = self.I_NL(self.matter_profile, self.matter_profile, self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
+            I_NL = self.I_NL(self.matter_profile_2h, self.matter_profile_2h, self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
             pk_2h = (self.matter_power_lin * self.Im_term * self.Im_term + self.matter_power_lin * I_NL) #* self.two_halo_truncation()[np.newaxis, np.newaxis, :]
             pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation(one_halo_ktrunc)
             pk_tot = pk_1h + pk_2h
@@ -757,7 +780,7 @@ class GalaxySpectra(MatterSpectra):
             matter_profile_1h = self.matter_profile
             
         if self.bnl:
-            I_NL = self.I_NL(self.central_galaxy_profile + self.satellite_galaxy_profile, self.matter_profile, self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12,self.I21,self.I22)
+            I_NL = self.I_NL(self.central_galaxy_profile + self.satellite_galaxy_profile, self.matter_profile_2h, self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12,self.I21,self.I22)
             pk_cm_2h = self.matter_power_lin * self.Ic_term * self.Im_term
             pk_sm_2h = self.matter_power_lin * self.Is_term * self.Im_term
         else:
@@ -941,7 +964,7 @@ class AlignmentSpectra(GalaxySpectra):
             matter_profile_1h = self.matter_profile
             
         if self.bnl:
-            I_NL = self.I_NL(self.central_alignment_profile + self.satellite_alignment_profile, self.matter_profile, self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12,self.I21,self.I22)
+            I_NL = self.I_NL(self.central_alignment_profile + self.satellite_alignment_profile, self.matter_profile_2h, self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12,self.I21,self.I22)
             pk_sm_2h = (-1.0) * self.matter_power_lin * self.Is_align_term * self.Im_term
             pk_cm_2h = (-1.0) * self.matter_power_lin * self.Ic_align_term * self.Im_term
         elif self.fortuna:
