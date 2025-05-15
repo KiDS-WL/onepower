@@ -4,6 +4,7 @@ from scipy.integrate import simpson
 from scipy.special import binom
 from hankel import HankelTransform
 from functools import cached_property
+from scipy.interpolate import RegularGridInterpolator
 
 class SatelliteAlignment:
     def __init__(
@@ -209,16 +210,20 @@ class SatelliteAlignment:
     def wkm(self):
         #wkm_out = self.wkm_f_ell
         return self.wkm_f_ell, self.z_vec, self.mass_d, self.k_vec_d
-
+    
     def upsampled_wkm(k_vec, mass, z_vec):
         """
         Interpolates the wkm profiles and upsamples back to original grid
         """
         wkm_out = np.empty([z_vec.size, mass.size, k_vec.size])
         for jz in range(z_vec.size):
-            lg_w_interp2d = RegularGridInterpolator((np.log10(self.k_vec_d).T, np.log10(self.mass_d).T),
-                                                    np.log10(self.wkm_f_ell / self.k_vec_d**2).T, bounds_error=False, fill_value=None)
+            lg_w_interp2d = RegularGridInterpolator(
+                (np.log10(self.k_vec_d).T, np.log10(self.mass_d).T),
+                np.log10(self.wkm_f_ell / self.k_vec_d**2).T,
+                bounds_error=False,
+                fill_value=None
+            )
             lgkk, lgmm = np.meshgrid(np.log10(k_vec), np.log10(mass), sparse=True)
             lg_wkm_interpolated = lg_w_interp2d((lgkk.T, lgmm.T)).T
-            wkm[jz] = 10.0**(lg_wkm_interpolated) * k_vec**2.0
-        return wkm
+            wkm_out[jz] = 10.0**(lg_wkm_interpolated) * k_vec**2.0
+        return wkm_out
