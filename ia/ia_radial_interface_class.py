@@ -25,11 +25,11 @@ def setup(options):
     ell_max = options.get_int(option_section, 'ell_max', default=6)
     n_hankel = options.get_int(option_section, 'N_hankel', default=350)
 
-    return k_vec, nmass, suffix, n_hankel, ell_max, nk, kmin, kmax
+    return k_vec, nmass, suffix, n_hankel, ell_max, nk
 
 def execute(block, config):
     
-    k_vec, nmass, suffix, n_hankel, ell_max, nk, kmin, kmax = config
+    k_vec, nmass, suffix, n_hankel, ell_max, nk = config
     
     
     # Load slope of the power law that describes the satellite alignment
