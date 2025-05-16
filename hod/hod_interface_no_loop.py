@@ -7,9 +7,33 @@ The observable_h_unit should be set to what the inputs are (from the data and fr
 from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp1d
-import hod_lib_class as hods
+import hod_lib_class_no_loop as hods
 
 cosmo_params = names.cosmological_parameters
+
+
+def load_hods(block, section_name, suffix):
+    """
+    Loads and interpolates the hod quantities to match the
+    calculation of power spectra
+    """
+    Ncen = block[section_name, f'n_cen{suffix}']
+    Nsat = block[section_name, f'n_sat{suffix}']
+    numdencen = block[section_name, f'number_density_cen{suffix}']
+    numdensat = block[section_name, f'number_density_sat{suffix}']
+    f_c = block[section_name, f'central_fraction{suffix}']
+    f_s = block[section_name, f'satellite_fraction{suffix}']
+    mass_avg = block[section_name, f'average_halo_mass{suffix}']
+
+    #If we're using an unconditional HOD, we need to define the stellar fraction with zeros
+    try:
+        fstar = block[section_name, f'f_star{suffix}']
+    except:
+        fstar = np.zeros((len(z_hod), len(m_hod)))
+
+    return Ncen, Nsat, numdencen, numdensat, f_c, f_s, mass_avg, fstar
+
+
 
 # Used for reading data from a text file.
 def load_data(file_name):
@@ -139,115 +163,143 @@ def execute(block, config):
     hod_kwargs = {}
     hod_parameters = parameters_models[hod_model]
 
-    block.put_int(hod_section_name, 'nbins', nbins)
-    block.put_bool(hod_section_name, 'observable_z', observables_z)
+    #block.put_int(hod_section_name, 'nbins', nbins)
+    #block.put_bool(hod_section_name, 'observable_z', observables_z)
 
     dndlnM_grid = block['hmf', 'dndlnmh']
     mass = block['hmf', 'm_h']
     z_dn = block['hmf', 'z']
 
+    # set interpolator for the halo mass function
+    f_int_dndlnM = interp1d(
+        z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate',
+        bounds_error=False, axis=0
+    )
+
     hod_kwargs['A_cen'] = block[values_name, 'A_cen'] if block.has_value(values_name, 'A_cen') else None
     hod_kwargs['A_sat'] = block[values_name, 'A_sat'] if block.has_value(values_name, 'A_sat') else None
-
-    for nb in range(nbins):
-        suffix = f'_{nb+1}' if nbins != 1 else ''
-
-        for param in hod_parameters:
-            param_bin = param if hod_model == 'Cacciato' else f'{param}{suffix}'
-            if block.has_value(values_name, param_bin):
-                hod_kwargs[param] = block[values_name, param_bin]
-            else:
+        
+    # Dinamically load required HOD parameters givent the model and number of bins!
+    for param in hod_parameters:
+        if hod_model == 'Cacciato':
+            param_bin = param
+            if not block.has_value(values_name, param_bin):
                 raise Exception(f'Error: parameter {param} is needed for the requested hod model: {hod_model}')
+            hod_kwargs[param] = block[values_name, param_bin]
+        else:
+            param_list = []
+            for nb in range(nbins):
+                suffix = f'_{nb+1}' if nbins != 1 else ''
+                param_bin = f'{param}{suffix}'
+                if not block.has_value(values_name, param_bin):
+                    raise Exception(f'Error: parameter {param} is needed for the requested hod model: {hod_model}')
+                param_list.append(block[values_name, param_bin])
+            hod_kwargs[param] = np.array(param_list)
 
-        # set interpolator for the halo mass function
-        f_int_dndlnM = interp1d(
-            z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate',
+    dndlnM = f_int_dndlnM(z_bins)
+    hod_kwargs['mass'] = mass
+    hod_kwargs['obs'] = obs_simps
+    hod_kwargs['dndlnm'] = dndlnM
+    hod_kwargs['nz'] = nz
+
+    COF_class = getattr(hods, hod_model)(**hod_kwargs)
+
+    N_tot = COF_class.compute_hod
+    N_cen = COF_class.compute_hod_cen
+    N_sat = COF_class.compute_hod_sat
+    
+    if (N_sat < 0).any() or (N_cen < 0).any():
+        raise ValueError('Some HOD values are negative. Increase nobs for a more stable integral.')
+
+    if hod_model == 'Cacciato':
+        f_star = COF_class.compute_stellar_fraction
+        if observable_h_unit == valid_units[1]:
+            f_star = f_star * block['cosmological_parameters', 'h0']
+        #block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'f_star{suffix}', f_star)
+
+    #block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_sat{suffix}', N_sat)
+    #block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_cen{suffix}', N_cen)
+    #block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_tot{suffix}', N_tot)
+
+    numdens_cen = COF_class.compute_number_density_cen
+    numdens_sat = COF_class.compute_number_density_sat
+    numdens_tot = COF_class.compute_number_density
+    fraction_cen = numdens_cen / numdens_tot
+    fraction_sat = numdens_sat / numdens_tot
+    mass_avg = COF_class.compute_avg_halo_mass_cen / numdens_cen
+
+    #block.put_double_array_1d(hod_section_name, f'number_density_cen{suffix}', numdens_cen)
+    #block.put_double_array_1d(hod_section_name, f'number_density_sat{suffix}', numdens_sat)
+    #block.put_double_array_1d(hod_section_name, f'number_density_tot{suffix}', numdens_tot)
+    #block.put_double_array_1d(hod_section_name, f'central_fraction{suffix}', fraction_cen)
+    #block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat)
+    #block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg)
+    
+    
+    N_cen_old, N_sat_old, numdencen_old, numdensat_old, f_cen_old, f_sat_old, mass_avg_old, f_star_old = zip(*[
+        load_hods(block, hod_section_name, f'_{nb+1}' if nbins != 1 else '')
+        for nb in range(nbins)
+    ])
+    
+    #print(np.array(N_tot_old))
+    #print(N_tot)
+    print(np.array(N_cen_old).shape)
+    print(N_cen.shape)
+    print(np.allclose(N_cen, np.array(N_cen_old)))
+    print(np.allclose(N_sat, np.array(N_sat_old)))
+    print(np.allclose(numdens_cen, np.array(numdencen_old)))
+    print(np.allclose(numdens_sat, np.array(numdensat_old)))
+    print(np.allclose(fraction_cen, np.array(f_cen_old)))
+    print(np.allclose(fraction_sat, np.array(f_sat_old)))
+    print(np.allclose(mass_avg, np.array(mass_avg_old)))
+    print(np.allclose(f_star, np.array(f_star_old)))
+
+    if galaxy_bias_option:
+        z_hbf = block['halobias', 'z']
+        halobias_hbf = block['halobias', 'b_hb']
+        f_interp_halobias = interp1d(
+            z_hbf, halobias_hbf, kind='linear', fill_value='extrapolate',
             bounds_error=False, axis=0
         )
-        dndlnM = f_int_dndlnM(z_bins[nb])
-        hod_kwargs['mass'] = mass
-        hod_kwargs['obs'] = obs_simps[nb]
-        hod_kwargs['dndlnm'] = dndlnM
-        hod_kwargs['nz'] = nz
+        hbias = f_interp_halobias(z_bins)
 
-        COF_class = getattr(hods, hod_model)(**hod_kwargs)
+        galaxybias_cen = COF_class.compute_galaxy_linear_bias_cen(hbias) / numdens_tot
+        galaxybias_sat = COF_class.compute_galaxy_linear_bias_sat(hbias) / numdens_tot
+        galaxybias_tot = COF_class.compute_galaxy_linear_bias(hbias) / numdens_tot
+        
+        bias_old = []
+        for nb in range(nbins):
+            suffix = f'_{nb+1}'
+            bias_old.append(block[hod_section_name, f'b{suffix}'])
+        print('Bias: ', np.allclose(np.array(bias_old), galaxybias_tot))
 
-        N_tot = COF_class.compute_hod
-        N_cen = COF_class.compute_hod_cen
-        N_sat = COF_class.compute_hod_sat
-        if (N_sat < 0).any() or (N_cen < 0).any():
-            raise ValueError('Some HOD values are negative. Increase nobs for a more stable integral.')
+        #block.put_double_array_1d(hod_section_name, f'galaxy_bias_centrals{suffix}', galaxybias_cen)
+        #block.put_double_array_1d(hod_section_name, f'galaxy_bias_satellites{suffix}', galaxybias_sat)
+        #block.put_double_array_1d(hod_section_name, f'b{suffix}', galaxybias_tot)
 
-        if hod_model == 'Cacciato':
-            f_star = COF_class.compute_stellar_fraction
-            if observable_h_unit == valid_units[1]:
-                f_star = f_star * block['cosmological_parameters', 'h0']
-            block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'f_star{suffix}', f_star)
+    if save_observable and observable_mode == 'obs_z' and hod_model == 'Cacciato':
 
-        block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_sat{suffix}', N_sat)
-        block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_cen{suffix}', N_cen)
-        block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_tot{suffix}', N_tot)
-
-        numdens_cen = COF_class.compute_number_density_cen
-        numdens_sat = COF_class.compute_number_density_sat
-        numdens_tot = COF_class.compute_number_density
-        fraction_cen = numdens_cen / numdens_tot
-        fraction_sat = numdens_sat / numdens_tot
-        mass_avg = COF_class.compute_avg_halo_mass_cen / numdens_cen
-
-        block.put_double_array_1d(hod_section_name, f'number_density_cen{suffix}', numdens_cen)
-        block.put_double_array_1d(hod_section_name, f'number_density_sat{suffix}', numdens_sat)
-        block.put_double_array_1d(hod_section_name, f'number_density_tot{suffix}', numdens_tot)
-        block.put_double_array_1d(hod_section_name, f'central_fraction{suffix}', fraction_cen)
-        block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat)
-        block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg)
-
-        if galaxy_bias_option:
-            z_hbf = block['halobias', 'z']
-            halobias_hbf = block['halobias', 'b_hb']
-            f_interp_halobias = interp1d(
-                z_hbf, halobias_hbf, kind='linear', fill_value='extrapolate',
-                bounds_error=False, axis=0
-            )
-            hbias = f_interp_halobias(z_bins[nb])
-
-            galaxybias_cen = COF_class.compute_galaxy_linear_bias_cen(hbias) / numdens_tot
-            galaxybias_sat = COF_class.compute_galaxy_linear_bias_sat(hbias) / numdens_tot
-            galaxybias_tot = COF_class.compute_galaxy_linear_bias(hbias) / numdens_tot
-
-            block.put_double_array_1d(hod_section_name, f'galaxy_bias_centrals{suffix}', galaxybias_cen)
-            block.put_double_array_1d(hod_section_name, f'galaxy_bias_satellites{suffix}', galaxybias_sat)
-            block.put_double_array_1d(hod_section_name, f'b{suffix}', galaxybias_tot)
-
-        if save_observable and observable_mode == 'obs_z' and hod_model == 'Cacciato':
+        obs_old = []
+        for nb in range(nbins):
             suffix_obs = f'_{nb+1}'
-            nl_obs = nobs
-            obs_range = np.logspace(np.log10(obs_simps[nb].min()), np.log10(obs_simps[nb].max()), nl_obs)
+            obs_in = block[observable_section_name, f'obs_func{suffix_obs}']
+            obs_range_in = block[observable_section_name, f'obs_val{suffix_obs}']
+            obs_old.append(obs_in / (obs_range_in * np.log(10.0)))
 
-            obs_func_tmp = COF_class.obs_func()
-            obs_func_tmp_c = COF_class.obs_func_cen()
-            obs_func_tmp_s = COF_class.obs_func_sat()
+        obs_func_tmp = COF_class.obs_func
+        obs_func_tmp_c = COF_class.obs_func_cen
+        obs_func_tmp_s = COF_class.obs_func_sat
 
-            obs_func = np.array([
-                interp1d(obs_simps[nb, jz], obs_func_tmp[jz], kind='linear', bounds_error=False, fill_value=(0, 0))(obs_range)
-                for jz in range(nz)
-            ])
-            obs_func_c = np.array([
-                interp1d(obs_simps[nb, jz], obs_func_tmp_c[jz], kind='linear', bounds_error=False, fill_value=(0, 0))(obs_range)
-                for jz in range(nz)
-            ])
-            obs_func_s = np.array([
-                interp1d(obs_simps[nb, jz], obs_func_tmp_s[jz], kind='linear', bounds_error=False, fill_value=(0, 0))(obs_range)
-                for jz in range(nz)
-            ])
-            #print('Test SMF: ', np.allclose(obs_func_tmp, obs_func))
-            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range, f'obs_func{suffix_obs}', np.log(10.0) * obs_func * obs_range)
-            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range, f'obs_func_c{suffix_obs}', np.log(10.0) * obs_func_c * obs_range)
-            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range, f'obs_func_s{suffix_obs}', np.log(10.0) * obs_func_s * obs_range)
+        print('SMF: ', np.allclose(obs_func_tmp, obs_old))
+        
 
-    if save_observable:
-        block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
-        block.put(observable_section_name, 'observable_mode', observable_mode)
+        #block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range, f'obs_func{suffix_obs}', np.log(10.0) * obs_func * obs_range)
+        #block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range, f'obs_func_c{suffix_obs}', np.log(10.0) * obs_func_c * obs_range)
+        #block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range, f'obs_func_s{suffix_obs}', np.log(10.0) * obs_func_s * obs_range)
+
+    #if save_observable:
+    #    block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
+    #    block.put(observable_section_name, 'observable_mode', observable_mode)
 
     if hod_model == 'Cacciato':
         # Calculating the full stellar mass fraction and if desired the observable function for one bin case

@@ -65,7 +65,7 @@ sys.path.insert(0, "../hod")
 import hod_lib_class
 
 sys.path.insert(0, "../ia")
-import ia_radial_lib_class
+from ia_radial_lib_class import SatelliteAlignment
 
 # Helper functions borrowed from Alex Mead
 def Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB=2.7255):
@@ -847,7 +847,7 @@ class AlignmentSpectra(GalaxySpectra):
                 raise ValueError('f_c needs to have same length as number of bins provided')
             self.peff = (1.0 - self.t_eff) * self.matter_power_nl + self.t_eff * self.matter_power_lin
 
-        satellite_alignment = ia_radial_lib_class.SatelliteAlignment(**self.align_params)
+        satellite_alignment = SatelliteAlignment(**self.align_params)
         self.wkm_sat = satellite_alignment.upsampled_wkm(self.k_vec, self.mass)
         #print(np.allclose(self.wkm_sat, self.wkm_sat_old))
         
