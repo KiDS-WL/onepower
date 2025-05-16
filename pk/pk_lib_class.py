@@ -64,6 +64,9 @@ import sys
 sys.path.insert(0, "../hod")
 import hod_lib_class
 
+sys.path.insert(0, "../ia")
+import ia_radial_lib_class
+
 # Helper functions borrowed from Alex Mead
 def Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB=2.7255):
     """
@@ -816,6 +819,7 @@ class AlignmentSpectra(GalaxySpectra):
             mass_avg = None,
             matter_power_nl = None,
             fortuna = False,
+            align_params = {},
             **galaxy_spectra_kwargs
         ):
         
@@ -829,10 +833,11 @@ class AlignmentSpectra(GalaxySpectra):
         self.mass_avg = mass_avg
         self.t_eff = t_eff
         self.alignment_gi = alignment_gi
-        self.wkm_sat = wkm_sat
+        self.wkm_sat_old = wkm_sat
         self.growth_factor = growth_factor
         self.scale_factor = scale_factor
         self.fortuna = fortuna
+        self.align_params = align_params
         
         self.alignment_amplitude_2h, self.alignment_amplitude_2h_II, self.C1 = self.compute_two_halo_alignment
     
@@ -841,11 +846,10 @@ class AlignmentSpectra(GalaxySpectra):
             if not len(self.f_c) == self.nbins:
                 raise ValueError('f_c needs to have same length as number of bins provided')
             self.peff = (1.0 - self.t_eff) * self.matter_power_nl + self.t_eff * self.matter_power_lin
-            
-        self._central_alignment_profile = None
-        self._satellite_alignment_profile = None
-        self._Ic_align_term = None
-        self._Is_align_term = None
+
+        satellite_alignment = ia_radial_lib_class.SatelliteAlignment(**self.align_params)
+        self.wkm_sat = satellite_alignment.upsampled_wkm(self.k_vec, self.mass)
+        #print(np.allclose(self.wkm_sat, self.wkm_sat_old))
         
     def compute_central_galaxy_alignment_profile(self, scale_factor, growth_factor, f_c, C1, mass, beta=None, mpivot=None, mass_avg=None):
         """
@@ -946,13 +950,6 @@ class AlignmentSpectra(GalaxySpectra):
         self.C1 = C1 * self.alignment_gi[:, np.newaxis, np.newaxis]
     
         return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * self.alignment_gi[:, np.newaxis, np.newaxis]
-
-
-
-
-
-
-
 
     def compute_power_spectrum_mi(
             self,

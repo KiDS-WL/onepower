@@ -25,11 +25,11 @@ def setup(options):
     ell_max = options.get_int(option_section, 'ell_max', default=6)
     n_hankel = options.get_int(option_section, 'N_hankel', default=350)
 
-    return k_vec, nmass, suffix, n_hankel, ell_max
+    return k_vec, nmass, suffix, n_hankel, ell_max, nk, kmin, kmax
 
 def execute(block, config):
     
-    k_vec, nmass, suffix, n_hankel, ell_max = config
+    k_vec, nmass, suffix, n_hankel, ell_max, nk, kmin, kmax = config
     
     
     # Load slope of the power law that describes the satellite alignment
@@ -45,21 +45,23 @@ def execute(block, config):
     # and then downsample them to a lower resolution grid for the radial IA calculation
     # When downsampling we note that this doesn't need to be perfect, our final resolution does not need to
     # perfectly match the user input value - just as close as possible
-    mass_halo = block['concentration_m', 'm_h']
-    c_halo = block['concentration_m', 'c']
-    r_s_halo = block['nfw_scale_radius_m', 'rs']
-    rvir_halo = block['virial_radius', 'rvir_m']
+    mass = block['concentration_m', 'm_h']
+    c = block['concentration_m', 'c']
+    r_s = block['nfw_scale_radius_m', 'rs']
+    rvir = block['virial_radius', 'rvir_m']
+    
+    mass_out = mass.copy()
     
     align_params = {}
     align_params.update({
-        'mass': mass_halo,
-        'k_vec': k_vec,
+        'mass': mass,
         'z_vec': z,
-        'c': c_halo,
-        'r_s': r_s_halo,
-        'rvir': rvir_halo,
+        'c': c,
+        'r_s': r_s,
+        'rvir': rvir,
         'nmass': nmass,
         'n_hankel': n_hankel,
+        'nk': nk,
         'ell_max': ell_max,
         'gamma_1h_slope': gamma_1h_slope,
         'gamma_1h_amplitude': gamma_1h_amplitude
@@ -67,11 +69,14 @@ def execute(block, config):
     
     satellite_alignment = SatelliteAlignment(**align_params)
     wkm, z, mass, k = satellite_alignment.wkm()
+    
+    k_vec_out = block['fourier_nfw_profile', 'k_h']
+    wkm_up = satellite_alignment.upsampled_wkm(k_vec_out, mass_out)
 
     for jz in range(z.size):
         block.put_grid(
-            'wkm', f'mass_{jz}{suffix}', mass, f'k_h_{jz}{suffix}', k,
-            f'w_km_{jz}{suffix}', wkm[jz, :, :]
+            'wkm', f'mass_{jz}{suffix}', mass_out, f'k_h_{jz}{suffix}', k_vec_out,
+            f'w_km_{jz}{suffix}', wkm_up[jz, :, :]
         )
     block.put_double_array_1d('wkm', f'z{suffix}', z)
 

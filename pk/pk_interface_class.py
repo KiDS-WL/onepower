@@ -250,7 +250,7 @@ def execute(block, config):
             'growth_factor': growth_factor,
             'scale_factor': scale_factor,
             'alignment_gi': block[f'ia_large_scale_alignment{pop_name}', 'alignment_gi'],
-            'wkm_sat': pk_util.get_satellite_alignment(block, k_vec, mass, z_vec, pop_name),
+            'wkm_sat': pk_util.get_satellite_alignment_new(block, k_vec, mass, z_vec, pop_name),
             't_eff': block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0),
         })
 
@@ -275,6 +275,24 @@ def execute(block, config):
                 'beta_cen': None,
                 'mpivot_cen': None,
             })
+    
+        align_params = {}
+        align_params.update({
+            'mass': mass,
+            'z_vec': z_vec,
+            'c': block['concentration_m', 'c'],
+            'r_s': block['nfw_scale_radius_m', 'rs'],
+            'rvir': block['virial_radius', 'rvir_m'],
+            'nmass': 5,
+            'n_hankel': 350,
+            'nk': 10,
+            'ell_max': 6,
+            'gamma_1h_slope': block[f'intrinsic_alignment_parameters{pop_name}', 'gamma_1h_radial_slope'],
+            'gamma_1h_amplitude': block[f'ia_small_scale_alignment{pop_name}', 'alignment_1h']
+        })
+        align_kwargs.update({
+            'align_params': align_params,
+        })
 
     if matter:
         if mead_correction == 'fit':

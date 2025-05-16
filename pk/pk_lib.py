@@ -186,6 +186,16 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
         lg_wkm_interpolated = lg_w_interp2d((lgkk.T, lgmm.T)).T
         wkm[jz] = 10.0**(lg_wkm_interpolated) * k_vec**2.0
     return wkm
+    
+def get_satellite_alignment_new(block, k_vec, mass, z_vec, suffix):
+    """
+    Loads and interpolates the wkm profiles needed for calculating the IA power spectra
+    """
+    wkm = np.empty([z_vec.size, mass.size, k_vec.size])
+    for jz in range(z_vec.size):
+        wkm_tmp = block['wkm', f'w_km_{jz}{suffix}']
+        wkm[jz, :, :] = wkm_tmp
+    return wkm
 
 def load_hods(block, section_name, suffix, z_vec, mass):
     """

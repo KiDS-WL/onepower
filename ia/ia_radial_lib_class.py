@@ -10,7 +10,6 @@ class SatelliteAlignment:
     def __init__(
             self,
             mass = None,
-            k_vec = None,
             z_vec = None,
             c = None,
             r_s = None,
@@ -19,11 +18,13 @@ class SatelliteAlignment:
             gamma_1h_amplitude = None,
             n_hankel = 350,
             nmass = 5,
+            nk = 10,
             ell_max = 6,
             truncate = False
         ):
         
-        self.k_vec_d = k_vec
+        self.k_vec = np.logspace(np.log10(1e-3), np.log10(1e3), nk)
+        self.nk = nk
         self.nmass = nmass
         self.n_hankel = n_hankel
         self.ell_max = ell_max
@@ -37,23 +38,22 @@ class SatelliteAlignment:
         # Also load the redshift dimension
         self.z_vec = z_vec
         nz = self.z_vec.size
-
-        self.mass = mass
-        self.nmass_halo = self.mass.size
-        self.c = c
-        self.r_s = r_s
-        self.rvir = rvir
         
-        if self.nmass_halo < self.nmass:
+        self.mass_in = mass
+        self.c_in = c
+        self.r_s_in = r_s
+        self.rvir_in = rvir
+        
+        if self.mass_in.size < self.nmass:
             raise ValueError(
                 "The halo mass resolution is too low for the radial IA calculation. "
                 "Please increase nmass when you run halo_model_ingredients.py"
             )
-        self.mass_d, self.c_d, self.r_s_d, self.rvir_d = self.downsample_halo_parameters(
-            self.nmass_halo, self.nmass, self.mass, self.c, self.r_s, self.rvir
+        self.mass, self.c, self.r_s, self.rvir = self.downsample_halo_parameters(
+            self.mass_in.size, self.nmass, self.mass_in, self.c_in, self.r_s_in, self.rvir_in
         )
         
-        # CCL and Fortuna use ell_max=6.  SB10 uses ell_max = 2.
+        # CCL and Fortuna use ell_max=6. SB10 uses ell_max = 2.
         # Higher/lower increases/decreases accuracy but slows/speeds the code
         if self.ell_max > 11:
             raise ValueError("Please reduce ell_max < 11 or update ia_radial_interface.py")
@@ -69,28 +69,28 @@ class SatelliteAlignment:
         
     def downsample_halo_parameters(
             self,
-            nmass_halo,
-            nmass_setup,
-            mass_halo,
-            c_halo,
-            r_s_halo,
-            rvir_halo
+            nmass,
+            nmass_in,
+            mass_in,
+            c_in,
+            r_s_in,
+            rvir_in
         ):
-        if nmass_halo == nmass_setup:
-            return mass_halo, c_halo, r_s_halo, rvir_halo
+        if nmass == nmass_in:
+            return mass_in, c_in, r_s_in, rvir_in
 
-        downsample_factor = nmass_halo // nmass_setup
-        mass = mass_halo[::downsample_factor]
-        c = c_halo[:, ::downsample_factor]
-        r_s = r_s_halo[:, ::downsample_factor]
-        rvir = rvir_halo[::downsample_factor]
+        downsample_factor = nmass // nmass_in
+        mass = mass_in[::downsample_factor]
+        c = c_in[:, ::downsample_factor]
+        r_s = r_s_in[:, ::downsample_factor]
+        rvir = rvir_in[::downsample_factor]
 
         # We make sure that the highest mass is included to avoid extrapolation issues
-        if mass[-1] != mass_halo[-1]:
-            mass = np.append(mass, mass_halo[-1])
-            c = np.concatenate((c, np.atleast_2d(c_halo[:, -1]).T), axis=1)
-            r_s = np.concatenate((r_s, np.atleast_2d(r_s_halo[:, -1]).T), axis=1)
-            rvir = np.append(rvir, rvir_halo[-1])
+        if mass[-1] != mass_in[-1]:
+            mass = np.append(mass, mass_in[-1])
+            c = np.concatenate((c, np.atleast_2d(c_in[:, -1]).T), axis=1)
+            r_s = np.concatenate((r_s, np.atleast_2d(r_s_in[:, -1]).T), axis=1)
+            rvir = np.append(rvir, rvir_in[-1])
 
         return mass, c, r_s, rvir
         
@@ -197,33 +197,40 @@ class SatelliteAlignment:
         It's also difficult to decide how to define the transition between the two methods.
         Given that low-k accuracy is unimportant for IA, I've decided to use the Hankel transform for all k values.
         """
-        mnfw = 4.0 * np.pi * self.r_s_d**3.0 * (np.log(1.0 + self.c_d) - self.c_d / (1.0 + self.c_d))
-        uk_l = np.zeros([self.ell_values.size, self.z_vec.size, self.mass_d.size, self.k_vec_d.size])
+        mnfw = 4.0 * np.pi * self.r_s**3.0 * (np.log(1.0 + self.c) - self.c / (1.0 + self.c))
+        uk_l = np.zeros([self.ell_values.size, self.z_vec.size, self.mass.size, self.k_vec.size])
 
         for i, ell in enumerate(self.ell_values):
             for jz in range(self.z_vec.size):
-                for im in range(self.mass_d.size):
-                    nfw_f = lambda x: self.gamma_r_nfw_profile(x, self.r_s_d[jz, im], self.rvir_d[im], self.gamma_1h_amplitude[jz], self.gamma_1h_slope, truncate=self.truncate) * np.sqrt((x * np.pi) / 2.0)
-                    uk_l[i, jz, im, :] = self.hankel[i].transform(nfw_f, self.k_vec_d)[0] / (self.k_vec_d**0.5 * mnfw[jz, im])
+                for im in range(self.mass.size):
+                    nfw_f = lambda x: self.gamma_r_nfw_profile(x, self.r_s[jz, im], self.rvir[im], self.gamma_1h_amplitude[jz], self.gamma_1h_slope, truncate=self.truncate) * np.sqrt((x * np.pi) / 2.0)
+                    uk_l[i, jz, im, :] = self.hankel[i].transform(nfw_f, self.k_vec)[0] / (self.k_vec**0.5 * mnfw[jz, im])
         return uk_l
 
     def wkm(self):
         #wkm_out = self.wkm_f_ell
-        return self.wkm_f_ell, self.z_vec, self.mass_d, self.k_vec_d
+        return self.wkm_f_ell, self.z_vec, self.mass, self.k_vec
     
-    def upsampled_wkm(k_vec, mass, z_vec):
+    def upsampled_wkm(self, k_vec_out, mass_out):
         """
         Interpolates the wkm profiles and upsamples back to original grid
         """
-        wkm_out = np.empty([z_vec.size, mass.size, k_vec.size])
-        for jz in range(z_vec.size):
+        wkm_out = np.empty([self.z_vec.size, mass_out.size, k_vec_out.size])
+        for jz in range(self.z_vec.size):
+            # Create the interpolator
             lg_w_interp2d = RegularGridInterpolator(
-                (np.log10(self.k_vec_d).T, np.log10(self.mass_d).T),
-                np.log10(self.wkm_f_ell / self.k_vec_d**2).T,
+                (np.log10(self.k_vec).T, np.log10(self.mass).T),
+                np.log10(self.wkm_f_ell[jz, :, :] / self.k_vec**2).T,
                 bounds_error=False,
                 fill_value=None
             )
-            lgkk, lgmm = np.meshgrid(np.log10(k_vec), np.log10(mass), sparse=True)
+            
+            # Prepare the grid for interpolation
+            lgkk, lgmm = np.meshgrid(np.log10(k_vec_out), np.log10(mass_out), sparse=True)
+            
+            # Interpolate the values
             lg_wkm_interpolated = lg_w_interp2d((lgkk.T, lgmm.T)).T
-            wkm_out[jz] = 10.0**(lg_wkm_interpolated) * k_vec**2.0
+            
+            # Convert back to original scale
+            wkm_out[jz, :, :] = 10.0**(lg_wkm_interpolated) * k_vec_out**2.0
         return wkm_out
