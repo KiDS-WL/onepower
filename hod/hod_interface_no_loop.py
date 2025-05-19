@@ -159,12 +159,15 @@ def execute(block, config):
     observable_h_unit = config['observable_h_unit']
     valid_units = config['valid_units']
     hod_model = config['hod_model']
+    
+    if save_observable:
+        block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
+        block.put(observable_section_name, 'observable_mode', observable_mode)
+    block.put_int(hod_section_name, 'nbins', nbins)
+    block.put_bool(hod_section_name, 'observable_z', observables_z)
 
     hod_kwargs = {}
     hod_parameters = parameters_models[hod_model]
-
-    #block.put_int(hod_section_name, 'nbins', nbins)
-    #block.put_bool(hod_section_name, 'observable_z', observables_z)
 
     dndlnM_grid = block['hmf', 'dndlnmh']
     mass = block['hmf', 'm_h']
@@ -215,11 +218,9 @@ def execute(block, config):
         f_star = COF_class.compute_stellar_fraction
         if observable_h_unit == valid_units[1]:
             f_star = f_star * block['cosmological_parameters', 'h0']
-        #block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'f_star{suffix}', f_star)
-
-    #block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_sat{suffix}', N_sat)
-    #block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_cen{suffix}', N_cen)
-    #block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_tot{suffix}', N_tot)
+        for nb in range(nbins):
+            suffix = f'_{nb+1}'
+            block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'f_star{suffix}', f_star[nb])
 
     numdens_cen = COF_class.compute_number_density_cen
     numdens_sat = COF_class.compute_number_density_sat
@@ -227,32 +228,18 @@ def execute(block, config):
     fraction_cen = numdens_cen / numdens_tot
     fraction_sat = numdens_sat / numdens_tot
     mass_avg = COF_class.compute_avg_halo_mass_cen / numdens_cen
-
-    #block.put_double_array_1d(hod_section_name, f'number_density_cen{suffix}', numdens_cen)
-    #block.put_double_array_1d(hod_section_name, f'number_density_sat{suffix}', numdens_sat)
-    #block.put_double_array_1d(hod_section_name, f'number_density_tot{suffix}', numdens_tot)
-    #block.put_double_array_1d(hod_section_name, f'central_fraction{suffix}', fraction_cen)
-    #block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat)
-    #block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg)
     
-    
-    N_cen_old, N_sat_old, numdencen_old, numdensat_old, f_cen_old, f_sat_old, mass_avg_old, f_star_old = zip(*[
-        load_hods(block, hod_section_name, f'_{nb+1}' if nbins != 1 else '')
-        for nb in range(nbins)
-    ])
-    
-    #print(np.array(N_tot_old))
-    #print(N_tot)
-    print(np.array(N_cen_old).shape)
-    print(N_cen.shape)
-    print(np.allclose(N_cen, np.array(N_cen_old)))
-    print(np.allclose(N_sat, np.array(N_sat_old)))
-    print(np.allclose(numdens_cen, np.array(numdencen_old)))
-    print(np.allclose(numdens_sat, np.array(numdensat_old)))
-    print(np.allclose(fraction_cen, np.array(f_cen_old)))
-    print(np.allclose(fraction_sat, np.array(f_sat_old)))
-    print(np.allclose(mass_avg, np.array(mass_avg_old)))
-    print(np.allclose(f_star, np.array(f_star_old)))
+    for nb in range(nbins):
+        suffix = f'_{nb+1}'
+        block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_sat{suffix}', N_sat[nb])
+        block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_cen{suffix}', N_cen[nb])
+        block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_tot{suffix}', N_tot[nb])
+        block.put_double_array_1d(hod_section_name, f'number_density_cen{suffix}', numdens_cen[nb])
+        block.put_double_array_1d(hod_section_name, f'number_density_sat{suffix}', numdens_sat[nb])
+        block.put_double_array_1d(hod_section_name, f'number_density_tot{suffix}', numdens_tot[nb])
+        block.put_double_array_1d(hod_section_name, f'central_fraction{suffix}', fraction_cen[nb])
+        block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat[nb])
+        block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg[nb])
 
     if galaxy_bias_option:
         z_hbf = block['halobias', 'z']
@@ -267,45 +254,30 @@ def execute(block, config):
         galaxybias_sat = COF_class.compute_galaxy_linear_bias_sat(hbias) / numdens_tot
         galaxybias_tot = COF_class.compute_galaxy_linear_bias(hbias) / numdens_tot
         
-        bias_old = []
         for nb in range(nbins):
             suffix = f'_{nb+1}'
-            bias_old.append(block[hod_section_name, f'b{suffix}'])
-        print('Bias: ', np.allclose(np.array(bias_old), galaxybias_tot))
-
-        #block.put_double_array_1d(hod_section_name, f'galaxy_bias_centrals{suffix}', galaxybias_cen)
-        #block.put_double_array_1d(hod_section_name, f'galaxy_bias_satellites{suffix}', galaxybias_sat)
-        #block.put_double_array_1d(hod_section_name, f'b{suffix}', galaxybias_tot)
+            block.put_double_array_1d(hod_section_name, f'galaxy_bias_centrals{suffix}', galaxybias_cen[nb])
+            block.put_double_array_1d(hod_section_name, f'galaxy_bias_satellites{suffix}', galaxybias_sat[nb])
+            block.put_double_array_1d(hod_section_name, f'b{suffix}', galaxybias_tot[nb])
 
     if save_observable and observable_mode == 'obs_z' and hod_model == 'Cacciato':
+    
+        obs_func = COF_class.obs_func
+        obs_func_c = COF_class.obs_func_cen
+        obs_func_s = COF_class.obs_func_sat
 
-        obs_old = []
         for nb in range(nbins):
             suffix_obs = f'_{nb+1}'
-            obs_in = block[observable_section_name, f'obs_func{suffix_obs}']
-            obs_range_in = block[observable_section_name, f'obs_val{suffix_obs}']
-            obs_old.append(obs_in / (obs_range_in * np.log(10.0)))
-
-        obs_func_tmp = COF_class.obs_func
-        obs_func_tmp_c = COF_class.obs_func_cen
-        obs_func_tmp_s = COF_class.obs_func_sat
-
-        print('SMF: ', np.allclose(obs_func_tmp, obs_old))
-        
-
-        #block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range, f'obs_func{suffix_obs}', np.log(10.0) * obs_func * obs_range)
-        #block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range, f'obs_func_c{suffix_obs}', np.log(10.0) * obs_func_c * obs_range)
-        #block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_range, f'obs_func_s{suffix_obs}', np.log(10.0) * obs_func_s * obs_range)
-
-    #if save_observable:
-    #    block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
-    #    block.put(observable_section_name, 'observable_mode', observable_mode)
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_simps[nb, 0, :], f'obs_func{suffix_obs}', np.log(10.0) * obs_func[nb, 0, :] * obs_simps[nb])
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_simps[nb, 0, :], f'obs_func_c{suffix_obs}', np.log(10.0) * obs_func_c[nb, 0, :] * obs_simps[nb])
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_simps[nb, 0, :], f'obs_func_s{suffix_obs}', np.log(10.0) * obs_func_s[nb, 0, :] * obs_simps[nb])
 
     if hod_model == 'Cacciato':
         # Calculating the full stellar mass fraction and if desired the observable function for one bin case
         nl_obs = 100
         nl_z = 15
-        z_bins_one = np.linspace(z_bins.min(), z_bins.max(), nl_z)
+        
+        z_bins_one = np.array([np.linspace(z_bins.min(), z_bins.max(), nl_z)])
         f_mass_z_one = interp1d(
             z_dn, dndlnM_grid, kind='linear', fill_value='extrapolate',
             bounds_error=False, axis=0
@@ -316,9 +288,8 @@ def execute(block, config):
             np.logspace(np.log10(obs_simps.min()), np.log10(obs_simps.max()), nl_obs)
             for _ in range(nl_z)
         ])
-        obs_func = np.empty([nl_z, nl_obs])
 
-        hod_kwargs['obs'] = obs_range
+        hod_kwargs['obs'] = obs_range[np.newaxis, :]
         hod_kwargs['dndlnm'] = dn_dlnM_one
         hod_kwargs['nz'] = nl_z
         COF_class_onebin = getattr(hods, hod_model)(**hod_kwargs)
@@ -326,16 +297,17 @@ def execute(block, config):
         f_star_mm = COF_class_onebin.compute_stellar_fraction
         if observable_h_unit == valid_units[1]:
             f_star_mm = f_star_mm * block['cosmological_parameters', 'h0']
-        block.put_grid(hod_section_name, 'z_extended', z_bins_one, 'mass_extended', mass, 'f_star_extended', f_star_mm)
+            
+        block.put_grid(hod_section_name, 'z_extended', z_bins_one[0], 'mass_extended', mass, 'f_star_extended', f_star_mm[0])
 
         if save_observable and observable_mode == 'obs_onebin':
-            obs_func = COF_class_onebin.obs_func()
-            obs_func_c = COF_class_onebin.obs_func_cen()
-            obs_func_s = COF_class_onebin.obs_func_sat()
+            obs_func = COF_class_onebin.obs_func
+            obs_func_c = COF_class_onebin.obs_func_cen
+            obs_func_s = COF_class_onebin.obs_func_sat
 
-            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one, 'obs_val_1', obs_range[0], 'obs_func_1', np.log(10.0) * obs_func * obs_range[0])
-            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one, 'obs_val_1', obs_range[0], 'obs_func_c_1', np.log(10.0) * obs_func_c * obs_range[0])
-            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one, 'obs_val_1', obs_range[0], 'obs_func_s_1', np.log(10.0) * obs_func_s * obs_range[0])
+            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one[0], 'obs_val_1', obs_range[0], 'obs_func_1', np.log(10.0) * obs_func[0] * obs_range[0])
+            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one[0], 'obs_val_1', obs_range[0], 'obs_func_c_1', np.log(10.0) * obs_func_c[0] * obs_range[0])
+            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one[0], 'obs_val_1', obs_range[0], 'obs_func_s_1', np.log(10.0) * obs_func_s[0] * obs_range[0])
 
         if save_observable and observable_mode == 'obs_zmed':
             f_mass_z_dn = interp1d(
@@ -346,21 +318,21 @@ def execute(block, config):
 
             obs_range = np.logspace(np.log10(obs_simps.min()), np.log10(obs_simps.max()), nobs)
 
-            hod_kwargs['obs'] = obs_range[np.newaxis, :]
-            hod_kwargs['dndlnm'] = dn_dlnM_zmedian[np.newaxis, :]
+            hod_kwargs['obs'] = obs_range[np.newaxis, np.newaxis, :]
+            hod_kwargs['dndlnm'] = dn_dlnM_zmedian[np.newaxis, np.newaxis, :]
             hod_kwargs['nz'] = 1
             COF_class_zmed = getattr(hods, hod_model)(**hod_kwargs)
 
-            obs_func = COF_class_zmed.obs_func()[0]
-            obs_func_c = COF_class_zmed.obs_func_cen()[0]
-            obs_func_s = COF_class_zmed.obs_func_sat()[0]
+            obs_func = COF_class_zmed.obs_func
+            obs_func_c = COF_class_zmed.obs_func_cen
+            obs_func_s = COF_class_zmed.obs_func_sat
 
             block.put_double_array_1d(observable_section_name, 'obs_val_med', obs_range)
-            block.put_double_array_1d(observable_section_name, 'obs_func_med', np.log(10.) * obs_func * obs_range)
-            block.put_double_array_1d(observable_section_name, 'obs_func_med_c', np.log(10.) * obs_func_c * obs_range)
-            block.put_double_array_1d(observable_section_name, 'obs_func_med_s', np.log(10.) * obs_func_s * obs_range)
+            block.put_double_array_1d(observable_section_name, 'obs_func_med', np.log(10.0) * obs_func[0, 0, :] * obs_range)
+            block.put_double_array_1d(observable_section_name, 'obs_func_med_c', np.log(10.0) * obs_func_c[0, 0, :] * obs_range)
+            block.put_double_array_1d(observable_section_name, 'obs_func_med_s', np.log(10.0) * obs_func_s[0, 0, :] * obs_range)
 
-            mean_obs_cen = COF_class_zmed.cal_mean_obs_c.T[0]
+            mean_obs_cen = COF_class_zmed.cal_mean_obs_c[0, 0, :]
 
             block.put_double_array_1d(observable_section_name, 'halo_mass_med', mass)
             block.put_double_array_1d(observable_section_name, 'mean_obs_halo_mass_relation', mean_obs_cen)
