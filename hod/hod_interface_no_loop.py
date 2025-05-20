@@ -122,15 +122,17 @@ def setup(options):
 
     obs_simps = np.array([[np.logspace(log_obs_min[nb, jz], log_obs_max[nb, jz], nobs) for jz in range(nz)] for nb in range(nbins)])
 
-    hod_kwargs = {}
-    hod_kwargs['obs_min'] = np.asarray([options[option_section, 'log10_obs_min']]).flatten()
-    hod_kwargs['obs_max'] = np.asarray([options[option_section, 'log10_obs_max']]).flatten()
-    hod_kwargs['zmin'] = np.asarray([options[option_section, 'zmin']]).flatten()
-    hod_kwargs['zmax'] = np.asarray([options[option_section, 'zmax']]).flatten()
-    hod_kwargs['nz'] = options[option_section, 'nz']
-    #hod_kwargs['nobs'] = options[option_section, 'nobs']
+    hod_settings = {}
     if options.has_value(option_section, 'observables_file'):
-        hod_kwargs['observables_file'] = options.get_string(option_section, 'observables_file')
+        hod_settings['observables_file'] = options.get_string(option_section, 'observables_file')
+    else:
+        hod_settings['observables_file'] = None
+        hod_settings['obs_min'] = np.asarray([options[option_section, 'log10_obs_min']]).flatten()
+        hod_settings['obs_max'] = np.asarray([options[option_section, 'log10_obs_max']]).flatten()
+        hod_settings['zmin'] = np.asarray([options[option_section, 'zmin']]).flatten()
+        hod_settings['zmax'] = np.asarray([options[option_section, 'zmax']]).flatten()
+        hod_settings['nz'] = options[option_section, 'nz']
+    #hod_settings['nobs'] = options[option_section, 'nobs']
     
     return {
         'obs_simps': obs_simps,
@@ -149,7 +151,7 @@ def setup(options):
         'observable_h_unit': observable_h_unit,
         'valid_units': valid_units,
         'hod_model': hod_model,
-        'hod_kwargs': hod_kwargs,
+        'hod_settings': hod_settings,
     }
 
 def execute(block, config):
@@ -170,7 +172,7 @@ def execute(block, config):
     observable_h_unit = config['observable_h_unit']
     valid_units = config['valid_units']
     hod_model = config['hod_model']
-    hod_kwargs = config['hod_kwargs']
+    hod_settings = config['hod_settings']
     
     if save_observable:
         block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
@@ -178,7 +180,7 @@ def execute(block, config):
     block.put_int(hod_section_name, 'nbins', nbins)
     block.put_bool(hod_section_name, 'observable_z', observables_z)
 
-    #hod_kwargs = {}
+    hod_kwargs = {}
     hod_parameters = parameters_models[hod_model]
 
     dndlnM_grid = block['hmf', 'dndlnmh']
@@ -205,11 +207,12 @@ def execute(block, config):
                 param_list.append(block[values_name, param_bin])
             hod_kwargs[param] = np.array(param_list)
 
+    hod_settings['nobs'] = nobs
     hod_kwargs['mass'] = mass
-    hod_kwargs['nobs'] = nobs
     hod_kwargs['dndlnm'] = dndlnM_grid
     hod_kwargs['z_vec'] = z_dn
     hod_kwargs['halobias'] = block['halobias', 'b_hb']
+    hod_kwargs['hod_settings'] = hod_settings
 
     COF_class = getattr(hods, hod_model)(**hod_kwargs)
 
@@ -273,12 +276,13 @@ def execute(block, config):
 
     if hod_model == 'Cacciato':
         # Calculating the full stellar mass fraction and if desired the observable function for one bin case
-        hod_kwargs['nz'] = 15
-        hod_kwargs['nobs'] = 100
-        hod_kwargs['obs_min'] = np.array([np.log10(obs_simps.min())])
-        hod_kwargs['obs_max'] = np.array([np.log10(obs_simps.max())])
-        hod_kwargs['zmin'] = np.array([z_bins.min()])
-        hod_kwargs['zmax'] = np.array([z_bins.max()])
+        hod_settings['nz'] = 15
+        hod_settings['nobs'] = 100
+        hod_settings['obs_min'] = np.array([np.log10(obs_simps.min())])
+        hod_settings['obs_max'] = np.array([np.log10(obs_simps.max())])
+        hod_settings['zmin'] = np.array([z_bins.min()])
+        hod_settings['zmax'] = np.array([z_bins.max()])
+        hod_kwargs['hod_settings'] = hod_settings
         COF_class_onebin = getattr(hods, hod_model)(**hod_kwargs)
         z_bins_one = COF_class_onebin.z
 
@@ -299,12 +303,13 @@ def execute(block, config):
 
         if save_observable and observable_mode == 'obs_zmed':
 
-            hod_kwargs['obs_min'] = np.array([np.log10(obs_simps.min())])
-            hod_kwargs['obs_max'] = np.array([np.log10(obs_simps.max())])
-            hod_kwargs['nobs'] = nobs
-            hod_kwargs['nz'] = 1
-            hod_kwargs['zmin'] = np.array([z_median])
-            hod_kwargs['zmax'] = np.array([z_median])
+            hod_settings['obs_min'] = np.array([np.log10(obs_simps.min())])
+            hod_settings['obs_max'] = np.array([np.log10(obs_simps.max())])
+            hod_settings['nobs'] = nobs
+            hod_settings['nz'] = 1
+            hod_settings['zmin'] = np.array([z_median])
+            hod_settings['zmax'] = np.array([z_median])
+            hod_kwargs['hod_settings'] = hod_settings
             COF_class_zmed = getattr(hods, hod_model)(**hod_kwargs)
 
             obs_func = COF_class_zmed.obs_func

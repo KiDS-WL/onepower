@@ -132,6 +132,7 @@ def setup(options):
     alignment = False
 
     hod_section_name = options.get_string(option_section, 'hod_section_name')
+    hod_values_name = options.get_string(option_section, 'hod_values_name', default='hod_parameters').lower()
 
     matter = p_mm
     galaxy = p_gg or p_gm
@@ -156,26 +157,47 @@ def setup(options):
     if mead_correction == 'fit' and not options.has_value(option_section, 'hod_section_name'):
         raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon feedback one needs to provide the hod section name of used hod!')
 
-    hod_kwargs = {}
-    hod_parameters = parameters_models['Cacciato']
-    hod_kwargs['obs_min'] = np.asarray([options['hod_red_nb', 'log10_obs_min']]).flatten()
-    hod_kwargs['obs_max'] = np.asarray([options['hod_red_nb', 'log10_obs_max']]).flatten()
-    hod_kwargs['zmin'] = np.asarray([options['hod_red_nb', 'zmin']]).flatten()
-    hod_kwargs['zmax'] = np.asarray([options['hod_red_nb', 'zmax']]).flatten()
-    hod_kwargs['nz'] = options['hod_red_nb', 'nz']
-    hod_kwargs['nobs'] = options['hod_red_nb', 'nobs']
-    hod_kwargs2 = {}
-    #hod_kwargs['save_observable'] = options.get_bool('hod_red_nb', 'save_observable', default=True)
-    hod_kwargs2['observable_mode'] = options.get_string('hod_red_nb', 'observable_mode', default='obs_z')
-    hod_kwargs2['observable_h_unit'] = options.get_string('hod_red_nb', 'observable_h_unit', default='1/h^2').lower()
-    hod_kwargs2['z_med'] = options.get_double('hod_red_nb', 'z_median', default=0.1)
+    hod_model = 'Cacciato'
+
+    hod_params = {}
+    hod_settings = {}
+    if options.has_value(hod_section_name, 'observables_file'):
+        hod_settings['observables_file'] = options.get_string(hod_section_name, 'observables_file')
+    else:
+        hod_settings['observables_file'] = None
+        hod_settings['obs_min'] = np.asarray([options[hod_section_name, 'log10_obs_min']]).flatten()
+        hod_settings['obs_max'] = np.asarray([options[hod_section_name, 'log10_obs_max']]).flatten()
+        hod_settings['zmin'] = np.asarray([options[hod_section_name, 'zmin']]).flatten()
+        hod_settings['zmax'] = np.asarray([options[hod_section_name, 'zmax']]).flatten()
+        hod_settings['nz'] = options[hod_section_name, 'nz']
+    hod_settings['nobs'] = options[hod_section_name, 'nobs']
+    #hod_settings['save_observable'] = options.get_bool(hod_section_name, 'save_observable', default=True)
+    hod_settings['observable_mode'] = options.get_string(hod_section_name, 'observable_mode', default='obs_z')
+    hod_settings['observable_h_unit'] = options.get_string(hod_section_name, 'observable_h_unit', default='1/h^2').lower()
+    hod_settings['z_med'] = options.get_double(hod_section_name, 'z_median', default=0.1)
+    
+    hod_settings_mm = {}
+    if options.has_value(hod_section_name, 'observables_file'):
+        hod_settings_mm['observables_file'] = options.get_string(hod_section_name, 'observables_file')
+    else:
+        hod_settings_mm['observables_file'] = None
+        hod_settings_mm['obs_min'] = np.array([hod_settings['obs_min'].min()])
+        hod_settings_mm['obs_max'] = np.array([hod_settings['obs_max'].max()])
+        hod_settings_mm['zmin'] = np.array([hod_settings['zmin'].min()])
+        hod_settings_mm['zmax'] = np.array([hod_settings['zmax'].max()])
+        hod_settings_mm['nz'] = 15
+    hod_settings_mm['nobs'] = 100
+    #hod_settings_mm['save_observable'] = options.get_bool(hod_section_name, 'save_observable', default=True)
+    hod_settings_mm['observable_mode'] = options.get_string(hod_section_name, 'observable_mode', default='obs_z')
+    hod_settings_mm['observable_h_unit'] = options.get_string(hod_section_name, 'observable_h_unit', default='1/h^2').lower()
+    hod_settings_mm['z_med'] = options.get_double(hod_section_name, 'z_median', default=0.1)
     
 
-    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_kwargs, hod_kwargs2
+    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, hod_values_name
 
 def execute(block, config):
     """Execute function to compute power spectra based on configuration."""
-    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_kwargs, hod_kwargs2 = config
+    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, hod_values_name = config
 
     matter_kwargs = {
         'mead_correction': mead_correction,
@@ -255,45 +277,51 @@ def execute(block, config):
 
         galaxy_kwargs.update({
             'u_sat': u_sat,
-            'Ncen': np.array(N_cen),
-            'Nsat': np.array(N_sat),
-            'numdencen': np.array(numdencen),
-            'numdensat': np.array(numdensat),
-            'f_c': np.array(f_cen),
-            'f_s': np.array(f_sat),
-            'nbins': hod_bins,
+            #'Ncen': np.array(N_cen),
+            #'Nsat': np.array(N_sat),
+            #'numdencen': np.array(numdencen),
+            #'numdensat': np.array(numdensat),
+            #'f_c': np.array(f_cen),
+            #'f_s': np.array(f_sat),
+            #'nbins': hod_bins,
             'pointmass': point_mass,
+            #'mass_avg': mass_avg,
         })
         
-        hod_kwargs['A_cen'] = block['hod_parameters_red', 'A_cen'] if block.has_value('hod_parameters_red', 'A_cen') else None
-        hod_kwargs['A_sat'] = block['hod_parameters_red', 'A_sat'] if block.has_value('hod_parameters_red', 'A_sat') else None
-        hod_model = 'Cacciato'
+        hod_params['A_cen'] = block[hod_values_name, 'A_cen'] if block.has_value(hod_values_name, 'A_cen') else None
+        hod_params['A_sat'] = block[hod_values_name, 'A_sat'] if block.has_value(hod_values_name, 'A_sat') else None
         hod_parameters = parameters_models[hod_model]
         # Dinamically load required HOD parameters givent the model and number of bins!
         for param in hod_parameters:
             if hod_model == 'Cacciato':
                 param_bin = param
-                if not block.has_value('hod_parameters_red', param_bin):
+                if not block.has_value(hod_values_name, param_bin):
                     raise Exception(f'Error: parameter {param} is needed for the requested hod model: {hod_model}')
-                hod_kwargs[param] = block['hod_parameters_red', param_bin]
+                hod_params[param] = block[hod_values_name, param_bin]
             else:
                 param_list = []
                 for nb in range(nbins):
                     suffix = f'_{nb+1}' if nbins != 1 else ''
                     param_bin = f'{param}{suffix}'
-                    if not block.has_value('hod_parameters_red', param_bin):
+                    if not block.has_value(hod_values_name, param_bin):
                         raise Exception(f'Error: parameter {param} is needed for the requested hod model: {hod_model}')
-                    param_list.append(block['hod_parameters_red', param_bin])
-                hod_kwargs[param] = np.array(param_list)
+                    param_list.append(block[hod_values_name, param_bin])
+                hod_params[param] = np.array(param_list)
         galaxy_kwargs.update({
-            'hod_params': hod_kwargs,
-            'hod_settings': hod_kwargs2
+            'hod_model': hod_model,
+            'hod_params': hod_params,
+            'hod_settings': hod_settings
         })
+    matter_kwargs.update({
+        'hod_model_mm': hod_model,
+        'hod_params_mm': hod_params,
+        'hod_settings_mm': hod_settings_mm
+    })
     
     if alignment:
         align_kwargs.update({
             'fortuna': fortuna,
-            'mass_avg': np.array(mass_avg),
+            #'mass_avg': np.array(mass_avg),
             'growth_factor': growth_factor,
             'scale_factor': scale_factor,
             'alignment_gi': block[f'ia_large_scale_alignment{pop_name}', 'alignment_gi'],

@@ -136,6 +136,9 @@ class MatterSpectra:
             bnl = False,
             beta_nl = None,
             mead_correction = None,
+            hod_model_mm = 'Cacciato',
+            hod_params_mm = {},
+            hod_settings_mm = {},
         ):
         
         self.z_vec = z_vec
@@ -156,13 +159,6 @@ class MatterSpectra:
         self.u_dm = u_dm
         self.mead_correction = mead_correction
         self.bnl = bnl
-        #if fstar_mm is not None:
-        #    if len(fstar_mm.shape) < 3:
-        #        self.fstar_mm = fstar_mm[np.newaxis, :, :]
-        #    else:
-        #        self.fstar_mm = fstar_mm
-        #else:
-        #    self.fstar_mm = np.zeros((1, self.z_vec.size, self.mass.size))
 
         if self.mead_correction in ['feedback', 'nofeedback'] or dewiggle:
             self.matter_power_lin = self.dewiggle_plin(matter_power_lin)
@@ -174,7 +170,32 @@ class MatterSpectra:
             self.I12 = self.prepare_I12_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I21 = self.prepare_I21_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I22 = self.prepare_I22_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
+            
+        if mead_correction == 'fit' and hod_model_mm == 'Cacciato':
+            self.hod_mm = self.select_hod_model(hod_model_mm)
+            hh = self.hod_mm(
+                mass = self.mass,
+                dndlnm = self.dndlnm,
+                halobias = self.halobias,
+                z_vec = self.z_vec,
+                hod_settings = hod_settings_mm,
+                **hod_params_mm
+            )
+            self.fstar_mm = hh.compute_stellar_fraction
+            if hod_settings_mm['observable_h_unit'] == valid_units[1]:
+                self.fstar_mm = self.fstar_mm * self.h0
+        else:
+            self.fstar_mm = np.zeros(1, self.z_vec.size, self.mass.size)
         
+    def select_hod_model(self, val):
+        r"""
+        A hod model to use
+
+        :type: str or `hod_lib_class` subclass
+        """
+        if val is None:
+            return val
+        return getattr(hod_lib_class, val)
         
     def dewiggle_plin(self, plin):
         sigma = sigmaV(self.k_vec, plin)
@@ -630,17 +651,15 @@ class MatterSpectra:
         return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
 
 
-
 class GalaxySpectra(MatterSpectra):
     def __init__(self,
             u_sat = None,
-            Ncen = None,
-            Nsat = None,
-            numdencen = None,
-            numdensat = None,
-            f_c = None,
-            f_s = None,
-            nbins = None,
+            #Ncen = None,
+            #Nsat = None,
+            #numdencen = None,
+            #numdensat = None,
+            #f_c = None,
+            #f_s = None,
             pointmass = None,
             hod_model = 'Cacciato',
             hod_params = {},
@@ -654,51 +673,29 @@ class GalaxySpectra(MatterSpectra):
         self.u_sat = u_sat
         self.pointmass = pointmass
         
-        self.hod_model = hod_model
-        self.hod_params = hod_params
-        self.hod_settings = hod_settings
-        self.hod = self.select_hod_model(self.hod_model)
+        self.hod = self.select_hod_model(hod_model)
         hh = self.hod(
             mass = self.mass,
             dndlnm = self.dndlnm,
             halobias = self.halobias,
             z_vec = self.z_vec,
+            hod_settings = hod_settings,
             **hod_params
-            )
+        )
         self.Ncen = hh.compute_hod_cen
         self.Nsat = hh.compute_hod_sat
         self.numdencen = hh.compute_number_density_cen
         self.numdensat = hh.compute_number_density_sat
         self.f_c = hh.f_c
         self.f_s = hh.f_s
-        self.mass_avg = hh.compute_avg_halo_mass_cen / hh.compute_number_density_cen
+        self.mass_avg = hh.compute_avg_halo_mass_cen / self.numdencen
         self.fstar = hh.compute_stellar_fraction
-        if self.hod_settings['observable_h_unit'] == valid_units[1]:
+        if hod_settings['observable_h_unit'] == valid_units[1]:
             self.fstar = self.fstar * self.h0
-            
-        #if self.hod_settings['galaxy_bias']:
-        #    self.bg_cen = hh.compute_galaxy_linear_bias_cen / hh.compute_number_density_tot
-        #    self.bg_sat = hh.compute_galaxy_linear_bias_sat / hh.compute_number_density_tot
-        #    self.bg_sat = hh.compute_galaxy_linear_bias / hh.compute_number_density_tot
         
+        """
         if self.hod_model == 'Cacciato':
-            hod_params_mm = hod_params.copy()
-            hod_params_mm['obs_min'] = np.array([hod_params['obs_min'].min()])
-            hod_params_mm['obs_max'] = np.array([hod_params['obs_max'].max()])
-            hod_params_mm['zmin'] = np.array([hod_params['zmin'].min()])
-            hod_params_mm['zmax'] = np.array([hod_params['zmax'].max()])
-            hod_params_mm['nobs'] = 100
-            hod_params_mm['nz'] = 15
-            hh_mm = self.hod(
-                mass = self.mass,
-                dndlnm = self.dndlnm,
-                halobias = self.halobias,
-                z_vec = self.z_vec,
-                **hod_params_mm
-            )
-            self.fstar_mm = hh_mm.compute_stellar_fraction
-            if self.hod_settings['observable_h_unit'] == valid_units[1]:
-                self.fstar_mm = self.fstar_mm * self.h0
+            
             if self.hod_settings['observable_mode'] == 'obs_onebin':
                 self.obs_func = hh_mm.obs_func
                 self.obs_func_cen = hh_mm.obs_func_cen
@@ -730,17 +727,9 @@ class GalaxySpectra(MatterSpectra):
                 self.obs_func_sat = hh_med.obs_func_sat
                 self.obs = hh_med.obs
                 self.obs_z = hh_med.z
-        
-    def select_hod_model(self, val):
-        r"""
-        A hod model to use
-
-        :type: str or `hod_lib_class` subclass
         """
-        if val is None:
-            return val
-        return getattr(hod_lib_class, val)
         
+
     @cached_property
     def central_galaxy_profile(self):
         """
@@ -852,7 +841,6 @@ class GalaxySpectra(MatterSpectra):
         return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
 
 
-
 class AlignmentSpectra(GalaxySpectra):
     def __init__(self,
             alignment_gi = None,
@@ -889,8 +877,6 @@ class AlignmentSpectra(GalaxySpectra):
     
         if self.fortuna:
             self.matter_power_nl = matter_power_nl
-            if not len(self.f_c) == self.nbins:
-                raise ValueError('f_c needs to have same length as number of bins provided')
             self.peff = (1.0 - self.t_eff) * self.matter_power_nl + self.t_eff * self.matter_power_lin
 
         satellite_alignment = SatelliteAlignment(**self.align_params)

@@ -19,27 +19,26 @@ class HOD:
             dndlnm = None,
             halobias = None,
             z_vec = None,
-            observables_file = None,
-            obs_min = np.array([9.0]),
-            obs_max = np.array([12.0]),
-            zmin = np.array([0.0]),
-            zmax = np.array([3.0]),
-            nz = 1,
-            nobs = 10
+            hod_settings = {}
         ):
         if mass is None or dndlnm is None:
             raise ValueError("Mass and halo mass function need to be specified!")
 
+        nobs = hod_settings['nobs']
         # Set all given parameters.
-        if observables_file is not None:
-            z_bins, obs_min, obs_max = load_data(observables_file)
+        if hod_settings['observables_file'] is not None:
+            z_bins, obs_min, obs_max = load_data(hod_settings['observables_file'])
             self.nz = len(z_bins)
             log_obs_min = np.log10(obs_min)[np.newaxis, :]
             log_obs_max = np.log10(obs_max)[np.newaxis, :]
             self.z = z_bins[np.newaxis, :]
             self.nbins = 1
         else:
-            self.nz = nz
+            self.nz = hod_settings['nz']
+            obs_min = hod_settings['obs_min']
+            obs_max = hod_settings['obs_max']
+            zmin = hod_settings['zmin']
+            zmax = hod_settings['zmax']
             if not np.all(np.array([obs_min.size, obs_max.size, zmin.size, zmax.size]) == obs_min.size):
                 raise ValueError('obs_min, obs_max, zmin, and zmax need to be of the same length.')
             self.nbins = len(obs_min)
