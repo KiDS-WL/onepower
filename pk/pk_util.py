@@ -167,6 +167,29 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     mass_avg = interp_mass_avg(z_vec)
 
     return Ncen, Nsat, numdencen, numdensat, f_c, f_s, mass_avg, fstar
+    
+def load_hods_new(block, section_name, suffix, z_vec, mass):
+    """
+    Loads and interpolates the hod quantities to match the
+    calculation of power spectra
+    """
+    m_hod = block[section_name, f'mass{suffix}']
+    z_hod = block[section_name, f'z{suffix}']
+    Ncen = block[section_name, f'n_cen{suffix}']
+    Nsat = block[section_name, f'n_sat{suffix}']
+    numdencen = block[section_name, f'number_density_cen{suffix}']
+    numdensat = block[section_name, f'number_density_sat{suffix}']
+    f_c = block[section_name, f'central_fraction{suffix}']
+    f_s = block[section_name, f'satellite_fraction{suffix}']
+    mass_avg = block[section_name, f'average_halo_mass{suffix}']
+
+    if (m_hod != mass).any():
+        raise ValueError('The HOD mass values are different to the input mass values.')
+    
+    #If we're using an unconditional HOD, we need to define the stellar fraction with zeros
+    fstar = block[section_name, f'f_star{suffix}']
+    
+    return Ncen, Nsat, numdencen, numdensat, f_c, f_s, mass_avg, fstar
 
 def load_fstar_mm(block, section_name, z_vec, mass):
     """

@@ -8,6 +8,7 @@ from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp1d
 import hod_lib_class as hods
+import hod_lib_class_no_loop
 
 cosmo_params = names.cosmological_parameters
 

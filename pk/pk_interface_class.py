@@ -61,7 +61,14 @@ from pk_lib_class import MatterSpectra, GalaxySpectra, AlignmentSpectra
 
 cosmo_params = names.cosmological_parameters
 
-
+parameters_models = {
+    'Zheng': ['log10_Mmin', 'sigma', 'log10_M0', 'log10_M1', 'alpha'],
+    'Zhai': ['log10_Mmin', 'sigma', 'log10_Msat', 'log10_Mcut', 'alpha'],
+    'Cacciato': [
+        'log10_obs_norm_c', 'log10_m_ch', 'g1', 'g2', 'sigma_log10_O_c',
+        'norm_s', 'pivot', 'alpha_s', 'beta_s', 'b0', 'b1', 'b2'
+    ]
+}
 
 def get_string_or_none(cosmosis_block, section, name, default):
     """
@@ -149,11 +156,26 @@ def setup(options):
     if mead_correction == 'fit' and not options.has_value(option_section, 'hod_section_name'):
         raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon feedback one needs to provide the hod section name of used hod!')
 
-    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name
+    hod_kwargs = {}
+    hod_parameters = parameters_models['Cacciato']
+    hod_kwargs['obs_min'] = np.asarray([options['hod_red_nb', 'log10_obs_min']]).flatten()
+    hod_kwargs['obs_max'] = np.asarray([options['hod_red_nb', 'log10_obs_max']]).flatten()
+    hod_kwargs['zmin'] = np.asarray([options['hod_red_nb', 'zmin']]).flatten()
+    hod_kwargs['zmax'] = np.asarray([options['hod_red_nb', 'zmax']]).flatten()
+    hod_kwargs['nz'] = options['hod_red_nb', 'nz']
+    hod_kwargs['nobs'] = options['hod_red_nb', 'nobs']
+    hod_kwargs2 = {}
+    #hod_kwargs['save_observable'] = options.get_bool('hod_red_nb', 'save_observable', default=True)
+    hod_kwargs2['observable_mode'] = options.get_string('hod_red_nb', 'observable_mode', default='obs_z')
+    hod_kwargs2['observable_h_unit'] = options.get_string('hod_red_nb', 'observable_h_unit', default='1/h^2').lower()
+    hod_kwargs2['z_med'] = options.get_double('hod_red_nb', 'z_median', default=0.1)
+    
+
+    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_kwargs, hod_kwargs2
 
 def execute(block, config):
     """Execute function to compute power spectra based on configuration."""
-    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name = config
+    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_kwargs, hod_kwargs2 = config
 
     matter_kwargs = {
         'mead_correction': mead_correction,
@@ -242,6 +264,31 @@ def execute(block, config):
             'nbins': hod_bins,
             'pointmass': point_mass,
         })
+        
+        hod_kwargs['A_cen'] = block['hod_parameters_red', 'A_cen'] if block.has_value('hod_parameters_red', 'A_cen') else None
+        hod_kwargs['A_sat'] = block['hod_parameters_red', 'A_sat'] if block.has_value('hod_parameters_red', 'A_sat') else None
+        hod_model = 'Cacciato'
+        hod_parameters = parameters_models[hod_model]
+        # Dinamically load required HOD parameters givent the model and number of bins!
+        for param in hod_parameters:
+            if hod_model == 'Cacciato':
+                param_bin = param
+                if not block.has_value('hod_parameters_red', param_bin):
+                    raise Exception(f'Error: parameter {param} is needed for the requested hod model: {hod_model}')
+                hod_kwargs[param] = block['hod_parameters_red', param_bin]
+            else:
+                param_list = []
+                for nb in range(nbins):
+                    suffix = f'_{nb+1}' if nbins != 1 else ''
+                    param_bin = f'{param}{suffix}'
+                    if not block.has_value('hod_parameters_red', param_bin):
+                        raise Exception(f'Error: parameter {param} is needed for the requested hod model: {hod_model}')
+                    param_list.append(block['hod_parameters_red', param_bin])
+                hod_kwargs[param] = np.array(param_list)
+        galaxy_kwargs.update({
+            'hod_params': hod_kwargs,
+            'hod_settings': hod_kwargs2
+        })
     
     if alignment:
         align_kwargs.update({
@@ -295,23 +342,11 @@ def execute(block, config):
         })
 
     if matter:
-        if mead_correction == 'fit':
-            matter_kwargs['fstar'] = np.array(pk_util.load_fstar_mm(block, hod_section_name, z_vec, mass))
-        else:
-            matter_kwargs['fstar'] = None
         matter_power = MatterSpectra(**matter_kwargs)
     if galaxy:
-        if mead_correction == 'fit' or point_mass:
-            matter_kwargs['fstar'] = np.array(f_star)
-        else:
-            matter_kwargs['fstar'] = None
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs}
         galaxy_power = GalaxySpectra(**comb_kwargs)
     if alignment:
-        if mead_correction == 'fit' or point_mass:
-            matter_kwargs['fstar'] = np.array(f_star)
-        else:
-            matter_kwargs['fstar'] = None
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs, **align_kwargs}
         alignment_power = AlignmentSpectra(**comb_kwargs)
 

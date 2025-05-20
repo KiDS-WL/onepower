@@ -1,106 +1,240 @@
+from functools import cached_property
 import numpy as np
 from scipy.integrate import simpson
 from scipy.special import erf
+from scipy.interpolate import interp1d
 
 
-# TO-DO: Add nbins as another dimension to all quantities to remove looping!
+def load_data(file_name):
+    z_data, obs_min, obs_max = np.loadtxt(
+        file_name, usecols=(0, 1, 2), unpack=True, dtype=float
+    )
+    return z_data, obs_min, obs_max
+
 
 class HOD:
     def __init__(
             self,
-            mass=None,
-            dndlnm=None,
-            nz=1
+            mass = None,
+            dndlnm = None,
+            halobias = None,
+            z_vec = None,
+            observables_file = None,
+            obs_min = np.array([9.0]),
+            obs_max = np.array([12.0]),
+            zmin = np.array([0.0]),
+            zmax = np.array([3.0]),
+            nz = 1,
+            nobs = 10
         ):
         if mass is None or dndlnm is None:
             raise ValueError("Mass and halo mass function need to be specified!")
 
         # Set all given parameters.
+        if observables_file is not None:
+            z_bins, obs_min, obs_max = load_data(observables_file)
+            self.nz = len(z_bins)
+            log_obs_min = np.log10(obs_min)[np.newaxis, :]
+            log_obs_max = np.log10(obs_max)[np.newaxis, :]
+            self.z = z_bins[np.newaxis, :]
+            self.nbins = 1
+        else:
+            self.nz = nz
+            if not np.all(np.array([obs_min.size, obs_max.size, zmin.size, zmax.size]) == obs_min.size):
+                raise ValueError('obs_min, obs_max, zmin, and zmax need to be of the same length.')
+            self.nbins = len(obs_min)
+            self.z = np.array([np.linspace(zmin_i, zmax_i, self.nz) for zmin_i, zmax_i in zip(zmin, zmax)])
+            log_obs_min = np.array([np.repeat(obs_min_i, self.nz) for obs_min_i in obs_min])
+            log_obs_max = np.array([np.repeat(obs_max_i, self.nz) for obs_max_i in obs_max])
+
+        obs = np.array([[np.logspace(log_obs_min[nb, jz], log_obs_max[nb, jz], nobs) for jz in range(self.nz)] for nb in range(self.nbins)])
+        # With newaxis we make sure the COF shape is (nb, nz, nmass, nobs)
+        self.obs = obs[:, :, np.newaxis, :]
         # With newaxis we make sure the HOD shape is (nb, nz, nmass)
         self.mass = mass[np.newaxis, np.newaxis, :]
-        self.dndlnm = dndlnm
-        self.nz = nz
+        self.z_vec = z_vec
+        
+        dndlnm_int = interp1d(
+            self.z_vec, dndlnm, kind='linear', fill_value='extrapolate',
+            bounds_error=False, axis=0
+        )
+        halobias_int = interp1d(
+            self.z_vec, halobias, kind='linear', fill_value='extrapolate',
+            bounds_error=False, axis=0
+        )
+        self.dndlnm = dndlnm_int(self.z)
+        self.halobias = halobias_int(self.z)
+        
+    def _mass_integral(self, hod):
+        integrand = hod * self.dndlnm / self.mass
+        return simpson(integrand, self.mass, axis=-1)
+
+    def _mean_mass_integral(self, hod):
+        integrand = hod * self.dndlnm
+        return simpson(integrand, self.mass, axis=-1)
+
+    def _bias_integral(self, hod):
+        bg_integrand = hod * self.halobias * self.dndlnm / self.mass
+        return simpson(bg_integrand, self.mass, axis=-1) / self.ntot
+
+    def _interpolate(self, data, fill_value='extrapolate', axis=-1):
+        n_int = [interp1d(self.z[i], data[i], fill_value=fill_value, bounds_error=False, axis=axis) for i in range(self.z.shape[0])]
+        return np.array([f(self.z_vec) for f in n_int])
+
+    @property
+    def ncen(self):
+        """
+        Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
+        This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
+        Nx = int ⟨Nx|M⟩ n(M) dM
+        """
+        return self._mass_integral(self._compute_hod_cen)
+
+    @property
+    def nsat(self):
+        """
+        Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
+        This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
+        Nx = int ⟨Nx|M⟩ n(M) dM
+        """
+        return self._mass_integral(self._compute_hod_sat)
+
+    @property
+    def ntot(self):
+        """
+        Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
+        This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
+        Nx = int ⟨Nx|M⟩ n(M) dM
+        """
+        return self._mass_integral(self._compute_hod)
+
+    @property
+    def mass_avg_cen(self):
+        """
+        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
+        M_mean = int ⟨Nx|M⟩ M n(M) dM
+        """
+        return self._mean_mass_integral(self._compute_hod_cen)
+
+    @property
+    def mass_avg_sat(self):
+        """
+        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
+        M_mean = int ⟨Nx|M⟩ M n(M) dM
+        """
+        return self._mean_mass_integral(self._compute_hod_sat)
+
+    @property
+    def mass_avg_tot(self):
+        """
+        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
+        M_mean = int ⟨Nx|M⟩ M n(M) dM
+        """
+        return self._mean_mass_integral(self._compute_hod)
+
+    @property
+    def bg_cen(self):
+        """
+        Mean linear halo bias for the given population of galaxies.
+        b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
+        """
+        return self._bias_integral(self._compute_hod_cen)
+
+    @property
+    def bg_sat(self):
+        """
+        Mean linear halo bias for the given population of galaxies.
+        b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
+        """
+        return self._bias_integral(self._compute_hod_sat)
+
+    @property
+    def bg_tot(self):
+        """
+        Mean linear halo bias for the given population of galaxies.
+        b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
+        """
+        return self._bias_integral(self._compute_hod)
 
     @property
     def compute_number_density_cen(self):
-        """
-        Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
-        This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
-        Nx = int ⟨Nx|M⟩ n(M) dM
-        """
-        integrand = self.compute_hod_cen * self.dndlnm / self.mass
-        return simpson(integrand, self.mass, axis=-1)
+        return self._interpolate(self.ncen)
 
     @property
     def compute_number_density_sat(self):
-        """
-        Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
-        This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
-        Nx = int ⟨Nx|M⟩ n(M) dM
-        """
-        integrand = self.compute_hod_sat * self.dndlnm / self.mass
-        return simpson(integrand, self.mass, axis=-1)
+        return self._interpolate(self.nsat)
 
     @property
     def compute_number_density(self):
-        """
-        Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
-        This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
-        Nx = int ⟨Nx|M⟩ n(M) dM
-        """
-        integrand = self.compute_hod * self.dndlnm / self.mass
-        return simpson(integrand, self.mass, axis=-1)
+        return self._interpolate(self.ntot)
+
+    @property
+    def f_c(self):
+        f_c = self.ncen / self.ntot
+        return self._interpolate(f_c, fill_value=0.0)
+
+    @property
+    def f_s(self):
+        f_s = self.nsat / self.ntot
+        return self._interpolate(f_s, fill_value=0.0)
 
     @property
     def compute_avg_halo_mass_cen(self):
-        """
-        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
-        M_mean = int ⟨Nx|M⟩ M n(M) dM
-        """
-        integrand = self.compute_hod_cen * self.dndlnm
-        return simpson(integrand, self.mass, axis=-1)
+        return self._interpolate(self.mass_avg_cen, fill_value=0.0)
 
     @property
     def compute_avg_halo_mass_sat(self):
-        """
-        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
-        M_mean = int ⟨Nx|M⟩ M n(M) dM
-        """
-        integrand = self.compute_hod_sat * self.dndlnm
-        return simpson(integrand, self.mass, axis=-1)
+        return self._interpolate(self.mass_avg_sat, fill_value=0.0)
 
     @property
     def compute_avg_halo_mass(self):
-        """
-        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
-        M_mean = int ⟨Nx|M⟩ M n(M) dM
-        """
-        integrand = self.compute_hod * self.dndlnm
-        return simpson(integrand, self.mass, axis=-1)
+        return self._interpolate(self.mass_avg_tot, fill_value=0.0)
 
-    def compute_galaxy_linear_bias_cen(self, halo_bias):
-        """
-        Mean linear halo bias for the given population of galaxies.
-        b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
-        """
-        bg_integrand = self.compute_hod_cen * halo_bias * self.dndlnm / self.mass
-        return simpson(bg_integrand, self.mass, axis=-1)
+    @property
+    def compute_galaxy_linear_bias_cen(self):
+        return self._interpolate(self.bg_cen)
 
-    def compute_galaxy_linear_bias_sat(self, halo_bias):
-        """
-        Mean linear halo bias for the given population of galaxies.
-        b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
-        """
-        bg_integrand = self.compute_hod_sat * halo_bias * self.dndlnm / self.mass
-        return simpson(bg_integrand, self.mass, axis=-1)
+    @property
+    def compute_galaxy_linear_bias_sat(self):
+        return self._interpolate(self.bg_sat)
 
-    def compute_galaxy_linear_bias(self, halo_bias):
-        """
-        Mean linear halo bias for the given population of galaxies.
-        b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
-        """
-        bg_integrand = self.compute_hod * halo_bias * self.dndlnm / self.mass
-        return simpson(bg_integrand, self.mass, axis=-1)
+    @property
+    def compute_galaxy_linear_bias(self):
+        return self._interpolate(self.bg_tot)
+
+    @property
+    def compute_hod_cen(self):
+        return self._interpolate(self._compute_hod_cen, axis=0)
+
+    @property
+    def compute_hod_sat(self):
+        return self._interpolate(self._compute_hod_sat, axis=0)
+
+    @property
+    def compute_hod(self):
+        return self._interpolate(self._compute_hod, axis=0)
+
+    @property
+    def compute_stellar_fraction_cen(self):
+        if self._compute_stellar_fraction_cen is None:
+            return np.zeros((self.nbins, self.z_vec.size, self.mass.shape[-1]))
+        else:
+            return self._interpolate(self._compute_stellar_fraction_cen, axis=0)
+
+    @property
+    def compute_stellar_fraction_sat(self):
+        if self._compute_stellar_fraction_sat is None:
+            return np.zeros((self.nbins, self.z_vec.size, self.mass.shape[-1]))
+        else:
+            return self._interpolate(self._compute_stellar_fraction_sat, axis=0)
+
+    @property
+    def compute_stellar_fraction(self):
+        if self._compute_stellar_fraction is None:
+            return np.zeros((self.nbins, self.z_vec.size, self.mass.shape[-1]))
+        else:
+            return self._interpolate(self._compute_stellar_fraction, axis=0)
+
 
 class Cacciato(HOD):
     """
@@ -116,7 +250,6 @@ class Cacciato(HOD):
     """
     def __init__(
             self,
-            obs = np.array([np.logspace(9, 15, 100)]),
             log10_obs_norm_c = 9.95,
             log10_m_ch = 11.24,
             g1 = 3.18,
@@ -137,8 +270,6 @@ class Cacciato(HOD):
         # Call super init MUST BE DONE FIRST.
         super().__init__(**hod_kwargs)
         # Set all given parameters.
-        # With newaxis we make sure the COF shape is (nb, nz, nmass, nobs)
-        self.obs = obs[:, :, np.newaxis]
 
         # centrals
         # all observable masses in units of log10(M_sun h^-2)
@@ -191,7 +322,7 @@ class Cacciato(HOD):
     def COF(self):
         return self.COF_cen + self.COF_sat
 
-    @property
+    @cached_property
     def obs_func_cen(self):
         """
         The Observable function, this is Φs(O|M), Φc(O|M) integrated over the halo mass weighted
@@ -207,7 +338,7 @@ class Cacciato(HOD):
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
-    @property
+    @cached_property
     def obs_func_sat(self):
         """
         The Observable function, this is Φs(O|M), Φc(O|M) integrated over the halo mass weighted
@@ -223,7 +354,7 @@ class Cacciato(HOD):
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
-    @property
+    @cached_property
     def obs_func(self):
         """
         The Observable function, this is Φs(O|M), Φc(O|M) integrated over the halo mass weighted
@@ -239,7 +370,7 @@ class Cacciato(HOD):
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
-    @property
+    @cached_property
     def cal_mean_obs_c(self):
         """
         eqs 19 of D23: 2210.03110
@@ -257,7 +388,7 @@ class Cacciato(HOD):
                       (1.0 + (self.mass / self.M_char))**(self.g_1 - self.g_2))
         return mean_obs_c
 
-    @property
+    @cached_property
     def phi_star_s(self):
         """
         pivot COF used in eq 21 of D23: 2210.03110
@@ -270,7 +401,7 @@ class Cacciato(HOD):
         return 10.0**log_phi_s
 
     @property
-    def compute_hod_cen(self):
+    def _compute_hod_cen(self):
         """
         The HOD is computed by integrating over the COFs
         eq 23 of D23: 2210.03110
@@ -283,7 +414,7 @@ class Cacciato(HOD):
         return N_cen
 
     @property
-    def compute_hod_sat(self):
+    def _compute_hod_sat(self):
         """
         The HOD is computed by integrating over the COFs
         eq 23 of D23: 2210.03110
@@ -296,11 +427,11 @@ class Cacciato(HOD):
         return N_sat
 
     @property
-    def compute_hod(self):
-        return self.compute_hod_cen + self.compute_hod_sat
+    def _compute_hod(self):
+        return self._compute_hod_cen + self._compute_hod_sat
 
     @property
-    def compute_stellar_fraction_cen(self):
+    def _compute_stellar_fraction_cen(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
         O is weighted by the number of galaxies with the property O for each halo mass: Φx(O|M)
@@ -309,7 +440,7 @@ class Cacciato(HOD):
         return simpson(self.COF_cen * self.obs, self.obs) / self.mass
 
     @property
-    def compute_stellar_fraction_sat(self):
+    def _compute_stellar_fraction_sat(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
         O is weighted by the number of galaxies with the property O for each halo mass: Φx(O|M)
@@ -318,7 +449,7 @@ class Cacciato(HOD):
         return simpson(self.COF_sat * self.obs, self.obs) / self.mass
 
     @property
-    def compute_stellar_fraction(self):
+    def _compute_stellar_fraction(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
         O is weighted by the number of galaxies with the property O for each halo mass: Φx(O|M)
@@ -349,8 +480,8 @@ class Simple(HOD):
         self.A_cen = A_cen
         self.A_sat = A_sat
 
-    @property
-    def compute_hod_cen(self):
+    @cached_property
+    def _compute_hod_cen(self):
         """
         Centrals
         """
@@ -360,8 +491,8 @@ class Simple(HOD):
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @property
-    def compute_hod_sat(self):
+    @cached_property
+    def _compute_hod_sat(self):
         """
         Satellites
         """
@@ -372,8 +503,21 @@ class Simple(HOD):
         return np.tile(N_sat, (self.nz, 1))
 
     @property
-    def compute_hod(self):
-        return self.compute_hod_cen + self.compute_hod_sat
+    def _compute_hod(self):
+        return self._compute_hod_cen + self._compute_hod_sat
+        
+    @property
+    def _compute_stellar_fraction_cen(self):
+        return None
+
+    @property
+    def _compute_stellar_fraction_sat(self):
+        return None
+
+    @property
+    def _compute_stellar_fraction(self):
+        return None
+        
 
 class Zehavi(HOD):
     """
@@ -400,8 +544,8 @@ class Zehavi(HOD):
         self.A_cen = A_cen
         self.A_sat = A_sat
 
-    @property
-    def compute_hod_cen(self):
+    @cached_property
+    def _compute_hod_cen(self):
         """
         Centrals
         """
@@ -411,8 +555,8 @@ class Zehavi(HOD):
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @property
-    def compute_hod_sat(self):
+    @cached_property
+    def _compute_hod_sat(self):
         """
         Satellites
         """
@@ -423,8 +567,20 @@ class Zehavi(HOD):
         return np.tile(N_sat, (self.nz, 1))
 
     @property
-    def compute_hod(self):
-        return self.compute_hod_cen + self.compute_hod_sat
+    def _compute_hod(self):
+        return self._compute_hod_cen + self._compute_hod_sat
+        
+    @property
+    def _compute_stellar_fraction_cen(self):
+        return None
+
+    @property
+    def _compute_stellar_fraction_sat(self):
+        return None
+
+    @property
+    def _compute_stellar_fraction(self):
+        return None
 
 class Zheng(HOD):
     """
@@ -453,8 +609,8 @@ class Zheng(HOD):
         self.A_cen = A_cen
         self.A_sat = A_sat
 
-    @property
-    def compute_hod_cen(self):
+    @cached_property
+    def _compute_hod_cen(self):
         """
         Centrals
         """
@@ -464,8 +620,8 @@ class Zheng(HOD):
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @property
-    def compute_hod_sat(self):
+    @cached_property
+    def _compute_hod_sat(self):
         """
         Satellites
         """
@@ -476,8 +632,20 @@ class Zheng(HOD):
         return np.tile(N_sat, (self.nz, 1))
 
     @property
-    def compute_hod(self):
-        return self.compute_hod_cen + self.compute_hod_sat
+    def _compute_hod(self):
+        return self._compute_hod_cen + self._compute_hod_sat
+        
+    @property
+    def _compute_stellar_fraction_cen(self):
+        return None
+
+    @property
+    def _compute_stellar_fraction_sat(self):
+        return None
+
+    @property
+    def _compute_stellar_fraction(self):
+        return None
 
 class Zhai(HOD):
     """
@@ -506,8 +674,8 @@ class Zhai(HOD):
         self.A_cen = A_cen
         self.A_sat = A_sat
 
-    @property
-    def compute_hod_cen(self):
+    @cached_property
+    def _compute_hod_cen(self):
         """
         Centrals
         """
@@ -517,8 +685,8 @@ class Zhai(HOD):
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @property
-    def compute_hod_sat(self):
+    @cached_property
+    def _compute_hod_sat(self):
         """
         Satellites
         """
@@ -530,5 +698,17 @@ class Zhai(HOD):
         return np.tile(N_sat, (self.nz, 1))
 
     @property
-    def compute_hod(self):
-        return self.compute_hod_cen + self.compute_hod_sat
+    def _compute_hod(self):
+        return self._compute_hod_cen + self._compute_hod_sat
+
+    @property
+    def _compute_stellar_fraction_cen(self):
+        return None
+
+    @property
+    def _compute_stellar_fraction_sat(self):
+        return None
+
+    @property
+    def _compute_stellar_fraction(self):
+        return None

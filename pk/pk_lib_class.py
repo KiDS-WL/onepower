@@ -62,10 +62,12 @@ import warnings
 #from ..hod import hod_lib_class
 import sys
 sys.path.insert(0, "../hod")
-import hod_lib_class
+import hod_lib_class_no_loop as hod_lib_class
 
 sys.path.insert(0, "../ia")
 from ia_radial_lib_class import SatelliteAlignment
+
+valid_units = ['1/h', '1/h^2']
 
 # Helper functions borrowed from Alex Mead
 def Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB=2.7255):
@@ -134,7 +136,6 @@ class MatterSpectra:
             bnl = False,
             beta_nl = None,
             mead_correction = None,
-            fstar = None
         ):
         
         self.z_vec = z_vec
@@ -155,11 +156,13 @@ class MatterSpectra:
         self.u_dm = u_dm
         self.mead_correction = mead_correction
         self.bnl = bnl
-        if fstar is not None:
-            if len(fstar.shape) < 3:
-                self.fstar = fstar[np.newaxis, :, :]
-            else:
-                self.fstar = fstar
+        #if fstar_mm is not None:
+        #    if len(fstar_mm.shape) < 3:
+        #        self.fstar_mm = fstar_mm[np.newaxis, :, :]
+        #    else:
+        #        self.fstar_mm = fstar_mm
+        #else:
+        #    self.fstar_mm = np.zeros((1, self.z_vec.size, self.mass.size))
 
         if self.mead_correction in ['feedback', 'nofeedback'] or dewiggle:
             self.matter_power_lin = self.dewiggle_plin(matter_power_lin)
@@ -275,8 +278,7 @@ class MatterSpectra:
         Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
         return Wm
 
-    @cached_property
-    def matter_profile_with_feedback_stellar_fraction_from_obs(self):
+    def matter_profile_with_feedback_stellar_fraction_from_obs(self, fstar):
         """
         Compute the matter profile grid using stellar fraction from observations.
         """
@@ -287,7 +289,7 @@ class MatterSpectra:
             self.z_vec[np.newaxis, :, np.newaxis, np.newaxis],
             self.fnu[np.newaxis, :, np.newaxis, np.newaxis],
             self.mb,
-            self.fstar[:, :, np.newaxis, :]
+            fstar[:, :, np.newaxis, :]
         )
         return profile
 
@@ -607,7 +609,7 @@ class MatterSpectra:
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
         elif self.mead_correction == 'fit':
-            matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs
+            matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar_mm)
         else:
             matter_profile_1h = self.matter_profile
         if self.bnl:
@@ -642,46 +644,92 @@ class GalaxySpectra(MatterSpectra):
             pointmass = None,
             hod_model = 'Cacciato',
             hod_params = {},
+            hod_settings = {},
             **matter_spectra_kwargs
         ):
         
         # Call super init MUST BE DONE FIRST.
         super().__init__(**matter_spectra_kwargs)
         
-        """
-        self.hod_model = hod_model
-        self.hod_params = hod_params
-        """
-        
         self.u_sat = u_sat
-        self.Ncen = Ncen
-        self.Nsat = Nsat
-        self.numdencen = numdencen
-        self.numdensat = numdensat
-        self.f_c = f_c
-        self.f_s = f_s
-        self.nbins = nbins
         self.pointmass = pointmass
         
-        """
+        self.hod_model = hod_model
+        self.hod_params = hod_params
+        self.hod_settings = hod_settings
         self.hod = self.select_hod_model(self.hod_model)
         hh = self.hod(
             mass = self.mass,
             dndlnm = self.dndlnm,
-            nz = len(self.z_vec),
+            halobias = self.halobias,
+            z_vec = self.z_vec,
             **hod_params
             )
         self.Ncen = hh.compute_hod_cen
         self.Nsat = hh.compute_hod_sat
         self.numdencen = hh.compute_number_density_cen
         self.numdensat = hh.compute_number_density_sat
-        self.f_c = self.numdencen / hh.compute_number_density
-        self.f_s = self.numdensat / hh.compute_number_density
+        self.f_c = hh.f_c
+        self.f_s = hh.f_s
+        self.mass_avg = hh.compute_avg_halo_mass_cen / hh.compute_number_density_cen
         self.fstar = hh.compute_stellar_fraction
-        if observable_h_unit == valid_units[1]:
+        if self.hod_settings['observable_h_unit'] == valid_units[1]:
             self.fstar = self.fstar * self.h0
-        """
+            
+        #if self.hod_settings['galaxy_bias']:
+        #    self.bg_cen = hh.compute_galaxy_linear_bias_cen / hh.compute_number_density_tot
+        #    self.bg_sat = hh.compute_galaxy_linear_bias_sat / hh.compute_number_density_tot
+        #    self.bg_sat = hh.compute_galaxy_linear_bias / hh.compute_number_density_tot
         
+        if self.hod_model == 'Cacciato':
+            hod_params_mm = hod_params.copy()
+            hod_params_mm['obs_min'] = np.array([hod_params['obs_min'].min()])
+            hod_params_mm['obs_max'] = np.array([hod_params['obs_max'].max()])
+            hod_params_mm['zmin'] = np.array([hod_params['zmin'].min()])
+            hod_params_mm['zmax'] = np.array([hod_params['zmax'].max()])
+            hod_params_mm['nobs'] = 100
+            hod_params_mm['nz'] = 15
+            hh_mm = self.hod(
+                mass = self.mass,
+                dndlnm = self.dndlnm,
+                halobias = self.halobias,
+                z_vec = self.z_vec,
+                **hod_params_mm
+            )
+            self.fstar_mm = hh_mm.compute_stellar_fraction
+            if self.hod_settings['observable_h_unit'] == valid_units[1]:
+                self.fstar_mm = self.fstar_mm * self.h0
+            if self.hod_settings['observable_mode'] == 'obs_onebin':
+                self.obs_func = hh_mm.obs_func
+                self.obs_func_cen = hh_mm.obs_func_cen
+                self.obs_func_sat = hh_mm.obs_func_sat
+                self.obs = hh_mm.obs
+                self.obs_z = hh_mm.z
+            if self.hod_settings['observable_mode'] == 'obs_z':
+                self.obs_func = hh.obs_func
+                self.obs_func_cen = hh.obs_func_cen
+                self.obs_func_sat = hh.obs_func_sat
+                self.obs = hh.obs
+                self.obs_z = hh.z
+            if self.hod_settings['observable_mode'] == 'obs_zmed':
+                hod_params_med = hod_params.copy()
+                hod_params_med['obs_min'] = np.array([hod_params['obs_min'].min()])
+                hod_params_med['obs_max'] = np.array([hod_params['obs_max'].max()])
+                hod_params_med['zmin'] = np.array([hod_settings['z_med']])
+                hod_params_med['zmax'] = np.array([hod_settings['z_med']])
+                hod_params_med['nz'] = 1
+                hh_med = self.hod(
+                    mass = self.mass,
+                    dndlnm = self.dndlnm,
+                    halobias = self.halobias,
+                    z_vec = self.z_vec,
+                    **hod_params_med
+                )
+                self.obs_func = hh_med.obs_func
+                self.obs_func_cen = hh_med.obs_func_cen
+                self.obs_func_sat = hh_med.obs_func_sat
+                self.obs = hh_med.obs
+                self.obs_z = hh_med.z
         
     def select_hod_model(self, val):
         r"""
@@ -779,7 +827,7 @@ class GalaxySpectra(MatterSpectra):
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
         elif self.mead_correction == 'fit' or self.pointmass:
-            matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs
+            matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar)
         else:
             matter_profile_1h = self.matter_profile
             
@@ -816,7 +864,6 @@ class AlignmentSpectra(GalaxySpectra):
             mpivot_sat = None,
             growth_factor = None,
             scale_factor = None,
-            mass_avg = None,
             matter_power_nl = None,
             fortuna = False,
             align_params = {},
@@ -830,7 +877,6 @@ class AlignmentSpectra(GalaxySpectra):
         self.beta_sat = beta_sat
         self.mpivot_cen = mpivot_cen
         self.mpivot_sat = mpivot_sat
-        self.mass_avg = mass_avg
         self.t_eff = t_eff
         self.alignment_gi = alignment_gi
         self.wkm_sat_old = wkm_sat
@@ -964,7 +1010,7 @@ class AlignmentSpectra(GalaxySpectra):
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
         elif self.mead_correction == 'fit' or self.pointmass:
-            matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs
+            matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar)
         else:
             matter_profile_1h = self.matter_profile
             
