@@ -270,10 +270,10 @@ def execute(block, config):
             'slope': get_string_or_none(block, 'pk_parameters', 'slope', default=None)
         }
         
-        N_cen, N_sat, numdencen, numdensat, f_cen, f_sat, mass_avg, f_star = zip(*[
-            pk_util.load_hods(block, hod_section_name, f'_{nb+1}' if hod_bins != 1 else '', z_vec, mass)
-            for nb in range(hod_bins)
-        ])
+        #N_cen, N_sat, numdencen, numdensat, f_cen, f_sat, mass_avg, f_star = zip(*[
+        #    pk_util.load_hods(block, hod_section_name, f'_{nb+1}' if hod_bins != 1 else '', z_vec, mass)
+        #    for nb in range(hod_bins)
+        #])
 
         galaxy_kwargs.update({
             'u_sat': u_sat,
@@ -374,9 +374,36 @@ def execute(block, config):
     if galaxy:
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs}
         galaxy_power = GalaxySpectra(**comb_kwargs)
+        hod = galaxy_power
     if alignment:
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs, **align_kwargs}
         alignment_power = AlignmentSpectra(**comb_kwargs)
+        hod = alignment_power
+
+    if hod:
+        N_cen = hod.hod.compute_hod_cen
+        N_sat = hod.hod.compute_hod_sat
+        N_tot = hod.hod.compute_hod
+        numdens_cen = hod.hod.compute_number_density_cen
+        numdens_sat = hod.hod.compute_number_density_sat
+        numdens_tot = hod.hod.compute_number_density
+        fraction_c = hod.hod.f_c
+        fraction_s = hod.hod.f_s
+        mass_avg = hod.hod.compute_avg_halo_mass_cen / power.hod.compute_number_density
+        f_star = hod.fstar
+    
+        for nb in range(nbins):
+            suffix = f'_{nb+1}' if nbins != 1 else ''
+            block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_sat{suffix}', N_sat[nb])
+            block.put_grid(hod_section_name, f'z{suffix}', z_vec], f'mass{suffix}', mass, f'N_cen{suffix}', N_cen[nb])
+            block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_tot{suffix}', N_tot[nb])
+            block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'f_star{suffix}', f_star[nb])
+            block.put_double_array_1d(hod_section_name, f'number_density_cen{suffix}', numdens_cen[nb])
+            block.put_double_array_1d(hod_section_name, f'number_density_sat{suffix}', numdens_sat[nb])
+            block.put_double_array_1d(hod_section_name, f'number_density_tot{suffix}', numdens_tot[nb])
+            block.put_double_array_1d(hod_section_name, f'central_fraction{suffix}', fraction_cen[nb])
+            block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat[nb])
+            block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg[nb])
 
     if p_mm or response:
         pk_mm_1h, pk_mm_2h, pk_mm, _ = matter_power.compute_power_spectrum_mm(

@@ -113,6 +113,7 @@ def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25)
     return Pk_wiggle
 
 
+#class MatterSpectra(HMF):
 class MatterSpectra:
     def __init__(self,
             z_vec = None,
@@ -159,6 +160,10 @@ class MatterSpectra:
         self.u_dm = u_dm
         self.mead_correction = mead_correction
         self.bnl = bnl
+        
+        self.hod_model_mm = hod_model_mm
+        self.hod_settings_mm = hod_settings_mm
+        self.hod_params_mm = hod_params_mm
 
         if self.mead_correction in ['feedback', 'nofeedback'] or dewiggle:
             self.matter_power_lin = self.dewiggle_plin(matter_power_lin)
@@ -171,21 +176,6 @@ class MatterSpectra:
             self.I21 = self.prepare_I21_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I22 = self.prepare_I22_integrand(self.halobias, self.halobias, self.dndlnm, self.dndlnm, self.beta_nl)
             
-        if mead_correction == 'fit' and hod_model_mm == 'Cacciato':
-            self.hod_mm = self.select_hod_model(hod_model_mm)
-            hh = self.hod_mm(
-                mass = self.mass,
-                dndlnm = self.dndlnm,
-                halobias = self.halobias,
-                z_vec = self.z_vec,
-                hod_settings = hod_settings_mm,
-                **hod_params_mm
-            )
-            self.fstar_mm = hh.compute_stellar_fraction
-            if hod_settings_mm['observable_h_unit'] == valid_units[1]:
-                self.fstar_mm = self.fstar_mm * self.h0
-        else:
-            self.fstar_mm = np.zeros(1, self.z_vec.size, self.mass.size)
         
     def select_hod_model(self, val):
         r"""
@@ -196,6 +186,32 @@ class MatterSpectra:
         if val is None:
             return val
         return getattr(hod_lib_class, val)
+        
+    @cached_property
+    def hod_mm(self):
+        if self.mead_correction == 'fit' and self.hod_model_mm == 'Cacciato':
+            hod = self.select_hod_model(self.hod_model_mm)
+            return hod(
+                mass = self.mass,
+                dndlnm = self.dndlnm,
+                halobias = self.halobias,
+                z_vec = self.z_vec,
+                hod_settings = self.hod_settings,
+                **self.hod_params
+            )
+        else:
+            return None
+        
+    @cached_property
+    def fstar_mm(self):
+        if self.mead_correction == 'fit' and self.hod_model_mm == 'Cacciato':
+            fstar = self.hod_mm.compute_stellar_fraction
+            # Possibly move this to HOD!
+            if self.hod_settings['observable_h_unit'] == valid_units[1]:
+                fstar = fstar * self.h0
+            return fstar
+        else:
+            return np.zeros(1, self.z_vec.size, self.mass.size)
         
     def dewiggle_plin(self, plin):
         sigma = sigmaV(self.k_vec, plin)
@@ -672,78 +688,100 @@ class GalaxySpectra(MatterSpectra):
         
         self.u_sat = u_sat
         self.pointmass = pointmass
-        
-        self.hod = self.select_hod_model(hod_model)
-        hh = self.hod(
+        self.hod_settings = hod_settings
+        self.hod_params = hod_params
+        self.hod_model = hod_model
+    
+    @cached_property
+    def hod(self):
+        hod = self.select_hod_model(self.hod_model)
+        return hod(
             mass = self.mass,
             dndlnm = self.dndlnm,
             halobias = self.halobias,
             z_vec = self.z_vec,
-            hod_settings = hod_settings,
-            **hod_params
+            hod_settings = self.hod_settings,
+            **self.hod_params
         )
-        self.Ncen = hh.compute_hod_cen
-        self.Nsat = hh.compute_hod_sat
-        self.numdencen = hh.compute_number_density_cen
-        self.numdensat = hh.compute_number_density_sat
-        self.f_c = hh.f_c
-        self.f_s = hh.f_s
-        self.mass_avg = hh.compute_avg_halo_mass_cen / self.numdencen
-        self.fstar = hh.compute_stellar_fraction
-        if hod_settings['observable_h_unit'] == valid_units[1]:
-            self.fstar = self.fstar * self.h0
         
-        """
-        if self.hod_model == 'Cacciato':
+    @cached_property
+    def fstar(self):
+        fstar = self.hod.compute_stellar_fraction
+        # Possibly move this to HOD!
+        if self.hod_settings['observable_h_unit'] == valid_units[1]:
+            fstar = fstar * self.h0
+        return fstar
+        
+    @cached_property
+    def obs(self):
+        if self.hod_model == 'Cacciato' and self.hod_settings['observable_mode'] == 'obs_z':
+            return self.hod
+        elif self.hod_model == 'Cacciato' and self.hod_settings['observable_mode'] == 'obs_onebin':
+            obs_settings = self.hod_settings.copy()
+            obs_settings['observables_file'] = None
+            obs_settings['obs_min'] = np.array([obs_settings['obs_min'].min()])
+            obs_settings['obs_max'] = np.array([obs_settings['obs_max'].max()])
+            obs_settings['zmin'] = np.array([obs_settings['zmin'].min()])
+            obs_settings['zmax'] = np.array([obs_settings['zmax'].max()])
+            obs_settings['nz'] = 15
+            obs_settings['nobs'] = 100
+            hod = self.select_hod_model(self.hod_model)
+            return hod(
+                mass = self.mass,
+                dndlnm = self.dndlnm,
+                halobias = self.halobias,
+                z_vec = self.z_vec,
+                hod_settings = obs_settings,
+                **self.hod_params
+            )
+        elif self.hod_model == 'Cacciato' and self.hod_settings['observable_mode'] == 'obs_zmed':
+            obs_settings = self.hod_settings.copy()
+            obs_settings['obs_min'] = np.array([obs_settings['obs_min'].min()])
+            obs_settings['obs_max'] = np.array([obs_settings['obs_max'].max()])
+            obs_settings['zmin'] = np.array([obs_settings['z_median'])
+            obs_settings['zmax'] = np.array([obs_settings['z_median'])
+            obs_settings['nz'] = 1
+            hod = self.select_hod_model(self.hod_model)
+            return hod(
+                mass = self.mass,
+                dndlnm = self.dndlnm,
+                halobias = self.halobias,
+                z_vec = self.z_vec,
+                hod_settings = obs_settings,
+                **self.hod_params
+            )
+        else:
+            return None
             
-            if self.hod_settings['observable_mode'] == 'obs_onebin':
-                self.obs_func = hh_mm.obs_func
-                self.obs_func_cen = hh_mm.obs_func_cen
-                self.obs_func_sat = hh_mm.obs_func_sat
-                self.obs = hh_mm.obs
-                self.obs_z = hh_mm.z
-            if self.hod_settings['observable_mode'] == 'obs_z':
-                self.obs_func = hh.obs_func
-                self.obs_func_cen = hh.obs_func_cen
-                self.obs_func_sat = hh.obs_func_sat
-                self.obs = hh.obs
-                self.obs_z = hh.z
-            if self.hod_settings['observable_mode'] == 'obs_zmed':
-                hod_params_med = hod_params.copy()
-                hod_params_med['obs_min'] = np.array([hod_params['obs_min'].min()])
-                hod_params_med['obs_max'] = np.array([hod_params['obs_max'].max()])
-                hod_params_med['zmin'] = np.array([hod_settings['z_med']])
-                hod_params_med['zmax'] = np.array([hod_settings['z_med']])
-                hod_params_med['nz'] = 1
-                hh_med = self.hod(
-                    mass = self.mass,
-                    dndlnm = self.dndlnm,
-                    halobias = self.halobias,
-                    z_vec = self.z_vec,
-                    **hod_params_med
-                )
-                self.obs_func = hh_med.obs_func
-                self.obs_func_cen = hh_med.obs_func_cen
-                self.obs_func_sat = hh_med.obs_func_sat
-                self.obs = hh_med.obs
-                self.obs_z = hh_med.z
+        # Need to return these:
         """
+        self.obs_func = obs.obs_func
+        self.obs_func_cen = obs.obs_func_cen
+        self.obs_func_sat = obs.obs_func_sat
+        self.obs = obs.obs
+        self.obs_z = obs.z
+        """
+    # Maybe so?
+    @cached_property
+    def obs_func(self):
+        if self.obs is None:
+            return None
+        return obs.obs_func
         
-
     @cached_property
     def central_galaxy_profile(self):
         """
         galaxy profile for a sample of centrals galaxies.
         set u_sample to ones if centrals are in the centre of the halo
         """
-        return self.f_c[:, :, np.newaxis, np.newaxis] * self.Ncen[:, :, np.newaxis, :] * np.ones_like(self.u_sat[np.newaxis, :, :, :]) / self.numdencen[:, :, np.newaxis, np.newaxis]
+        return self.hod.f_c[:, :, np.newaxis, np.newaxis] * self.hod.compute_hod_cen[:, :, np.newaxis, :] * np.ones_like(self.u_sat[np.newaxis, :, :, :]) / self.hod.compute_number_density_cen[:, :, np.newaxis, np.newaxis]
 
     @cached_property
     def satellite_galaxy_profile(self):
         """
         galaxy profile for a sample of satellite galaxies.
         """
-        return self.f_s[:, :, np.newaxis, np.newaxis] * self.Nsat[:, :, np.newaxis, :] * self.u_sat[np.newaxis, :, :, :] / self.numdensat[:, :, np.newaxis, np.newaxis]
+        return self.hod.f_s[:, :, np.newaxis, np.newaxis] * self.hod.compute_hod_sat[:, :, np.newaxis, :] * self.u_sat[np.newaxis, :, :, :] / self.hod.compute_number_density_sat[:, :, np.newaxis, np.newaxis]
 
     def compute_Ig_term(self, profile, mass, dndlnm, b_m):
         integrand = profile * b_m * dndlnm / mass
@@ -879,9 +917,10 @@ class AlignmentSpectra(GalaxySpectra):
             self.matter_power_nl = matter_power_nl
             self.peff = (1.0 - self.t_eff) * self.matter_power_nl + self.t_eff * self.matter_power_lin
 
+    @cached_property
+    def wkm_sat(self):
         satellite_alignment = SatelliteAlignment(**self.align_params)
-        self.wkm_sat = satellite_alignment.upsampled_wkm(self.k_vec, self.mass)
-        #print(np.allclose(self.wkm_sat, self.wkm_sat_old))
+        return satellite_alignment.upsampled_wkm(self.k_vec, self.mass)
         
     def compute_central_galaxy_alignment_profile(self, scale_factor, growth_factor, f_c, C1, mass, beta=None, mpivot=None, mass_avg=None):
         """
@@ -914,7 +953,7 @@ class AlignmentSpectra(GalaxySpectra):
         profile = self.compute_central_galaxy_alignment_profile(
             self.scale_factor[np.newaxis, :, :, np.newaxis],
             self.growth_factor[np.newaxis, :, :, np.newaxis],
-            self.f_c[:, :, np.newaxis, np.newaxis],
+            self.hodf_c[:, :, np.newaxis, np.newaxis],
             self.C1[np.newaxis, :, :, :],
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.beta_cen,
@@ -932,9 +971,9 @@ class AlignmentSpectra(GalaxySpectra):
         times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
         """
         profile = self.compute_satellite_galaxy_alignment_profile(
-            self.Nsat[:, :, np.newaxis, :],
-            self.numdensat[:, :, np.newaxis, np.newaxis],
-            self.f_s[:, :, np.newaxis, np.newaxis],
+            self.hod.compute_hod_sat[:, :, np.newaxis, :],
+            self.hod.compute_number_density_sat[:, :, np.newaxis, np.newaxis],
+            self.hod.f_s[:, :, np.newaxis, np.newaxis],
             self.wkm_sat.transpose(0, 2, 1)[np.newaxis, :, :, :],
             self.beta_sat,
             self.mpivot_sat,
@@ -1005,7 +1044,7 @@ class AlignmentSpectra(GalaxySpectra):
             pk_sm_2h = (-1.0) * self.matter_power_lin * self.Is_align_term * self.Im_term
             pk_cm_2h = (-1.0) * self.matter_power_lin * self.Ic_align_term * self.Im_term
         elif self.fortuna:
-            pk_cm_2h = self.f_c[:, :, np.newaxis] * self.peff * self.alignment_amplitude_2h * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
+            pk_cm_2h = self.hod.f_c[:, :, np.newaxis] * self.peff * self.alignment_amplitude_2h * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
         else:
             pk_sm_2h = (-1.0) * self.matter_power_lin * self.Is_align_term * self.Im_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
             pk_cm_2h = (-1.0) * self.matter_power_lin * self.Ic_align_term * self.Im_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
@@ -1047,7 +1086,7 @@ class AlignmentSpectra(GalaxySpectra):
             pk_cc_2h = self.matter_power_lin * self.Ic_align_term * self.Ic_align_term + self.matter_power_lin * I_NL_cc
             pk_cs_2h = self.matter_power_lin * self.Ic_align_term * self.Is_align_term + self.matter_power_lin * I_NL_cs
         elif self.fortuna:
-            pk_cc_2h = self.f_c[:, :, np.newaxis]**2.0 * self.peff * self.alignment_amplitude_2h_II * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
+            pk_cc_2h = self.hod.f_c[:, :, np.newaxis]**2.0 * self.peff * self.alignment_amplitude_2h_II * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
         else:
             pk_ss_2h = self.matter_power_lin * self.Is_align_term * self.Is_align_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
             pk_cc_2h = self.matter_power_lin * self.Ic_align_term * self.Ic_align_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
