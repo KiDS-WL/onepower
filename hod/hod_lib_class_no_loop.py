@@ -26,6 +26,7 @@ class HOD:
 
         nobs = hod_settings['nobs']
         # Set all given parameters.
+        # Find a bit more elegant way to deal with this, and how to deal with hod_settings dict!
         if hod_settings['observables_file'] is not None:
             z_bins, obs_min, obs_max = load_data(hod_settings['observables_file'])
             self.nz = len(z_bins)

@@ -113,6 +113,9 @@ def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25)
     return Pk_wiggle
 
 
+# Here we need to inherit thing from hmf/halomod
+# An aditional class is to be written that handles interfacing with hmf/halomod
+# and returns most of parameters specified in MatterSpectra.__init__
 #class MatterSpectra(HMF):
 class MatterSpectra:
     def __init__(self,
@@ -929,6 +932,9 @@ class AlignmentSpectra(GalaxySpectra):
             self.matter_power_nl = matter_power_nl
             self.peff = (1.0 - self.t_eff) * self.matter_power_nl + self.t_eff * self.matter_power_lin
 
+    # Here be method to calculate the alignment_gi, that is the amplitudes
+    # Amplitudes are to be a separate standalone class as the wkm_sat is done
+    
     @cached_property
     def wkm_sat(self):
         satellite_alignment = SatelliteAlignment(**self.align_params)
