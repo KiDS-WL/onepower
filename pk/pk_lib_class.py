@@ -196,8 +196,8 @@ class MatterSpectra:
                 dndlnm = self.dndlnm,
                 halobias = self.halobias,
                 z_vec = self.z_vec,
-                hod_settings = self.hod_settings,
-                **self.hod_params
+                hod_settings = self.hod_settings_mm,
+                **self.hod_params_mm
             )
         else:
             return None
@@ -207,7 +207,7 @@ class MatterSpectra:
         if self.mead_correction == 'fit' and self.hod_model_mm == 'Cacciato':
             fstar = self.hod_mm.compute_stellar_fraction
             # Possibly move this to HOD!
-            if self.hod_settings['observable_h_unit'] == valid_units[1]:
+            if self.hod_settings_mm['observable_h_unit'] == valid_units[1]:
                 fstar = fstar * self.h0
             return fstar
         else:
@@ -670,12 +670,6 @@ class MatterSpectra:
 class GalaxySpectra(MatterSpectra):
     def __init__(self,
             u_sat = None,
-            #Ncen = None,
-            #Nsat = None,
-            #numdencen = None,
-            #numdensat = None,
-            #f_c = None,
-            #f_s = None,
             pointmass = None,
             hod_model = 'Cacciato',
             hod_params = {},
@@ -706,12 +700,17 @@ class GalaxySpectra(MatterSpectra):
         
     @cached_property
     def fstar(self):
-        fstar = self.hod.compute_stellar_fraction
         # Possibly move this to HOD!
+        fstar = self.hod.compute_stellar_fraction
         if self.hod_settings['observable_h_unit'] == valid_units[1]:
             fstar = fstar * self.h0
         return fstar
         
+    @cached_property
+    def mass_avg(self):
+        # Possibly move this to HOD!
+        return self.hod.compute_avg_halo_mass_cen / self.hod.compute_number_density
+            
     @cached_property
     def obs(self):
         if self.hod_model == 'Cacciato' and self.hod_settings['observable_mode'] == 'obs_z':
@@ -738,8 +737,8 @@ class GalaxySpectra(MatterSpectra):
             obs_settings = self.hod_settings.copy()
             obs_settings['obs_min'] = np.array([obs_settings['obs_min'].min()])
             obs_settings['obs_max'] = np.array([obs_settings['obs_max'].max()])
-            obs_settings['zmin'] = np.array([obs_settings['z_median'])
-            obs_settings['zmax'] = np.array([obs_settings['z_median'])
+            obs_settings['zmin'] = np.array([obs_settings['z_median']])
+            obs_settings['zmax'] = np.array([obs_settings['z_median']])
             obs_settings['nz'] = 1
             hod = self.select_hod_model(self.hod_model)
             return hod(
@@ -753,21 +752,36 @@ class GalaxySpectra(MatterSpectra):
         else:
             return None
             
-        # Need to return these:
-        """
-        self.obs_func = obs.obs_func
-        self.obs_func_cen = obs.obs_func_cen
-        self.obs_func_sat = obs.obs_func_sat
-        self.obs = obs.obs
-        self.obs_z = obs.z
-        """
-    # Maybe so?
     @cached_property
     def obs_func(self):
         if self.obs is None:
             return None
-        return obs.obs_func
+        return np.log(10.0) * np.squeeze(self.obs.obs, axis=2) * self.obs.obs_func
         
+    @cached_property
+    def obs_func_cen(self):
+        if self.obs is None:
+            return None
+        return np.log(10.0) * np.squeeze(self.obs.obs, axis=2) * self.obs.obs_func_cen
+
+    @cached_property
+    def obs_func_sat(self):
+        if self.obs is None:
+            return None
+        return np.log(10.0) * np.squeeze(self.obs.obs, axis=2) * self.obs.obs_func_sat
+
+    @cached_property
+    def obs_func_obs(self):
+        if self.obs is None:
+            return None
+        return np.squeeze(self.obs.obs, axis=2)
+        
+    @cached_property
+    def obs_func_z(self):
+        if self.obs is None:
+            return None
+        return self.obs.z
+
     @cached_property
     def central_galaxy_profile(self):
         """
@@ -882,7 +896,6 @@ class GalaxySpectra(MatterSpectra):
 class AlignmentSpectra(GalaxySpectra):
     def __init__(self,
             alignment_gi = None,
-            wkm_sat = None,
             t_eff = None,
             beta_cen = None,
             beta_sat = None,
@@ -905,7 +918,6 @@ class AlignmentSpectra(GalaxySpectra):
         self.mpivot_sat = mpivot_sat
         self.t_eff = t_eff
         self.alignment_gi = alignment_gi
-        self.wkm_sat_old = wkm_sat
         self.growth_factor = growth_factor
         self.scale_factor = scale_factor
         self.fortuna = fortuna
@@ -953,7 +965,7 @@ class AlignmentSpectra(GalaxySpectra):
         profile = self.compute_central_galaxy_alignment_profile(
             self.scale_factor[np.newaxis, :, :, np.newaxis],
             self.growth_factor[np.newaxis, :, :, np.newaxis],
-            self.hodf_c[:, :, np.newaxis, np.newaxis],
+            self.hod.f_c[:, :, np.newaxis, np.newaxis],
             self.C1[np.newaxis, :, :, :],
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.beta_cen,

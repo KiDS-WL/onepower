@@ -132,7 +132,6 @@ def setup(options):
         hod_settings['zmin'] = np.asarray([options[option_section, 'zmin']]).flatten()
         hod_settings['zmax'] = np.asarray([options[option_section, 'zmax']]).flatten()
         hod_settings['nz'] = options[option_section, 'nz']
-    #hod_settings['nobs'] = options[option_section, 'nobs']
     
     return {
         'obs_simps': obs_simps,
@@ -264,15 +263,15 @@ def execute(block, config):
     
     if save_observable and observable_mode == 'obs_z' and hod_model == 'Cacciato':
     
-        obs_func = COF_class.obs_func
-        obs_func_c = COF_class.obs_func_cen
-        obs_func_s = COF_class.obs_func_sat
+        obs_func = np.log(10.0) * np.squeeze(COF_class.obs, axis=2) * COF_class.obs_func
+        obs_func_c = np.log(10.0) * np.squeeze(COF_class.obs, axis=2) * COF_class.obs_func_cen
+        obs_func_s = np.log(10.0) * np.squeeze(COF_class.obs, axis=2) * COF_class.obs_func_sat
 
         for nb in range(nbins):
-            suffix = f'_{nb+1}'
-            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_simps[nb, 0, :], f'obs_func{suffix_obs}', np.log(10.0) * obs_func[nb, 0, :] * obs_simps[nb])
-            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_simps[nb, 0, :], f'obs_func_c{suffix_obs}', np.log(10.0) * obs_func_c[nb, 0, :] * obs_simps[nb])
-            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_simps[nb, 0, :], f'obs_func_s{suffix_obs}', np.log(10.0) * obs_func_s[nb, 0, :] * obs_simps[nb])
+            suffix_obs = f'_{nb+1}'
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_simps[nb, 0, :], f'obs_func{suffix_obs}', obs_func[nb])
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_simps[nb, 0, :], f'obs_func_c{suffix_obs}', obs_func_c[nb])
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', z_bins[nb], f'obs_val{suffix_obs}', obs_simps[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb] )
 
     if hod_model == 'Cacciato':
         # Calculating the full stellar mass fraction and if desired the observable function for one bin case
@@ -293,13 +292,13 @@ def execute(block, config):
         block.put_grid(hod_section_name, 'z_extended', z_bins_one[0], 'mass_extended', mass, 'f_star_extended', f_star_mm[0])
 
         if save_observable and observable_mode == 'obs_onebin':
-            obs_func = COF_class_onebin.obs_func
-            obs_func_c = COF_class_onebin.obs_func_cen
-            obs_func_s = COF_class_onebin.obs_func_sat
+            obs_func = np.log(10.0) * np.squeeze(COF_class.obs, axis=2) * COF_class.obs_func
+            obs_func_c = np.log(10.0) * np.squeeze(COF_class.obs, axis=2) * COF_class.obs_func_cen
+            obs_func_s = np.log(10.0) * np.squeeze(COF_class.obs, axis=2) * COF_class.obs_func_sat
 
-            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one[0], 'obs_val_1', obs_range[0], 'obs_func_1', np.log(10.0) * obs_func[0] * obs_range[0])
-            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one[0], 'obs_val_1', obs_range[0], 'obs_func_c_1', np.log(10.0) * obs_func_c[0] * obs_range[0])
-            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one[0], 'obs_val_1', obs_range[0], 'obs_func_s_1', np.log(10.0) * obs_func_s[0] * obs_range[0])
+            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one[0], 'obs_val_1', obs_range[0], 'obs_func_1', obs_func[0])
+            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one[0], 'obs_val_1', obs_range[0], 'obs_func_c_1', obs_func_c[0])
+            block.put_grid(observable_section_name, 'z_bin_1', z_bins_one[0], 'obs_val_1', obs_range[0], 'obs_func_s_1', obs_func_s[0])
 
         if save_observable and observable_mode == 'obs_zmed':
 
@@ -312,15 +311,15 @@ def execute(block, config):
             hod_kwargs['hod_settings'] = hod_settings
             COF_class_zmed = getattr(hods, hod_model)(**hod_kwargs)
 
-            obs_func = COF_class_zmed.obs_func
-            obs_func_c = COF_class_zmed.obs_func_cen
-            obs_func_s = COF_class_zmed.obs_func_sat
-            obs_range = COF_class_zmed.obs[0, 0, 0, :]
+            obs_func = np.log(10.0) * np.squeeze(COF_class_zmed.obs, axis=2) * COF_class_zmed.obs_func
+            obs_func_c = np.log(10.0) * np.squeeze(COF_class_zmed.obs, axis=2) * COF_class_zmed.obs_func_cen
+            obs_func_s = np.log(10.0) * np.squeeze(COF_class_zmed.obs, axis=2) * COF_class_zmed.obs_func_sat
+            obs_range = COF_class_zmed.obs
 
-            block.put_double_array_1d(observable_section_name, 'obs_val_med', obs_range)
-            block.put_double_array_1d(observable_section_name, 'obs_func_med', np.log(10.0) * obs_func[0, 0, :] * obs_range)
-            block.put_double_array_1d(observable_section_name, 'obs_func_med_c', np.log(10.0) * obs_func_c[0, 0, :] * obs_range)
-            block.put_double_array_1d(observable_section_name, 'obs_func_med_s', np.log(10.0) * obs_func_s[0, 0, :] * obs_range)
+            block.put_double_array_1d(observable_section_name, 'obs_val_med', np.squeeze(obs_range))
+            block.put_double_array_1d(observable_section_name, 'obs_func_med', np.squeeze(obs_func))
+            block.put_double_array_1d(observable_section_name, 'obs_func_med_c', np.squeeze(obs_func_c))
+            block.put_double_array_1d(observable_section_name, 'obs_func_med_s', np.squeeze(obs_func_s))
 
             mean_obs_cen = COF_class_zmed.cal_mean_obs_c[0, 0, :]
 

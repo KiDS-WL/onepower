@@ -31,6 +31,10 @@ class HOD:
             self.nz = len(z_bins)
             log_obs_min = np.log10(obs_min)[np.newaxis, :]
             log_obs_max = np.log10(obs_max)[np.newaxis, :]
+            hod_settings['obs_min'] = np.log10(obs_min)
+            hod_settings['obs_max'] = np.log10(obs_max)
+            hod_settings['zmin'] = np.array([z_bins.min()])
+            hod_settings['zmax'] = np.array([z_bins.max()])
             self.z = z_bins[np.newaxis, :]
             self.nbins = 1
         else:
