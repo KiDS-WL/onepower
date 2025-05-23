@@ -163,18 +163,20 @@ def setup(options):
     hod_settings = {}
     if options.has_value(hod_section_name, 'observables_file'):
         hod_settings['observables_file'] = options.get_string(hod_section_name, 'observables_file')
+        hod_settings['observable_z'] = True
     else:
         hod_settings['observables_file'] = None
+        hod_settings['observable_z'] = False
         hod_settings['obs_min'] = np.asarray([options[hod_section_name, 'log10_obs_min']]).flatten()
         hod_settings['obs_max'] = np.asarray([options[hod_section_name, 'log10_obs_max']]).flatten()
         hod_settings['zmin'] = np.asarray([options[hod_section_name, 'zmin']]).flatten()
         hod_settings['zmax'] = np.asarray([options[hod_section_name, 'zmax']]).flatten()
         hod_settings['nz'] = options[hod_section_name, 'nz']
     hod_settings['nobs'] = options[hod_section_name, 'nobs']
-    #hod_settings['save_observable'] = options.get_bool(hod_section_name, 'save_observable', default=True)
+    hod_settings['save_observable'] = options.get_bool(hod_section_name, 'save_observable', default=True)
     hod_settings['observable_mode'] = options.get_string(hod_section_name, 'observable_mode', default='obs_z')
     hod_settings['observable_h_unit'] = options.get_string(hod_section_name, 'observable_h_unit', default='1/h^2').lower()
-    hod_settings['z_med'] = options.get_double(hod_section_name, 'z_median', default=0.1)
+    hod_settings['z_median'] = options.get_double(hod_section_name, 'z_median', default=0.1)
     
     hod_settings_mm = {}
     if options.has_value(hod_section_name, 'observables_file'):
@@ -190,7 +192,11 @@ def setup(options):
     #hod_settings_mm['save_observable'] = options.get_bool(hod_section_name, 'save_observable', default=True)
     hod_settings_mm['observable_mode'] = options.get_string(hod_section_name, 'observable_mode', default='obs_z')
     hod_settings_mm['observable_h_unit'] = options.get_string(hod_section_name, 'observable_h_unit', default='1/h^2').lower()
-    hod_settings_mm['z_med'] = options.get_double(hod_section_name, 'z_median', default=0.1)
+    hod_settings_mm['z_median'] = options.get_double(hod_section_name, 'z_median', default=0.1)
+    if options.has_value(hod_section_name, 'observable_section_name'):
+        hod_settings['observable_section_name'] = options.get_string(
+            hod_section_name, 'observable_section_name', default='stellar_mass_function'
+        ).lower()
     
 
     return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, hod_values_name
@@ -262,14 +268,13 @@ def execute(block, config):
     neff = block['hmf', 'neff']
         
     if galaxy or alignment:
-        hod_bins = block[hod_section_name, 'nbins']
         poisson_par = {
             'poisson_type': poisson_type,
             'poisson': get_string_or_none(block, 'pk_parameters', 'poisson', default=None),
             'M_0': get_string_or_none(block, 'pk_parameters', 'M_0', default=None),
             'slope': get_string_or_none(block, 'pk_parameters', 'slope', default=None)
         }
-        
+        #hod_bins = block[hod_section_name, 'nbins']
         #N_cen, N_sat, numdencen, numdensat, f_cen, f_sat, mass_avg, f_star = zip(*[
         #    pk_util.load_hods(block, hod_section_name, f'_{nb+1}' if hod_bins != 1 else '', z_vec, mass)
         #    for nb in range(hod_bins)
@@ -277,15 +282,7 @@ def execute(block, config):
 
         galaxy_kwargs.update({
             'u_sat': u_sat,
-            #'Ncen': np.array(N_cen),
-            #'Nsat': np.array(N_sat),
-            #'numdencen': np.array(numdencen),
-            #'numdensat': np.array(numdensat),
-            #'f_c': np.array(f_cen),
-            #'f_s': np.array(f_sat),
-            #'nbins': hod_bins,
             'pointmass': point_mass,
-            #'mass_avg': mass_avg,
         })
         
         hod_params['A_cen'] = block[hod_values_name, 'A_cen'] if block.has_value(hod_values_name, 'A_cen') else None
@@ -321,11 +318,9 @@ def execute(block, config):
     if alignment:
         align_kwargs.update({
             'fortuna': fortuna,
-            #'mass_avg': np.array(mass_avg),
             'growth_factor': growth_factor,
             'scale_factor': scale_factor,
             'alignment_gi': block[f'ia_large_scale_alignment{pop_name}', 'alignment_gi'],
-            'wkm_sat': pk_util.get_satellite_alignment_new(block, k_vec, mass, z_vec, pop_name),
             't_eff': block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0),
         })
 
@@ -389,21 +384,49 @@ def execute(block, config):
         numdens_tot = hod.hod.compute_number_density
         fraction_c = hod.hod.f_c
         fraction_s = hod.hod.f_s
-        mass_avg = hod.hod.compute_avg_halo_mass_cen / power.hod.compute_number_density
+        mass_avg = hod.mass_avg
         f_star = hod.fstar
-    
-        for nb in range(nbins):
-            suffix = f'_{nb+1}' if nbins != 1 else ''
+        
+        hod_bins = N_cen.shape[0]
+        block.put_int(hod_section_name, 'nbins', hod_bins)
+        block.put_bool(hod_section_name, 'observable_z', hod_settings['observable_z'])
+        for nb in range(hod_bins):
+            suffix = f'_{nb+1}' if hod_bins != 1 else ''
             block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_sat{suffix}', N_sat[nb])
-            block.put_grid(hod_section_name, f'z{suffix}', z_vec], f'mass{suffix}', mass, f'N_cen{suffix}', N_cen[nb])
+            block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_cen{suffix}', N_cen[nb])
             block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_tot{suffix}', N_tot[nb])
             block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'f_star{suffix}', f_star[nb])
             block.put_double_array_1d(hod_section_name, f'number_density_cen{suffix}', numdens_cen[nb])
             block.put_double_array_1d(hod_section_name, f'number_density_sat{suffix}', numdens_sat[nb])
             block.put_double_array_1d(hod_section_name, f'number_density_tot{suffix}', numdens_tot[nb])
-            block.put_double_array_1d(hod_section_name, f'central_fraction{suffix}', fraction_cen[nb])
-            block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_sat[nb])
+            block.put_double_array_1d(hod_section_name, f'central_fraction{suffix}', fraction_c[nb])
+            block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_s[nb])
             block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg[nb])
+        
+        if hod.obs_func is not None and hod_settings['save_observable']:
+            obs_func = hod.obs_func
+            obs_func_c = hod.obs_func_cen
+            obs_func_s = hod.obs_func_sat
+            obs_z = hod.obs_func_z
+            obs_range = hod.obs_func_obs
+            obs_bins = obs_range.shape[0]
+            
+            observable_section_name = hod_settings['observable_section_name']
+            block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
+            block.put(observable_section_name, 'observable_mode', hod_settings['observable_mode'])
+
+            for nb in range(obs_bins):
+                if hod_settings['observable_mode'] == 'obs_zmed':
+                    suffix_obs = '_med'
+                    block.put_double_array_1d(observable_section_name, 'obs_val_med', np.squeeze(obs_range))
+                    block.put_double_array_1d(observable_section_name, 'obs_func_med', np.squeeze(obs_func))
+                    block.put_double_array_1d(observable_section_name, 'obs_func_med_c', np.squeeze(obs_func_c))
+                    block.put_double_array_1d(observable_section_name, 'obs_func_med_s', np.squeeze(obs_func_s))
+                else:
+                    suffix_obs = f'_{nb+1}'
+                    block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func{suffix_obs}', obs_func[nb])
+                    block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_c{suffix_obs}', obs_func_c[nb])
+                    block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb])
 
     if p_mm or response:
         pk_mm_1h, pk_mm_2h, pk_mm, _ = matter_power.compute_power_spectrum_mm(
