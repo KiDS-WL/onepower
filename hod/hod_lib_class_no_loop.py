@@ -24,34 +24,10 @@ class HOD:
         if mass is None or dndlnm is None:
             raise ValueError("Mass and halo mass function need to be specified!")
 
-        nobs = hod_settings['nobs']
         # Set all given parameters.
-        # Find a bit more elegant way to deal with this, and how to deal with hod_settings dict!
-        if hod_settings['observables_file'] is not None:
-            z_bins, obs_min, obs_max = load_data(hod_settings['observables_file'])
-            self.nz = len(z_bins)
-            log_obs_min = np.log10(obs_min)[np.newaxis, :]
-            log_obs_max = np.log10(obs_max)[np.newaxis, :]
-            hod_settings['obs_min'] = np.log10(obs_min)
-            hod_settings['obs_max'] = np.log10(obs_max)
-            hod_settings['zmin'] = np.array([z_bins.min()])
-            hod_settings['zmax'] = np.array([z_bins.max()])
-            self.z = z_bins[np.newaxis, :]
-            self.nbins = 1
-        else:
-            self.nz = hod_settings['nz']
-            obs_min = hod_settings['obs_min']
-            obs_max = hod_settings['obs_max']
-            zmin = hod_settings['zmin']
-            zmax = hod_settings['zmax']
-            if not np.all(np.array([obs_min.size, obs_max.size, zmin.size, zmax.size]) == obs_min.size):
-                raise ValueError('obs_min, obs_max, zmin, and zmax need to be of the same length.')
-            self.nbins = len(obs_min)
-            self.z = np.array([np.linspace(zmin_i, zmax_i, self.nz) for zmin_i, zmax_i in zip(zmin, zmax)])
-            log_obs_min = np.array([np.repeat(obs_min_i, self.nz) for obs_min_i in obs_min])
-            log_obs_max = np.array([np.repeat(obs_max_i, self.nz) for obs_max_i in obs_max])
+        self._process_hod_settings(hod_settings)
 
-        obs = np.array([[np.logspace(log_obs_min[nb, jz], log_obs_max[nb, jz], nobs) for jz in range(self.nz)] for nb in range(self.nbins)])
+        obs = np.array([[np.logspace(self.log_obs_min[nb, jz], self.log_obs_max[nb, jz], self.nobs) for jz in range(self.nz)] for nb in range(self.nbins)])
         # With newaxis we make sure the COF shape is (nb, nz, nmass, nobs)
         self.obs = obs[:, :, np.newaxis, :]
         # With newaxis we make sure the HOD shape is (nb, nz, nmass)
@@ -68,6 +44,32 @@ class HOD:
         )
         self.dndlnm = dndlnm_int(self.z)
         self.halobias = halobias_int(self.z)
+        
+    def _process_hod_settings(self, hod_settings):
+        self.nobs = hod_settings['nobs']
+        if hod_settings['observables_file'] is not None:
+            z_bins, obs_min, obs_max = load_data(hod_settings['observables_file'])
+            self.nz = len(z_bins)
+            self.z = z_bins[np.newaxis, :]
+            self.nbins = 1
+            self.log_obs_min = np.log10(obs_min)[np.newaxis, :]
+            self.log_obs_max = np.log10(obs_max)[np.newaxis, :]
+            hod_settings['obs_min'] = np.log10(obs_min)
+            hod_settings['obs_max'] = np.log10(obs_max)
+            hod_settings['zmin'] = np.array([z_bins.min()])
+            hod_settings['zmax'] = np.array([z_bins.max()])
+        else:
+            self.nz = hod_settings['nz']
+            obs_min = hod_settings['obs_min']
+            obs_max = hod_settings['obs_max']
+            zmin = hod_settings['zmin']
+            zmax = hod_settings['zmax']
+            if not np.all(np.array([obs_min.size, obs_max.size, zmin.size, zmax.size]) == obs_min.size):
+                raise ValueError('obs_min, obs_max, zmin, and zmax need to be of the same length.')
+            self.nbins = len(obs_min)
+            self.z = np.array([np.linspace(zmin_i, zmax_i, self.nz) for zmin_i, zmax_i in zip(zmin, zmax)])
+            self.log_obs_min = np.array([np.repeat(obs_min_i, self.nz) for obs_min_i in obs_min])
+            self.log_obs_max = np.array([np.repeat(obs_max_i, self.nz) for obs_max_i in obs_max])
         
     def _mass_integral(self, hod):
         integrand = hod * self.dndlnm / self.mass
