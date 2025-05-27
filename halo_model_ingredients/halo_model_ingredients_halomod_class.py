@@ -37,6 +37,7 @@ class HaloModelIngredients:
         self.h0 = h0
         self.n_s = n_s
         self.tcmb = tcmb
+        self.mnu = mnu
         self.sigma_8 = sigma_8
         self.log10T_AGN = log10T_AGN
         self.transfer_model = transfer_model
@@ -46,50 +47,53 @@ class HaloModelIngredients:
         self.mead_correction = mead_correction
 
         self.halo_profile_params = {'cosmo': self.cosmo_model}
-        # If Mead correction is applied, set the ingredients to match Mead et al. (2021)
+
         if self.mead_correction in ['feedback', 'nofeedback']:
-            self.disable_mass_conversion = True
-            self.hmf_model = 'ST'
-            self.bias_model = 'ST99'
-            self.halo_concentration_model = 'Bullock01'
-            growth = hmu.get_growth_interpolator(self.cosmo_model)
-            # growth_LCDM = hmu.get_growth_interpolator(LCDMcosmo)
-            a = self.cosmo_model.scale_factor(self.z_vec)
-            g = growth(a)
-            G = np.array([hmu.get_accumulated_growth(ai, growth) for ai in a])
-            delta_c_mead = hmu.dc_Mead(a, self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec),
-                            self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0), g, G)
-            halo_overdensity_mead = hmu.Dv_Mead(a, self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec),
-                                        self.cosmo_model.Onu0 / (elf.cosmo_model.Om0 + self.cosmo_model.Onu0), g, G)
-            self.delta_c = delta_c_mead
-            self.mdef_model = hmu.SOVirial_Mead
-            self.mdef_params = [{'overdensity': halo_overdensity_mead[i]} for i, _ in enumerate(self.z_vec)]
-            
-            self.norm_sat = norm_sat
-            self.eta_sat = eta_sat
-            
-            if self.mead_correction == 'nofeedback':
-                self.norm_cen = 5.196 * np.ones_like(self.z_vec)
-            elif self.mead_correction == 'feedback':
-                theta_agn = self.logT_AGN - 7.8
-                self.norm_cen = (5.196 / 4.0) * ((3.44 - 0.496 * theta_agn) * np.power(10.0, self.z_vec * (-0.0671 - 0.0371 * theta_agn)))
-            
+            self._setup_mead_correction(norm_sat, eta_sat, norm_cen)
         else:
-            self.disable_mass_conversion = False
-            self.hmf_model = hmf_model
-            self.bias_model = bias_model
-            try:
-                self.halo_concentration_model = interp_concentration(getattr(concentration_classes, cm_model))
-            except:
-                self.halo_concentration_model = interp_concentration(make_colossus_cm(cm_model))
-            self.delta_c = (3.0 / 20.0) * (12.0 * np.pi) ** (2.0 / 3.0) * (1.0 + 0.0123 * np.log10(self.cosmo_model.Om(self.z_vec)))
-                if self.mdef_model == 'SOVirial' else delta_c * np.ones_like(self.z_vec)
-            self.mdef_model = mdef_model
-            self.mdef_params = [{} if self.mdef_model == 'SOVirial' else {'overdensity': overdensity} for z in self.z_vec]
-            self.norm_cen = norm_cen * np.ones_like(self.z_vec)
-            self.norm_sat = norm_sat * np.ones_like(self.z_vec)
-            self.eta_cen = eta_cen * np.ones_like(self.z_vec)
-            self.eta_sat = eta_sat * np.ones_like(self.z_vec)
+            self._setup_default(hmf_model, bias_model, cm_model, mdef_model, overdensity, norm_sat, eta_sat, norm_cen, eta_cen)
+
+    def _setup_mead_correction(self, norm_sat, eta_sat, norm_cen):
+        self.disable_mass_conversion = True
+        self.hmf_model = 'ST'
+        self.bias_model = 'ST99'
+        self.halo_concentration_model = 'Bullock01'
+        growth = hmu.get_growth_interpolator(self.cosmo_model)
+        a = self.cosmo_model.scale_factor(self.z_vec)
+        g = growth(a)
+        G = np.array([hmu.get_accumulated_growth(ai, growth) for ai in a])
+        delta_c_mead = hmu.dc_Mead(a, self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec),
+                            self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0), g, G)
+        halo_overdensity_mead = hmu.Dv_Mead(a, self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec),
+                                        self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0), g, G)
+        self.delta_c = delta_c_mead
+        self.mdef_model = hmu.SOVirial_Mead
+        self.mdef_params = [{'overdensity': halo_overdensity_mead[i]} for i, _ in enumerate(self.z_vec)]
+
+        self.norm_sat = norm_sat
+        self.eta_sat = eta_sat
+
+        if self.mead_correction == 'nofeedback':
+            self.norm_cen = 5.196 * np.ones_like(self.z_vec)
+        elif self.mead_correction == 'feedback':
+            theta_agn = self.log10T_AGN - 7.8
+            self.norm_cen = (5.196 / 4.0) * ((3.44 - 0.496 * theta_agn) * np.power(10.0, self.z_vec * (-0.0671 - 0.0371 * theta_agn)))
+
+    def _setup_default(self, hmf_model, bias_model, cm_model, mdef_model, overdensity, norm_sat, eta_sat, norm_cen, eta_cen):
+        self.disable_mass_conversion = False
+        self.hmf_model = hmf_model
+        self.bias_model = bias_model
+        try:
+            self.halo_concentration_model = interp_concentration(getattr(concentration_classes, cm_model))
+        except:
+            self.halo_concentration_model = interp_concentration(make_colossus_cm(cm_model))
+        self.delta_c = (3.0 / 20.0) * (12.0 * np.pi) ** (2.0 / 3.0) * (1.0 + 0.0123 * np.log10(self.cosmo_model.Om(self.z_vec)))
+        self.mdef_model = mdef_model
+        self.mdef_params = [{} if self.mdef_model == 'SOVirial' else {'overdensity': overdensity} for z in self.z_vec]
+        self.norm_cen = norm_cen * np.ones_like(self.z_vec)
+        self.norm_sat = norm_sat * np.ones_like(self.z_vec)
+        self.eta_cen = eta_cen * np.ones_like(self.z_vec)
+        self.eta_sat = eta_sat * np.ones_like(self.z_vec)
             
     @cached_property
     def cosmo_model(self):
@@ -106,7 +110,7 @@ class HaloModelIngredients:
       
     @cached_property
     def hmf_init(self):
-        return DMHaloModel(
+        hmf = DMHaloModel(
             lnk_min=self.lnk_min,
             lnk_max=self.lnk_max,
             dlnk=self.dlnk,
@@ -129,6 +133,8 @@ class HaloModelIngredients:
             growth_model=self.growth_model,
             growth_params=self.growth_params
         )
+        hmf.ERROR_ON_BAD_MDEF = False
+        return hmf
         
     @cached_property
     def hmf(self):
@@ -164,9 +170,8 @@ class HaloModelIngredients:
         
     @property
     def mass(self):
-        return np.array([self.hmf[i].m for i, _ in enumerate(self.z_vec)])
+        return self.hmf_init.m
 
-    # This all need z-dependence
     @property
     def halo_overdensity_mean(self):
         return np.array([self.hmf[i].halo_overdensity_mean for i, _ in enumerate(self.z_vec)])
@@ -202,14 +207,10 @@ class HaloModelIngredients:
     @property
     def sigma8_z(self):
         return np.array([self.hmf[i].sigma8_z for i, _ in enumerate(self.z_vec)])
-        
-    """
-    # still missing outputs
-    f_nu = np.empty([nz])
-    """
        
-       
-    DM_hmf.ERROR_ON_BAD_MDEF = False
+    @property
+    def fnu(self):
+        return np.array([self.cosmo_model.Onu0 / self.cosmo_model.Om0 for _ in self.z_vec])
 
     @property
     def conc_cen(self):
