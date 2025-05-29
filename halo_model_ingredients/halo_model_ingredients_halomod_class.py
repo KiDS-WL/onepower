@@ -15,7 +15,7 @@ from halomod.functional import get_halomodel
 # Silencing a warning from hmf for which the nonlinear mass is still correctly calculated
 warnings.filterwarnings("ignore", message="Nonlinear mass outside mass range")
 
-#DMHaloModel.ERROR_ON_BAD_MDEF = False
+DMHaloModel.ERROR_ON_BAD_MDEF = False
 
 class HaloModelIngredients:
     def __init__(self,
@@ -90,13 +90,13 @@ class HaloModelIngredients:
         if self.mead_correction in ['feedback', 'nofeedback']:
             self._setup_mead_correction(norm_sat, eta_sat, norm_cen)
         else:
-            self._setup_default(hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, norm_sat, eta_sat, norm_cen, eta_cen)
+            self._setup_default(hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, eta_cen, eta_sat)
         
     def _setup_mead_correction(self, norm_sat, eta_sat, norm_cen):
         self.disable_mass_conversion = True
         self.hmf_model = 'ST'
         self.bias_model = 'ST99'
-        self.halo_concentration_model = 'Bullock01'
+        self.halo_concentration_model = interp_concentration(getattr(concentration_classes, 'Bullock01'))
         growth = hmu.get_growth_interpolator(self.cosmo_model)
         a = self.cosmo_model.scale_factor(self.z_vec)
         g = growth(a)
@@ -107,7 +107,11 @@ class HaloModelIngredients:
                                         self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0), g, G)
         self.delta_c = delta_c_mead
         self.mdef_model = hmu.SOVirial_Mead
-        self.mdef_params = [{'overdensity': halo_overdensity_mead[i]} for i, _ in enumerate(self.z_vec)]
+        self.mdef_params = [{'overdensity': overdensity} for overdensity in halo_overdensity_mead]
+
+        #self.norm_cen = np.ones_like(self.z_vec) # tmp
+        #self.norm_sat = np.ones_like(self.z_vec) # tmp
+        #self.eta_sat = eta_sat * np.ones_like(self.z_vec) # tmp
 
         if self.mead_correction == 'nofeedback':
             self.K = 5.196 * np.ones_like(self.z_vec)
@@ -115,7 +119,7 @@ class HaloModelIngredients:
             theta_agn = self.log10T_AGN - 7.8
             self.K = (5.196 / 4.0) * ((3.44 - 0.496 * theta_agn) * np.power(10.0, self.z_vec * (-0.0671 - 0.0371 * theta_agn)))
 
-    def _setup_default(self, hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, norm_sat, eta_sat, norm_cen, eta_cen):
+    def _setup_default(self, hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, eta_cen, eta_sat):
         self.disable_mass_conversion = False
         self.hmf_model = hmf_model
         self.bias_model = bias_model
@@ -124,7 +128,7 @@ class HaloModelIngredients:
         except:
             self.halo_concentration_model = interp_concentration(make_colossus_cm(halo_concentration_model))
         self.mdef_model = mdef_model
-        self.mdef_params = [{} if self.mdef_model == 'SOVirial' else {'overdensity': overdensity} for z in self.z_vec]
+        self.mdef_params = [{} if self.mdef_model == 'SOVirial' else {'overdensity': overdensity} for _ in self.z_vec]
         self.delta_c = (3.0 / 20.0) * (12.0 * np.pi) ** (2.0 / 3.0) * (1.0 + 0.0123 * np.log10(self.cosmo_model.Om(self.z_vec))) if self.mdef_model == 'SOVirial' else delta_c * np.ones_like(self.z_vec)
         
         self.eta_cen = eta_cen * np.ones_like(self.z_vec)
@@ -170,8 +174,9 @@ class HaloModelIngredients:
                 mdef_params=self.mdef_params[0],
                 delta_c=self.delta_c[0]
             )
-        x.ERROR_ON_BAD_MDEF = False
         y = x.clone()
+        x_out = []
+        y_out = []
         if self.mead_correction in ['feedback', 'nofeedback']:
             # For centrals
             for z, mdef_par, dc, norm_cen, k in zip(self.z_vec, self.mdef_params, self.delta_c, self.norm_cen, self.K):
@@ -185,7 +190,8 @@ class HaloModelIngredients:
                     halo_profile_params={'eta_bloat': eta_cen},
                     halo_concentration_params={'norm': norm_cen, 'K': k}
                 )
-                yield x
+                #yield x
+                x_out.append(x.clone())
             
             # For satellites
             for z, mdef_par, dc, norm_sat, k in zip(self.z_vec, self.mdef_params, self.delta_c, self.norm_sat, self.K):
@@ -199,7 +205,8 @@ class HaloModelIngredients:
                     halo_profile_params={'eta_bloat': eta_sat},
                     halo_concentration_params={'norm': norm_sat, 'K': k}
                 )
-                yield y
+                #yield y
+                y_out.append(y.clone())
         else:
             # For centrals
             for z, mdef_par, dc, eta_cen, norm_cen in zip(self.z_vec, self.mdef_params, self.delta_c, self.eta_cen, self.norm_cen):
@@ -210,7 +217,8 @@ class HaloModelIngredients:
                     halo_profile_params={'eta_bloat': eta_cen},
                     halo_concentration_params={'norm': norm_cen}
                 )
-                yield x
+                #yield x
+                x_out.append(x.clone())
             
             # For satellites
             for z, mdef_par, dc, eta_sat, norm_sat in zip(self.z_vec, self.mdef_params, self.delta_c, self.eta_sat, self.norm_sat):
@@ -221,23 +229,21 @@ class HaloModelIngredients:
                     halo_profile_params={'eta_bloat': eta_sat},
                     halo_concentration_params={'norm': norm_sat}
                 )
-                yield y
-                
-    @cached_property
-    def hmf(self):
-        return list(self.hmf_generator)
+                #yield y
+                y_out.append(y.clone())
+        return x_out, y_out
 
     @cached_property
     def hmf_cen(self):
-        return self.hmf[:self.z_vec.size]
+        return self.hmf_generator[0]
 
     @cached_property
     def hmf_sat(self):
-        return self.hmf[self.z_vec.size:]
+        return self.hmf_generator[1]
 
     @property
     def mass(self):
-        return self.hmf[0].m
+        return self.hmf_cen[0].m
 
     @property
     def halo_overdensity_mean(self):
@@ -289,7 +295,7 @@ class HaloModelIngredients:
 
     @property
     def u_dm(self):
-        return self.nfw_cen / np.expand_dims(self.nfw_cen[0, :], 0)
+        return self.nfw_cen / np.expand_dims(self.nfw_cen[:, 0, :], 1)
 
     @property
     def r_s_cen(self):
@@ -309,7 +315,7 @@ class HaloModelIngredients:
 
     @property
     def u_sat(self):
-        return self.nfw_sat / np.expand_dims(self.nfw_sat[0, :], 0)
+        return self.nfw_sat / np.expand_dims(self.nfw_sat[:, 0, :], 1)
 
     @property
     def r_s_sat(self):
@@ -327,75 +333,3 @@ class HaloModelIngredients:
     # Only used for mead_corrections
     # pk_cold = DM_hmf.power * hmu.Tk_cold_ratio(DM_hmf.k, g, block[cosmo_params, 'ommh2'], block[cosmo_params, 'h0'], this_cosmo_run.Onu0/this_cosmo_run.Om0, this_cosmo_run.Neff, T_CMB=tcmb)**2.0
     # sigma8_z[jz] = hmu.sigmaR_cc(pk_cold, DM_hmf.k, 8.0)
-
-
-    """
-    @cached_property
-    def hmf(self):
-        return DMHaloModel(
-            z=0.0,
-            lnk_min=self.lnk_min,
-            lnk_max=self.lnk_max,
-            dlnk=self.dlnk,
-            Mmin=self.Mmin,
-            Mmax=self.Mmax,
-            dlog10m=self.dlog10m,
-            hmf_model=self.hmf_model,
-            mdef_model=self.mdef_model,
-            disable_mass_conversion=self.disable_mass_conversion,
-            bias_model=self.bias_model,
-            halo_profile_model=self.halo_profile_model,
-            halo_profile_params=self.halo_profile_params,
-            halo_concentration_model=self.halo_concentration_model,
-            cosmo_model=self.cosmo_model,
-            sigma_8=self.sigma_8,
-            n=self.n_s,
-            transfer_model=self.transfer_model,
-            transfer_params=self.transfer_params,
-            growth_model=self.growth_model,
-            growth_params=self.growth_params,
-            mdef_params=self.mdef_params[0],
-            delta_c=self.delta_c[0]
-        )
-        
-    @cached_property
-    def hmf_z_clone(self):
-        clones = []
-        for i, z in enumerate(self.z_vec):
-            # First we clone the initialised hmf instance n-times, where n is len(z_vec)
-            iter = self.hmf.clone()
-            # Then update the each cloned instance with redshift dependent params
-            iter.update(
-                z=self.z_vec[i],
-                mdef_params=self.mdef_params[i],
-                delta_c=self.delta_c[i]
-            )
-            clones.append(iter)
-        return clones
-
-    @cached_property
-    def hmf_cen(self):
-        if self.mead_correction in ['feedback', 'nofeedback']:
-            self.eta_cen = np.array([0.1281 * self.hmf_z_clone[i].sigma8_z**(-0.3644) for i, _ in enumerate(self.z_vec)])
-        # Then update the each cloned instance with redshift dependent params
-        out = []
-        for i, hmf in enumerate(self.hmf_z_clone):
-            hmf.update(
-                halo_profile_params={'eta_bloat': self.eta_cen[i]},
-                halo_concentration_params={'norm': self.norm_cen[i]}
-            )
-            out.append(hmf)
-        return out
-        
-    @cached_property
-    def hmf_sat(self):
-        # Then update the each cloned instance with redshift dependent params
-        out = []
-        for i, hmf in enumerate(self.hmf_z_clone):
-            hmf.update(
-                halo_profile_params={'eta_bloat': self.eta_cen[i]},
-                halo_concentration_params={'norm': self.norm_sat[i]}
-            )
-            out.append(hmf)
-        return out
-    """

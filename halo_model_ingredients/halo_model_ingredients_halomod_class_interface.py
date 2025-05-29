@@ -153,33 +153,6 @@ def execute(block, config):
     rvir_cen = hmf.rvir_cen
     rvir_sat = hmf.rvir_sat
     
-    print(np.allclose(mass, block['hmf', 'm_h']))
-    
-    dndlnm_old = block['hmf', 'dndlnmh']
-    print(dndlnm_old.shape)
-    print(dndlnm.shape)
-    print(dndlnm_old - dndlnm)
-    print(np.allclose(dndlnm, dndlnm_old))
-    import matplotlib.pyplot as pl
-    #for i,z in enumerate(z_vec):
-    #    pl.plot(mass, dndlnm[i])
-    #    pl.plot(block['hmf', 'm_h'], dndlnm_old[i])
-    pl.plot(mass, dndlnm[0], color='red')
-    pl.plot(block['hmf', 'm_h'], dndlnm_old[0], color='black')
-    pl.xscale('log')
-    pl.yscale('log')
-    pl.show()
-    
-    halo_bias_old = block['halobias', 'b_hb']
-    print(halo_bias_old.shape)
-    print(halo_bias.shape)
-    print(halo_bias_old - halo_bias)
-    print(np.allclose(halo_bias, halo_bias_old))
-    
-    
-    quit()
-    
-    """
     # TODO: Clean these up. Put more of them into the same folder
     block.put_grid('concentration_m', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
     block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)
@@ -200,7 +173,7 @@ def execute(block, config):
 
     # Density
     block['density', 'mean_density0'] = mean_density0
-    block['density', 'rho_crit'] = mean_density0 / omega_m
+    block['density', 'rho_crit'] = rho_crit
     block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
     block.put_double_array_1d('density', 'rho_halo', rho_halo)
     block.put_double_array_1d('density', 'z', z_vec)
@@ -216,7 +189,6 @@ def execute(block, config):
 
     # Fraction of neutrinos to total matter, f_nu = Ω_nu /Ω_m
     block[cosmo_params, 'fnu'] = fnu
-    """
 
     return 0
 
