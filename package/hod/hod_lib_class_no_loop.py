@@ -17,7 +17,7 @@ class HOD:
             self,
             mass = None,
             dndlnm = None,
-            halobias = None,
+            halo_bias = None,
             z_vec = None,
             hod_settings = {}
         ):
@@ -38,12 +38,12 @@ class HOD:
             self.z_vec, dndlnm, kind='linear', fill_value='extrapolate',
             bounds_error=False, axis=0
         )
-        halobias_int = interp1d(
-            self.z_vec, halobias, kind='linear', fill_value='extrapolate',
+        halo_bias_int = interp1d(
+            self.z_vec, halo_bias, kind='linear', fill_value='extrapolate',
             bounds_error=False, axis=0
         )
         self.dndlnm = dndlnm_int(self.z)
-        self.halobias = halobias_int(self.z)
+        self.halo_bias = halo_bias_int(self.z)
         
     def _process_hod_settings(self, hod_settings):
         self.nobs = hod_settings['nobs']
@@ -80,7 +80,7 @@ class HOD:
         return simpson(integrand, self.mass, axis=-1)
 
     def _bias_integral(self, hod):
-        bg_integrand = hod * self.halobias * self.dndlnm / self.mass
+        bg_integrand = hod * self.halo_bias * self.dndlnm / self.mass
         return simpson(bg_integrand, self.mass, axis=-1) / self.ntot
 
     def _interpolate(self, data, fill_value='extrapolate', axis=-1):

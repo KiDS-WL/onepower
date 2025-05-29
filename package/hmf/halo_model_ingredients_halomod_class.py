@@ -1,10 +1,11 @@
 from functools import cached_property
 import warnings
 import numpy as np
-from astropy.cosmology import Flatw0waCDM
+from astropy.cosmology import Flatw0waCDM, Planck15
 import halo_model_utility as hmu
 import hmf
 from halomod.halo_model import DMHaloModel
+from hmf.halos.mass_definitions import SphericalOverdensity
 from halomod.concentration import make_colossus_cm, interp_concentration
 import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
@@ -16,6 +17,26 @@ from halomod.functional import get_halomodel
 warnings.filterwarnings("ignore", message="Nonlinear mass outside mass range")
 
 DMHaloModel.ERROR_ON_BAD_MDEF = False
+
+
+class SOVirial_Mead(SphericalOverdensity):
+    """
+    SOVirial overdensity definition from Mead et al. (2021).
+    """
+    _defaults = {"overdensity": 200}
+
+    def halo_density(self, z=0, cosmo=Planck15):
+        """The density of haloes under this definition."""
+        return self.params["overdensity"] * self.mean_density(z, cosmo)
+
+    @property
+    def colossus_name(self):
+        return "200c"
+
+    def __str__(self):
+        """Describe the halo definition in standard notation."""
+        return "SOVirial"
+
 
 class HaloModelIngredients:
     def __init__(self,
@@ -106,7 +127,7 @@ class HaloModelIngredients:
         halo_overdensity_mead = hmu.Dv_Mead(a, self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec),
                                         self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0), g, G)
         self.delta_c = delta_c_mead
-        self.mdef_model = hmu.SOVirial_Mead
+        self.mdef_model = SOVirial_Mead
         self.mdef_params = [{'overdensity': overdensity} for overdensity in halo_overdensity_mead]
 
         #self.norm_cen = np.ones_like(self.z_vec) # tmp
@@ -279,7 +300,7 @@ class HaloModelIngredients:
 
     @property
     def sigma8_z(self):
-        return np.array([x.sigma8_z for x in self.hmf_cen])
+        return np.squeeze(np.array([x.sigma8_z for x in self.hmf_cen]))
 
     @property
     def fnu(self):
@@ -325,6 +346,10 @@ class HaloModelIngredients:
     def rvir_sat(self):
         return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self.hmf_sat])
     
+    @property
+    def growth_factor(self):
+        # TO-DO: Check against interpolated one from CAMB!
+        return self.hmf_cen[0]._growth_factor_fn(self.z_vec)
         
     # Maybe implement at some point?
     # Rnl = DM_hmf.filter.mass_to_radius(DM_hmf.mass_nonlinear, DM_hmf.mean_density0)

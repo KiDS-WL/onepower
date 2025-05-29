@@ -1,3 +1,3 @@
 """Subpackage for calculating power spectra."""
 
-from . import MatterSpectra, GalaxySpectra, AlignmentSpectra
+from .pk_lib_class import MatterSpectra, GalaxySpectra, AlignmentSpectra

@@ -1,3 +1,3 @@
 """Subpackage for calculating HODs."""
 
-from . import HOD, Cacciato
+from .hod_lib_class_no_loop import HOD, Cacciato, Zheng

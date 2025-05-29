@@ -182,7 +182,7 @@ def execute(block, config):
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnm)
     block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'nu', nu)
     block.put_double_array_1d('hmf', 'neff', neff)
-    block.put_double_array_1d('hmf', 'sigma8_z', np.squeeze(sigma8_z))
+    block.put_double_array_1d('hmf', 'sigma8_z', sigma8_z)
 
     # Linear halo bias
     block.put_grid('halobias', 'z', z_vec, 'm_h', mass, 'b_hb', halo_bias)

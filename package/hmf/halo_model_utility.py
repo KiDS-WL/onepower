@@ -9,14 +9,7 @@ import warnings
 
 warnings.filterwarnings('ignore', category=UserWarning, module='colossus')
 
-# TODO: unused
-def concentration_halomod(cosmo, mass, z, model, mdef, overdensity, mf, delta_c):
-    """
-    Calculate concentration given halo mass using the halomod model provided in config.
-    """
-    mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
-    cm = getattr(conc_func, model)(cosmo=mf, filter0=mf.filter, delta_c=delta_c, mdef=mdef)
-    return cm.cm(mass, z)
+# TO-DO: Move these to the main class
 
 def get_halo_collapse_redshifts(M, z, dc, g, cosmo, mf):
     """
@@ -108,41 +101,7 @@ def get_growth_interpolator(cosmo):
     g = solve_ivp(fun, (a[0], a[-1]), y0, t_eval=a).y[0]
     return interp1d(a, g, kind='cubic', assume_sorted=True)
 
-#def get_growth_interpolator(cosmo):
-#    """
-#    Solve the linear growth ODE and returns an interpolating function for the solution
-#    LCDM = True forces w = -1 and imposes flatness by modifying the dark-energy density
-#    TODO: w dependence for initial conditions; f here is correct for w=0 only
-#    TODO: Could use d_init = a(1+(w-1)/(w(6w-5))*(Om_w/Om_m)*a**-3w) at early times with w = w(a<<1)
-#    """
-#    a_init = 1e-3
-#    z_init = (1.0/a_init) - 1.0
-#    print(z_init)
-#    #z_init = 500.0
-#    #a_init = 1.0/(1.0+z_init)
-#
-#    na = 129 # Number of scale factors used to construct interpolator
-#    a = np.linspace(a_init, 1.0, na)
-#    f = 1.0 - cosmo.Om(z_init) # Early mass density
-#    d_init = a_init**(1.0 - ((3.0/5.0) * f))            # Initial condition (~ a_init; but f factor accounts for EDE-ish)
-#    v_init = (1.0 - ((3.0/5.0) * f))*a_init**(-((3.0/5.0) * f)) # Initial condition (~ 1; but f factor accounts for EDE-ish)
-#
-#    y0 = (d_init, v_init)
-#    def fun(ax, y):
-#        d, v = y[0], y[1]
-#        dxda = v
-#        zx = (1.0/ax) - 1.0
-#        fv = -(2.0 + acceleration_parameter(cosmo, zx)*cosmo.inv_efunc(zx)**2.0)*v/ax
-#        fd = 1.5*cosmo.Om(zx)*d/ax**2
-#        dvda = fv+fd
-#        return dxda, dvda
-#
-#    #g = solve_ivp(fun, (a[0], a[-1]), y0, t_eval=a, atol=1e-8, rtol=1e-8, vectorized=True).y[0]
-#    g = solve_ivp(fun, (a[0], a[-1]), y0, t_eval=a).y[0]
-#    g_interp = interp1d(a, g, kind='linear', assume_sorted=True)
-#    return g_interp
 
-# Mead corrections: See appendix A of 2009.01858
 def get_accumulated_growth(a, g):
     """
     Calculates the accumulated growth at scale factor 'a'.
@@ -221,53 +180,4 @@ def sigmaR_cc(power, k, r):
     sigma = (0.5 / np.pi**2) * simpson(integ, dx=dlnk, axis=-1)
     return np.sqrt(sigma)
 
-# To be maybe incorporated in hmf
-class SOVirial_Mead(SphericalOverdensity):
-    """
-    SOVirial overdensity definition from Mead et al. (2021).
-    """
-    _defaults = {"overdensity": 200}
 
-    def halo_density(self, z=0, cosmo=Planck15):
-        """The density of haloes under this definition."""
-        return self.params["overdensity"] * self.mean_density(z, cosmo)
-
-    @property
-    def colossus_name(self):
-        return "200c"
-
-    def __str__(self):
-        """Describe the halo definition in standard notation."""
-        return "SOVirial"
-
-
-# def concentration_colossus(block, cosmo, mass, z, model, mdef, overdensity):
-#     """
-#     calculates concentration given halo mass, using the halomod model provided in config
-#     furthermore it converts to halomod instance to be used with the halomodel,
-#     consistenly with halo mass function and halo bias function
-#     """
-
-#     with warnings.catch_warnings():
-#         warnings.filterwarnings('ignore', category=UserWarning)
-#         # This dissables the warning from colossus that is just telling us what we know
-#         # colossus warns us about massive neutrinos, but that is also ok
-#         # as we do not use cosmology from it, but it requires it to setup the instance!
-#         this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
-#                      sigma8=block[cosmo_params, 'sigma_8'], ns=block[cosmo_params, 'n_s'])
-
-                     
-#     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
-    
-#     # This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
-#     # MA: Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
-#     #tic = time.perf_counter()
-#     c, ms = colossus_concentration.concentration(M=mass, z=z, mdef=mdef.colossus_name, model=model,
-#             range_return=True, range_warning=False)
-#     #toc = time.perf_counter()
-#     #print(" colossus_concentration.concentration: "+'%.4f' %(toc - tic)+ "s")
-#     if len(c[c>0]) == 0:
-#         c_interp = lambda x: np.ones_like(x)
-#     else:
-#         c_interp = interp1d(mass[c>0], c[c>0], kind='linear', bounds_error=False, fill_value=1.0)
-#     return c_interp(mass)

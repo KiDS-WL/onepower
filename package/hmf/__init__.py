@@ -1,3 +1,3 @@
-"""Subpackage for calculating power spectra."""
+"""Subpackage for calculating halo model ingredients."""
 
-from . import MatterSpectra, GalaxySpectra, AlignmentSpectra
+from .halo_model_ingredients_halomod_class import HaloModelIngredients

@@ -57,6 +57,10 @@ from cosmosis.datablock import names, option_section
 import numpy as np
 import numbers
 import pk_util
+
+import sys
+sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/pk")
+#import pk_lib_class
 from pk_lib_class import MatterSpectra, GalaxySpectra, AlignmentSpectra
 
 cosmo_params = names.cosmological_parameters
@@ -95,6 +99,41 @@ def get_string_or_none(cosmosis_block, section, name, default):
     return param
 
 def setup(options):
+
+    # hmf config
+    config_hmf = {}
+    # Log10 Minimum, Maximum and number of log10 mass bins for halo masses: M_halo
+    # Units are in log10(M_sun h^-1)
+    config_hmf['log_mass_min'] = options[option_section, 'log_mass_min']
+    config_hmf['log_mass_max'] = options[option_section, 'log_mass_max']
+    nmass = options[option_section, 'nmass']
+    config_hmf['dlog10m'] = ( config_hmf['log_mass_max'] - config_hmf['log_mass_min']) / nmass
+
+    # Minimum and Maximum redshift and number of redshift bins for calculating the ingredients
+    zmin = options[option_section, 'zmin_hmf']
+    zmax = options[option_section, 'zmax_hmf']
+    nz = options[option_section, 'nz_hmf']
+    config_hmf['z_vec'] = np.linspace(zmin, zmax, nz)
+
+    # Model choices
+    config_hmf['nk'] = options[option_section, 'nk']
+    config_hmf['profile'] = options.get_string(option_section, 'profile', default='NFW')
+    config_hmf['profile_value_name'] = options.get_string(option_section, 'profile_value_name', default='profile_parameters')
+    config_hmf['hmf_model'] = options.get_string(option_section, 'hmf_model')
+    config_hmf['mdef_model'] = options.get_string(option_section, 'mdef_model')
+    config_hmf['overdensity'] = options[option_section, 'overdensity']
+    config_hmf['cm_model'] = options.get_string(option_section, 'cm_model')
+    config_hmf['delta_c'] = options[option_section, 'delta_c']
+    config_hmf['bias_model'] = options.get_string(option_section, 'bias_model')
+    
+    config_hmf['lnk_min'] = -18.0
+    config_hmf['lnk_max'] = 18.0
+    config_hmf['dlnk'] = 0.001
+
+
+
+
+
     """Setup function to parse options and return configuration."""
     p_mm = options.get_bool(option_section, 'p_mm', default=False)
     p_gg = options.get_bool(option_section, 'p_gg', default=False)
@@ -154,33 +193,33 @@ def setup(options):
 
     # Determine the mead_correction based on the mapping
     mead_correction = mead_correction_map.get(use_mead, None)
-    if mead_correction == 'fit' and not options.has_value(option_section, 'hod_section_name'):
-        raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon feedback one needs to provide the hod section name of used hod!')
+    #if mead_correction == 'fit' and not options.has_value(option_section, 'hod_section_name'):
+    #    raise ValueError('To use the fit option for feedback that links HOD derived stellar mass fraction to the baryon feedback one needs to provide the hod section name of used hod!')
 
     hod_model = 'Cacciato'
 
     hod_params = {}
     hod_settings = {}
-    if options.has_value(hod_section_name, 'observables_file'):
-        hod_settings['observables_file'] = options.get_string(hod_section_name, 'observables_file')
+    if options.has_value(option_section, 'observables_file'):
+        hod_settings['observables_file'] = options.get_string(option_section, 'observables_file')
         hod_settings['observable_z'] = True
     else:
         hod_settings['observables_file'] = None
         hod_settings['observable_z'] = False
-        hod_settings['obs_min'] = np.asarray([options[hod_section_name, 'log10_obs_min']]).flatten()
-        hod_settings['obs_max'] = np.asarray([options[hod_section_name, 'log10_obs_max']]).flatten()
-        hod_settings['zmin'] = np.asarray([options[hod_section_name, 'zmin']]).flatten()
-        hod_settings['zmax'] = np.asarray([options[hod_section_name, 'zmax']]).flatten()
-        hod_settings['nz'] = options[hod_section_name, 'nz']
-    hod_settings['nobs'] = options[hod_section_name, 'nobs']
-    hod_settings['save_observable'] = options.get_bool(hod_section_name, 'save_observable', default=True)
-    hod_settings['observable_mode'] = options.get_string(hod_section_name, 'observable_mode', default='obs_z')
-    hod_settings['observable_h_unit'] = options.get_string(hod_section_name, 'observable_h_unit', default='1/h^2').lower()
-    hod_settings['z_median'] = options.get_double(hod_section_name, 'z_median', default=0.1)
+        hod_settings['obs_min'] = np.asarray([options[option_section, 'log10_obs_min']]).flatten()
+        hod_settings['obs_max'] = np.asarray([options[option_section, 'log10_obs_max']]).flatten()
+        hod_settings['zmin'] = np.asarray([options[option_section, 'zmin']]).flatten()
+        hod_settings['zmax'] = np.asarray([options[option_section, 'zmax']]).flatten()
+        hod_settings['nz'] = options[option_section, 'nz']
+    hod_settings['nobs'] = options[option_section, 'nobs']
+    hod_settings['save_observable'] = options.get_bool(option_section, 'save_observable', default=True)
+    hod_settings['observable_mode'] = options.get_string(option_section, 'observable_mode', default='obs_z')
+    hod_settings['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
+    hod_settings['z_median'] = options.get_double(option_section, 'z_median', default=0.1)
     
     hod_settings_mm = {}
-    if options.has_value(hod_section_name, 'observables_file'):
-        hod_settings_mm['observables_file'] = options.get_string(hod_section_name, 'observables_file')
+    if options.has_value(option_section, 'observables_file'):
+        hod_settings_mm['observables_file'] = options.get_string(option_section, 'observables_file')
     else:
         hod_settings_mm['observables_file'] = None
         hod_settings_mm['obs_min'] = np.array([hod_settings['obs_min'].min()])
@@ -190,48 +229,80 @@ def setup(options):
         hod_settings_mm['nz'] = 15
     hod_settings_mm['nobs'] = 100
     #hod_settings_mm['save_observable'] = options.get_bool(hod_section_name, 'save_observable', default=True)
-    hod_settings_mm['observable_mode'] = options.get_string(hod_section_name, 'observable_mode', default='obs_z')
-    hod_settings_mm['observable_h_unit'] = options.get_string(hod_section_name, 'observable_h_unit', default='1/h^2').lower()
-    hod_settings_mm['z_median'] = options.get_double(hod_section_name, 'z_median', default=0.1)
-    if options.has_value(hod_section_name, 'observable_section_name'):
+    hod_settings_mm['observable_mode'] = options.get_string(option_section, 'observable_mode', default='obs_z')
+    hod_settings_mm['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
+    hod_settings_mm['z_median'] = options.get_double(option_section, 'z_median', default=0.1)
+    if options.has_value(option_section, 'observable_section_name'):
         hod_settings['observable_section_name'] = options.get_string(
-            hod_section_name, 'observable_section_name', default='stellar_mass_function'
+            option_section, 'observable_section_name', default='stellar_mass_function'
         ).lower()
     
 
-    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, hod_values_name
+    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, hod_values_name, config_hmf
 
 def execute(block, config):
     """Execute function to compute power spectra based on configuration."""
-    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, hod_values_name = config
+    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, hod_values_name, config_hmf = config
+
+
+    # TODO: will the inputs depend on the profile model?
+    norm_cen = block[config_hmf['profile_value_name'], 'norm_cen']
+    norm_sat = block[config_hmf['profile_value_name'], 'norm_sat']
+    eta_cen = block[config_hmf['profile_value_name'], 'eta_cen']
+    eta_sat = block[config_hmf['profile_value_name'], 'eta_sat']
+
+    # Power spectrum transfer function used to update the transfer function in hmf
+    transfer_k = block['matter_power_transfer_func', 'k_h']
+    transfer_func = block['matter_power_transfer_func', 't_k']
+    growth_z = block['growth_parameters', 'z']
+    growth_func = block['growth_parameters', 'd_z']
+
+    z_vec = config_hmf['z_vec']
+    
+    # Load the halo mass, halo bias, mass, and redshifts from the datablock
+    #dndlnm, halobias, mass, z_vec = pk_util.get_halo_functions(block)
+    
+    # Reads in the Fourier transform of the normalized dark matter halo profile
+    #u_dm, u_sat, k_vec = pk_util.get_normalised_profile(block, mass, z_vec)
+
+    # Load the linear power spectrum and growth factor
+    k_vec_original, plin_original = pk_util.get_linear_power_spectrum(block, z_vec)
+    k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=config_hmf['nk'])
+    
+    plin = pk_util.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
 
     matter_kwargs = {
+        'matter_power_lin': plin,
         'mead_correction': mead_correction,
         'dewiggle': dewiggle,
+        'k_vec': k_vec,
+        'z_vec': z_vec,
+        'lnk_min': config_hmf['lnk_min'],
+        'lnk_max': config_hmf['lnk_max'],
+        'dlnk': config_hmf['dlnk'],
+        'Mmin': config_hmf['log_mass_min'],
+        'Mmax': config_hmf['log_mass_max'],
+        'dlog10m': config_hmf['dlog10m'],
+        'mdef_model': config_hmf['mdef_model'],
+        'hmf_model': config_hmf['hmf_model'],
+        'bias_model': config_hmf['bias_model'],
+        'halo_profile_model': config_hmf['profile'],
+        'halo_concentration_model': config_hmf['cm_model'],
+        'transfer_model': 'FromArray',
+        'transfer_params': {'k': transfer_k, 'T': transfer_func},
+        'growth_model': 'FromArray',
+        'growth_params': {'z': growth_z, 'd': growth_func},
+        'norm_cen': norm_cen,
+        'norm_sat': norm_sat,
+        'eta_cen': eta_cen,
+        'eta_sat': eta_sat,
+        'overdensity': config_hmf['overdensity'],
+        'delta_c': config_hmf['delta_c']
+        
     }
     galaxy_kwargs = {}
     align_kwargs = {}
 
-    # Load the halo mass, halo bias, mass, and redshifts from the datablock
-    dndlnm, halobias, mass, z_vec = pk_util.get_halo_functions(block)
-    
-    # Reads in the Fourier transform of the normalized dark matter halo profile
-    u_dm, u_sat, k_vec = pk_util.get_normalised_profile(block, mass, z_vec)
-
-    # Load the linear power spectrum and growth factor
-    k_vec_original, plin_original = pk_util.get_linear_power_spectrum(block, z_vec)
-    plin = pk_util.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
-    growth_factor, scale_factor = pk_util.get_growth_factor(block, z_vec, k_vec)
-
-    matter_kwargs.update({
-        'dndlnm': dndlnm,
-        'halobias': halobias,
-        'mass': mass,
-        'z_vec': z_vec,
-        'u_dm': u_dm,
-        'k_vec': k_vec,
-        'matter_power_lin': plin,
-    })
 
     if response or fortuna:
         k_nl, p_nl = pk_util.get_nonlinear_power_spectrum(block, z_vec)
@@ -253,19 +324,21 @@ def execute(block, config):
         })
 
     matter_kwargs.update({
-        'mean_density0': block['density', 'mean_density0'] * np.ones(len(z_vec)),
-        'fnu': block[cosmo_params, 'fnu'] * np.ones(len(z_vec)),
+        #'mean_density0': block['density', 'mean_density0'] * np.ones(len(z_vec)),
+        #'fnu': block[cosmo_params, 'fnu'] * np.ones(len(z_vec)),
         'omega_c': block[cosmo_params, 'omega_c'],
         'omega_m': block[cosmo_params, 'omega_m'],
         'omega_b': block[cosmo_params, 'omega_b'],
         'h0': block[cosmo_params, 'h0'],
         'n_s': block[cosmo_params, 'n_s'],
+        'sigma_8': block[cosmo_params, 'sigma_8'],
+        'm_nu': block[cosmo_params, 'mnu'],
         'tcmb': block.get_double(cosmo_params, 'TCMB', default=2.7255),
         'log10T_AGN': block['halo_model_parameters', 'logT_AGN'],
         'mb': 10.0**block['halo_model_parameters', 'm_b'],
     })
-    sigma8_z = block['hmf', 'sigma8_z']
-    neff = block['hmf', 'neff']
+    #sigma8_z = block['hmf', 'sigma8_z']
+    #neff = block['hmf', 'neff']
         
     if galaxy or alignment:
         poisson_par = {
@@ -281,7 +354,7 @@ def execute(block, config):
         #])
 
         galaxy_kwargs.update({
-            'u_sat': u_sat,
+            #'u_sat': u_sat,
             'pointmass': point_mass,
         })
         
@@ -318,8 +391,6 @@ def execute(block, config):
     if alignment:
         align_kwargs.update({
             'fortuna': fortuna,
-            'growth_factor': growth_factor,
-            'scale_factor': scale_factor,
             'alignment_gi': block[f'ia_large_scale_alignment{pop_name}', 'alignment_gi'],
             't_eff': block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0),
         })
@@ -331,7 +402,7 @@ def execute(block, config):
             })
         else:
             align_kwargs.update({
-                'eta_sat': None,
+                'beta_sat': None,
                 'mpivot_sat': None,
             })
 
@@ -348,11 +419,6 @@ def execute(block, config):
     
         align_params = {}
         align_params.update({
-            'mass': mass,
-            'z_vec': z_vec,
-            'c': block['concentration_m', 'c'],
-            'r_s': block['nfw_scale_radius_m', 'rs'],
-            'rvir': block['virial_radius', 'rvir_m'],
             'nmass': 5,
             'n_hankel': 350,
             'nk': 10,
@@ -366,14 +432,81 @@ def execute(block, config):
 
     if matter:
         matter_power = MatterSpectra(**matter_kwargs)
+        hmf = matter_power
     if galaxy:
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs}
         galaxy_power = GalaxySpectra(**comb_kwargs)
         hod = galaxy_power
+        hmf = galaxy_power
     if alignment:
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs, **align_kwargs}
         alignment_power = AlignmentSpectra(**comb_kwargs)
         hod = alignment_power
+        hmf = alignment_power
+
+    mass = hmf.mass
+    # not optimal, rethink!
+    if matter:
+        #mass = hmf.mass
+        
+        u_dm_cen = hmf.u_dm
+        u_dm_sat = hmf.u_sat
+        mean_density0 = hmf.mean_density0
+        mean_density_z = hmf.mean_density_z
+        rho_crit = hmf.mean_density0 / block[cosmo_params, 'omega_m']
+        rho_halo = hmf.rho_halo
+        
+        dndlnm = hmf.dndlnm
+        halo_bias = hmf.halo_bias
+        nu = hmf.nu
+        neff = hmf.neff
+        sigma8_z = hmf.sigma8_z
+        fnu = hmf.fnu
+        
+        conc_cen = hmf.conc_cen
+        conc_sat = hmf.conc_sat
+        r_s_cen = hmf.r_s_cen
+        r_s_sat = hmf.r_s_sat
+        
+        rvir_cen = hmf.rvir_cen
+        rvir_sat = hmf.rvir_sat
+        
+        # TODO: Clean these up. Put more of them into the same folder
+        block.put_grid('concentration_m', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
+        block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)
+        block.put_grid('nfw_scale_radius_m', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
+        block.put_grid('nfw_scale_radius_sat', 'z', z_vec, 'm_h', mass, 'rs', r_s_sat)
+    
+        block.put_double_array_1d('virial_radius', 'm_h', mass)
+        # rvir doesn't change with z, hence no z-dimension
+        block.put_double_array_1d('virial_radius', 'rvir_m', rvir_cen[0])
+        block.put_double_array_1d('virial_radius', 'rvir_sat', rvir_sat[0])
+    
+        block.put_double_array_1d('fourier_nfw_profile', 'z', z_vec)
+        block.put_double_array_1d('fourier_nfw_profile', 'm_h', mass)
+        block.put_double_array_1d('fourier_nfw_profile', 'k_h', k_vec)
+        block.put_double_array_nd('fourier_nfw_profile', 'ukm', u_dm_cen)
+        block.put_double_array_nd('fourier_nfw_profile', 'uksat', u_dm_sat)
+    
+    
+        # Density
+        block['density', 'mean_density0'] = mean_density0
+        block['density', 'rho_crit'] = rho_crit
+        block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
+        block.put_double_array_1d('density', 'rho_halo', rho_halo)
+        block.put_double_array_1d('density', 'z', z_vec)
+    
+        # Halo mass function
+        block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnm)
+        block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'nu', nu)
+        block.put_double_array_1d('hmf', 'neff', neff)
+        block.put_double_array_1d('hmf', 'sigma8_z', np.squeeze(sigma8_z))
+    
+        # Linear halo bias
+        block.put_grid('halobias', 'z', z_vec, 'm_h', mass, 'b_hb', halo_bias)
+    
+        # Fraction of neutrinos to total matter, f_nu = Ω_nu /Ω_m
+        block[cosmo_params, 'fnu'] = fnu
 
     if hod:
         N_cen = hod.hod.compute_hod_cen
@@ -427,13 +560,11 @@ def execute(block, config):
                     block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func{suffix_obs}', obs_func[nb])
                     block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_c{suffix_obs}', obs_func_c[nb])
                     block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb])
-
+    
     if p_mm or response:
         pk_mm_1h, pk_mm_2h, pk_mm, _ = matter_power.compute_power_spectrum_mm(
             one_halo_ktrunc = one_halo_ktrunc,
-            two_halo_ktrunc = two_halo_ktrunc,
-            sigma8_z = sigma8_z,
-            neff = neff
+            two_halo_ktrunc = two_halo_ktrunc
         )
         if response:
             # Here we save the computed Pmm to datablock as matter_power_hm,
@@ -451,8 +582,6 @@ def execute(block, config):
         pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = galaxy_power.compute_power_spectrum_gg(
             one_halo_ktrunc = one_halo_ktrunc,
             two_halo_ktrunc = two_halo_ktrunc,
-            sigma8_z = sigma8_z,
-            neff = neff,
             poisson_par = poisson_par
         )
         for nb in range(hod_bins):
@@ -472,8 +601,6 @@ def execute(block, config):
         pk_gm_1h, pk_gm_2h, pk_gm, bgm_linear = galaxy_power.compute_power_spectrum_gm(
             one_halo_ktrunc = one_halo_ktrunc,
             two_halo_ktrunc = two_halo_ktrunc,
-            sigma8_z = sigma8_z,
-            neff = neff,
             poisson_par = poisson_par
         )
         for nb in range(hod_bins):
@@ -493,8 +620,6 @@ def execute(block, config):
         pk_II_1h, pk_II_2h, pk_II, _ = alignment_power.compute_power_spectrum_ii(
             one_halo_ktrunc = one_halo_ktrunc_ia,
             two_halo_ktrunc = two_halo_ktrunc_ia,
-            sigma8_z = sigma8_z,
-            neff = neff,
             poisson_par = poisson_par
         )
         for nb in range(hod_bins):
@@ -513,8 +638,6 @@ def execute(block, config):
         pk_gI_1h, pk_gI_2h, pk_gI, _ = alignment_power.compute_power_spectrum_gi(
             one_halo_ktrunc = one_halo_ktrunc_ia,
             two_halo_ktrunc = two_halo_ktrunc_ia,
-            sigma8_z = sigma8_z,
-            neff = neff,
             poisson_par = poisson_par
         )
         for nb in range(hod_bins):
@@ -533,8 +656,6 @@ def execute(block, config):
         pk_mI_1h, pk_mI_2h, pk_mI, _ = alignment_power.compute_power_spectrum_mi(
             one_halo_ktrunc = one_halo_ktrunc_ia,
             two_halo_ktrunc = two_halo_ktrunc_ia,
-            sigma8_z = sigma8_z,
-            neff = neff,
             poisson_par = poisson_par
         )
         for nb in range(hod_bins):
