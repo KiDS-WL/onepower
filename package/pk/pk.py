@@ -59,17 +59,17 @@ from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d
 import warnings
 
-#from .ia_radial_lib_class import SatelliteAlignment
-#from ..hod import hod_lib_class
+#from .ia_radial import SatelliteAlignment
+#from ..hod import hod as hod_class
 import sys
 sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/hod")
-import hod_lib_class_no_loop as hod_lib_class
+import hod as hod_class
 
 sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/hmf")
-from halo_model_ingredients_halomod_class import HaloModelIngredients
+from halo_model_ingredients import HaloModelIngredients
 
 sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/ia")
-from ia_radial_lib_class import SatelliteAlignment
+from ia_radial import SatelliteAlignment
 
 valid_units = ['1/h', '1/h^2']
 
@@ -161,11 +161,11 @@ class MatterSpectra(HaloModelIngredients):
         r"""
         A hod model to use
 
-        :type: str or `hod_lib_class` subclass
+        :type: str or `hod_class` subclass
         """
         if val is None:
             return val
-        return getattr(hod_lib_class, val)
+        return getattr(hod_class, val)
         
     @cached_property
     def hod_mm(self):

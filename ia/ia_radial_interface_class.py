@@ -1,6 +1,6 @@
 from cosmosis.datablock import option_section
 import numpy as np
-from ia_radial_lib_class import SatelliteAlignment
+from ia_radial import SatelliteAlignment
 
 def setup(options):
     # Set up the resolution for redshift, mass, and k grid for calculating w(k,z|m)

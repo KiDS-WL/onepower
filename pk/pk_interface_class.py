@@ -61,7 +61,7 @@ import pk_util
 import sys
 sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/pk")
 #import pk_lib_class
-from pk_lib_class import MatterSpectra, GalaxySpectra, AlignmentSpectra
+from pk import MatterSpectra, GalaxySpectra, AlignmentSpectra
 
 cosmo_params = names.cosmological_parameters
 

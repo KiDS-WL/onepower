@@ -7,7 +7,7 @@ The observable_h_unit should be set to what the inputs are (from the data and fr
 from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp1d
-import hod_lib_class_no_loop as hods
+import hod as hods
 
 cosmo_params = names.cosmological_parameters
 
