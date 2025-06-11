@@ -648,9 +648,11 @@ class MatterSpectra(HaloModelIngredients):
 class GalaxySpectra(MatterSpectra):
     def __init__(self,
             pointmass = None,
+            compute_observable = False,
             hod_model = 'Cacciato',
             hod_params = {},
             hod_settings = {},
+            obs_settings = {},
             **matter_spectra_kwargs
         ):
         
@@ -658,9 +660,11 @@ class GalaxySpectra(MatterSpectra):
         super().__init__(**matter_spectra_kwargs)
         
         self.pointmass = pointmass
+        self.compute_observable = compute_observable
         self.hod_settings = hod_settings
         self.hod_params = hod_params
         self.hod_model = hod_model
+        self.obs_settings = obs_settings
     
     @cached_property
     def hod(self):
@@ -689,40 +693,14 @@ class GalaxySpectra(MatterSpectra):
             
     @cached_property
     def obs(self):
-        if self.hod_model == 'Cacciato' and self.hod_settings['observable_mode'] == 'obs_z':
-            return self.hod
-        elif self.hod_model == 'Cacciato' and self.hod_settings['observable_mode'] == 'obs_onebin':
-            obs_settings = self.hod_settings.copy()
-            obs_settings['observables_file'] = None
-            obs_settings['obs_min'] = np.array([obs_settings['obs_min'].min()])
-            obs_settings['obs_max'] = np.array([obs_settings['obs_max'].max()])
-            obs_settings['zmin'] = np.array([obs_settings['zmin'].min()])
-            obs_settings['zmax'] = np.array([obs_settings['zmax'].max()])
-            obs_settings['nz'] = 15
-            obs_settings['nobs'] = 100
+        if self.hod_model == 'Cacciato' and self.compute_observable:
             hod = self.select_hod_model(self.hod_model)
             return hod(
                 mass = self.mass,
                 dndlnm = self.dndlnm,
                 halo_bias = self.halo_bias,
                 z_vec = self.z_vec,
-                hod_settings = obs_settings,
-                **self.hod_params
-            )
-        elif self.hod_model == 'Cacciato' and self.hod_settings['observable_mode'] == 'obs_zmed':
-            obs_settings = self.hod_settings.copy()
-            obs_settings['obs_min'] = np.array([obs_settings['obs_min'].min()])
-            obs_settings['obs_max'] = np.array([obs_settings['obs_max'].max()])
-            obs_settings['zmin'] = np.array([obs_settings['z_median']])
-            obs_settings['zmax'] = np.array([obs_settings['z_median']])
-            obs_settings['nz'] = 1
-            hod = self.select_hod_model(self.hod_model)
-            return hod(
-                mass = self.mass,
-                dndlnm = self.dndlnm,
-                halo_bias = self.halo_bias,
-                z_vec = self.z_vec,
-                hod_settings = obs_settings,
+                hod_settings = self.obs_settings,
                 **self.hod_params
             )
         else:

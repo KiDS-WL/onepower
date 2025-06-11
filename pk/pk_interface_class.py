@@ -200,26 +200,23 @@ def setup(options):
 
     hod_params = {}
     hod_settings = {}
-    if options.has_value(option_section, 'observables_file'):
-        hod_settings['observables_file'] = options.get_string(option_section, 'observables_file')
+    if options.has_value(option_section, 'observables_file_hod'):
+        hod_settings['observables_file'] = options.get_string(option_section, 'observables_file_hod')
         hod_settings['observable_z'] = True
     else:
         hod_settings['observables_file'] = None
         hod_settings['observable_z'] = False
-        hod_settings['obs_min'] = np.asarray([options[option_section, 'log10_obs_min']]).flatten()
-        hod_settings['obs_max'] = np.asarray([options[option_section, 'log10_obs_max']]).flatten()
-        hod_settings['zmin'] = np.asarray([options[option_section, 'zmin']]).flatten()
-        hod_settings['zmax'] = np.asarray([options[option_section, 'zmax']]).flatten()
-        hod_settings['nz'] = options[option_section, 'nz']
-    hod_settings['nobs'] = options[option_section, 'nobs']
-    hod_settings['save_observable'] = options.get_bool(option_section, 'save_observable', default=True)
-    hod_settings['observable_mode'] = options.get_string(option_section, 'observable_mode', default='obs_z')
+        hod_settings['obs_min'] = np.asarray([options[option_section, 'log10_obs_min_hod']]).flatten()
+        hod_settings['obs_max'] = np.asarray([options[option_section, 'log10_obs_max_hod']]).flatten()
+        hod_settings['zmin'] = np.asarray([options[option_section, 'zmin_hod']]).flatten()
+        hod_settings['zmax'] = np.asarray([options[option_section, 'zmax_hod']]).flatten()
+        hod_settings['nz'] = options[option_section, 'nz_hod']
+    hod_settings['nobs'] = options[option_section, 'nobs_hod']
     hod_settings['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
-    hod_settings['z_median'] = options.get_double(option_section, 'z_median', default=0.1)
     
     hod_settings_mm = {}
-    if options.has_value(option_section, 'observables_file'):
-        hod_settings_mm['observables_file'] = options.get_string(option_section, 'observables_file')
+    if options.has_value(option_section, 'observables_file_hod'):
+        hod_settings_mm['observables_file'] = options.get_string(option_section, 'observables_file_hod')
     else:
         hod_settings_mm['observables_file'] = None
         hod_settings_mm['obs_min'] = np.array([hod_settings['obs_min'].min()])
@@ -228,21 +225,32 @@ def setup(options):
         hod_settings_mm['zmax'] = np.array([hod_settings['zmax'].max()])
         hod_settings_mm['nz'] = 15
     hod_settings_mm['nobs'] = 100
-    #hod_settings_mm['save_observable'] = options.get_bool(hod_section_name, 'save_observable', default=True)
-    hod_settings_mm['observable_mode'] = options.get_string(option_section, 'observable_mode', default='obs_z')
     hod_settings_mm['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
-    hod_settings_mm['z_median'] = options.get_double(option_section, 'z_median', default=0.1)
-    if options.has_value(option_section, 'observable_section_name'):
-        hod_settings['observable_section_name'] = options.get_string(
+    
+    obs_settings = {}
+    obs_settings['save_observable'] = options.get_bool(option_section, 'save_observable', default=True)
+    if obs_settings['save_observable']:
+        obs_settings['observable_section_name'] = options.get_string(
             option_section, 'observable_section_name', default='stellar_mass_function'
         ).lower()
-    
+        
+        if options.has_value(option_section, 'observables_file_smf'):
+            obs_settings['observables_file'] = options.get_string(option_section, 'observables_file_smf')
+        else:
+            obs_settings['observables_file'] = None
+            obs_settings['obs_min'] = np.asarray([options[option_section, 'log10_obs_min_smf']]).flatten()
+            obs_settings['obs_max'] = np.asarray([options[option_section, 'log10_obs_max_smf']]).flatten()
+            obs_settings['zmin'] = np.asarray([options[option_section, 'zmin_smf']]).flatten()
+            obs_settings['zmax'] = np.asarray([options[option_section, 'zmax_smf']]).flatten()
+            obs_settings['nz'] = options[option_section, 'nz_smf']
+        obs_settings['nobs'] = options[option_section, 'nobs_smf']
+        obs_settings['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
 
-    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, hod_values_name, config_hmf
+    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf
 
 def execute(block, config):
     """Execute function to compute power spectra based on configuration."""
-    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, hod_values_name, config_hmf = config
+    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf = config
 
 
     # TODO: will the inputs depend on the profile model?
@@ -382,7 +390,9 @@ def execute(block, config):
         galaxy_kwargs.update({
             'hod_model': hod_model,
             'hod_params': hod_params,
-            'hod_settings': hod_settings
+            'hod_settings': hod_settings,
+            'obs_settings': obs_settings,
+            'compute_observable': obs_settings['save_observable'],
         })
     matter_kwargs.update({
         'hod_model_mm': hod_model,
@@ -538,7 +548,7 @@ def execute(block, config):
             block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_s[nb])
             block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg[nb])
         
-        if hod.obs_func is not None and hod_settings['save_observable']:
+        if hod.obs_func is not None and obs_settings['save_observable']:
             obs_func = hod.obs_func
             obs_func_c = hod.obs_func_cen
             obs_func_s = hod.obs_func_sat
@@ -546,12 +556,11 @@ def execute(block, config):
             obs_range = hod.obs_func_obs
             obs_bins = obs_range.shape[0]
             
-            observable_section_name = hod_settings['observable_section_name']
+            observable_section_name = obs_settings['observable_section_name']
             block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
-            block.put(observable_section_name, 'observable_mode', hod_settings['observable_mode'])
 
             for nb in range(obs_bins):
-                if hod_settings['observable_mode'] == 'obs_zmed':
+                if np.all(np.array([obs_settings['obs_min'].size, obs_settings['obs_max'].size, obs_settings['zmin'].size, obs_settings['zmax'].size, obs_settings['nz']]) == 1):
                     suffix_obs = '_med'
                     block.put_double_array_1d(observable_section_name, 'obs_val_med', np.squeeze(obs_range))
                     block.put_double_array_1d(observable_section_name, 'obs_func_med', np.squeeze(obs_func))
