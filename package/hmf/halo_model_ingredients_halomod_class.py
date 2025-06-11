@@ -1,8 +1,10 @@
 from functools import cached_property
 import warnings
 import numpy as np
+from scipy.interpolate import interp1d
+from scipy.optimize import root_scalar
+from scipy.integrate import simpson, solve_ivp, quad
 from astropy.cosmology import Flatw0waCDM, Planck15
-import halo_model_utility as hmu
 import hmf
 from halomod.halo_model import DMHaloModel
 from hmf.halos.mass_definitions import SphericalOverdensity
@@ -11,10 +13,18 @@ import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
 import time
 
-from halomod.functional import get_halomodel
-
 # Silencing a warning from hmf for which the nonlinear mass is still correctly calculated
-warnings.filterwarnings("ignore", message="Nonlinear mass outside mass range")
+warnings.filterwarnings('ignore', message='Nonlinear mass outside mass range')
+
+# This disables the warning from hmf. hmf is just telling us what we know
+# hmf's internal way of calculating the overdensity and the collapse threshold are fixed.
+# When we use the mead correction we want to define the haloes using the virial definition.
+# To avoid conflicts we manually pass the overdensity and the collapse threshold,
+# but for that we need to set the mass definition to be "mean",
+# so that it is compared to the mean density of the Universe rather than critical density.
+# hmf warns us that the value is not a native definition for the given halo mass function,
+# but will interpolate between the known ones (this is happening when one uses Tinker hmf for instance).
+warnings.filterwarnings('ignore', category=UserWarning)
 
 DMHaloModel.ERROR_ON_BAD_MDEF = False
 
@@ -107,6 +117,7 @@ class HaloModelIngredients:
         self.norm_sat = norm_sat * np.ones_like(self.z_vec)
 
         self.halo_profile_params = {'cosmo': self.cosmo_model}
+        self.scale_factor = self.cosmo_model.scale_factor(self.z_vec)
 
         if self.mead_correction in ['feedback', 'nofeedback']:
             self._setup_mead_correction(norm_sat, eta_sat, norm_cen)
@@ -118,17 +129,10 @@ class HaloModelIngredients:
         self.hmf_model = 'ST'
         self.bias_model = 'ST99'
         self.halo_concentration_model = interp_concentration(getattr(concentration_classes, 'Bullock01'))
-        growth = hmu.get_growth_interpolator(self.cosmo_model)
-        a = self.cosmo_model.scale_factor(self.z_vec)
-        g = growth(a)
-        G = np.array([hmu.get_accumulated_growth(ai, growth) for ai in a])
-        delta_c_mead = hmu.dc_Mead(a, self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec),
-                            self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0), g, G)
-        halo_overdensity_mead = hmu.Dv_Mead(a, self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec),
-                                        self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0), g, G)
-        self.delta_c = delta_c_mead
+        
+        self.delta_c = self.dc_Mead
         self.mdef_model = SOVirial_Mead
-        self.mdef_params = [{'overdensity': overdensity} for overdensity in halo_overdensity_mead]
+        self.mdef_params = [{'overdensity': overdensity} for overdensity in self.Dv_Mead]
 
         #self.norm_cen = np.ones_like(self.z_vec) # tmp
         #self.norm_sat = np.ones_like(self.z_vec) # tmp
@@ -351,6 +355,132 @@ class HaloModelIngredients:
         # TO-DO: Check against interpolated one from CAMB!
         return self.hmf_cen[0]._growth_factor_fn(self.z_vec)
         
+    
+    def _Omega_m(self, a, Om, Ode, Ok):
+        """
+        Evolution of Omega_m with scale-factor ignoring radiation
+        Massive neutrinos are counted as 'matter'.
+        """
+        return Om * a**-3 / self._Hubble2(a, Om, Ode, Ok)
+    
+    def _Hubble2(self, a, Om, Ode, Ok):
+        """
+        Squared Hubble parameter ignoring radiation.
+        Massive neutrinos are counted as 'matter'.
+        """
+        z = -1.0 + 1.0 / a
+        H2 = Om * a**-3 + Ode * self.cosmo_model.de_density_scale(z) + Ok * a**-2
+        return H2
+    
+    def _AH(self, a, Om, Ode):
+        """
+        Acceleration parameter ignoring radiation.
+        Massive neutrinos are counted as 'matter'.
+        """
+        z = -1.0 + 1.0 / a
+        AH = -0.5 * (Om * a**-3 + (1.0 + 3.0 * self.cosmo_model.w(z)) * Ode * self.cosmo_model.de_density_scale(z))
+        return AH
+    
+    @cached_property
+    def get_mead_growth_fnc(self):
+        """
+        Solve the linear growth ODE and returns an interpolating function for the solution.
+        TODO: w dependence for initial conditions; f here is correct for w=0 only.
+        TODO: Could use d_init = a(1+(w-1)/(w(6w-5))*(Om_w/Om_m)*a**-3w) at early times with w = w(a<<1).
+        """
+        
+        # TODO: Add check if w0 and wa exists / if astropy w0waCDM cosmology class is used
+        a_init = 1e-4
+        Om = self.cosmo_model.Om0 + self.cosmo_model.Onu0
+        Ode = 1.0 - Om
+        Ok = self.cosmo_model.Ok0
+        na = 129  # Number of scale factors used to construct interpolator
+        a = np.linspace(a_init, 1., na)
+    
+        f = 1.0 - self._Omega_m(a_init, Om, Ode, Ok)  # Early mass density
+        d_init = a_init**(1.0 - 3.0 * f / 5.0)  # Initial condition (~ a_init; but f factor accounts for EDE-ish)
+        v_init = (1.0 - 3.0 * f / 5.0) * a_init**(-3.0 * f / 5.0)  # Initial condition (~ 1; but f factor accounts for EDE-ish)
+        y0 = (d_init, v_init)
+    
+        def fun(a, y):
+            d, v = y[0], y[1]
+            dxda = v
+            fv = -(2.0 + self._AH(a, Om, Ode) / self._Hubble2(a, Om, Ode, Ok)) * v / a
+            fd = 1.5 * self._Omega_m(a, Om, Ode, Ok) * d / a**2
+            dvda = fv + fd
+            return dxda, dvda
+    
+        g = solve_ivp(fun, (a[0], a[-1]), y0, t_eval=a).y[0]
+        return interp1d(a, g, kind='cubic', assume_sorted=True)
+        
+    @cached_property
+    def get_mead_growth(self):
+        return self.get_mead_growth_fnc(self.scale_factor)
+    
+    @cached_property
+    def get_mead_accumulated_growth(self):
+        """
+        Calculates the accumulated growth at scale factor 'a'.
+        """
+        a_init = 1e-4
+    
+        # Eq A5 of Mead et al. 2021 (2009.01858).
+        # We approximate the integral as g(a_init) for 0 to a_init<<0.
+        missing = self.get_mead_growth_fnc(a_init)
+        #G, _ = quad(lambda a: self.get_mead_growth_fnc(a) / a, a_init, ai) + missing
+        G = np.array([quad(lambda a: self.get_mead_growth_fnc(a) / a, a_init, ai)[0] + missing for ai in self.scale_factor])
+        return G
+    
+    def f_Mead(self, x, y, p0, p1, p2, p3):
+        # eq A3 of 2009.01858
+        return p0 + p1 * (1.0 - x) + p2 * (1.0 - x)**2.0 + p3 * (1.0 - y)
+    
+    @cached_property
+    def dc_Mead(self):
+        """
+        delta_c fitting function from Mead et al. 2021 (2009.01858).
+        All input parameters should be evaluated as functions of a/z.
+        """
+        a = self.scale_factor
+        Om = self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec)
+        f_nu = self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0)
+        g = self.get_mead_growth
+        G = self.get_mead_accumulated_growth
+        
+        # See Table A.1 of 2009.01858 for naming convention
+        p1 = [-0.0069, -0.0208, 0.0312, 0.0021]
+        p2 = [0.0001, -0.0647, -0.0417, 0.0646]
+        a1, a2 = 1, 0
+        # Linear collapse threshold
+        # Eq A1 of 2009.01858
+        dc_Mead = 1.0 + self.f_Mead(g/a, G/a, *p1) * np.log10(Om)**a1 + self.f_Mead(g/a, G/a, *p2) * np.log10(Om)**a2
+        # delta_c = ~1.686' EdS linear collapse threshold
+        dc0 = (3.0 / 20.0) * (12.0 * np.pi)**(2.0 / 3.0)
+        return dc_Mead * dc0 * (1.0 - 0.041 * f_nu)
+    
+    @cached_property
+    def Dv_Mead(self):
+        """
+        Delta_v fitting function from Mead et al. 2021 (2009.01858), eq A.2.
+        All input parameters should be evaluated as functions of a/z.
+        """
+        a = self.scale_factor
+        Om = self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec)
+        f_nu = self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0)
+        g = self.get_mead_growth
+        G = self.get_mead_accumulated_growth
+        
+        # See Table A.1 of 2009.01858 for naming convention
+        p3 = [-0.79, -10.17, 2.51, 6.51]
+        p4 = [-1.89, 0.38, 18.8, -15.87]
+        a3, a4 = 1, 2
+    
+        # Halo virial overdensity
+        # Eq A2 of 2009.01858
+        Dv_Mead = 1.0 + self.f_Mead(g/a, G/a, *p3) * np.log10(Om)**a3 + self.f_Mead(g/a, G/a, *p4) * np.log10(Om)**a4
+        Dv0 = 18.0 * np.pi**2.0  # Delta_v = ~178, EdS halo virial overdensity
+        return Dv_Mead * Dv0 * (1.0 + 0.763 * f_nu)
+    
     # Maybe implement at some point?
     # Rnl = DM_hmf.filter.mass_to_radius(DM_hmf.mass_nonlinear, DM_hmf.mean_density0)
     # neff[jz] = -3.0 - 2.0*DM_hmf.normalised_filter.dlnss_dlnm(Rnl)
@@ -358,3 +488,57 @@ class HaloModelIngredients:
     # Only used for mead_corrections
     # pk_cold = DM_hmf.power * hmu.Tk_cold_ratio(DM_hmf.k, g, block[cosmo_params, 'ommh2'], block[cosmo_params, 'h0'], this_cosmo_run.Onu0/this_cosmo_run.Om0, this_cosmo_run.Neff, T_CMB=tcmb)**2.0
     # sigma8_z[jz] = hmu.sigmaR_cc(pk_cold, DM_hmf.k, 8.0)
+    
+    # Currently unused
+    def Tk_cold_ratio(self, k, g, ommh2, h, f_nu, N_nu, T_CMB=2.7255):
+        """
+        Ratio of cold to matter transfer function from Eisenstein & Hu (1999).
+        This can be used to get the cold-matter spectrum approximately from the matter spectrum.
+        Captures the scale-dependent growth with neutrino free-streaming scale.
+        """
+        if f_nu == 0.0:  # Fix to unity if there are no neutrinos
+            return 1.0
+    
+        pcb = (5.0 - np.sqrt(1.0 + 24. * (1.0 - f_nu))) / 4.0  # Growth exponent for unclustered neutrinos completely
+        BigT = T_CMB / 2.7  # Big Theta for temperature
+        zeq = 2.5e4 * ommh2 * BigT**(-4)  # Matter-radiation equality redshift
+        D = (1.0 + zeq) * g  # Growth normalized such that D=(1.+z_eq)/(1+z) at early times
+        q = k * h * BigT**2 / ommh2  # Wave number relative to the horizon scale at equality (equation 5)
+        yfs = 17.2 * f_nu * (1.0 + 0.488 * f_nu**(-7.0 / 6.0)) * (N_nu * q / f_nu)**2  # Free streaming scale (equation 14)
+        Dcb = (1.0 + (D / (1. + yfs))**0.7)**(pcb / 0.7)  # Cold growth function
+        Dcbnu = ((1.0 - f_nu)**(0.7 / pcb) + (D / (1.0 + yfs))**0.7)**(pcb / 0.7)  # Cold and neutrino growth function
+        return Dcb / Dcbnu  # Finally, the ratio
+    
+    # Currently unused
+    def sigmaR_cc(self, power, k, r):
+        rk = np.outer(r, k)
+        dlnk = np.log(k[1] / k[0])
+    
+        k_space = (3 / rk**3) * (np.sin(rk) - rk * np.cos(rk))
+        # we multiply by k because our steps are in logk.
+        rest = power * k**3
+        integ = rest * k_space**2
+        sigma = (0.5 / np.pi**2) * simpson(integ, dx=dlnk, axis=-1)
+        return np.sqrt(sigma)
+
+    # Currently unused, we use the halomod calculation directly
+    # as it returns the same results, but being much faster
+    def get_halo_collapse_redshifts(self, M, z, dc, g, cosmo, mf):
+        """
+        Calculate halo collapse redshifts according to the Bullock et al. (2001) prescription.
+        """
+        gamma = 0.01
+        a = cosmo.scale_factor(z)
+        zf = np.zeros_like(M)
+        for iM, _M in enumerate(M):
+            Mc = gamma * _M
+            Rc = mf.filter.mass_to_radius(Mc, mf.mean_density0)
+            sigma = mf.normalised_filter.sigma(Rc)
+            fac = g(a) * dc / sigma
+            if fac >= g(a):
+                af = a  # These haloes formed 'in the future'
+            else:
+                af_root = lambda af: g(af) - fac
+                af = root_scalar(af_root, bracket=(1e-3, 1.)).root
+            zf[iM] = -1.0 + 1.0 / af
+        return zf

@@ -333,6 +333,8 @@ def execute(block, config):
         'n_s': block[cosmo_params, 'n_s'],
         'sigma_8': block[cosmo_params, 'sigma_8'],
         'm_nu': block[cosmo_params, 'mnu'],
+        'w0': block[cosmo_params, 'w'],
+        'wa': block[cosmo_params, 'wa'],
         'tcmb': block.get_double(cosmo_params, 'TCMB', default=2.7255),
         'log10T_AGN': block['halo_model_parameters', 'logT_AGN'],
         'mb': 10.0**block['halo_model_parameters', 'm_b'],

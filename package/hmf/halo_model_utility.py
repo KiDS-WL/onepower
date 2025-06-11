@@ -2,9 +2,6 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.optimize import root_scalar
 from scipy.integrate import simpson, solve_ivp, quad
-from astropy.cosmology import Planck15
-from hmf.halos.mass_definitions import SphericalOverdensity
-from hmf.cosmology.cosmo import astropy_to_colossus
 import warnings
 
 warnings.filterwarnings('ignore', category=UserWarning, module='colossus')
@@ -31,44 +28,29 @@ def get_halo_collapse_redshifts(M, z, dc, g, cosmo, mf):
         zf[iM] = -1.0 + 1.0 / af
     return zf
 
-def acceleration_parameter(cosmo, z):
+def _Omega_m(a, Om, Ode, Ok, cosmo):
     """
-    Calculate the acceleration parameter.
+    Evolution of Omega_m with scale-factor ignoring radiation
+    Massive neutrinos are counted as 'matter'.
     """
-    return -0.5 * (cosmo.Om(z) + (1.0 + 3.0 * cosmo.w(z)) * cosmo.Ode(z))
+    return Om * a**-3 / _Hubble2(a, Om, Ode, Ok, cosmo)
 
-def _w(a, w0, wa):
-    """
-    Dark energy equation of state for w0, wa models.
-    """
-    return w0 + (1. - a) * wa
-
-def _X_w(a, w0, wa):
-    """
-    Cosmological dark energy density for w0, wa models.
-    """
-    return a ** (-3. * (1. + w0 + wa)) * np.exp(-3. * wa * (1. - a))
-
-def _Omega_m(a, Om, Ode, Ok, w0, wa):
-    """
-    Evolution of Omega_m with scale-factor ignoring radiation.
-    """
-    return Om * a**-3 / _Hubble2(a, Om, Ode, Ok, w0, wa)
-
-def _Hubble2(a, Om, Ode, Ok, w0, wa):
+def _Hubble2(a, Om, Ode, Ok, cosmo):
     """
     Squared Hubble parameter ignoring radiation.
     Massive neutrinos are counted as 'matter'.
     """
-    H2 = Om * a**-3 + Ode * _X_w(a, w0, wa) + Ok * a**-2
+    z = -1.0 + 1.0 / a
+    H2 = Om * a**-3 + Ode * cosmo.de_density_scale(z) + Ok * a**-2
     return H2
 
-def _AH(a, Om, Ode, w0, wa):
+def _AH(a, Om, Ode, cosmo):
     """
     Acceleration parameter ignoring radiation.
     Massive neutrinos are counted as 'matter'.
     """
-    AH = -0.5 * (Om * a**-3 + (1. + 3. * _w(a, w0, wa)) * Ode * _X_w(a, w0, wa))
+    z = -1.0 + 1.0 / a
+    AH = -0.5 * (Om * a**-3 + (1.0 + 3.0 * cosmo.w(z)) * Ode * cosmo.de_density_scale(z))
     return AH
 
 def get_growth_interpolator(cosmo):
@@ -77,24 +59,25 @@ def get_growth_interpolator(cosmo):
     TODO: w dependence for initial conditions; f here is correct for w=0 only.
     TODO: Could use d_init = a(1+(w-1)/(w(6w-5))*(Om_w/Om_m)*a**-3w) at early times with w = w(a<<1).
     """
+    
+    # TODO: Add check if w0 and wa exists / if astropy w0waCDM cosmology class is used
     a_init = 1e-4
     Om = cosmo.Om0 + cosmo.Onu0
     Ode = 1.0 - Om
     Ok = cosmo.Ok0
-    w0 = getattr(cosmo, 'w0', -1.0)
-    wa = getattr(cosmo, 'wa', 0.0)
     na = 129  # Number of scale factors used to construct interpolator
     a = np.linspace(a_init, 1., na)
-    f = 1. - _Omega_m(a_init, Om, Ode, Ok, w0, wa)  # Early mass density
-    d_init = a_init**(1. - 3. * f / 5.)  # Initial condition (~ a_init; but f factor accounts for EDE-ish)
-    v_init = (1. - 3. * f / 5.) * a_init**(-3. * f / 5.)  # Initial condition (~ 1; but f factor accounts for EDE-ish)
+
+    f = 1.0 - _Omega_m(a_init, Om, Ode, Ok, cosmo)  # Early mass density
+    d_init = a_init**(1.0 - 3.0 * f / 5.0)  # Initial condition (~ a_init; but f factor accounts for EDE-ish)
+    v_init = (1.0 - 3.0 * f / 5.0) * a_init**(-3.0 * f / 5.0)  # Initial condition (~ 1; but f factor accounts for EDE-ish)
     y0 = (d_init, v_init)
 
     def fun(a, y):
         d, v = y[0], y[1]
         dxda = v
-        fv = -(2. + _AH(a, Om, Ode, w0, wa) / _Hubble2(a, Om, Ode, Ok, w0, wa)) * v / a
-        fd = 1.5 * _Omega_m(a, Om, Ode, Ok, w0, wa) * d / a**2
+        fv = -(2.0 + _AH(a, Om, Ode, cosmo) / _Hubble2(a, Om, Ode, Ok, cosmo)) * v / a
+        fd = 1.5 * _Omega_m(a, Om, Ode, Ok, cosmo) * d / a**2
         dvda = fv + fd
         return dxda, dvda
 
@@ -129,7 +112,7 @@ def dc_Mead(a, Om, f_nu, g, G):
     a1, a2 = 1, 0
     # Linear collapse threshold
     # Eq A1 of 2009.01858
-    dc_Mead = 1.0 + f_Mead(g / a, G / a, *p1) * np.log10(Om) ** a1 + f_Mead(g / a, G / a, *p2) * np.log10(Om) ** a2
+    dc_Mead = 1.0 + f_Mead(g/a, G/a, *p1) * np.log10(Om)**a1 + f_Mead(g/a, G/a, *p2) * np.log10(Om)**a2
     # delta_c = ~1.686' EdS linear collapse threshold
     dc0 = (3.0 / 20.0) * (12.0 * np.pi)**(2.0 / 3.0)
     return dc_Mead * dc0 * (1.0 - 0.041 * f_nu)
@@ -146,7 +129,7 @@ def Dv_Mead(a, Om, f_nu, g, G):
 
     # Halo virial overdensity
     # Eq A2 of 2009.01858
-    Dv_Mead = 1.0 + f_Mead(g / a, G / a, *p3) * np.log10(Om) ** a3 + f_Mead(g / a, G / a, *p4) * np.log10(Om) ** a4
+    Dv_Mead = 1.0 + f_Mead(g/a, G/a, *p3) * np.log10(Om)**a3 + f_Mead(g/a, G/a, *p4) * np.log10(Om)**a4
     Dv0 = 18.0 * np.pi**2.0  # Delta_v = ~178, EdS halo virial overdensity
     return Dv_Mead * Dv0 * (1.0 + 0.763 * f_nu)
 
@@ -156,17 +139,17 @@ def Tk_cold_ratio(k, g, ommh2, h, f_nu, N_nu, T_CMB=2.7255):
     This can be used to get the cold-matter spectrum approximately from the matter spectrum.
     Captures the scale-dependent growth with neutrino free-streaming scale.
     """
-    if f_nu == 0.:  # Fix to unity if there are no neutrinos
-        return 1.
+    if f_nu == 0.0:  # Fix to unity if there are no neutrinos
+        return 1.0
 
-    pcb = (5. - np.sqrt(1. + 24. * (1. - f_nu))) / 4.  # Growth exponent for unclustered neutrinos completely
+    pcb = (5.0 - np.sqrt(1.0 + 24. * (1.0 - f_nu))) / 4.0  # Growth exponent for unclustered neutrinos completely
     BigT = T_CMB / 2.7  # Big Theta for temperature
     zeq = 2.5e4 * ommh2 * BigT**(-4)  # Matter-radiation equality redshift
-    D = (1. + zeq) * g  # Growth normalized such that D=(1.+z_eq)/(1+z) at early times
+    D = (1.0 + zeq) * g  # Growth normalized such that D=(1.+z_eq)/(1+z) at early times
     q = k * h * BigT**2 / ommh2  # Wave number relative to the horizon scale at equality (equation 5)
-    yfs = 17.2 * f_nu * (1. + 0.488 * f_nu**(-7. / 6.)) * (N_nu * q / f_nu)**2  # Free streaming scale (equation 14)
-    Dcb = (1. + (D / (1. + yfs))**0.7)**(pcb / 0.7)  # Cold growth function
-    Dcbnu = ((1. - f_nu)**(0.7 / pcb) + (D / (1. + yfs))**0.7)**(pcb / 0.7)  # Cold and neutrino growth function
+    yfs = 17.2 * f_nu * (1.0 + 0.488 * f_nu**(-7.0 / 6.0)) * (N_nu * q / f_nu)**2  # Free streaming scale (equation 14)
+    Dcb = (1.0 + (D / (1. + yfs))**0.7)**(pcb / 0.7)  # Cold growth function
+    Dcbnu = ((1.0 - f_nu)**(0.7 / pcb) + (D / (1.0 + yfs))**0.7)**(pcb / 0.7)  # Cold and neutrino growth function
     return Dcb / Dcbnu  # Finally, the ratio
 
 def sigmaR_cc(power, k, r):
@@ -175,8 +158,8 @@ def sigmaR_cc(power, k, r):
 
     k_space = (3 / rk**3) * (np.sin(rk) - rk * np.cos(rk))
     # we multiply by k because our steps are in logk.
-    rest = power * k ** 3
-    integ = rest * k_space ** 2
+    rest = power * k**3
+    integ = rest * k_space**2
     sigma = (0.5 / np.pi**2) * simpson(integ, dx=dlnk, axis=-1)
     return np.sqrt(sigma)
 
