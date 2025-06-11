@@ -68,8 +68,9 @@ import hod as hod_class
 sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/hmf")
 from halo_model_ingredients import HaloModelIngredients
 
-sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/ia")
+#sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/ia")
 from ia_radial import SatelliteAlignment
+from bnl import NonLinearBias
 
 valid_units = ['1/h', '1/h^2']
 
@@ -191,7 +192,10 @@ class MatterSpectra(HaloModelIngredients):
             self.matter_power_lin = matter_power_lin
         
         if self.bnl:
-            self.beta_nl = beta_nl
+            if beta_nl is None:
+                self.beta_nl = self.calc_bnl
+            else:
+                self.beta_nl = beta_nl
             self.I12 = self.prepare_I12_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I21 = self.prepare_I21_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I22 = self.prepare_I22_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.beta_nl)
@@ -210,6 +214,22 @@ class MatterSpectra(HaloModelIngredients):
         if val is None:
             return val
         return getattr(hod_class, val)
+        
+    @cached_property
+    def calc_bnl(self):
+        bnl = NonLinearBias(
+            mass = self.mass,
+            z_vec = self.z_vec,
+            k_vec = self.k_vec,
+            h0 = self.h0,
+            sigma_8 = self.sigma_8,
+            omega_b = self.omega_b,
+            omega_c = self.omega_c,
+            omega_lambda = self.cosmo_model.Ode0,
+            n_s = self.n_s,
+            w0 = self.w0
+        )
+        return bnl.bnl
         
     @cached_property
     def hod_mm(self):

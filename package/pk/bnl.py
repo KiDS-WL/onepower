@@ -1,41 +1,51 @@
 from functools import cached_property
 import numpy as np
-from scipy.interpolate import interp1d, RegularGridInterpolator
 from dark_emulator import darkemu
 from collections import OrderedDict
+from scipy.interpolate import interp1d, RegularGridInterpolator
+from scipy.optimize import curve_fit
+
 
 class NonLinearBias:
     """
     A class to compute the 
     """
-    def __init__(
-            
+    def __init__(self,
+            mass = None,
+            z_vec = None,
+            k_vec = None,
+            h0 = 0.7,
+            sigma_8 = 0.8,
+            omega_b = 0.05,
+            omega_c = 0.25,
+            omega_lambda = 0.7,
+            n_s = 1.0,
+            w0 = -1.0
         ):
         self.mass = mass
         self.z_vec = z_vec
         self.k_vec = k_vec
-        self.cosmo_model = cosmo_model
         self.sigma_8 = sigma_8
         
-        self.ombh2 = self.cosmo_model.Ob0 * self.cosmo_model.h0**2.0
-        self.omch2 = self.cosmo_model.Odm0 * self.cosmo_model.h0**2.0
-        self.omega_lambda = self.cosmo_model.Ode0
-        self.n_s = self.cosmo_model.n_s
-        self.w = self.cosmo_model.w0
+        self.ombh2 = omega_b * h0**2.0
+        self.omch2 = omega_c * h0**2.0
+        self.omega_lambda = omega_lambda
+        self.n_s = n_s
+        self.w0 = w0
     
     @cached_property
     def emulator(self):
-        A_s_init =  2.1e-9
+        A_s_init = 2.1e-9
         emu = darkemu.base_class()
         
-        cparam = self.test_cosmo(np.array([self.ombh2, self.omch2, self.omega_lambda, np.log(A_s_init*10.0**10.0), self.n_s, self.w]))
+        cparam = self.test_cosmo(np.array([self.ombh2, self.omch2, self.omega_lambda, np.log(A_s_init*10.0**10.0), self.n_s, self.w0]))
         emu.set_cosmology(cparam)
 
-        sigma_8_init = emulator.get_sigma8()
+        sigma_8_init = emu.get_sigma8()
         scaling = (self.sigma_8/sigma_8_init)**2
         A_s = A_s_init * scaling
     
-        cparam = self.test_cosmo(np.array([self.ombh2, self.omch2, self.omega_lambda, np.log(A_s*10.0**10.0), self.n_s, self.w]))
+        cparam = self.test_cosmo(np.array([self.ombh2, self.omch2, self.omega_lambda, np.log(A_s*10.0**10.0), self.n_s, self.w0]))
         emu.set_cosmology(cparam)
         return emu
     
@@ -55,17 +65,17 @@ class NonLinearBias:
     
         return beta_interp[np.newaxis, :, :, :]
 
-    def low_k_truncation(self, k_trunc):
+    def low_k_truncation(self, k, k_trunc):
         """
         Beta_nl low-k truncation
         """
-        return 1.0 / (1.0 + np.exp(-(10.0 * (np.log10(self.k_vec) - np.log10(k_trunc)))))
+        return 1.0 / (1.0 + np.exp(-(10.0 * (np.log10(k) - np.log10(k_trunc)))))
     
-    def high_k_truncation(self, k_trunc):
+    def high_k_truncation(self, k, k_trunc):
         """
         Beta_nl high-k truncation
         """
-        return 1.0 / (1.0 + np.exp((10.0 * (np.log10(self.k_vec) - np.log10(k_trunc)))))
+        return 1.0 / (1.0 + np.exp((10.0 * (np.log10(k) - np.log10(k_trunc)))))
     
     @property
     def minimum_halo_mass(self):
@@ -164,7 +174,7 @@ class NonLinearBias:
                     Pk_hh0 = Pk_hh0 - np.ones_like(klin)*shot_noise(klin, *popt)
                     db = Pk_hh0 / (b1 * b2 * Pk_klin) - 1.0
                     
-                    lmin, lmax = hl_envelopes_idx(np.abs(beta_func[iM1, iM2, :]+1.0))
+                    lmin, lmax = self.hl_envelopes_idx(np.abs(beta_func[iM1, iM2, :]+1.0))
                     beta_func_interp = interp1d(k[lmax], np.abs(beta_func[iM1, iM2, lmax]+1.0), kind='quadratic', bounds_error=False, fill_value='extrapolate')
                     beta_func[iM1, iM2, :] = (beta_func_interp(k) - 1.0)# * low_k_truncation(k, klin)
                     db = (beta_func_interp(klin) - 1.0)
@@ -172,7 +182,7 @@ class NonLinearBias:
             
                     #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 30.0)/(db + 1.0) - 1.0) * low_k_truncation(k, klin)
                     #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) #* low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#/(1.0+z))
-                    beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * low_k_truncation(k, klin) * high_k_truncation(k, 3.0*kmax)
+                    beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * self.low_k_truncation(k, klin) * self.high_k_truncation(k, 3.0*kmax)
     
         return beta_func
     
@@ -189,10 +199,11 @@ class NonLinearBias:
     
         M = np.logspace(M_lo, M_up, lenM)
         k = np.logspace(-3.0, np.log10(200), lenk)
-        beta_nl_interp_i = np.empty(len(z), dtype=object)
+        
         beta_func = self.compute_bnl_darkquest(0.01, np.log10(M), np.log10(M), k, kmax)
         beta_nl_interp_i = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], beta_func, fill_value=None, bounds_error=False, method='nearest')
         """
+        beta_nl_interp_i = np.empty(len(self.z_vec), dtype=object)
         for i,zi in enumerate(zc):
             #M = np.logspace(M_lo, M_up - 3.0*np.log10(1+zi), lenM)
             #beta_func = self.compute_bnl_darkquest(zi, np.log10(M), np.log10(M), k, kmax)
