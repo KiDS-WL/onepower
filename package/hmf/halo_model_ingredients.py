@@ -13,6 +13,12 @@ import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
 import time
 
+"""
+A module for computing various cosmological quantities and halo model ingredients.
+This module provides classes and functions to calculate properties of dark matter halos,
+cosmological parameters, and related quantities using different models and corrections.
+"""
+
 # Silencing a warning from hmf for which the nonlinear mass is still correctly calculated
 warnings.filterwarnings('ignore', message='Nonlinear mass outside mass range')
 
@@ -49,6 +55,54 @@ class SOVirial_Mead(SphericalOverdensity):
 
 
 class HaloModelIngredients:
+    """
+    A class to compute various ingredients for the halo model.
+    This includes halo mass functions, bias models, 
+    halo profiles, and concentration models.
+    
+    Based on the hmf and halomod packages.
+    
+    Initialize the HaloModelIngredients with various parameters for cosmology and halo models.
+
+    Parameters:
+    - k_vec: Array of wavenumbers.
+    - z_vec: Array of redshifts.
+    - lnk_min: Minimum natural log of wavenumber (for hmf).
+    - lnk_max: Maximum natural log of wavenumber (for hmf).
+    - dlnk: Spacing in natural log of wavenumber (for hmf).
+    - Mmin: Minimum halo mass (for hmf).
+    - Mmax: Maximum halo mass (for hmf).
+    - dlog10m: Spacing in log10 of halo mass (for hmf).
+    - mdef_model: Mass definition model (for hmf).
+    - hmf_model: Halo mass function model (for hmf).
+    - bias_model: Halo bias model (for halomod).
+    - halo_profile_model: Halo profile model (for halomod).
+    - halo_concentration_model: Halo concentration model (for halomod).
+    - transfer_model: Transfer function model (for hmf).
+    - transfer_params: Parameters for the transfer function (for hmf).
+    - growth_model: Growth function model (for hmf).
+    - growth_params: Parameters for the growth function (for hmf).
+    - h0: Hubble parameter (small h).
+    - omega_c: Cold dark matter density parameter.
+    - omega_b: Baryon density parameter.
+    - omega_m: Matter density parameter.
+    - w0: Dark energy equation of state parameter.
+    - wa: Dark energy equation of state parameter.
+    - n_s: Spectral index.
+    - tcmb: Temperature of the CMB.
+    - m_nu: Neutrino mass.
+    - sigma_8: Amplitude of matter fluctuations on 8 Mpc scales.
+    - log10T_AGN: Log10 of AGN temperature.
+    - norm_cen: Normalization of c(M) relation for central galaxies.
+    - norm_sat: Normalization of c(M) relation for satellite galaxies.
+    - eta_cen: Bloating parameter for central galaxies.
+    - eta_sat: Bloating parameter for satellite galaxies.
+    - overdensity: Overdensity parameter.
+    - delta_c: Critical density threshold for collapse.
+    - mead_correction (bool): Correction model from Mead et al.
+    
+    """
+    #TO-DO: set defaults to sensible values!
     def __init__(self,
             k_vec = None,
             z_vec = None,
@@ -120,11 +174,14 @@ class HaloModelIngredients:
         self.scale_factor = self.cosmo_model.scale_factor(self.z_vec)
 
         if self.mead_correction in ['feedback', 'nofeedback']:
-            self._setup_mead_correction(norm_sat, eta_sat, norm_cen)
+            self._setup_mead_correction()
         else:
             self._setup_default(hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, eta_cen, eta_sat)
         
-    def _setup_mead_correction(self, norm_sat, eta_sat, norm_cen):
+    def _setup_mead_correction(self):
+        """
+        Set up the Mead corrections for the halo model.
+        """
         self.disable_mass_conversion = True
         self.hmf_model = 'ST'
         self.bias_model = 'ST99'
@@ -145,6 +202,19 @@ class HaloModelIngredients:
             self.K = (5.196 / 4.0) * ((3.44 - 0.496 * theta_agn) * np.power(10.0, self.z_vec * (-0.0671 - 0.0371 * theta_agn)))
 
     def _setup_default(self, hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, eta_cen, eta_sat):
+        """
+        Set up the default halo model.
+
+        Parameters:
+        - hmf_model: Halo mass function model.
+        - bias_model: Halo bias model.
+        - halo_concentration_model: Halo concentration model.
+        - mdef_model: Mass definition model.
+        - overdensity: Overdensity parameter.
+        - delta_c: Critical density threshold for collapse.
+        - eta_cen: Bloating parameter for central galaxies.
+        - eta_sat: Bloating parameter for satellite galaxies.
+        """
         self.disable_mass_conversion = False
         self.hmf_model = hmf_model
         self.bias_model = bias_model
@@ -161,7 +231,9 @@ class HaloModelIngredients:
             
     @cached_property
     def cosmo_model(self):
-        # Update the cosmological parameters
+        """
+        Return the astropy cosmology object assuming Flatw0waCDM model.
+        """
         return Flatw0waCDM(
             H0=self.h0*100.0,
             Ob0=self.omega_b,
@@ -174,6 +246,11 @@ class HaloModelIngredients:
         
     @cached_property
     def hmf_generator(self):
+        """
+        Generate halo mass function models for central and satellite galaxies
+        at different redshifts. Setups the hmf and halomod classes at desired cosmology
+        and uses the "update" functionality to calculate the models at different redshifts.
+        """
         x = DMHaloModel(
                 z=0.0,
                 lnk_min=self.lnk_min,
@@ -260,106 +337,187 @@ class HaloModelIngredients:
 
     @cached_property
     def hmf_cen(self):
+        """
+        Return the halo mass function for central galaxies.
+        """
         return self.hmf_generator[0]
 
     @cached_property
     def hmf_sat(self):
+        """
+        Return the halo mass function for satellite galaxies.
+        """
         return self.hmf_generator[1]
 
     @property
     def mass(self):
+        """
+        Return the masses.
+        """
         return self.hmf_cen[0].m
 
     @property
     def halo_overdensity_mean(self):
+        """
+        Return the mean halo overdensity.
+        """
         return np.array([x.halo_overdensity_mean for x in self.hmf_cen])
 
     @property
     def nu(self):
+        """
+        Return the peak height parameter.
+        """
         return np.array([x.nu**0.5 for x in self.hmf_cen])
 
     @property
     def dndlnm(self):
+        """
+        Return the differential mass function.
+        """
         return np.array([x.dndlnm for x in self.hmf_cen])
 
     @property
     def mean_density0(self):
+        """
+        Return the mean density at redshift zero.
+        """
         return np.array([x.mean_density0 for x in self.hmf_cen])
 
     @property
     def mean_density_z(self):
+        """
+        Return the mean density at the given redshifts.
+        """
         return np.array([x.mean_density for x in self.hmf_cen])
 
     @property
     def rho_halo(self):
+        """
+        Return the halo density.
+        """
         return np.array([x.halo_overdensity_mean * x.mean_density0 for x in self.hmf_cen])
 
     @property
     def halo_bias(self):
+        """
+        Return the halo bias.
+        """
         return np.array([x.halo_bias for x in self.hmf_cen])
 
     @property
     def neff(self):
+        """
+        Return the effective spectral index.
+        """
         return np.array([x.n_eff_at_collapse for x in self.hmf_cen])
 
     @property
     def sigma8_z(self):
+        """
+        Return the amplitude of matter fluctuations on 8 Mpc scales at the given redshifts.
+        """
         return np.squeeze(np.array([x.sigma8_z for x in self.hmf_cen]))
 
     @property
     def fnu(self):
+        """
+        Return the neutrino density fraction.
+        """
         return np.array([self.cosmo_model.Onu0 / self.cosmo_model.Om0 for _ in self.z_vec])
 
     @property
     def conc_cen(self):
+        """
+        Return the concentration for matter/central galaxies.
+        """
         return np.array([x.cmz_relation for x in self.hmf_cen])
 
     @property
     def nfw_cen(self):
+        """
+        Return the NFW profile for matter/central galaxies.
+        """
         return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self.hmf_cen])
 
     @property
     def u_dm(self):
+        """
+        Return the normalized NFW profile for dark matter.
+        """
         return self.nfw_cen / np.expand_dims(self.nfw_cen[:, 0, :], 1)
 
     @property
     def r_s_cen(self):
+        """
+        Return the scale radius for matter/central galaxies.
+        """
         return np.array([x.halo_profile._rs_from_m(x.m) for x in self.hmf_cen])
 
     @property
     def rvir_cen(self):
+        """
+        Return the virial radius for matter/central galaxies.
+        """
         return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self.hmf_cen])
 
     @property
     def conc_sat(self):
+        """
+        Return the concentration for satellite galaxies.
+        """
         return np.array([x.cmz_relation for x in self.hmf_sat])
 
     @property
     def nfw_sat(self):
+        """
+        Return the NFW profile for satellite galaxies.
+        """
         return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self.hmf_sat])
 
     @property
     def u_sat(self):
+        """
+        Return the normalized NFW profile for satellite galaxies.
+        """
         return self.nfw_sat / np.expand_dims(self.nfw_sat[:, 0, :], 1)
 
     @property
     def r_s_sat(self):
+        """
+        Return the scale radius for satellite galaxies.
+        """
         return np.array([x.halo_profile._rs_from_m(x.m) for x in self.hmf_sat])
 
     @property
     def rvir_sat(self):
+        """
+        Return the virial radius for satellite galaxies.
+        """
         return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self.hmf_sat])
     
     @property
     def growth_factor(self):
+        """
+        Return the growth factor.
+        """
         # TO-DO: Check against interpolated one from CAMB!
         return self.hmf_cen[0]._growth_factor_fn(self.z_vec)
         
     
     def _Omega_m(self, a, Om, Ode, Ok):
         """
-        Evolution of Omega_m with scale-factor ignoring radiation
+        Evolution of Omega_m with scale-factor ignoring radiation.
         Massive neutrinos are counted as 'matter'.
+
+        Parameters:
+        - a: Scale factor.
+        - Om: Matter density parameter.
+        - Ode: Dark energy density parameter.
+        - Ok: Curvature density parameter.
+
+        Returns:
+        - Omega_m at scale factor 'a'.
         """
         return Om * a**-3 / self._Hubble2(a, Om, Ode, Ok)
     
@@ -367,6 +525,15 @@ class HaloModelIngredients:
         """
         Squared Hubble parameter ignoring radiation.
         Massive neutrinos are counted as 'matter'.
+
+        Parameters:
+        - a: Scale factor.
+        - Om: Matter density parameter.
+        - Ode: Dark energy density parameter.
+        - Ok: Curvature density parameter.
+
+        Returns:
+        - Squared Hubble parameter at scale factor 'a'.
         """
         z = -1.0 + 1.0 / a
         H2 = Om * a**-3 + Ode * self.cosmo_model.de_density_scale(z) + Ok * a**-2
@@ -374,8 +541,17 @@ class HaloModelIngredients:
     
     def _AH(self, a, Om, Ode):
         """
-        Acceleration parameter ignoring radiation.
+        Squared Hubble parameter ignoring radiation.
         Massive neutrinos are counted as 'matter'.
+
+        Parameters:
+        - a: Scale factor.
+        - Om: Matter density parameter.
+        - Ode: Dark energy density parameter.
+        - Ok: Curvature density parameter.
+
+        Returns:
+        - Squared Hubble parameter at scale factor 'a'.
         """
         z = -1.0 + 1.0 / a
         AH = -0.5 * (Om * a**-3 + (1.0 + 3.0 * self.cosmo_model.w(z)) * Ode * self.cosmo_model.de_density_scale(z))
@@ -415,6 +591,9 @@ class HaloModelIngredients:
         
     @cached_property
     def get_mead_growth(self):
+        """
+        Return the Mead growth factor at the scale factors.
+        """
         return self.get_mead_growth_fnc(self.scale_factor)
     
     @cached_property
@@ -432,13 +611,23 @@ class HaloModelIngredients:
         return G
     
     def f_Mead(self, x, y, p0, p1, p2, p3):
-        # eq A3 of 2009.01858
+        """
+        Fitting function from Mead et al. 2021 (2009.01858), eq A3.
+
+        Parameters:
+        - x: First variable.
+        - y: Second variable.
+        - p0, p1, p2, p3: Fitting parameters.
+
+        Returns:
+        - Value of the fitting function.
+        """
         return p0 + p1 * (1.0 - x) + p2 * (1.0 - x)**2.0 + p3 * (1.0 - y)
     
     @cached_property
     def dc_Mead(self):
         """
-        delta_c fitting function from Mead et al. 2021 (2009.01858).
+        Delta_c fitting function from Mead et al. 2021 (2009.01858).
         All input parameters should be evaluated as functions of a/z.
         """
         a = self.scale_factor
@@ -495,6 +684,18 @@ class HaloModelIngredients:
         Ratio of cold to matter transfer function from Eisenstein & Hu (1999).
         This can be used to get the cold-matter spectrum approximately from the matter spectrum.
         Captures the scale-dependent growth with neutrino free-streaming scale.
+
+        Parameters:
+        - k: Wavenumber.
+        - g: Growth factor.
+        - ommh2: Omega_m * h^2.
+        - h: Hubble parameter.
+        - f_nu: Fraction of neutrino density.
+        - N_nu: Number of neutrino species.
+        - T_CMB: Temperature of the CMB.
+
+        Returns:
+        - Ratio of cold to matter transfer function.
         """
         if f_nu == 0.0:  # Fix to unity if there are no neutrinos
             return 1.0
@@ -511,6 +712,17 @@ class HaloModelIngredients:
     
     # Currently unused
     def sigmaR_cc(self, power, k, r):
+        """
+        Calculate the variance of the cold matter density field smoothed on scale R.
+
+        Parameters:
+        - power: Power spectrum.
+        - k: Wavenumber.
+        - r: Scale.
+
+        Returns:
+        - Variance of the density field.
+        """
         rk = np.outer(r, k)
         dlnk = np.log(k[1] / k[0])
     
@@ -526,6 +738,17 @@ class HaloModelIngredients:
     def get_halo_collapse_redshifts(self, M, z, dc, g, cosmo, mf):
         """
         Calculate halo collapse redshifts according to the Bullock et al. (2001) prescription.
+
+        Parameters:
+        - M: Halo mass.
+        - z: Redshift.
+        - dc: Critical density threshold for collapse.
+        - g: Growth factor.
+        - cosmo: astropy cosmology model.
+        - mf: hmf Mass function object.
+
+        Returns:
+        - Collapse redshifts for halos.
         """
         gamma = 0.01
         a = cosmo.scale_factor(z)
