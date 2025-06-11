@@ -6,8 +6,8 @@ from scipy.optimize import root_scalar
 from scipy.integrate import simpson, solve_ivp, quad
 from astropy.cosmology import Flatw0waCDM, Planck15
 import hmf
-from halomod.halo_model import DMHaloModel
 from hmf.halos.mass_definitions import SphericalOverdensity
+from halomod.halo_model import DMHaloModel
 from halomod.concentration import make_colossus_cm, interp_concentration
 import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes

@@ -5,7 +5,10 @@ from collections import OrderedDict
 from scipy.interpolate import interp1d, RegularGridInterpolator
 from scipy.optimize import curve_fit
 
-
+#TO-DO: - compare with original module
+#       - write docstrings
+#       - clean-up
+#       - implement caching similar to the original module or add that to the pk_interface instead and pass the results of this over there
 class NonLinearBias:
     """
     A class to compute the 

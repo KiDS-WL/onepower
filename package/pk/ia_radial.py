@@ -1,9 +1,9 @@
+from functools import cached_property
 import numpy as np
 from scipy.integrate import simpson
 from scipy.special import binom
-from hankel import HankelTransform
-from functools import cached_property
 from scipy.interpolate import RegularGridInterpolator
+from hankel import HankelTransform
 
 """
 A module for computing satellite alignment properties.
