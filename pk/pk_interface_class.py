@@ -262,8 +262,6 @@ def execute(block, config):
     """Execute function to compute power spectra based on configuration."""
     p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl = config
 
-
-    # TODO: will the inputs depend on the profile model?
     norm_cen = block[config_hmf['profile_value_name'], 'norm_cen']
     norm_sat = block[config_hmf['profile_value_name'], 'norm_sat']
     eta_cen = block[config_hmf['profile_value_name'], 'eta_cen']
@@ -434,47 +432,54 @@ def execute(block, config):
         'hod_settings_mm': hod_settings_mm
     })
     
+    # TO-DO: for aligments at least we need to split the calculation in red/blue and add here!
+    
     if alignment:
         align_kwargs.update({
             'fortuna': fortuna,
-            'alignment_gi': block[f'ia_large_scale_alignment{pop_name}', 'alignment_gi'],
             't_eff': block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0),
         })
 
-        if block[f'ia_small_scale_alignment{pop_name}', 'instance'] == 'halo_mass':
-            align_kwargs.update({
-                'beta_sat': block[f'ia_small_scale_alignment{pop_name}', 'beta_sat'],
-                'mpivot_sat': block[f'ia_small_scale_alignment{pop_name}', 'M_pivot'],
+        align_params = {}
+        
+        block.put_string(f'intrinsic_alignment_parameters{pop_name}', 'central_IA_depends_on', 'halo_mass')
+        block.put_string(f'intrinsic_alignment_parameters{pop_name}', 'satellite_IA_depends_on', 'halo_mass')
+        
+        if block.get_string(f'intrinsic_alignment_parameters{pop_name}', 'satellite_IA_depends_on') == 'halo_mass':
+            align_params.update({
+                'beta_sat': block[f'intrinsic_alignment_parameters{pop_name}', 'beta_sat'],
+                'mpivot_sat': block[f'intrinsic_alignment_parameters{pop_name}', 'M_pivot'],
             })
         else:
-            align_kwargs.update({
+            align_params.update({
                 'beta_sat': None,
                 'mpivot_sat': None,
             })
 
-        if block[f'ia_large_scale_alignment{pop_name}', 'instance'] == 'halo_mass':
-            align_kwargs.update({
-                'beta_cen': block[f'ia_large_scale_alignment{pop_name}', 'beta'],
-                'mpivot_cen': block[f'ia_large_scale_alignment{pop_name}', 'M_pivot'],
+        if block.get_string(f'intrinsic_alignment_parameters{pop_name}', 'central_IA_depends_on') == 'halo_mass':
+            align_params.update({
+                'beta_cen': block[f'intrinsic_alignment_parameters{pop_name}', 'beta'],
+                'mpivot_cen': block[f'intrinsic_alignment_parameters{pop_name}', 'M_pivot'],
             })
         else:
-            align_kwargs.update({
+            align_params.update({
                 'beta_cen': None,
                 'mpivot_cen': None,
             })
     
-        align_params = {}
         align_params.update({
             'nmass': 5,
             'n_hankel': 350,
             'nk': 10,
             'ell_max': 6,
             'gamma_1h_slope': block[f'intrinsic_alignment_parameters{pop_name}', 'gamma_1h_radial_slope'],
-            'gamma_1h_amplitude': block[f'ia_small_scale_alignment{pop_name}', 'alignment_1h']
+            'gamma_1h_amplitude': block[f'intrinsic_alignment_parameters{pop_name}', 'gamma_1h_amplitude'],
+            'gamma_2h_amplitude': block[f'intrinsic_alignment_parameters{pop_name}', 'gamma_2h_amplitude'],
         })
         align_kwargs.update({
             'align_params': align_params,
         })
+        print(align_params)
 
     if matter:
         matter_power = MatterSpectra(**matter_kwargs)

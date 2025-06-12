@@ -4,6 +4,7 @@ from scipy.integrate import simpson
 from scipy.special import binom
 from scipy.interpolate import RegularGridInterpolator
 from hankel import HankelTransform
+from ia_amplitudes2 import AlignmentAmplitudes
 
 """
 A module for computing satellite alignment properties.
@@ -11,14 +12,13 @@ This module provides classes and functions to calculate various properties
 related to the alignment of satellite galaxies within dark matter halos.
 """
 
-class SatelliteAlignment:
+class SatelliteAlignment(AlignmentAmplitudes):
     """
     A class to compute the alignment properties of satellite galaxies within dark matter halos.
     This includes calculating the Hankel transform, radial profiles, and other related quantities.
 
     Parameters:
     - mass: Array of halo masses.
-    - z_vec: Array of redshifts.
     - c: Concentration parameter.
     - r_s: Scale radius.
     - rvir: Virial radius.
@@ -29,22 +29,23 @@ class SatelliteAlignment:
     - nk: Number of k bins.
     - ell_max: Maximum multipole moment.
     - truncate: Whether to truncate the NFW profile at the virial radius.
+    - amplitude_kwargs: Extra parameters passed to the AlignmentAmplitudes class.
     """
     def __init__(
             self,
             mass = None,
-            z_vec = None,
             c = None,
             r_s = None,
             rvir = None,
-            gamma_1h_slope = None,
-            gamma_1h_amplitude = None,
             n_hankel = 350,
             nmass = 5,
             nk = 10,
             ell_max = 6,
-            truncate = False
+            truncate = False,
+            **amplitude_kwargs
         ):
+        # Call super init MUST BE DONE FIRST.
+        super().__init__(**amplitude_kwargs)
         
         self.k_vec = np.logspace(np.log10(1e-3), np.log10(1e3), nk)
         self.nk = nk
@@ -53,13 +54,13 @@ class SatelliteAlignment:
         self.ell_max = ell_max
         
         # Slope of the power law that describes the satellite alignment
-        self.gamma_1h_slope = gamma_1h_slope
+        #self.gamma_1h_slope = gamma_1h_slope # from AlignmentAmplitudes
         
         # This already contains the luminosity dependence if there
-        self.gamma_1h_amplitude = gamma_1h_amplitude
+        #self.gamma_1h_amplitude = gamma_1h_amplitude # from AlignmentAmplitudes
         
         # Also load the redshift dimension
-        self.z_vec = z_vec
+        # self.z_vec = z_vec # from AlignmentAmplitudes
         nz = self.z_vec.size
         
         self.mass_in = mass

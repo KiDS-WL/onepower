@@ -1232,13 +1232,13 @@ class AlignmentSpectra(GalaxySpectra):
     - galaxy_spectra_kwargs: Additional keyword arguments for the GalaxySpectra.
     """
     def __init__(self,
-            alignment_gi = None,
+            #alignment_gi = None,
             t_eff = None,
-            beta_cen = None,
-            beta_sat = None,
-            mpivot_cen = None,
+            #beta_cen = None,
+            #beta_sat = None,
+            #mpivot_cen = None,
             mpivot_sat = None,
-            matter_power_nl = None,
+            #matter_power_nl = None,
             fortuna = False,
             align_params = {},
             **galaxy_spectra_kwargs
@@ -1247,22 +1247,30 @@ class AlignmentSpectra(GalaxySpectra):
         # Call super init MUST BE DONE FIRST.
         super().__init__(**galaxy_spectra_kwargs)
         
-        self.beta_cen = beta_cen
-        self.beta_sat = beta_sat
-        self.mpivot_cen = mpivot_cen
-        self.mpivot_sat = mpivot_sat
+        #self.beta_cen = beta_cen
+        #self.beta_sat = beta_sat
+        #self.mpivot_cen = mpivot_cen
+        #self.mpivot_sat = mpivot_sat
         self.t_eff = t_eff
-        self.alignment_gi = alignment_gi
+        #self.alignment_gi = alignment_gi
         self.fortuna = fortuna
         self.align_params = align_params
         
         self.align_params.update({
+            'z_vec': self.z_vec,
             'mass': self.mass,
             'z_vec': self.z_vec,
             'c': self.conc_cen,
             'r_s': self.r_s_cen,
             'rvir': self.rvir_cen[0]
         })
+        
+        self.alignment_class = SatelliteAlignment(**self.align_params)
+        self.beta_cen = self.alignment_class.beta_cen
+        self.beta_sat = self.alignment_class.beta_sat
+        self.mpivot_cen = self.alignment_class.mpivot_cen
+        self.mpivot_sat = self.alignment_class.mpivot_sat
+        self.alignment_gi = self.alignment_class.alignment_gi
         
         self.alignment_amplitude_2h, self.alignment_amplitude_2h_II, self.C1 = self.compute_two_halo_alignment
     
@@ -1278,8 +1286,7 @@ class AlignmentSpectra(GalaxySpectra):
         """
         Compute the wkm for satellite galaxies.
         """
-        satellite_alignment = SatelliteAlignment(**self.align_params)
-        return satellite_alignment.upsampled_wkm(self.k_vec, self.mass)
+        return self.alignment_class.upsampled_wkm(self.k_vec, self.mass)
         
     def compute_central_galaxy_alignment_profile(self, growth_factor, f_c, C1, mass, beta=None, mpivot=None, mass_avg=None):
         """
