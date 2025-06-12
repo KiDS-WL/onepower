@@ -62,6 +62,7 @@ import sys
 sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/pk")
 #import pk_lib_class
 from pk import MatterSpectra, GalaxySpectra, AlignmentSpectra
+from bnl import NonLinearBias
 
 cosmo_params = names.cosmological_parameters
 
@@ -131,9 +132,6 @@ def setup(options):
     config_hmf['dlnk'] = 0.001
 
 
-
-
-
     """Setup function to parse options and return configuration."""
     p_mm = options.get_bool(option_section, 'p_mm', default=False)
     p_gg = options.get_bool(option_section, 'p_gg', default=False)
@@ -150,7 +148,19 @@ def setup(options):
     fortuna = options.get_bool(option_section, 'fortuna', default=False)
     # If True, uses beta_nl
     bnl = options.get_bool(option_section, 'bnl', default=False)
-
+    
+    """
+    if bnl:
+        cached_bnl = {
+            'num_calls': 0,
+            'cached_bnl': None,
+            'update_bnl': options[option_section, 'update_bnl']
+        }
+    else:
+        cached_bnl = None
+    """
+    cached_bnl = None
+    
     poisson_type = options.get_string(option_section, 'poisson_type', default='')
     point_mass = options.get_bool(option_section, 'point_mass', default=False)
 
@@ -246,11 +256,11 @@ def setup(options):
         obs_settings['nobs'] = options[option_section, 'nobs_smf']
         obs_settings['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
 
-    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf
+    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl
 
 def execute(block, config):
     """Execute function to compute power spectra based on configuration."""
-    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf = config
+    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl = config
 
 
     # TODO: will the inputs depend on the profile model?
@@ -279,6 +289,32 @@ def execute(block, config):
     
     plin = pk_util.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
 
+    """
+    if bnl:
+        num_calls = cached_bnl['num_calls']
+        update_bnl = cached_bnl['update_bnl']
+
+        if num_calls % update_bnl == 0:
+            bnl = NonLinearBias(
+                mass = 10 ** np.arange(config_hmf['log_mass_min'], config_hmf['log_mass_max'], config_hmf['dlog10m']),
+                z_vec = z_vec,
+                k_vec = k_vec,
+                h0 = block[cosmo_params, 'h0'],
+                A_s = block[cosmo_params, 'A_s'],
+                omega_b = block[cosmo_params, 'omega_b'],
+                omega_c = block[cosmo_params, 'omega_c'],
+                omega_lambda = 1.0 - block[cosmo_params, 'omega_m'],
+                n_s = block[cosmo_params, 'n_s'],
+                w0 = block[cosmo_params, 'w']
+            )
+            
+            beta_interp = bnl.bnl
+            cached_bnl['cached_bnl'] = beta_interp
+        else:
+            beta_interp = cached_bnl['cached_bnl']
+
+        cached_bnl['num_calls'] = num_calls + 1
+    """
     matter_kwargs = {
         'matter_power_lin': plin,
         'mead_correction': mead_correction,
@@ -347,8 +383,6 @@ def execute(block, config):
         'log10T_AGN': block['halo_model_parameters', 'logT_AGN'],
         'mb': 10.0**block['halo_model_parameters', 'm_b'],
     })
-    #sigma8_z = block['hmf', 'sigma8_z']
-    #neff = block['hmf', 'neff']
         
     if galaxy or alignment:
         poisson_par = {

@@ -225,7 +225,7 @@ class MatterSpectra(HaloModelIngredients):
             sigma_8 = self.sigma_8,
             omega_b = self.omega_b,
             omega_c = self.omega_c,
-            omega_lambda = self.cosmo_model.Ode0,
+            omega_lambda = 1.0 - self.omega_m,
             n_s = self.n_s,
             w0 = self.w0
         )

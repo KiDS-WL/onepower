@@ -5,10 +5,9 @@ from collections import OrderedDict
 from scipy.interpolate import interp1d, RegularGridInterpolator
 from scipy.optimize import curve_fit
 
-#TO-DO: - compare with original module
+#TO-DO:
 #       - write docstrings
 #       - clean-up
-#       - implement caching similar to the original module or add that to the pk_interface instead and pass the results of this over there
 class NonLinearBias:
     """
     A class to compute the 
@@ -19,6 +18,7 @@ class NonLinearBias:
             k_vec = None,
             h0 = 0.7,
             sigma_8 = 0.8,
+            A_s = None,
             omega_b = 0.05,
             omega_c = 0.25,
             omega_lambda = 0.7,
@@ -29,6 +29,7 @@ class NonLinearBias:
         self.z_vec = z_vec
         self.k_vec = k_vec
         self.sigma_8 = sigma_8
+        self.A_s = A_s
         
         self.ombh2 = omega_b * h0**2.0
         self.omch2 = omega_c * h0**2.0
@@ -38,17 +39,25 @@ class NonLinearBias:
     
     @cached_property
     def emulator(self):
-        A_s_init = 2.1e-9
+        # Initialise the emulator
         emu = darkemu.base_class()
+        if self.A_s is None and self.sigma_8 is not None:
+            A_s_init = 2.1e-9
         
-        cparam = self.test_cosmo(np.array([self.ombh2, self.omch2, self.omega_lambda, np.log(A_s_init*10.0**10.0), self.n_s, self.w0]))
-        emu.set_cosmology(cparam)
+            cparam = self.test_cosmo(np.array([self.ombh2, self.omch2, self.omega_lambda, np.log(A_s_init*1e10), self.n_s, self.w0]))
+            emu.set_cosmology(cparam)
 
-        sigma_8_init = emu.get_sigma8()
-        scaling = (self.sigma_8/sigma_8_init)**2
-        A_s = A_s_init * scaling
-    
-        cparam = self.test_cosmo(np.array([self.ombh2, self.omch2, self.omega_lambda, np.log(A_s*10.0**10.0), self.n_s, self.w0]))
+            sigma_8_init = emu.get_sigma8()
+            scaling = self.sigma_8**2.0 / sigma_8_init**2.0
+            A_s = A_s_init * scaling
+            lnA = np.log(A_s*1e10)
+        elif self.A_s is not None:
+            # We preffer A_s for DQ emulator!
+            lnA = np.log(self.A_s*1e10)
+        else:
+            raise ValueError("One of A_s or sigma_8 need to be specified!")
+            
+        cparam = self.test_cosmo(np.array([self.ombh2, self.omch2, self.omega_lambda, lnA, self.n_s, self.w0]))
         emu.set_cosmology(cparam)
         return emu
     
