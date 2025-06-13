@@ -187,6 +187,9 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         eps = 1e-10
         x = np.linspace(-1.0 + eps, 1.0 - eps, 500)
+        #TO-DO: replace with
+        #from scipy.special import gamma
+        #return (1+(-1)**b)*gamma(a/2+1)*gamma((b+1)/2)/(2*gamma(a/2+b/2+3/2))
         return simpson((1.0 - x**2.0)**(a / 2.0) * x**b, x)
 
     def calculate_f_ell(self, l, gamma_b):
@@ -293,6 +296,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
 
     @cached_property
     def compute_uell_gamma_r_hankel(self):
+        #TO-DO: implement FFTLog as well!
         """
         THIS FUNCTION IS THE SLOWEST PART!
         
