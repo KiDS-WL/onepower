@@ -1,8 +1,8 @@
 Authors
 =======
-Andrej Dvornik: `@andrejdvornik <https://github.com/andrejdvornik>`_
-Maria Cristina Fortuna: `@mcfortuna <https://github.com/mcfortuna>`_
-Marika Asgari: `@maricool <https://github.com/maricool>`_
+* Andrej Dvornik: `@andrejdvornik <https://github.com/andrejdvornik>`_
+* Maria Cristina Fortuna: `@mcfortuna <https://github.com/mcfortuna>`_
+* Marika Asgari: `@maricool <https://github.com/maricool>`_
 
 Contributors
 ------------
