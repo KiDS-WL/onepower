@@ -18,18 +18,27 @@ class SatelliteAlignment(AlignmentAmplitudes):
     This includes calculating the Hankel transform, radial profiles, and other related quantities.
 
     Parameters:
-    - mass: Array of halo masses.
-    - c: Concentration parameter.
-    - r_s: Scale radius.
-    - rvir: Virial radius.
-    - gamma_1h_slope: Slope of the power law describing the satellite alignment.
-    - gamma_1h_amplitude: Amplitude of the satellite alignment.
-    - n_hankel: Number of steps in the Hankel transform integration.
-    - nmass: Number of mass bins.
-    - nk: Number of k bins.
-    - ell_max: Maximum multipole moment.
-    - truncate: Whether to truncate the NFW profile at the virial radius.
-    - amplitude_kwargs: Extra parameters passed to the AlignmentAmplitudes class.
+    -----------
+    mass : array_like, optional
+        Array of halo masses.
+    c : array_like, optional
+        Concentration parameter.
+    r_s : array_like, optional
+        Scale radius.
+    rvir : array_like, optional
+        Virial radius.
+    n_hankel : int, optional
+        Number of steps in the Hankel transform integration.
+    nmass : int, optional
+        Number of mass bins.
+    nk : int, optional
+        Number of k bins.
+    ell_max : int, optional
+        Maximum multipole moment.
+    truncate : bool, optional
+        Whether to truncate the NFW profile at the virial radius.
+    amplitude_kwargs : dict
+        Extra parameters passed to the AlignmentAmplitudes class.
     """
     def __init__(
             self,
@@ -54,13 +63,10 @@ class SatelliteAlignment(AlignmentAmplitudes):
         self.ell_max = ell_max
         
         # Slope of the power law that describes the satellite alignment
-        #self.gamma_1h_slope = gamma_1h_slope # from AlignmentAmplitudes
+        # gamma_1h_slope is from AlignmentAmplitudes
+        # gamma_1h_amplitude is from AlignmentAmplitudes
+        # self.z_vec is from AlignmentAmplitudes
         
-        # This already contains the luminosity dependence if there
-        #self.gamma_1h_amplitude = gamma_1h_amplitude # from AlignmentAmplitudes
-        
-        # Also load the redshift dimension
-        # self.z_vec = z_vec # from AlignmentAmplitudes
         nz = self.z_vec.size
         
         self.mass_in = mass
@@ -104,15 +110,24 @@ class SatelliteAlignment(AlignmentAmplitudes):
         Downsample the halo parameters to reduce computational complexity.
 
         Parameters:
-        - nmass: Number of mass bins desired.
-        - nmass_in: Number of mass bins in input.
-        - mass_in: Input array of halo masses.
-        - c_in: Input array of concentration parameters.
-        - r_s_in: Input array of scale radii.
-        - rvir_in: Input array of virial radii.
+        -----------
+        nmass : int
+            Number of mass bins desired.
+        nmass_in : int
+            Number of mass bins in input.
+        mass_in : array_like
+            Input array of halo masses.
+        c_in : array_like
+            Input array of concentration parameters.
+        r_s_in : array_like
+            Input array of scale radii.
+        rvir_in : array_like
+            Input array of virial radii.
 
         Returns:
-        - Downsampled arrays of halo masses, concentration parameters, scale radii, and virial radii.
+        --------
+        tuple
+            Downsampled arrays of halo masses, concentration parameters, scale radii, and virial radii.
         """
         if nmass == nmass_in:
             return mass_in, c_in, r_s_in, rvir_in
@@ -146,24 +161,29 @@ class SatelliteAlignment(AlignmentAmplitudes):
         so it can work nicely with CosmoSIS setup function
         
         Returns:
-        - A list of HankelTransform objects for each multipole moment.
+        --------
+        list
+            A list of HankelTransform objects for each multipole moment.
         """
         self.h_hankel = np.pi / self.n_hankel
-        return [
-            HankelTransform(ell + 0.5, self.n_hankel, self.h_hankel)
-                for ell in self.ell_values
-        ]
+        return [HankelTransform(ell + 0.5, self.n_hankel, self.h_hankel) for ell in self.ell_values]
+
         
     def I_x(self, a, b):
         """
         Compute the integral of (1 - x^2)^(a/2) * x^b from -1 to 1.
 
         Parameters:
-        - a: Exponent for the (1 - x^2) term.
-        - b: Exponent for the x term.
+        -----------
+        a : float
+            Exponent for the (1 - x^2) term.
+        b : float
+            Exponent for the x term.
 
         Returns:
-        - The value of the integral.
+        --------
+        float
+            The value of the integral.
         """
         eps = 1e-10
         x = np.linspace(-1.0 + eps, 1.0 - eps, 500)
@@ -175,11 +195,16 @@ class SatelliteAlignment(AlignmentAmplitudes):
         Eq. (C8) in `Fortuna et al. 2021 <https://arxiv.org/abs/2003.02700>`
         
         Parameters:
-        - l: Multipole moment.
-        - gamma_b: Slope parameter.
+        -----------
+        l : int
+            Multipole moment.
+        gamma_b : float
+            Slope parameter.
 
         Returns:
-        - The value of the angular part of the satellite intrinsic shear field.
+        --------
+        complex
+            The value of the angular part of the satellite intrinsic shear field.
         """
         phase = np.cos(2.0 * self.phi_k) + 1j * np.sin(2.0 * self.phi_k)
 
@@ -216,7 +241,9 @@ class SatelliteAlignment(AlignmentAmplitudes):
         which means you'll get negative values for wkm in CCL: they take the absolute value later.
         
         Returns:
-        - The absolute value of the sum of the radial and angular parts.
+        --------
+        ndarray
+            The absolute value of the sum of the radial and angular parts.
         """
         uell = self.compute_uell_gamma_r_hankel
         nz, nm, nk = uell.shape[1], uell.shape[2], uell.shape[3]
@@ -234,16 +261,26 @@ class SatelliteAlignment(AlignmentAmplitudes):
         Compute the radial profile of the NFW (Navarro-Frenk-White) profile with a power-law correction.
 
         Parameters:
-        - r: Radial distance.
-        - rs: Scale radius.
-        - rvir: Virial radius.
-        - a: Amplitude of the power-law correction.
-        - b: Slope of the power-law correction.
-        - rcore: Core radius.
-        - truncate: Whether to truncate the profile at the virial radius.
+        -----------
+        r : float
+            Radial distance.
+        rs : float
+            Scale radius.
+        rvir : float
+            Virial radius.
+        a : float
+            Amplitude of the power-law correction.
+        b : float
+            Slope of the power-law correction.
+        rcore : float, optional
+            Core radius.
+        truncate : bool, optional
+            Whether to truncate the profile at the virial radius.
 
         Returns:
-        - The value of the radial profile.
+        --------
+        float
+            The value of the radial profile.
         """
         gamma = a * (r / rvir)**b
         gamma = np.where(r < rcore, a * (rcore / rvir)**b, gamma)
@@ -273,7 +310,9 @@ class SatelliteAlignment(AlignmentAmplitudes):
         Given that low-k accuracy is unimportant for IA, I've decided to use the Hankel transform for all k values.
         
         Returns:
-        - A 4D array of u_ell values.
+        --------
+        ndarray
+            A 4D array of u_ell values.
         """
         mnfw = 4.0 * np.pi * self.r_s**3.0 * (np.log(1.0 + self.c) - self.c / (1.0 + self.c))
         uk_l = np.zeros([self.ell_values.size, self.z_vec.size, self.mass.size, self.k_vec.size])
@@ -290,10 +329,9 @@ class SatelliteAlignment(AlignmentAmplitudes):
         Return the computed wkm_f_ell values along with the redshift, mass, and k vectors.
 
         Returns:
-        - wkm_f_ell: Computed values of wkm_f_ell.
-        - z_vec: Array of redshifts.
-        - mass: Array of halo masses.
-        - k_vec: Array of k values.
+        --------
+        tuple
+            Computed values of wkm_f_ell, array of redshifts, array of halo masses, and array of k values.
         """
         return self.wkm_f_ell, self.z_vec, self.mass, self.k_vec
     
@@ -302,11 +340,16 @@ class SatelliteAlignment(AlignmentAmplitudes):
         Interpolates the wkm profiles and upsamples back to the original grid.
 
         Parameters:
-        - k_vec_out: Output array of k values.
-        - mass_out: Output array of halo masses.
+        -----------
+        k_vec_out : array_like
+            Output array of k values.
+        mass_out : array_like
+            Output array of halo masses.
 
         Returns:
-        - Upsampled array of wkm values.
+        --------
+        ndarray
+            Upsampled array of wkm values.
         """
         wkm_out = np.empty([self.z_vec.size, mass_out.size, k_vec_out.size])
         for jz in range(self.z_vec.size):

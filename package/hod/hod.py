@@ -15,12 +15,14 @@ def load_data(file_name):
     Load data from a file.
 
     Parameters:
-    - file_name: Path to the file to load data from.
+    -----------
+    file_name : str
+        Path to the file to load data from.
 
     Returns:
-    - z_data: Redshift data.
-    - obs_min: Minimum observable data.
-    - obs_max: Maximum observable data.
+    --------
+    tuple
+        Redshift data, minimum observable data, and maximum observable data.
     """
     z_data, obs_min, obs_max = np.loadtxt(
         file_name, usecols=(0, 1, 2), unpack=True, dtype=float
@@ -32,13 +34,19 @@ class HOD:
     """
     Base class for Halo Occupation Distribution (HOD) models.
     This class provides the framework for computing various properties of galaxies within dark matter halos.
-    
+
     Parameters:
-    - mass: Array of halo masses.
-    - dndlnm: Halo mass function.
-    - halo_bias: Halo bias.
-    - z_vec: Array of redshifts.
-    - hod_settings: Dictionary of HOD settings.
+    -----------
+    mass : array_like
+        Array of halo masses.
+    dndlnm : array_like
+        Halo mass function.
+    halo_bias : array_like
+        Halo bias.
+    z_vec : array_like
+        Array of redshifts.
+    hod_settings : dict
+        Dictionary of HOD settings.
     """
     def __init__(
             self,
@@ -77,7 +85,9 @@ class HOD:
         Process the HOD settings.
 
         Parameters:
-        - hod_settings: Dictionary of HOD settings (see code for what they can be).
+        -----------
+        hod_settings : dict
+            Dictionary of HOD settings.
         """
         self.nobs = hod_settings['nobs']
         if hod_settings['observables_file'] is not None:
@@ -109,12 +119,15 @@ class HOD:
         Compute the mass integral for a given HOD.
 
         Parameters:
-        - hod: Halo Occupation Distribution.
+        -----------
+        hod : array_like
+            Halo Occupation Distribution.
 
         Returns:
-        - Integral of the HOD weighted by the halo mass function.
-        """
-        integrand = hod * self.dndlnm / self.mass
+        --------
+        array_like
+            Integral of the HOD weighted by the halo mass function.
+        """        integrand = hod * self.dndlnm / self.mass
         return simpson(integrand, self.mass, axis=-1)
 
     def _mean_mass_integral(self, hod):
@@ -122,10 +135,14 @@ class HOD:
         Compute the mean mass integral for a given HOD.
 
         Parameters:
-        - hod: Halo Occupation Distribution.
+        -----------
+        hod : array_like
+            Halo Occupation Distribution.
 
         Returns:
-        - Integral of the HOD weighted by the halo mass function and halo mass.
+        --------
+        array_like
+            Integral of the HOD weighted by the halo mass function and halo mass.
         """
         integrand = hod * self.dndlnm
         return simpson(integrand, self.mass, axis=-1)
@@ -135,25 +152,34 @@ class HOD:
         Compute the bias integral for a given HOD.
 
         Parameters:
-        - hod: Halo Occupation Distribution.
+        -----------
+        hod : array_like
+            Halo Occupation Distribution.
 
         Returns:
-        - Integral of the HOD weighted by the halo bias and halo mass function.
-        """
-        bg_integrand = hod * self.halo_bias * self.dndlnm / self.mass
+        --------
+        array_like
+            Integral of the HOD weighted by the halo bias and halo mass function.
+        """        bg_integrand = hod * self.halo_bias * self.dndlnm / self.mass
         return simpson(bg_integrand, self.mass, axis=-1) / self.ntot
 
     def _interpolate(self, data, fill_value='extrapolate', axis=-1):
         """
-        Helper function to interpolate data along a given axis in an array
+        Helper function to interpolate data along a given axis in an array.
 
         Parameters:
-        - data: Data to interpolate.
-        - fill_value: Value to use for points outside the data range.
-        - axis: Axis along which to interpolate.
+        -----------
+        data : array_like
+            Data to interpolate.
+        fill_value : str, optional
+            Value to use for points outside the data range.
+        axis : int, optional
+            Axis along which to interpolate.
 
         Returns:
-        - Interpolated data.
+        --------
+        array_like
+            Interpolated data.
         """
         n_int = [interp1d(self.z[i], data[i], fill_value=fill_value, bounds_error=False, axis=axis) for i in range(self.z.shape[0])]
         return np.array([f(self.z_vec) for f in n_int])
@@ -377,19 +403,37 @@ class Cacciato(HOD):
     The halo mass dependence comes in through pivot observable values denoted by *, e.g. O∗c, O∗s
     
     Parameters:
-    - log10_obs_norm_c: Log10 of the normalization for central galaxies.
-    - log10_m_ch: Log10 of the characteristic mass.
-    - g1: Low mass slope parameter for central galaxies.
-    - g2: High mass slope parameter for central galaxies.
-    - sigma_log10_O_c: Scatter in log10 of the observable for central galaxies.
-    - norm_s: Normalization for satellite galaxies.
-    - pivot: Pivot mass for the normalization of the stellar mass function.
-    - alpha_s: Slope parameter for satellite galaxies.
-    - beta_s: Exponent parameter for satellite galaxies.
-    - b0, b1, b2: Parameters for the conditional stellar mass function.
-    - A_cen: Decorated HOD assembly bias parameter for central galaxies.
-    - A_sat: Decorated HOD assembly bias parameter for satellite galaxies.
-    - hod_kwargs: Additional keyword arguments for the HOD class.
+    -----------
+    log10_obs_norm_c : float
+        Log10 of the normalization for central galaxies.
+    log10_m_ch : float
+        Log10 of the characteristic mass.
+    g1 : float
+        Low mass slope parameter for central galaxies.
+    g2 : float
+        High mass slope parameter for central galaxies.
+    sigma_log10_O_c : float
+        Scatter in log10 of the observable for central galaxies.
+    norm_s : float
+        Normalization for satellite galaxies.
+    pivot : float
+        Pivot mass for the normalization of the stellar mass function.
+    alpha_s : float
+        Slope parameter for satellite galaxies.
+    beta_s : float
+        Exponent parameter for satellite galaxies.
+    b0 : float
+        Parameter for the conditional stellar mass function.
+    b1 : float
+        Parameter for the conditional stellar mass function.
+    b2 : float
+        Parameter for the conditional stellar mass function.
+    A_cen : float, optional
+        Decorated HOD assembly bias parameter for central galaxies.
+    A_sat : float, optional
+        Decorated HOD assembly bias parameter for satellite galaxies.
+    hod_kwargs : dict
+        Additional keyword arguments for the HOD class.
     """
     def __init__(
             self,
@@ -611,13 +655,21 @@ class Simple(HOD):
     Simple HOD model
     
     Parameters:
-    - obs: Observable.
-    - log10_Mmin: Log10 of the minimum mass for central galaxies.
-    - log10_Msat: Log10 of the minimum mass for satellite galaxies.
-    - alpha: Slope parameter for satellite galaxies.
-    - A_cen: Decorated HOD assembly bias parameter for central galaxies.
-    - A_sat: Decorated HOD assembly bias parameter for satellite galaxies.
-    - hod_kwargs: Additional keyword arguments for the HOD class.
+    -----------
+    obs : array_like, optional
+        Observable.
+    log10_Mmin : array_like
+        Log10 of the minimum mass for central galaxies.
+    log10_Msat : array_like
+        Log10 of the minimum mass for satellite galaxies.
+    alpha : array_like
+        Slope parameter for satellite galaxies.
+    A_cen : float, optional
+        Decorated HOD assembly bias parameter for central galaxies.
+    A_sat : float, optional
+        Decorated HOD assembly bias parameter for satellite galaxies.
+    hod_kwargs : dict
+        Additional keyword arguments for the HOD class.
     """
     def __init__(
             self,
@@ -687,13 +739,21 @@ class Zehavi(HOD):
     Mean number of central galaxies is only ever 0 or 1 in this HOD
     
     Parameters:
-    - obs: Observable.
-    - log10_Mmin: Log10 of the minimum mass for central galaxies.
-    - log10_Msat: Log10 of the minimum mass for satellite galaxies.
-    - alpha: Slope parameter for satellite galaxies.
-    - A_cen: Decorated HOD assembly bias parameter for central galaxies.
-    - A_sat: Decorated HOD assembly bias parameter for satellite galaxies.
-    - hod_kwargs: Additional keyword arguments for the HOD class.
+    -----------
+    obs : array_like, optional
+        Observable.
+    log10_Mmin : array_like
+        Log10 of the minimum mass for central galaxies.
+    log10_Msat : array_like
+        Log10 of the minimum mass for satellite galaxies.
+    alpha : array_like
+        Slope parameter for satellite galaxies.
+    A_cen : float, optional
+        Decorated HOD assembly bias parameter for central galaxies.
+    A_sat : float, optional
+        Decorated HOD assembly bias parameter for satellite galaxies.
+    hod_kwargs : dict
+        Additional keyword arguments for the HOD class.
     """
     def __init__(
             self,
@@ -760,15 +820,25 @@ class Zheng(HOD):
     Zheng et al. (2005; https://arxiv.org/abs/astro-ph/0408564) HOD model
     
     Parameters:
-    - obs: Observable.
-    - log10_Mmin: Log10 of the minimum mass for central galaxies.
-    - log10_M0: Log10 of the cutoff mass for satellite galaxies.
-    - log10_M1: Log10 of the normalization mass for satellite galaxies.
-    - sigma: Scatter in the central galaxy occupation.
-    - alpha: Slope parameter for satellite galaxies.
-    - A_cen: Decorated HOD assembly bias parameter for central galaxies.
-    - A_sat: Decorated HOD assembly bias parameter for satellite galaxies.
-    - hod_kwargs: Additional keyword arguments for the HOD class.
+    -----------
+    obs : array_like, optional
+        Observable.
+    log10_Mmin : array_like
+        Log10 of the minimum mass for central galaxies.
+    log10_M0 : array_like
+        Log10 of the cutoff mass for satellite galaxies.
+    log10_M1 : array_like
+        Log10 of the normalization mass for satellite galaxies.
+    sigma : array_like
+        Scatter in the central galaxy occupation.
+    alpha : array_like
+        Slope parameter for satellite galaxies.
+    A_cen : float, optional
+        Decorated HOD assembly bias parameter for central galaxies.
+    A_sat : float, optional
+        Decorated HOD assembly bias parameter for satellite galaxies.
+    hod_kwargs : dict
+        Additional keyword arguments for the HOD class.
     """
     def __init__(
             self,
@@ -839,17 +909,29 @@ class Zhai(HOD):
     HOD model from Zhai et al. (2017; https://arxiv.org/abs/1607.05383)
     
     Parameters:
-    - log10_Mmin: Log10 of the minimum mass for central galaxies.
-    - log10_Msat: Log10 of the minimum mass for satellite galaxies.
-    - log10_Mcut: Log10 of the cutoff mass for satellite galaxies.
-    - sigma: Scatter in the central galaxy occupation.
-    - alpha: Slope parameter for satellite galaxies.
-    - A_cen: Decorated HOD assembly bias parameter for central galaxies.
-    - A_sat: Decorated HOD assembly bias parameter for satellite galaxies.
-    - hod_kwargs: Additional keyword arguments for the HOD model.
+    -----------
+    obs : array_like, optional
+        Observable.
+    log10_Mmin : array_like
+        Log10 of the minimum mass for central galaxies.
+    log10_Msat : array_like
+        Log10 of the minimum mass for satellite galaxies.
+    log10_Mcut : array_like
+        Log10 of the cutoff mass for satellite galaxies.
+    sigma : array_like
+        Scatter in the central galaxy occupation.
+    alpha : array_like
+        Slope parameter for satellite galaxies.
+    A_cen : float, optional
+        Decorated HOD assembly bias parameter for central galaxies.
+    A_sat : float, optional
+        Decorated HOD assembly bias parameter for satellite galaxies.
+    hod_kwargs : dict
+        Additional keyword arguments for the HOD model.
     """
     def __init__(
             self,
+            obs = None
             log10_Mmin = np.array([13.68]),
             log10_Msat = np.array([14.87]),
             log10_Mcut = np.array([12.32]),

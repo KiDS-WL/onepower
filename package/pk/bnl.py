@@ -6,11 +6,35 @@ from scipy.interpolate import interp1d, RegularGridInterpolator
 from scipy.optimize import curve_fit
 
 #TO-DO:
-#       - write docstrings
 #       - clean-up
 class NonLinearBias:
     """
-    A class to compute the 
+    A class to compute the non-linear bias using the Dark Emulator.
+
+    Parameters:
+    -----------
+    mass : array_like
+        Array of halo masses.
+    z_vec : array_like
+        Array of redshifts.
+    k_vec : array_like
+        Array of wavenumbers.
+    h0 : float
+        Hubble parameter.
+    sigma_8 : float
+        Amplitude of matter fluctuations on 8 Mpc scales.
+    A_s : float, optional
+        Amplitude of the primordial power spectrum.
+    omega_b : float
+        Baryon density parameter.
+    omega_c : float
+        Cold dark matter density parameter.
+    omega_lambda : float
+        Dark energy density parameter.
+    n_s : float
+        Spectral index.
+    w0 : float
+        Dark energy equation of state parameter.
     """
     def __init__(self,
             mass = None,
@@ -39,7 +63,14 @@ class NonLinearBias:
     
     @cached_property
     def emulator(self):
-        # Initialise the emulator
+        """
+        Initialize the Dark Emulator with the given cosmological parameters.
+
+        Returns:
+        --------
+        darkemu.base_class
+            An instance of the Dark Emulator.
+        """
         emu = darkemu.base_class()
         if self.A_s is None and self.sigma_8 is not None:
             A_s_init = 2.1e-9
@@ -63,6 +94,14 @@ class NonLinearBias:
     
     @cached_property
     def bnl(self):
+        """
+        Compute the non-linear bias interpolation function.
+
+        Returns:
+        --------
+        ndarray
+            Interpolated non-linear bias values.
+        """
         beta_interp_tmp = self.create_bnl_interpolation_function
     
         indices = np.vstack(np.meshgrid(np.arange(self.mass.size), np.arange(self.mass.size), np.arange(self.k_vec.size), copy=False)).reshape(3, -1).T
@@ -79,20 +118,49 @@ class NonLinearBias:
 
     def low_k_truncation(self, k, k_trunc):
         """
-        Beta_nl low-k truncation
+        Apply low-k truncation to the non-linear bias.
+
+        Parameters:
+        -----------
+        k : array_like
+            Wavenumber.
+        k_trunc : float
+            Truncation wavenumber.
+
+        Returns:
+        --------
+        ndarray
+            Truncation array.
         """
         return 1.0 / (1.0 + np.exp(-(10.0 * (np.log10(k) - np.log10(k_trunc)))))
     
     def high_k_truncation(self, k, k_trunc):
         """
-        Beta_nl high-k truncation
+        Apply high-k truncation to the non-linear bias.
+
+        Parameters:
+        -----------
+        k : array_like
+            Wavenumber.
+        k_trunc : float
+            Truncation wavenumber.
+
+        Returns:
+        --------
+        ndarray
+            Truncation array.
         """
         return 1.0 / (1.0 + np.exp((10.0 * (np.log10(k) - np.log10(k_trunc)))))
     
     @property
     def minimum_halo_mass(self):
         """
-        Minimum halo mass for the set of cosmological parameters [Msun/h]
+        Compute the minimum halo mass for the set of cosmological parameters.
+
+        Returns:
+        --------
+        tuple
+            Minimum halo mass and corresponding wavenumber.
         """
         np_min = 200.0 # Minimum number of halo particles
         npart = 2048.0 # Cube root of number of simulation particles
@@ -111,6 +179,19 @@ class NonLinearBias:
         return mmin, 2.0 * np.pi / rmin
     
     def rvir(self, mass):
+        """
+        Compute the virial radius for a given halo mass.
+
+        Parameters:
+        -----------
+        mass : array_like
+            Halo mass.
+
+        Returns:
+        --------
+        ndarray
+            Virial radius.
+        """
         Om_m = self.emulator.cosmo.get_Omega0()
         rhom = 2.77536627e11 * Om_m
         return ((3.0 * mass) / (4.0 * np.pi * 200 * rhom))**(1.0 / 3.0)
@@ -118,14 +199,20 @@ class NonLinearBias:
     def hl_envelopes_idx(self, data, dmin=1, dmax=1):
         """
         Extract high and low envelope indices from a 1D data signal.
-    
+
         Parameters:
-        - data (1d-array): Data signal from which to extract high and low envelopes.
-        - dmin (int): Size of chunks for local minima, use this if the size of the input signal is too big.
-        - dmax (int): Size of chunks for local maxima, use this if the size of the input signal is too big.
-    
+        -----------
+        data : array_like
+            Data signal from which to extract high and low envelopes.
+        dmin : int, optional
+            Size of chunks for local minima.
+        dmax : int, optional
+            Size of chunks for local maxima.
+
         Returns:
-        - lmin, lmax (tuple of arrays): Indices of high and low envelopes of the input signal.
+        --------
+        tuple
+            Indices of high and low envelopes of the input signal.
         """
         # Find local minima indices
         lmin = (np.diff(np.sign(np.diff(data))) > 0).nonzero()[0] + 1
@@ -140,6 +227,27 @@ class NonLinearBias:
         return lmin, lmax
     
     def compute_bnl_darkquest(self, z, log10M1, log10M2, k, kmax):
+        """
+        Compute the non-linear bias using the Dark Emulator.
+
+        Parameters:
+        -----------
+        z : float
+            Redshift.
+        log10M1 : array_like
+            Log10 of the first halo mass.
+        log10M2 : array_like
+            Log10 of the second halo mass.
+        k : array_like
+            Wavenumber.
+        kmax : float
+            Maximum wavenumber.
+
+        Returns:
+        --------
+        ndarray
+            Non-linear bias values.
+        """
         M1 = 10.0**log10M1
         M2 = 10.0**log10M2
     
@@ -200,6 +308,14 @@ class NonLinearBias:
     
     @cached_property
     def create_bnl_interpolation_function(self):
+        """
+        Create an interpolation function for the non-linear bias.
+
+        Returns:
+        --------
+        RegularGridInterpolator
+            Interpolation function for the non-linear bias.
+        """
         lenM = 5
         lenk = 1000
         zc = self.z_vec.copy()
@@ -225,7 +341,19 @@ class NonLinearBias:
         return beta_nl_interp_i
 
     def test_cosmo(self, cparam_in):
-        """Returns the edge values for DarkQuest emulator if the values are outside the emulator range."""
+        """
+        Adjust cosmological parameters to be within the range of the Dark Emulator.
+
+        Parameters:
+        -----------
+        cparam_in : array_like
+            Input cosmological parameters.
+
+        Returns:
+        --------
+        ndarray
+            Adjusted cosmological parameters.
+        """
         cparam_range = OrderedDict([
             ['omegab', [0.0211375, 0.0233625]],
             ['omegac', [0.10782, 0.13178]],

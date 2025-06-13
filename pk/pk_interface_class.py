@@ -479,7 +479,6 @@ def execute(block, config):
         align_kwargs.update({
             'align_params': align_params,
         })
-        print(align_params)
 
     if matter:
         matter_power = MatterSpectra(**matter_kwargs)

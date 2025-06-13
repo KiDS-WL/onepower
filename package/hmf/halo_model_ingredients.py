@@ -57,49 +57,81 @@ class SOVirial_Mead(SphericalOverdensity):
 class HaloModelIngredients:
     """
     A class to compute various ingredients for the halo model.
-    This includes halo mass functions, bias models, 
-    halo profiles, and concentration models.
-    
+    This includes halo mass functions, bias models, halo profiles, and concentration models.
     Based on the hmf and halomod packages.
-    
-    Initialize the HaloModelIngredients with various parameters for cosmology and halo models.
 
     Parameters:
-    - k_vec: Array of wavenumbers.
-    - z_vec: Array of redshifts.
-    - lnk_min: Minimum natural log of wavenumber (for hmf).
-    - lnk_max: Maximum natural log of wavenumber (for hmf).
-    - dlnk: Spacing in natural log of wavenumber (for hmf).
-    - Mmin: Minimum halo mass (for hmf).
-    - Mmax: Maximum halo mass (for hmf).
-    - dlog10m: Spacing in log10 of halo mass (for hmf).
-    - mdef_model: Mass definition model (for hmf).
-    - hmf_model: Halo mass function model (for hmf).
-    - bias_model: Halo bias model (for halomod).
-    - halo_profile_model: Halo profile model (for halomod).
-    - halo_concentration_model: Halo concentration model (for halomod).
-    - transfer_model: Transfer function model (for hmf).
-    - transfer_params: Parameters for the transfer function (for hmf).
-    - growth_model: Growth function model (for hmf).
-    - growth_params: Parameters for the growth function (for hmf).
-    - h0: Hubble parameter (small h).
-    - omega_c: Cold dark matter density parameter.
-    - omega_b: Baryon density parameter.
-    - omega_m: Matter density parameter.
-    - w0: Dark energy equation of state parameter.
-    - wa: Dark energy equation of state parameter.
-    - n_s: Spectral index.
-    - tcmb: Temperature of the CMB.
-    - m_nu: Neutrino mass.
-    - sigma_8: Amplitude of matter fluctuations on 8 Mpc scales.
-    - log10T_AGN: Log10 of AGN temperature.
-    - norm_cen: Normalization of c(M) relation for central galaxies.
-    - norm_sat: Normalization of c(M) relation for satellite galaxies.
-    - eta_cen: Bloating parameter for central galaxies.
-    - eta_sat: Bloating parameter for satellite galaxies.
-    - overdensity: Overdensity parameter.
-    - delta_c: Critical density threshold for collapse.
-    - mead_correction (bool): Correction model from Mead et al.
+    -----------
+    k_vec : array_like, optional
+        Array of wavenumbers.
+    z_vec : array_like, optional
+        Array of redshifts.
+    lnk_min : float, optional
+        Minimum natural log of wavenumber (for hmf).
+    lnk_max : float, optional
+        Maximum natural log of wavenumber (for hmf).
+    dlnk : float, optional
+        Spacing in natural log of wavenumber (for hmf).
+    Mmin : float, optional
+        Minimum halo mass (for hmf).
+    Mmax : float, optional
+        Maximum halo mass (for hmf).
+    dlog10m : float, optional
+        Spacing in log10 of halo mass (for hmf).
+    mdef_model : str, optional
+        Mass definition model (for hmf).
+    hmf_model : str, optional
+        Halo mass function model (for hmf).
+    bias_model : str, optional
+        Halo bias model (for halomod).
+    halo_profile_model : str, optional
+        Halo profile model (for halomod).
+    halo_concentration_model : str, optional
+        Halo concentration model (for halomod).
+    transfer_model : str, optional
+        Transfer function model (for hmf).
+    transfer_params : dict, optional
+        Parameters for the transfer function (for hmf).
+    growth_model : str, optional
+        Growth function model (for hmf).
+    growth_params : dict, optional
+        Parameters for the growth function (for hmf).
+    h0 : float, optional
+        Hubble parameter (small h).
+    omega_c : float, optional
+        Cold dark matter density parameter.
+    omega_b : float, optional
+        Baryon density parameter.
+    omega_m : float, optional
+        Matter density parameter.
+    w0 : float, optional
+        Dark energy equation of state parameter.
+    wa : float, optional
+        Dark energy equation of state parameter.
+    n_s : float, optional
+        Spectral index.
+    tcmb : float, optional
+        Temperature of the CMB.
+    m_nu : float, optional
+        Neutrino mass.
+    sigma_8 : float, optional
+        Amplitude of matter fluctuations on 8 Mpc scales.
+    log10T_AGN : float, optional
+        Log10 of AGN temperature.
+    norm_cen : float, optional
+        Normalization of c(M) relation for central galaxies.
+    norm_sat : float, optional
+        Normalization of c(M) relation for satellite galaxies.
+    eta_cen : float, optional
+        Bloating parameter for central galaxies.
+    eta_sat : float, optional
+        Bloating parameter for satellite galaxies.
+    overdensity : float, optional
+        Overdensity parameter.
+    delta_c : float, optional
+        Critical density threshold for collapse.
+    mead_correction : str, optional
+        Correction model from Mead et al.
     
     """
     #TO-DO: set defaults to sensible values!
@@ -206,14 +238,23 @@ class HaloModelIngredients:
         Set up the default halo model.
 
         Parameters:
-        - hmf_model: Halo mass function model.
-        - bias_model: Halo bias model.
-        - halo_concentration_model: Halo concentration model.
-        - mdef_model: Mass definition model.
-        - overdensity: Overdensity parameter.
-        - delta_c: Critical density threshold for collapse.
-        - eta_cen: Bloating parameter for central galaxies.
-        - eta_sat: Bloating parameter for satellite galaxies.
+        -----------
+        hmf_model : str
+            Halo mass function model.
+        bias_model : str
+            Halo bias model.
+        halo_concentration_model : str
+            Halo concentration model.
+        mdef_model : str
+            Mass definition model.
+        overdensity : float
+            Overdensity parameter.
+        delta_c : float
+            Critical density threshold for collapse.
+        eta_cen : float
+            Bloating parameter for central galaxies.
+        eta_sat : float
+            Bloating parameter for satellite galaxies.
         """
         self.disable_mass_conversion = False
         self.hmf_model = hmf_model
@@ -247,9 +288,9 @@ class HaloModelIngredients:
     @cached_property
     def hmf_generator(self):
         """
-        Generate halo mass function models for central and satellite galaxies
-        at different redshifts. Setups the hmf and halomod classes at desired cosmology
-        and uses the "update" functionality to calculate the models at different redshifts.
+        Generate halo mass function models for central and satellite galaxies at different redshifts.
+        Setups the hmf and halomod classes at desired cosmology and uses the "update" functionality
+        to calculate the models at different redshifts.
         """
         x = DMHaloModel(
                 z=0.0,
@@ -511,13 +552,20 @@ class HaloModelIngredients:
         Massive neutrinos are counted as 'matter'.
 
         Parameters:
-        - a: Scale factor.
-        - Om: Matter density parameter.
-        - Ode: Dark energy density parameter.
-        - Ok: Curvature density parameter.
+        -----------
+        a : float
+            Scale factor.
+        Om : float
+            Matter density parameter.
+        Ode : float
+            Dark energy density parameter.
+        Ok : float
+            Curvature density parameter.
 
         Returns:
-        - Omega_m at scale factor 'a'.
+        --------
+        float
+            Omega_m at scale factor 'a'.
         """
         return Om * a**-3 / self._Hubble2(a, Om, Ode, Ok)
     
@@ -527,13 +575,20 @@ class HaloModelIngredients:
         Massive neutrinos are counted as 'matter'.
 
         Parameters:
-        - a: Scale factor.
-        - Om: Matter density parameter.
-        - Ode: Dark energy density parameter.
-        - Ok: Curvature density parameter.
+        -----------
+        a : float
+            Scale factor.
+        Om : float
+            Matter density parameter.
+        Ode : float
+            Dark energy density parameter.
+        Ok : float
+            Curvature density parameter.
 
         Returns:
-        - Squared Hubble parameter at scale factor 'a'.
+        --------
+        float
+            Squared Hubble parameter at scale factor 'a'.
         """
         z = -1.0 + 1.0 / a
         H2 = Om * a**-3 + Ode * self.cosmo_model.de_density_scale(z) + Ok * a**-2
@@ -545,13 +600,18 @@ class HaloModelIngredients:
         Massive neutrinos are counted as 'matter'.
 
         Parameters:
-        - a: Scale factor.
-        - Om: Matter density parameter.
-        - Ode: Dark energy density parameter.
-        - Ok: Curvature density parameter.
+        -----------
+        a : float
+            Scale factor.
+        Om : float
+            Matter density parameter.
+        Ode : float
+            Dark energy density parameter.
 
         Returns:
-        - Squared Hubble parameter at scale factor 'a'.
+        --------
+        float
+            Squared Hubble parameter at scale factor 'a'.
         """
         z = -1.0 + 1.0 / a
         AH = -0.5 * (Om * a**-3 + (1.0 + 3.0 * self.cosmo_model.w(z)) * Ode * self.cosmo_model.de_density_scale(z))
@@ -615,12 +675,18 @@ class HaloModelIngredients:
         Fitting function from Mead et al. 2021 (2009.01858), eq A3.
 
         Parameters:
-        - x: First variable.
-        - y: Second variable.
-        - p0, p1, p2, p3: Fitting parameters.
+        -----------
+        x : float
+            First variable.
+        y : float
+            Second variable.
+        p0, p1, p2, p3 : float
+            Fitting parameters.
 
         Returns:
-        - Value of the fitting function.
+        --------
+        float
+            Value of the fitting function.
         """
         return p0 + p1 * (1.0 - x) + p2 * (1.0 - x)**2.0 + p3 * (1.0 - y)
     
@@ -686,16 +752,26 @@ class HaloModelIngredients:
         Captures the scale-dependent growth with neutrino free-streaming scale.
 
         Parameters:
-        - k: Wavenumber.
-        - g: Growth factor.
-        - ommh2: Omega_m * h^2.
-        - h: Hubble parameter.
-        - f_nu: Fraction of neutrino density.
-        - N_nu: Number of neutrino species.
-        - T_CMB: Temperature of the CMB.
+        -----------
+        k : float
+            Wavenumber.
+        g : float
+            Growth factor.
+        ommh2 : float
+            Omega_m * h^2.
+        h : float
+            Hubble parameter.
+        f_nu : float
+            Fraction of neutrino density.
+        N_nu : float
+            Number of neutrino species.
+        T_CMB : float, optional
+            Temperature of the CMB.
 
         Returns:
-        - Ratio of cold to matter transfer function.
+        --------
+        float
+            Ratio of cold to matter transfer function.
         """
         if f_nu == 0.0:  # Fix to unity if there are no neutrinos
             return 1.0
@@ -716,12 +792,18 @@ class HaloModelIngredients:
         Calculate the variance of the cold matter density field smoothed on scale R.
 
         Parameters:
-        - power: Power spectrum.
-        - k: Wavenumber.
-        - r: Scale.
+        -----------
+        power : array_like
+            Power spectrum.
+        k : array_like
+            Wavenumber.
+        r : float
+            Scale.
 
         Returns:
-        - Variance of the density field.
+        --------
+        float
+            Variance of the density field.
         """
         rk = np.outer(r, k)
         dlnk = np.log(k[1] / k[0])
@@ -740,17 +822,25 @@ class HaloModelIngredients:
         Calculate halo collapse redshifts according to the Bullock et al. (2001) prescription.
 
         Parameters:
-        - M: Halo mass.
-        - z: Redshift.
-        - dc: Critical density threshold for collapse.
-        - g: Growth factor.
-        - cosmo: astropy cosmology model.
-        - mf: hmf Mass function object.
+        -----------
+        M : array_like
+            Halo mass.
+        z : float
+            Redshift.
+        dc : float
+            Critical density threshold for collapse.
+        g : float
+            Growth factor.
+        cosmo : astropy cosmology model
+            Cosmology model.
+        mf : hmf Mass function object
+            Mass function object.
 
         Returns:
-        - Collapse redshifts for halos.
-        """
-        gamma = 0.01
+        --------
+        array_like
+            Collapse redshifts for halos.
+        """        gamma = 0.01
         a = cosmo.scale_factor(z)
         zf = np.zeros_like(M)
         for iM, _M in enumerate(M):
