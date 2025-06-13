@@ -1,7 +1,7 @@
 License
 -------
 
-Copyright (c) 2025 Andrej Dvornik, Maria Cristina Fortuna, Marika Asgari
+Copyright (c) 2025 Andrej Dvornik
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
