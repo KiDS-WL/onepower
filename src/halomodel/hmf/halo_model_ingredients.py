@@ -840,7 +840,8 @@ class HaloModelIngredients:
         --------
         array_like
             Collapse redshifts for halos.
-        """        gamma = 0.01
+        """
+        gamma = 0.01
         a = cosmo.scale_factor(z)
         zf = np.zeros_like(M)
         for iM, _M in enumerate(M):

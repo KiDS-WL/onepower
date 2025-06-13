@@ -8,9 +8,10 @@ from scipy.interpolate import interp1d, RegularGridInterpolator
 from dark_emulator import darkemu
 from collections import OrderedDict
 
-import sys
-sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/pk")
-from bnl import NonLinearBias
+#import sys
+#sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/pk")
+#from bnl import NonLinearBias
+from halomodel.pk.bnl import NonLinearBias
 
 cosmo_params = names.cosmological_parameters
 

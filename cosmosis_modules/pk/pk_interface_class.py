@@ -58,11 +58,11 @@ import numpy as np
 import numbers
 import pk_util
 
-import sys
-sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/pk")
+#import sys
+#sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/pk")
 #import pk_lib_class
-from pk import MatterSpectra, GalaxySpectra, AlignmentSpectra
-from bnl import NonLinearBias
+from halomodel.pk.pk import MatterSpectra, GalaxySpectra, AlignmentSpectra
+from halomodel.pk.bnl import NonLinearBias
 
 cosmo_params = names.cosmological_parameters
 

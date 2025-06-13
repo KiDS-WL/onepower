@@ -59,18 +59,22 @@ from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d
 import warnings
 
-#from .ia_radial import SatelliteAlignment
-#from ..hod import hod as hod_class
-import sys
-sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/hod")
-import hod as hod_class
+from .ia_radial import SatelliteAlignment
+from .bnl import NonLinearBias
+from ..hod import hod as hod_class
+from ..hmf.halo_model_ingredients import HaloModelIngredients
 
-sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/hmf")
-from halo_model_ingredients import HaloModelIngredients
+
+#import sys
+#sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/hod")
+#import hod as hod_class
+
+#sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/hmf")
+#from halo_model_ingredients import HaloModelIngredients
 
 #sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/ia")
-from ia_radial import SatelliteAlignment
-from bnl import NonLinearBias
+#from ia_radial import SatelliteAlignment
+#from bnl import NonLinearBias
 
 valid_units = ['1/h', '1/h^2']
 
@@ -382,7 +386,8 @@ class MatterSpectra(HaloModelIngredients):
         --------
         ndarray
             The matter profile grid.
-        """        profile = self.compute_matter_profile(
+        """
+        profile = self.compute_matter_profile(
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
             self.u_dm[np.newaxis, :, :, :],

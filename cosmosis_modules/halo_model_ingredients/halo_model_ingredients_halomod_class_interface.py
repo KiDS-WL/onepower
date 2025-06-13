@@ -11,7 +11,7 @@ import halomod.concentration as concentration_classes
 import time
 
 
-from halo_model_ingredients import HaloModelIngredients
+from halomodel.hmf.halo_model_ingredients import HaloModelIngredients
 
 
 # Silencing a warning from hmf for which the nonlinear mass is still correctly calculated

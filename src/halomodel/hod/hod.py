@@ -127,7 +127,8 @@ class HOD:
         --------
         array_like
             Integral of the HOD weighted by the halo mass function.
-        """        integrand = hod * self.dndlnm / self.mass
+        """
+        integrand = hod * self.dndlnm / self.mass
         return simpson(integrand, self.mass, axis=-1)
 
     def _mean_mass_integral(self, hod):
@@ -160,7 +161,8 @@ class HOD:
         --------
         array_like
             Integral of the HOD weighted by the halo bias and halo mass function.
-        """        bg_integrand = hod * self.halo_bias * self.dndlnm / self.mass
+        """
+        bg_integrand = hod * self.halo_bias * self.dndlnm / self.mass
         return simpson(bg_integrand, self.mass, axis=-1) / self.ntot
 
     def _interpolate(self, data, fill_value='extrapolate', axis=-1):
@@ -931,7 +933,7 @@ class Zhai(HOD):
     """
     def __init__(
             self,
-            obs = None
+            obs = None,
             log10_Mmin = np.array([13.68]),
             log10_Msat = np.array([14.87]),
             log10_Mcut = np.array([12.32]),

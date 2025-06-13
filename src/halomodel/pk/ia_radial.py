@@ -4,7 +4,7 @@ from scipy.integrate import simpson
 from scipy.special import binom
 from scipy.interpolate import RegularGridInterpolator
 from hankel import HankelTransform
-from ia_amplitudes2 import AlignmentAmplitudes
+from .ia_amplitudes import AlignmentAmplitudes
 
 """
 A module for computing satellite alignment properties.
