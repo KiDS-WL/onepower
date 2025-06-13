@@ -13,3 +13,4 @@ runs/*/chain/*
 trained_bnl/*
 pipeline_test
 src/halomodel/halomodel.egg-info
+src/halomodel.egg-info
