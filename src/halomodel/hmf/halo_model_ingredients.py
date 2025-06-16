@@ -605,6 +605,13 @@ class HaloModelIngredients(CosmologyBase):
         return np.array([x.power for x in self.hmf_cen])
         
     @property
+    def nonlinear_power(self):
+        """
+        Return the non-linear power spectrum at z (if options passed).
+        """
+        return np.array([x.nonlinear_power for x in self.hmf_cen])
+        
+    @property
     def kh(self):
         """
         Return the k vector defined using lnk in hmf.

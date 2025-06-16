@@ -57,10 +57,6 @@ from cosmosis.datablock import names, option_section
 import numpy as np
 import numbers
 import pk_util
-
-#import sys
-#sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/pk")
-#import pk_lib_class
 from halomodel.pk.pk import MatterSpectra, GalaxySpectra, AlignmentSpectra
 from halomodel.pk.bnl import NonLinearBias
 
@@ -283,7 +279,7 @@ def execute(block, config):
 
     # Load the linear power spectrum and growth factor
     k_vec_original, plin_original = pk_util.get_linear_power_spectrum(block, z_vec)
-    k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=config_hmf['nk'], endpoint=False)
+    k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=config_hmf['nk'])#, endpoint=False)
     
     # If hmf and input k_vec to match!
     #config_hmf['lnk_min'] = np.log(k_vec_original[0])
