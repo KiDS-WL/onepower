@@ -53,7 +53,6 @@ mI: matter-intrinsic alignment
 from functools import cached_property
 import numpy as np
 import numexpr as ne
-from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
 from scipy.integrate import simpson, quad, trapezoid
 from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d
@@ -1592,7 +1591,8 @@ class AlignmentSpectra(GalaxySpectra):
             'z_vec': self.z_vec,
             'c': self.conc_cen,
             'r_s': self.r_s_cen,
-            'rvir': self.rvir_cen[0]
+            'rvir': self.rvir_cen[0],
+            'method': 'fftlog'
         })
         
         # Set up the aligment amplitudes and radial dependence

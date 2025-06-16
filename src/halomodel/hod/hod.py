@@ -391,6 +391,38 @@ class HOD:
         else:
             return self._interpolate(self._compute_stellar_fraction, axis=0)
 
+    @property
+    def _compute_hod_cen(self):
+        """
+        Compute the HOD for central galaxies.
+        """
+        raise NotImplementedError
+
+    @property
+    def _compute_hod_sat(self):
+        """
+        Compute the HOD for satellite galaxies.
+        """
+        raise NotImplementedError
+
+    @property
+    def _compute_hod(self):
+        """
+        Compute the total HOD by summing central and satellite HODs.
+        """
+        return self._compute_hod_cen + self._compute_hod_sat
+
+    @property
+    def _compute_stellar_fraction_cen(self):
+        return None
+
+    @property
+    def _compute_stellar_fraction_sat(self):
+        return None
+
+    @property
+    def _compute_stellar_fraction(self):
+        return None
 
 class Cacciato(HOD):
     """
@@ -619,13 +651,6 @@ class Cacciato(HOD):
         return N_sat
 
     @property
-    def _compute_hod(self):
-        """
-        Compute the total HOD by summing central and satellite HODs.
-        """
-        return self._compute_hod_cen + self._compute_hod_sat
-
-    @property
     def _compute_stellar_fraction_cen(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
@@ -713,25 +738,6 @@ class Simple(HOD):
             delta_pop_s = self.A_sat * N_sat
             N_sat = N_sat + delta_pop_s
         return np.tile(N_sat, (self.nz, 1))
-
-    @property
-    def _compute_hod(self):
-        """
-        Compute the total HOD by summing central and satellite HODs.
-        """
-        return self._compute_hod_cen + self._compute_hod_sat
-        
-    @property
-    def _compute_stellar_fraction_cen(self):
-        return None
-
-    @property
-    def _compute_stellar_fraction_sat(self):
-        return None
-
-    @property
-    def _compute_stellar_fraction(self):
-        return None
         
 
 class Zehavi(HOD):
@@ -798,24 +804,6 @@ class Zehavi(HOD):
             N_sat = N_sat + delta_pop_s
         return np.tile(N_sat, (self.nz, 1))
 
-    @property
-    def _compute_hod(self):
-        """
-        Compute the total HOD by summing central and satellite HODs.
-        """
-        return self._compute_hod_cen + self._compute_hod_sat
-        
-    @property
-    def _compute_stellar_fraction_cen(self):
-        return None
-
-    @property
-    def _compute_stellar_fraction_sat(self):
-        return None
-
-    @property
-    def _compute_stellar_fraction(self):
-        return None
 
 class Zheng(HOD):
     """
@@ -887,24 +875,6 @@ class Zheng(HOD):
             N_sat = N_sat + delta_pop_s
         return np.tile(N_sat, (self.nz, 1))
 
-    @property
-    def _compute_hod(self):
-        """
-        Compute the total HOD by summing central and satellite HODs.
-        """
-        return self._compute_hod_cen + self._compute_hod_sat
-        
-    @property
-    def _compute_stellar_fraction_cen(self):
-        return None
-
-    @property
-    def _compute_stellar_fraction_sat(self):
-        return None
-
-    @property
-    def _compute_stellar_fraction(self):
-        return None
 
 class Zhai(HOD):
     """
@@ -977,22 +947,3 @@ class Zhai(HOD):
             delta_pop_s = self.A_sat * N_sat
             N_sat = N_sat + delta_pop_s
         return np.tile(N_sat, (self.nz, 1))
-
-    @property
-    def _compute_hod(self):
-        """
-        Compute the total HOD by summing central and satellite HODs.
-        """
-        return self._compute_hod_cen + self._compute_hod_sat
-
-    @property
-    def _compute_stellar_fraction_cen(self):
-        return None
-
-    @property
-    def _compute_stellar_fraction_sat(self):
-        return None
-
-    @property
-    def _compute_stellar_fraction(self):
-        return None

@@ -1,8 +1,9 @@
 from functools import cached_property
 import numpy as np
 from scipy.integrate import simpson
-from scipy.special import binom
-from scipy.interpolate import RegularGridInterpolator
+from scipy.special import binom, gamma
+from scipy.interpolate import RegularGridInterpolator, interp1d
+from scipy.fft import fht, fhtoffset
 from hankel import HankelTransform
 from .ia_amplitudes import AlignmentAmplitudes
 
@@ -11,6 +12,8 @@ A module for computing satellite alignment properties.
 This module provides classes and functions to calculate various properties 
 related to the alignment of satellite galaxies within dark matter halos.
 """
+
+valid_methods = ['hankel', 'fftlog']
 
 class SatelliteAlignment(AlignmentAmplitudes):
     """
@@ -51,37 +54,28 @@ class SatelliteAlignment(AlignmentAmplitudes):
             nk = 10,
             ell_max = 6,
             truncate = False,
+            method = 'fftlog',
             **amplitude_kwargs
         ):
         # Call super init MUST BE DONE FIRST.
         super().__init__(**amplitude_kwargs)
         
-        self.k_vec = np.logspace(np.log10(1e-3), np.log10(1e3), nk)
-        self.nk = nk
-        self.nmass = nmass
-        self.n_hankel = n_hankel
         self.ell_max = ell_max
+        self.truncate = truncate
+        # These are for now hardcoded choices
+        self.theta_k = np.pi / 2.0
+        self.phi_k = 0.0
+        self.method = method
+        
+        if self.method not in valid_methods:
+            raise ValueError(
+                f"The valid methods to evaluate the fourier tranform of IA shear field are: {valid_methods}. Requested method: {self.method}!"
+            )
         
         # Slope of the power law that describes the satellite alignment
         # gamma_1h_slope is from AlignmentAmplitudes
         # gamma_1h_amplitude is from AlignmentAmplitudes
         # self.z_vec is from AlignmentAmplitudes
-        
-        nz = self.z_vec.size
-        
-        self.mass_in = mass
-        self.c_in = c
-        self.r_s_in = r_s
-        self.rvir_in = rvir
-        
-        if self.mass_in.size < self.nmass:
-            raise ValueError(
-                "The halo mass resolution is too low for the radial IA calculation. "
-                "Please increase nmass when you run halo_model_ingredients.py"
-            )
-        self.mass, self.c, self.r_s, self.rvir = self.downsample_halo_parameters(
-            self.mass_in.size, self.nmass, self.mass_in, self.c_in, self.r_s_in, self.rvir_in
-        )
         
         # CCL and Fortuna use ell_max=6. SB10 uses ell_max = 2.
         # Higher/lower increases/decreases accuracy but slows/speeds the code
@@ -89,13 +83,29 @@ class SatelliteAlignment(AlignmentAmplitudes):
             raise ValueError("Please reduce ell_max < 11 or update ia_radial_interface.py")
         self.ell_values = np.arange(0, self.ell_max + 1, 2)
         
-        self.truncate = truncate
-        # These are for now hardcoded choices
-        self.theta_k = np.pi / 2.0
-        self.phi_k = 0.0
+        if method == 'hankel':
+            self.nk = nk
+            self.k_vec = np.logspace(np.log10(1e-3), np.log10(1e3), self.nk)
+            self.n_hankel = n_hankel
         
-        # Initilise the hankel transform
-        self.hankel = self.h_transform
+            if mass.size < nmass:
+                raise ValueError(
+                    "The halo mass resolution is too low for the radial IA calculation. "
+                    "Please increase nmass when you run halo_model_ingredients.py"
+                )
+            self.mass, self.c, self.r_s, self.rvir = self.downsample_halo_parameters(
+                mass.size, nmass, mass, c, r_s, rvir
+            )
+            # Initilise the hankel transform
+            self.hankel = self.h_transform
+            
+        if method == 'fftlog':
+            self.mass = mass
+            self.c = c
+            self.r_s = r_s
+            self.rvir = rvir
+            self.nk = 100
+            self.k_vec = np.logspace(np.log10(1e-3), np.log10(1e3), self.nk)
         
     def downsample_halo_parameters(
             self,
@@ -165,10 +175,8 @@ class SatelliteAlignment(AlignmentAmplitudes):
         list
             A list of HankelTransform objects for each multipole moment.
         """
-        self.h_hankel = np.pi / self.n_hankel
-        return [HankelTransform(ell + 0.5, self.n_hankel, self.h_hankel) for ell in self.ell_values]
+        return [HankelTransform(ell + 0.5, self.n_hankel, np.pi / self.n_hankel) for ell in self.ell_values]
 
-        
     def I_x(self, a, b):
         """
         Compute the integral of (1 - x^2)^(a/2) * x^b from -1 to 1.
@@ -185,12 +193,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         float
             The value of the integral.
         """
-        eps = 1e-10
-        x = np.linspace(-1.0 + eps, 1.0 - eps, 500)
-        #TO-DO: replace with
-        #from scipy.special import gamma
-        #return (1+(-1)**b)*gamma(a/2+1)*gamma((b+1)/2)/(2*gamma(a/2+b/2+3/2))
-        return simpson((1.0 - x**2.0)**(a / 2.0) * x**b, x)
+        return (1.0 + (-1.0)**b) * gamma(a/2.0 + 1.0)*gamma((b + 1.0) / 2.0) / (2.0 * gamma(a/2.0 + b/2.0 + 3.0/2.0))
 
     def calculate_f_ell(self, l, gamma_b):
         """
@@ -296,7 +299,6 @@ class SatelliteAlignment(AlignmentAmplitudes):
 
     @cached_property
     def compute_uell_gamma_r_hankel(self):
-        #TO-DO: implement FFTLog as well!
         """
         THIS FUNCTION IS THE SLOWEST PART!
         
@@ -321,11 +323,29 @@ class SatelliteAlignment(AlignmentAmplitudes):
         mnfw = 4.0 * np.pi * self.r_s**3.0 * (np.log(1.0 + self.c) - self.c / (1.0 + self.c))
         uk_l = np.zeros([self.ell_values.size, self.z_vec.size, self.mass.size, self.k_vec.size])
 
-        for i, ell in enumerate(self.ell_values):
-            for jz in range(self.z_vec.size):
-                for im in range(self.mass.size):
-                    nfw_f = lambda x: self.gamma_r_nfw_profile(x, self.r_s[jz, im], self.rvir[im], self.gamma_1h_amplitude[jz], self.gamma_1h_slope, truncate=self.truncate) * np.sqrt((x * np.pi) / 2.0)
-                    uk_l[i, jz, im, :] = self.hankel[i].transform(nfw_f, self.k_vec)[0] / (self.k_vec**0.5 * mnfw[jz, im])
+        if self.method == 'hankel':
+            for i, ell in enumerate(self.ell_values):
+                for jz in range(self.z_vec.size):
+                    for im in range(self.mass.size):
+                        nfw_f = lambda x: self.gamma_r_nfw_profile(x, self.r_s[jz, im], self.rvir[im], self.gamma_1h_amplitude[jz], self.gamma_1h_slope, truncate=self.truncate) * np.sqrt((x * np.pi) / 2.0)
+                        uk_l[i, jz, im, :] = self.hankel[i].transform(nfw_f, self.k_vec)[0] / (self.k_vec**0.5 * mnfw[jz, im])
+        
+        if self.method == 'fftlog':
+            for i, ell in enumerate(self.ell_values):
+                mu = ell + 0.5
+                # Precision settings that seem to be working fine
+                bias = -0.5*(i+2.0)
+                low_r = -8
+                high_r = 8
+                r = np.logspace(low_r, high_r, 512)
+                dlnr = np.log(r[1]/r[0])
+                offset = fhtoffset(dlnr, mu=mu, initial=-2*np.log(10.0), bias=bias)
+                k = np.exp(offset)/r[::-1]
+        
+                nfw_f = self.gamma_r_nfw_profile(r[np.newaxis, np.newaxis, :], self.r_s[:, :, np.newaxis], self.rvir[np.newaxis, :, np.newaxis], self.gamma_1h_amplitude[:, np.newaxis, np.newaxis], self.gamma_1h_slope, truncate=self.truncate) * r**1.5 * np.sqrt(np.pi / 2.0)
+                ft = fht(nfw_f, dlnr, mu=mu, offset=offset, bias=bias) / (k**1.5 * mnfw[:, :, np.newaxis])
+                uk_l[i, :, :, :] = interp1d(k, ft, axis=-1, kind='linear', fill_value='extrapolate', bounds_error=False)(self.k_vec)
+                    
         return uk_l
 
     def wkm(self):
@@ -355,12 +375,13 @@ class SatelliteAlignment(AlignmentAmplitudes):
         ndarray
             Upsampled array of wkm values.
         """
+        wkm_in = self.wkm_f_ell
         wkm_out = np.empty([self.z_vec.size, mass_out.size, k_vec_out.size])
         for jz in range(self.z_vec.size):
             # Create the interpolator
             lg_w_interp2d = RegularGridInterpolator(
                 (np.log10(self.k_vec).T, np.log10(self.mass).T),
-                np.log10(self.wkm_f_ell[jz, :, :] / self.k_vec**2).T,
+                np.log10(wkm_in[jz, :, :] / self.k_vec**2).T,
                 bounds_error=False,
                 fill_value=None
             )

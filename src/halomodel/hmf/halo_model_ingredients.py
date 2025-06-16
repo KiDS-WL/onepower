@@ -54,7 +54,264 @@ class SOVirial_Mead(SphericalOverdensity):
         return "SOVirial"
 
 
-class HaloModelIngredients:
+class CosmologyBase:
+    """
+    A cosmology base class
+
+    Parameters:
+    -----------
+    h0 : float, optional
+        Hubble parameter (small h).
+    omega_c : float, optional
+        Cold dark matter density parameter.
+    omega_b : float, optional
+        Baryon density parameter.
+    omega_m : float, optional
+        Matter density parameter.
+    w0 : float, optional
+        Dark energy equation of state parameter.
+    wa : float, optional
+        Dark energy equation of state parameter.
+    n_s : float, optional
+        Spectral index.
+    tcmb : float, optional
+        Temperature of the CMB.
+    m_nu : float, optional
+        Neutrino mass.
+    sigma_8 : float, optional
+        Amplitude of matter fluctuations on 8 Mpc scales.
+    log10T_AGN : float, optional
+        Log10 of AGN temperature.
+    """
+    def __init__(self,
+            h0 = 0.0,
+            omega_c = 0.0,
+            omega_b = 0.0,
+            omega_m = 0.0,
+            w0 = 0.0,
+            wa = 0.0,
+            n_s = 0.0,
+            tcmb = 0-0,
+            m_nu = 0.0,
+            sigma_8 = 0.0,
+            log10T_AGN = 0.0,
+        ):
+        self.h0 = h0
+        self.omega_c = omega_c
+        self.omega_b = omega_b
+        self.omega_m = omega_m
+        self.w0 = w0
+        self.wa = wa
+        self.n_s = n_s
+        self.tcmb = tcmb
+        self.m_nu = m_nu
+        self.sigma_8 = sigma_8
+        self.log10T_AGN = log10T_AGN
+
+    @cached_property
+    def cosmo_model(self):
+        """
+        Return the astropy cosmology object assuming Flatw0waCDM model.
+        """
+        return Flatw0waCDM(
+            H0=self.h0*100.0,
+            Ob0=self.omega_b,
+            Om0=self.omega_m,
+            m_nu=[0, 0, self.m_nu],
+            Tcmb0=self.tcmb,
+            w0=self.w0,
+            wa=self.wa
+        )
+
+    def _Omega_m(self, a, Om, Ode, Ok):
+        """
+        Evolution of Omega_m with scale-factor ignoring radiation.
+        Massive neutrinos are counted as 'matter'.
+
+        Parameters:
+        -----------
+        a : float
+            Scale factor.
+        Om : float
+            Matter density parameter.
+        Ode : float
+            Dark energy density parameter.
+        Ok : float
+            Curvature density parameter.
+
+        Returns:
+        --------
+        float
+            Omega_m at scale factor 'a'.
+        """
+        return Om * a**-3 / self._Hubble2(a, Om, Ode, Ok)
+
+    def _Hubble2(self, a, Om, Ode, Ok):
+        """
+        Squared Hubble parameter ignoring radiation.
+        Massive neutrinos are counted as 'matter'.
+
+        Parameters:
+        -----------
+        a : float
+            Scale factor.
+        Om : float
+            Matter density parameter.
+        Ode : float
+            Dark energy density parameter.
+        Ok : float
+            Curvature density parameter.
+
+        Returns:
+        --------
+        float
+            Squared Hubble parameter at scale factor 'a'.
+        """
+        z = -1.0 + 1.0 / a
+        H2 = Om * a**-3 + Ode * self.cosmo_model.de_density_scale(z) + Ok * a**-2
+        return H2
+
+    def _AH(self, a, Om, Ode):
+        """
+        Squared Hubble parameter ignoring radiation.
+        Massive neutrinos are counted as 'matter'.
+
+        Parameters:
+        -----------
+        a : float
+            Scale factor.
+        Om : float
+            Matter density parameter.
+        Ode : float
+            Dark energy density parameter.
+
+        Returns:
+        --------
+        float
+            Squared Hubble parameter at scale factor 'a'.
+        """
+        z = -1.0 + 1.0 / a
+        AH = -0.5 * (Om * a**-3 + (1.0 + 3.0 * self.cosmo_model.w(z)) * Ode * self.cosmo_model.de_density_scale(z))
+        return AH
+
+    @cached_property
+    def get_mead_growth_fnc(self):
+        """
+        Solve the linear growth ODE and returns an interpolating function for the solution.
+        TODO: w dependence for initial conditions; f here is correct for w=0 only.
+        TODO: Could use d_init = a(1+(w-1)/(w(6w-5))*(Om_w/Om_m)*a**-3w) at early times with w = w(a<<1).
+        """
+        a_init = 1e-4
+        Om = self.cosmo_model.Om0 + self.cosmo_model.Onu0
+        Ode = 1.0 - Om
+        Ok = self.cosmo_model.Ok0
+        na = 129  # Number of scale factors used to construct interpolator
+        a = np.linspace(a_init, 1., na)
+
+        f = 1.0 - self._Omega_m(a_init, Om, Ode, Ok)  # Early mass density
+        d_init = a_init**(1.0 - 3.0 * f / 5.0)  # Initial condition (~ a_init; but f factor accounts for EDE-ish)
+        v_init = (1.0 - 3.0 * f / 5.0) * a_init**(-3.0 * f / 5.0)  # Initial condition (~ 1; but f factor accounts for EDE-ish)
+        y0 = (d_init, v_init)
+
+        def fun(a, y):
+            d, v = y[0], y[1]
+            dxda = v
+            fv = -(2.0 + self._AH(a, Om, Ode) / self._Hubble2(a, Om, Ode, Ok)) * v / a
+            fd = 1.5 * self._Omega_m(a, Om, Ode, Ok) * d / a**2
+            dvda = fv + fd
+            return dxda, dvda
+
+        g = solve_ivp(fun, (a[0], a[-1]), y0, t_eval=a).y[0]
+        return interp1d(a, g, kind='cubic', assume_sorted=True)
+
+    @cached_property
+    def get_mead_growth(self):
+        """
+        Return the Mead growth factor at the scale factors.
+        """
+        return self.get_mead_growth_fnc(self.scale_factor)
+
+    @cached_property
+    def get_mead_accumulated_growth(self):
+        """
+        Calculates the accumulated growth at scale factor 'a'.
+        """
+        a_init = 1e-4
+
+        # Eq A5 of Mead et al. 2021 (2009.01858).
+        # We approximate the integral as g(a_init) for 0 to a_init<<0.
+        missing = self.get_mead_growth_fnc(a_init)
+        G = np.array([quad(lambda a: self.get_mead_growth_fnc(a) / a, a_init, ai)[0] + missing for ai in self.scale_factor])
+        return G
+
+    def f_Mead(self, x, y, p0, p1, p2, p3):
+        """
+        Fitting function from Mead et al. 2021 (2009.01858), eq A3.
+
+        Parameters:
+        -----------
+        x : float
+            First variable.
+        y : float
+            Second variable.
+        p0, p1, p2, p3 : float
+            Fitting parameters.
+
+        Returns:
+        --------
+        float
+            Value of the fitting function.
+        """
+        return p0 + p1 * (1.0 - x) + p2 * (1.0 - x)**2.0 + p3 * (1.0 - y)
+
+    @cached_property
+    def dc_Mead(self):
+        """
+        Delta_c fitting function from Mead et al. 2021 (2009.01858).
+        All input parameters should be evaluated as functions of a/z.
+        """
+        a = self.scale_factor
+        Om = self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec)
+        f_nu = self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0)
+        g = self.get_mead_growth
+        G = self.get_mead_accumulated_growth
+
+        # See Table A.1 of 2009.01858 for naming convention
+        p1 = [-0.0069, -0.0208, 0.0312, 0.0021]
+        p2 = [0.0001, -0.0647, -0.0417, 0.0646]
+        a1, a2 = 1, 0
+        # Linear collapse threshold
+        # Eq A1 of 2009.01858
+        dc_Mead = 1.0 + self.f_Mead(g/a, G/a, *p1) * np.log10(Om)**a1 + self.f_Mead(g/a, G/a, *p2) * np.log10(Om)**a2
+        # delta_c = ~1.686' EdS linear collapse threshold
+        dc0 = (3.0 / 20.0) * (12.0 * np.pi)**(2.0 / 3.0)
+        return dc_Mead * dc0 * (1.0 - 0.041 * f_nu)
+
+    @cached_property
+    def Dv_Mead(self):
+        """
+        Delta_v fitting function from Mead et al. 2021 (2009.01858), eq A.2.
+        All input parameters should be evaluated as functions of a/z.
+        """
+        a = self.scale_factor
+        Om = self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec)
+        f_nu = self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0)
+        g = self.get_mead_growth
+        G = self.get_mead_accumulated_growth
+
+        # See Table A.1 of 2009.01858 for naming convention
+        p3 = [-0.79, -10.17, 2.51, 6.51]
+        p4 = [-1.89, 0.38, 18.8, -15.87]
+        a3, a4 = 1, 2
+
+        # Halo virial overdensity
+        # Eq A2 of 2009.01858
+        Dv_Mead = 1.0 + self.f_Mead(g/a, G/a, *p3) * np.log10(Om)**a3 + self.f_Mead(g/a, G/a, *p4) * np.log10(Om)**a4
+        Dv0 = 18.0 * np.pi**2.0  # Delta_v = ~178, EdS halo virial overdensity
+        return Dv_Mead * Dv0 * (1.0 + 0.763 * f_nu)
+
+
+class HaloModelIngredients(CosmologyBase):
     """
     A class to compute various ingredients for the halo model.
     This includes halo mass functions, bias models, halo profiles, and concentration models.
@@ -96,28 +353,6 @@ class HaloModelIngredients:
         Growth function model (for hmf).
     growth_params : dict, optional
         Parameters for the growth function (for hmf).
-    h0 : float, optional
-        Hubble parameter (small h).
-    omega_c : float, optional
-        Cold dark matter density parameter.
-    omega_b : float, optional
-        Baryon density parameter.
-    omega_m : float, optional
-        Matter density parameter.
-    w0 : float, optional
-        Dark energy equation of state parameter.
-    wa : float, optional
-        Dark energy equation of state parameter.
-    n_s : float, optional
-        Spectral index.
-    tcmb : float, optional
-        Temperature of the CMB.
-    m_nu : float, optional
-        Neutrino mass.
-    sigma_8 : float, optional
-        Amplitude of matter fluctuations on 8 Mpc scales.
-    log10T_AGN : float, optional
-        Log10 of AGN temperature.
     norm_cen : float, optional
         Normalization of c(M) relation for central galaxies.
     norm_sat : float, optional
@@ -153,25 +388,16 @@ class HaloModelIngredients:
             transfer_params = {},
             growth_model = None,
             growth_params = {},
-            h0 = 0.0,
-            omega_c = 0.0,
-            omega_b = 0.0,
-            omega_m = 0.0,
-            w0 = 0.0,
-            wa = 0.0,
-            n_s = 0.0,
-            tcmb = 0-0,
-            m_nu = 0.0,
-            sigma_8 = 0.0,
-            log10T_AGN = 0.0,
             norm_cen = 0.0,
             norm_sat = 0.0,
             eta_cen = 0.0,
             eta_sat = 0.0,
             overdensity = 0.0,
             delta_c = 0.0,
-            mead_correction = None
+            mead_correction = None,
+            **cosmology_kwargs
         ):
+        super().__init__(**cosmology_kwargs)
     
         self.k_vec = k_vec
         self.z_vec = z_vec
@@ -182,17 +408,6 @@ class HaloModelIngredients:
         self.Mmax = Mmax
         self.dlog10m = dlog10m
         self.halo_profile_model = halo_profile_model
-        self.omega_c = omega_c
-        self.omega_m = omega_m
-        self.omega_b = omega_b
-        self.w0 = w0
-        self.wa = wa
-        self.h0 = h0
-        self.n_s = n_s
-        self.tcmb = tcmb
-        self.m_nu = m_nu
-        self.sigma_8 = sigma_8
-        self.log10T_AGN = log10T_AGN
         self.transfer_model = transfer_model
         self.transfer_params = transfer_params
         self.growth_model = growth_model
@@ -269,21 +484,6 @@ class HaloModelIngredients:
         
         self.eta_cen = eta_cen * np.ones_like(self.z_vec)
         self.eta_sat = eta_sat * np.ones_like(self.z_vec)
-            
-    @cached_property
-    def cosmo_model(self):
-        """
-        Return the astropy cosmology object assuming Flatw0waCDM model.
-        """
-        return Flatw0waCDM(
-            H0=self.h0*100.0,
-            Ob0=self.omega_b,
-            Om0=self.omega_m,
-            m_nu=[0, 0, self.m_nu],
-            Tcmb0=self.tcmb,
-            w0=self.w0,
-            wa=self.wa
-        )
         
     @cached_property
     def hmf_generator(self):
@@ -544,197 +744,6 @@ class HaloModelIngredients:
         """
         # TO-DO: Check against interpolated one from CAMB!
         return self.hmf_cen[0]._growth_factor_fn(self.z_vec)
-        
-    
-    def _Omega_m(self, a, Om, Ode, Ok):
-        """
-        Evolution of Omega_m with scale-factor ignoring radiation.
-        Massive neutrinos are counted as 'matter'.
-
-        Parameters:
-        -----------
-        a : float
-            Scale factor.
-        Om : float
-            Matter density parameter.
-        Ode : float
-            Dark energy density parameter.
-        Ok : float
-            Curvature density parameter.
-
-        Returns:
-        --------
-        float
-            Omega_m at scale factor 'a'.
-        """
-        return Om * a**-3 / self._Hubble2(a, Om, Ode, Ok)
-    
-    def _Hubble2(self, a, Om, Ode, Ok):
-        """
-        Squared Hubble parameter ignoring radiation.
-        Massive neutrinos are counted as 'matter'.
-
-        Parameters:
-        -----------
-        a : float
-            Scale factor.
-        Om : float
-            Matter density parameter.
-        Ode : float
-            Dark energy density parameter.
-        Ok : float
-            Curvature density parameter.
-
-        Returns:
-        --------
-        float
-            Squared Hubble parameter at scale factor 'a'.
-        """
-        z = -1.0 + 1.0 / a
-        H2 = Om * a**-3 + Ode * self.cosmo_model.de_density_scale(z) + Ok * a**-2
-        return H2
-    
-    def _AH(self, a, Om, Ode):
-        """
-        Squared Hubble parameter ignoring radiation.
-        Massive neutrinos are counted as 'matter'.
-
-        Parameters:
-        -----------
-        a : float
-            Scale factor.
-        Om : float
-            Matter density parameter.
-        Ode : float
-            Dark energy density parameter.
-
-        Returns:
-        --------
-        float
-            Squared Hubble parameter at scale factor 'a'.
-        """
-        z = -1.0 + 1.0 / a
-        AH = -0.5 * (Om * a**-3 + (1.0 + 3.0 * self.cosmo_model.w(z)) * Ode * self.cosmo_model.de_density_scale(z))
-        return AH
-    
-    @cached_property
-    def get_mead_growth_fnc(self):
-        """
-        Solve the linear growth ODE and returns an interpolating function for the solution.
-        TODO: w dependence for initial conditions; f here is correct for w=0 only.
-        TODO: Could use d_init = a(1+(w-1)/(w(6w-5))*(Om_w/Om_m)*a**-3w) at early times with w = w(a<<1).
-        """
-        
-        # TODO: Add check if w0 and wa exists / if astropy w0waCDM cosmology class is used
-        a_init = 1e-4
-        Om = self.cosmo_model.Om0 + self.cosmo_model.Onu0
-        Ode = 1.0 - Om
-        Ok = self.cosmo_model.Ok0
-        na = 129  # Number of scale factors used to construct interpolator
-        a = np.linspace(a_init, 1., na)
-    
-        f = 1.0 - self._Omega_m(a_init, Om, Ode, Ok)  # Early mass density
-        d_init = a_init**(1.0 - 3.0 * f / 5.0)  # Initial condition (~ a_init; but f factor accounts for EDE-ish)
-        v_init = (1.0 - 3.0 * f / 5.0) * a_init**(-3.0 * f / 5.0)  # Initial condition (~ 1; but f factor accounts for EDE-ish)
-        y0 = (d_init, v_init)
-    
-        def fun(a, y):
-            d, v = y[0], y[1]
-            dxda = v
-            fv = -(2.0 + self._AH(a, Om, Ode) / self._Hubble2(a, Om, Ode, Ok)) * v / a
-            fd = 1.5 * self._Omega_m(a, Om, Ode, Ok) * d / a**2
-            dvda = fv + fd
-            return dxda, dvda
-    
-        g = solve_ivp(fun, (a[0], a[-1]), y0, t_eval=a).y[0]
-        return interp1d(a, g, kind='cubic', assume_sorted=True)
-        
-    @cached_property
-    def get_mead_growth(self):
-        """
-        Return the Mead growth factor at the scale factors.
-        """
-        return self.get_mead_growth_fnc(self.scale_factor)
-    
-    @cached_property
-    def get_mead_accumulated_growth(self):
-        """
-        Calculates the accumulated growth at scale factor 'a'.
-        """
-        a_init = 1e-4
-    
-        # Eq A5 of Mead et al. 2021 (2009.01858).
-        # We approximate the integral as g(a_init) for 0 to a_init<<0.
-        missing = self.get_mead_growth_fnc(a_init)
-        #G, _ = quad(lambda a: self.get_mead_growth_fnc(a) / a, a_init, ai) + missing
-        G = np.array([quad(lambda a: self.get_mead_growth_fnc(a) / a, a_init, ai)[0] + missing for ai in self.scale_factor])
-        return G
-    
-    def f_Mead(self, x, y, p0, p1, p2, p3):
-        """
-        Fitting function from Mead et al. 2021 (2009.01858), eq A3.
-
-        Parameters:
-        -----------
-        x : float
-            First variable.
-        y : float
-            Second variable.
-        p0, p1, p2, p3 : float
-            Fitting parameters.
-
-        Returns:
-        --------
-        float
-            Value of the fitting function.
-        """
-        return p0 + p1 * (1.0 - x) + p2 * (1.0 - x)**2.0 + p3 * (1.0 - y)
-    
-    @cached_property
-    def dc_Mead(self):
-        """
-        Delta_c fitting function from Mead et al. 2021 (2009.01858).
-        All input parameters should be evaluated as functions of a/z.
-        """
-        a = self.scale_factor
-        Om = self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec)
-        f_nu = self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0)
-        g = self.get_mead_growth
-        G = self.get_mead_accumulated_growth
-        
-        # See Table A.1 of 2009.01858 for naming convention
-        p1 = [-0.0069, -0.0208, 0.0312, 0.0021]
-        p2 = [0.0001, -0.0647, -0.0417, 0.0646]
-        a1, a2 = 1, 0
-        # Linear collapse threshold
-        # Eq A1 of 2009.01858
-        dc_Mead = 1.0 + self.f_Mead(g/a, G/a, *p1) * np.log10(Om)**a1 + self.f_Mead(g/a, G/a, *p2) * np.log10(Om)**a2
-        # delta_c = ~1.686' EdS linear collapse threshold
-        dc0 = (3.0 / 20.0) * (12.0 * np.pi)**(2.0 / 3.0)
-        return dc_Mead * dc0 * (1.0 - 0.041 * f_nu)
-    
-    @cached_property
-    def Dv_Mead(self):
-        """
-        Delta_v fitting function from Mead et al. 2021 (2009.01858), eq A.2.
-        All input parameters should be evaluated as functions of a/z.
-        """
-        a = self.scale_factor
-        Om = self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec)
-        f_nu = self.cosmo_model.Onu0 / (self.cosmo_model.Om0 + self.cosmo_model.Onu0)
-        g = self.get_mead_growth
-        G = self.get_mead_accumulated_growth
-        
-        # See Table A.1 of 2009.01858 for naming convention
-        p3 = [-0.79, -10.17, 2.51, 6.51]
-        p4 = [-1.89, 0.38, 18.8, -15.87]
-        a3, a4 = 1, 2
-    
-        # Halo virial overdensity
-        # Eq A2 of 2009.01858
-        Dv_Mead = 1.0 + self.f_Mead(g/a, G/a, *p3) * np.log10(Om)**a3 + self.f_Mead(g/a, G/a, *p4) * np.log10(Om)**a4
-        Dv0 = 18.0 * np.pi**2.0  # Delta_v = ~178, EdS halo virial overdensity
-        return Dv_Mead * Dv0 * (1.0 + 0.763 * f_nu)
     
     # Maybe implement at some point?
     # Rnl = DM_hmf.filter.mass_to_radius(DM_hmf.mass_nonlinear, DM_hmf.mean_density0)

@@ -15,4 +15,4 @@ from .pk.pk import MatterSpectra, GalaxySpectra, AlignmentSpectra
 from .pk.ia_radial import SatelliteAlignment
 from .pk.ia_amplitudes import AlignmentAmplitudes
 from .hod.hod import HOD, Cacciato, Zheng, Zhai, Zehavi
-from .hmf.halo_model_ingredients import HaloModelIngredients
+from .hmf.halo_model_ingredients import HaloModelIngredients, CosmologyBase
