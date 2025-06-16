@@ -375,6 +375,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         ndarray
             Upsampled array of wkm values.
         """
+        # TO-DO: do not upsample if using FFTLog!
         wkm_in = self.wkm_f_ell
         wkm_out = np.empty([self.z_vec.size, mass_out.size, k_vec_out.size])
         for jz in range(self.z_vec.size):
