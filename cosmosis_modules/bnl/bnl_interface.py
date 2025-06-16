@@ -42,8 +42,8 @@ def setup(options):
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
     nmass = options[option_section, 'nmass']
-    # log-spaced mass in units of M_sun/h
-    mass = np.logspace(log_mass_min, log_mass_max, nmass, endpoint=False)
+    dlog10m = (log_mass_max - log_mass_min) / nmass
+    mass = 10 ** np.arange(log_mass_min, log_mass_max, dlog10m)
 
     # TODO: We might need to specify the mass binning of bnl, but for now it is not user accessible!
     # nmass_bnl = options[option_section, 'nmass_bnl']

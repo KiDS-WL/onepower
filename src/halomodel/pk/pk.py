@@ -225,10 +225,13 @@ class MatterSpectra(HaloModelIngredients):
         self.hod_settings_mm = hod_settings_mm
         self.hod_params_mm = hod_params_mm
 
+        # TO-OD: enable option that P(k) as returned by hmf is used, together with the specified k_vec!
         if self.mead_correction in ['feedback', 'nofeedback'] or dewiggle:
             self.matter_power_lin = self.dewiggle_plin(matter_power_lin)
         else:
             self.matter_power_lin = matter_power_lin
+        if self.matter_power_lin.shape != (self.z_vec.size, self.k_vec.size):
+            raise ValueError("Shape of input power spectra is not equal to redshift and k-vec dimensions!")
         
         if self.bnl:
             if beta_nl is None:
@@ -1607,6 +1610,8 @@ class AlignmentSpectra(GalaxySpectra):
     
         if self.fortuna:
             self.matter_power_nl = matter_power_nl
+            if self.matter_power_nl.shape != (self.z_vec.size, self.k_vec.size):
+                raise ValueError("Shape of input power spectra is not equal to redshift and k-vec dimensions!")
             self.peff = (1.0 - self.t_eff) * self.matter_power_nl + self.t_eff * self.matter_power_lin
     
     @cached_property

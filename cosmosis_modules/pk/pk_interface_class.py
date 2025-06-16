@@ -108,7 +108,7 @@ def setup(options):
     config_hmf['log_mass_min'] = options[option_section, 'log_mass_min']
     config_hmf['log_mass_max'] = options[option_section, 'log_mass_max']
     nmass = options[option_section, 'nmass']
-    config_hmf['dlog10m'] = ( config_hmf['log_mass_max'] - config_hmf['log_mass_min']) / nmass
+    config_hmf['dlog10m'] = (config_hmf['log_mass_max'] - config_hmf['log_mass_min']) / nmass
 
     # Minimum and Maximum redshift and number of redshift bins for calculating the ingredients
     zmin = options[option_section, 'zmin_hmf']
@@ -283,7 +283,12 @@ def execute(block, config):
 
     # Load the linear power spectrum and growth factor
     k_vec_original, plin_original = pk_util.get_linear_power_spectrum(block, z_vec)
-    k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=config_hmf['nk'])
+    k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=config_hmf['nk'], endpoint=False)
+    
+    # If hmf and input k_vec to match!
+    #config_hmf['lnk_min'] = np.log(k_vec_original[0])
+    #config_hmf['lnk_max'] = np.log(k_vec_original[-1])
+    #config_hmf['dlnk'] = (config_hmf['lnk_max'] - config_hmf['lnk_min']) / config_hmf['nk']
     
     plin = pk_util.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
 

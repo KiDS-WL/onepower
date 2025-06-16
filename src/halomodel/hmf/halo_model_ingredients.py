@@ -598,6 +598,20 @@ class HaloModelIngredients(CosmologyBase):
         return self.hmf_cen[0].m
 
     @property
+    def power(self):
+        """
+        Return the linear power spectrum at z.
+        """
+        return np.array([x.power for x in self.hmf_cen])
+        
+    @property
+    def kh(self):
+        """
+        Return the k vector defined using lnk in hmf.
+        """
+        return self.hmf_cen[0].k
+
+    @property
     def halo_overdensity_mean(self):
         """
         Return the mean halo overdensity.
