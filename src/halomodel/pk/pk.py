@@ -1612,6 +1612,8 @@ class AlignmentSpectra(GalaxySpectra):
         self.alignment_gi = self.alignment_class.alignment_gi
         
         self.alignment_amplitude_2h, self.alignment_amplitude_2h_II, self.C1 = self.compute_two_halo_alignment
+        
+        #TO-DO: Maybe implement a separate HOD instance for IA, with a separate set of central/satellite galaxy profiles for IA P(k)
     
         if self.fortuna:
             if matter_power_nl is None:

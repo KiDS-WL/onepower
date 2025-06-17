@@ -75,7 +75,8 @@ def execute(block, config):
                 omega_c = block[cosmo_params, 'omega_c'],
                 omega_lambda = 1.0 - block[cosmo_params, 'omega_m'],
                 n_s = block[cosmo_params, 'n_s'],
-                w0 = block[cosmo_params, 'w']
+                w0 = block[cosmo_params, 'w'],
+                z_dep = False
             )
             
             beta_interp = bnl.bnl

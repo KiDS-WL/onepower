@@ -5,8 +5,7 @@ from collections import OrderedDict
 from scipy.interpolate import interp1d, RegularGridInterpolator
 from scipy.optimize import curve_fit
 
-#TO-DO:
-#       - clean-up
+
 class NonLinearBias:
     """
     A class to compute the non-linear bias using the Dark Emulator.
@@ -35,6 +34,8 @@ class NonLinearBias:
         Spectral index.
     w0 : float
         Dark energy equation of state parameter.
+    z_dep : bool, optional
+        If redshift dependence is to be evaluated in Bnl
     """
     def __init__(self,
             mass = None,
@@ -47,7 +48,8 @@ class NonLinearBias:
             omega_c = 0.25,
             omega_lambda = 0.7,
             n_s = 1.0,
-            w0 = -1.0
+            w0 = -1.0,
+            z_dep = False
         ):
         self.mass = mass
         self.z_vec = z_vec
@@ -60,6 +62,8 @@ class NonLinearBias:
         self.omega_lambda = omega_lambda
         self.n_s = n_s
         self.w0 = w0
+        
+        self.z_dep = z_dep
     
     @cached_property
     def emulator(self):
@@ -107,14 +111,16 @@ class NonLinearBias:
         indices = np.vstack(np.meshgrid(np.arange(self.mass.size), np.arange(self.mass.size), np.arange(self.k_vec.size), copy=False)).reshape(3, -1).T
         values = np.vstack(np.meshgrid(np.log10(self.mass), np.log10(self.mass), np.log10(self.k_vec), copy=False)).reshape(3, -1).T
     
-        #beta_interp = np.zeros((self.z_vec.size, self.mass.size, self.mass.size, self.k_vec.size))
-        # for i,zi in enumerate(self.z_vec):
-        #    beta_interp[i,indices[:,0], indices[:,1], indices[:,2]] = beta_interp_tmp[i](values)
-                
-        beta_interp = np.zeros((self.mass.size, self.mass.size, self.k_vec.size))
-        beta_interp[indices[:, 0], indices[:, 1], indices[:, 2]] = beta_interp_tmp(values)
-    
-        return beta_interp[np.newaxis, :, :, :]
+        if self.z_dep:
+            beta_interp = np.zeros((self.z_vec.size, self.mass.size, self.mass.size, self.k_vec.size))
+            for i,zi in enumerate(self.z_vec):
+                beta_interp[i,indices[:,0], indices[:,1], indices[:,2]] = beta_interp_tmp[i](values)
+            return beta_interp
+            
+        if not self.z_dep:
+            beta_interp = np.zeros((self.mass.size, self.mass.size, self.k_vec.size))
+            beta_interp[indices[:, 0], indices[:, 1], indices[:, 2]] = beta_interp_tmp(values)
+            return beta_interp[np.newaxis, :, :, :]
 
     def low_k_truncation(self, k, k_trunc):
         """
@@ -328,16 +334,15 @@ class NonLinearBias:
         M = np.logspace(M_lo, M_up, lenM)
         k = np.logspace(-3.0, np.log10(200), lenk)
         
-        beta_func = self.compute_bnl_darkquest(0.01, np.log10(M), np.log10(M), k, kmax)
-        beta_nl_interp_i = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], beta_func, fill_value=None, bounds_error=False, method='nearest')
-        """
-        beta_nl_interp_i = np.empty(len(self.z_vec), dtype=object)
-        for i,zi in enumerate(zc):
-            #M = np.logspace(M_lo, M_up - 3.0*np.log10(1+zi), lenM)
-            #beta_func = self.compute_bnl_darkquest(zi, np.log10(M), np.log10(M), k, kmax)
-            beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)],
-                                                        beta_func, fill_value=None, bounds_error=False, method='nearest')
-        """
+        if not self.z_dep:
+            beta_func = self.compute_bnl_darkquest(0.01, np.log10(M), np.log10(M), k, kmax)
+            beta_nl_interp_i = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], beta_func, fill_value=None, bounds_error=False, method='nearest')
+            
+        if self.z_dep:
+            beta_nl_interp_i = np.empty(len(self.z_vec), dtype=object)
+            for i,zi in enumerate(zc):
+                beta_func = self.compute_bnl_darkquest(zi, np.log10(M), np.log10(M), k, kmax)
+                beta_nl_interp_i[i] = RegularGridInterpolator([np.log10(M), np.log10(M), np.log10(k)], beta_func, fill_value=None, bounds_error=False, method='nearest')
         return beta_nl_interp_i
 
     def test_cosmo(self, cparam_in):

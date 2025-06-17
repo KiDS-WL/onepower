@@ -40,6 +40,8 @@ class SatelliteAlignment(AlignmentAmplitudes):
         Maximum multipole moment.
     truncate : bool, optional
         Whether to truncate the NFW profile at the virial radius.
+    method : str, optional
+        Which method to perform Fourier/Hankel transform to use
     amplitude_kwargs : dict
         Extra parameters passed to the AlignmentAmplitudes class.
     """
@@ -100,6 +102,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
             self.hankel = self.h_transform
             
         if method == 'fftlog':
+            # For FFTLog there is no need to downsample, as the method is fast!
             self.mass = mass
             self.c = c
             self.r_s = r_s
@@ -375,24 +378,29 @@ class SatelliteAlignment(AlignmentAmplitudes):
         ndarray
             Upsampled array of wkm values.
         """
-        # TO-DO: do not upsample if using FFTLog!
         wkm_in = self.wkm_f_ell
-        wkm_out = np.empty([self.z_vec.size, mass_out.size, k_vec_out.size])
-        for jz in range(self.z_vec.size):
-            # Create the interpolator
-            lg_w_interp2d = RegularGridInterpolator(
-                (np.log10(self.k_vec).T, np.log10(self.mass).T),
-                np.log10(wkm_in[jz, :, :] / self.k_vec**2).T,
-                bounds_error=False,
-                fill_value=None
-            )
+        if self.method == 'hankel':
+            wkm_out = np.empty([self.z_vec.size, mass_out.size, k_vec_out.size])
+            for jz in range(self.z_vec.size):
+                # Create the interpolator
+                lg_w_interp2d = RegularGridInterpolator(
+                    (np.log10(self.k_vec).T, np.log10(self.mass).T),
+                    np.log10(wkm_in[jz, :, :] / self.k_vec**2).T,
+                    bounds_error=False,
+                    fill_value=None
+                )
             
-            # Prepare the grid for interpolation
-            lgkk, lgmm = np.meshgrid(np.log10(k_vec_out), np.log10(mass_out), sparse=True)
+                # Prepare the grid for interpolation
+                lgkk, lgmm = np.meshgrid(np.log10(k_vec_out), np.log10(mass_out), sparse=True)
             
-            # Interpolate the values
-            lg_wkm_interpolated = lg_w_interp2d((lgkk.T, lgmm.T)).T
+                # Interpolate the values
+                lg_wkm_interpolated = lg_w_interp2d((lgkk.T, lgmm.T)).T
             
-            # Convert back to original scale
-            wkm_out[jz, :, :] = 10.0**(lg_wkm_interpolated) * k_vec_out**2.0
-        return wkm_out
+                # Convert back to original scale
+                wkm_out[jz, :, :] = 10.0**(lg_wkm_interpolated) * k_vec_out**2.0
+            return wkm_out
+
+        if self.method == 'fftlog':
+            # Need to only upsample the k vector!
+            return interp1d(self.k_vec, wkm_in, axis=-1, kind='linear', fill_value='extrapolate', bounds_error=False)(k_vec_out)
+
