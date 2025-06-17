@@ -12,7 +12,7 @@ except PackageNotFoundError:
     pass
 
 from .pk.pk import MatterSpectra, GalaxySpectra, AlignmentSpectra
-from .pk.ia_radial import SatelliteAlignment
-from .pk.ia_amplitudes import AlignmentAmplitudes
+from .pk.ia_rad import SatelliteAlignment
+from .pk.ia_amp import AlignmentAmplitudes
 from .hod.hod import HOD, Cacciato, Zheng, Zhai, Zehavi
-from .hmf.halo_model_ingredients import HaloModelIngredients, CosmologyBase
+from .hmi.hmi import HaloModelIngredients, CosmologyBase

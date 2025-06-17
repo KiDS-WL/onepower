@@ -5,7 +5,7 @@ from scipy.special import binom, gamma
 from scipy.interpolate import RegularGridInterpolator, interp1d
 from scipy.fft import fht, fhtoffset
 from hankel import HankelTransform
-from .ia_amplitudes import AlignmentAmplitudes
+from .ia_amp import AlignmentAmplitudes
 
 """
 A module for computing satellite alignment properties.

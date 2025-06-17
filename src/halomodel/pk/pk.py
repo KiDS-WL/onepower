@@ -58,10 +58,10 @@ from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d
 import warnings
 
-from .ia_radial import SatelliteAlignment
+from .ia_rad import SatelliteAlignment
 from .bnl import NonLinearBias
 from ..hod import hod as hod_class
-from ..hmf.halo_model_ingredients import HaloModelIngredients
+from ..hmi.hmi import HaloModelIngredients
 
 
 #import sys
