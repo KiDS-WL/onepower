@@ -181,6 +181,10 @@ class MatterSpectra(HaloModelIngredients):
         Whether to include non-linear bias.
     beta_nl : array_like, optional
         Non-linear bias parameter.
+    one_halo_ktrunc : float, optional
+        Truncation wavenumber for the 1-halo term.
+    two_halo_ktrunc : float, optional
+        Truncation wavenumber for the 2-halo term.
     hod_model_mm : str, optional
         HOD model for matter-matter power spectrum.
     hod_params_mm : dict, optional
@@ -196,6 +200,8 @@ class MatterSpectra(HaloModelIngredients):
             dewiggle=False,
             bnl=False,
             beta_nl=None,
+            one_halo_ktrunc=0.1,
+            two_halo_ktrunc=2.0,
             hod_model_mm='Cacciato',
             hod_params_mm={},
             hod_settings_mm={},
@@ -207,6 +213,9 @@ class MatterSpectra(HaloModelIngredients):
         
         self.mb = mb
         self.bnl = bnl
+        
+        self.one_halo_ktrunc = one_halo_ktrunc
+        self.two_halo_ktrunc = two_halo_ktrunc
         
         self.hod_model_mm = hod_model_mm
         self.hod_settings_mm = hod_settings_mm
@@ -532,7 +541,8 @@ class MatterSpectra(HaloModelIngredients):
         )
         return profile
 
-    def one_halo_truncation(self, k_trunc=0.1):
+    @property
+    def one_halo_truncation(self):
         """
         1-halo term truncation at large scales (small k)
         
@@ -546,12 +556,13 @@ class MatterSpectra(HaloModelIngredients):
         ndarray
             The truncation factor.
         """
-        if k_trunc is None:
+        if self.one_halo_ktrunc is None:
             return np.ones_like(self.k_vec)
-        k_frac = self.k_vec / k_trunc
+        k_frac = self.k_vec / self.one_halo_ktrunc
         return (k_frac**4.0) / (1.0 + k_frac**4.0)
 
-    def two_halo_truncation(self, k_trunc=2.0):
+    @property
+    def two_halo_truncation(self):
         """
         2-halo term truncation at larger k-values (large k).
 
@@ -567,7 +578,7 @@ class MatterSpectra(HaloModelIngredients):
         """
         #k_frac = k_vec/k_trunc
         #return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
-        if k_trunc is None:
+        if self.two_halo_ktrunc is None:
             return np.ones_like(self.k_vec)
         k_d = 0.05699#0.07
         nd = 2.853
@@ -575,7 +586,8 @@ class MatterSpectra(HaloModelIngredients):
         return 1.0 - 0.05 * (k_frac**nd)/(1.0 + k_frac**nd)
         #return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
-    def one_halo_truncation_ia(self, k_trunc=4.0):
+    @property
+    def one_halo_truncation_ia(self):
         """
         1-halo term truncation for IA.
 
@@ -589,11 +601,12 @@ class MatterSpectra(HaloModelIngredients):
         ndarray
             The truncation factor.
         """
-        if k_trunc is None:
+        if self.one_halo_ktrunc_ia is None:
             return np.ones_like(self.k_vec)
-        return 1.0 - np.exp(-(self.k_vec / k_trunc)**2.0)
+        return 1.0 - np.exp(-(self.k_vec / self.one_halo_ktrunc_ia)**2.0)
 
-    def two_halo_truncation_ia(self, k_trunc=6.0):
+    @property
+    def two_halo_truncation_ia(self):
         """
         2-halo term truncation for IA.
 
@@ -607,9 +620,9 @@ class MatterSpectra(HaloModelIngredients):
         ndarray
             The truncation factor.
         """
-        if k_trunc is None:
+        if self.two_halo_ktrunc_ia is None:
             return np.ones_like(self.k_vec)
-        return np.exp(-(self.k_vec / k_trunc)**2.0)
+        return np.exp(-(self.k_vec / self.two_halo_ktrunc_ia)**2.0)
 
     def one_halo_truncation_mead(self, sigma8_in):
         """
@@ -1115,7 +1128,7 @@ class MatterSpectra(HaloModelIngredients):
         ndarray
             The Poisson parameter.
         """
-        poisson_type = kwargs.get('poisson_type', '')
+        poisson_type = kwargs.get('poisson_type', 'scalar')
         if poisson_type == 'scalar':
             poisson = kwargs.get('poisson', 1.0)
             return poisson * np.ones_like(mass)
@@ -1129,7 +1142,8 @@ class MatterSpectra(HaloModelIngredients):
             return poisson * (mass / (10.0**M_0))**slope
     
         return np.ones_like(mass)
-        
+    
+    @cached_property
     def compute_power_spectrum_mm(
             self,
             one_halo_ktrunc=None,
@@ -1160,8 +1174,8 @@ class MatterSpectra(HaloModelIngredients):
             matter_profile_1h = self.matter_profile
         if self.bnl:
             I_NL = self.I_NL(self.matter_profile_2h, self.matter_profile_2h, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
-            pk_2h = (self.matter_power_lin * self.Im_term * self.Im_term + self.matter_power_lin * I_NL) #* self.two_halo_truncation()[np.newaxis, np.newaxis, :]
-            pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation(one_halo_ktrunc)
+            pk_2h = (self.matter_power_lin * self.Im_term * self.Im_term + self.matter_power_lin * I_NL) #* self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
             pk_tot = pk_1h + pk_2h
         else:
             if self.mead_correction in ['feedback', 'no_feedback']:
@@ -1169,8 +1183,8 @@ class MatterSpectra(HaloModelIngredients):
                 pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_mead(self.sigma8_z)
                 pk_tot = self.transition_smoothing(self.neff, pk_1h, pk_2h)
             else :
-                pk_2h = self.matter_power_lin * self.Im_term * self.Im_term * self.two_halo_truncation(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
-                pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation(one_halo_ktrunc)
+                pk_2h = self.matter_power_lin * self.Im_term * self.Im_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+                pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
                 pk_tot = pk_1h + pk_2h
     
         return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
@@ -1186,6 +1200,8 @@ class GalaxySpectra(MatterSpectra):
         Whether to use point mass approximation.
     compute_observable : bool, optional
         Whether to compute observable.
+    poisson_par : dict, optional
+        Parameters for the Poisson distribution.
     hod_model : str, optional
         HOD model to use.
     hod_params : dict, optional
@@ -1200,6 +1216,7 @@ class GalaxySpectra(MatterSpectra):
     def __init__(self,
             pointmass=None,
             compute_observable=False,
+            poisson_par={},
             hod_model='Cacciato',
             hod_params={},
             hod_settings={},
@@ -1212,6 +1229,7 @@ class GalaxySpectra(MatterSpectra):
         
         self.pointmass = pointmass
         self.compute_observable = compute_observable
+        self.poisson_par = poisson_par
         self.hod_settings = hod_settings
         self.hod_params = hod_params
         self.hod_model = hod_model
@@ -1443,23 +1461,10 @@ class GalaxySpectra(MatterSpectra):
         )
         return term
 
-    def compute_power_spectrum_gg(
-            self,
-            one_halo_ktrunc=None,
-            two_halo_ktrunc=None,
-            poisson_par=None,
-        ):
+    @cached_property
+    def compute_power_spectrum_gg(self):
         """
         Compute the galaxy-galaxy power spectrum.
-
-        Parameters:
-        -----------
-        one_halo_ktrunc : float, optional
-            Truncation wavenumber for the 1-halo term.
-        two_halo_ktrunc : float, optional
-            Truncation wavenumber for the 2-halo term.
-        poisson_par : dict, optional
-            Parameters for the Poisson distribution.
 
         Returns:
         --------
@@ -1468,19 +1473,19 @@ class GalaxySpectra(MatterSpectra):
         """
         galaxy_linear_bias = None
         
-        poisson = self.poisson_func(self.mass, **poisson_par)
+        poisson = self.poisson_func(self.mass, **self.poisson_par)
         if self.bnl:
             I_NL = self.I_NL(self.central_galaxy_profile + self.satellite_galaxy_profile, self.central_galaxy_profile + self.satellite_galaxy_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm,self.A_term,self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
             pk_cc_2h = self.matter_power_lin * self.Ic_term * self.Ic_term
             pk_ss_2h = self.matter_power_lin * self.Is_term * self.Is_term
             pk_cs_2h = self.matter_power_lin * self.Ic_term * self.Is_term
         else:
-            pk_cc_2h = self.matter_power_lin * self.Ic_term * self.Ic_term * self.two_halo_truncation(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
-            pk_ss_2h = self.matter_power_lin * self.Is_term * self.Is_term * self.two_halo_truncation(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
-            pk_cs_2h = self.matter_power_lin * self.Ic_term * self.Is_term * self.two_halo_truncation(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
+            pk_cc_2h = self.matter_power_lin * self.Ic_term * self.Ic_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            pk_ss_2h = self.matter_power_lin * self.Is_term * self.Is_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            pk_cs_2h = self.matter_power_lin * self.Ic_term * self.Is_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
 
-        pk_cs_1h = self.compute_1h_term(self.central_galaxy_profile, self.satellite_galaxy_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation(one_halo_ktrunc)
-        pk_ss_1h = self.compute_1h_term(self.satellite_galaxy_profile * poisson, self.satellite_galaxy_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation(one_halo_ktrunc)
+        pk_cs_1h = self.compute_1h_term(self.central_galaxy_profile, self.satellite_galaxy_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
+        pk_ss_1h = self.compute_1h_term(self.satellite_galaxy_profile * poisson, self.satellite_galaxy_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
 
         pk_1h = 2.0 * pk_cs_1h + pk_ss_1h
         pk_2h = pk_cc_2h + pk_ss_2h + 2.0 * pk_cs_2h
@@ -1492,23 +1497,10 @@ class GalaxySpectra(MatterSpectra):
             
         return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
     
-    def compute_power_spectrum_gm(
-            self,
-            one_halo_ktrunc=None,
-            two_halo_ktrunc=None,
-            poisson_par=None
-        ):
+    @cached_property
+    def compute_power_spectrum_gm(self):
         """
         Compute the galaxy-matter power spectrum.
-
-        Parameters:
-        -----------
-        one_halo_ktrunc : float, optional
-            Truncation wavenumber for the 1-halo term.
-        two_halo_ktrunc : float, optional
-            Truncation wavenumber for the 2-halo term.
-        poisson_par : dict, optional
-            Parameters for the Poisson distribution.
 
         Returns:
         --------
@@ -1529,10 +1521,10 @@ class GalaxySpectra(MatterSpectra):
             pk_cm_2h = self.matter_power_lin * self.Ic_term * self.Im_term
             pk_sm_2h = self.matter_power_lin * self.Is_term * self.Im_term
         else:
-            pk_cm_2h = self.matter_power_lin * self.Ic_term * self.Im_term * self.two_halo_truncation(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
-            pk_sm_2h = self.matter_power_lin * self.Is_term * self.Im_term * self.two_halo_truncation(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
-        pk_cm_1h = self.compute_1h_term(self.central_galaxy_profile, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation(one_halo_ktrunc)
-        pk_sm_1h = self.compute_1h_term(self.satellite_galaxy_profile, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation(one_halo_ktrunc)
+            pk_cm_2h = self.matter_power_lin * self.Ic_term * self.Im_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            pk_sm_2h = self.matter_power_lin * self.Is_term * self.Im_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+        pk_cm_1h = self.compute_1h_term(self.central_galaxy_profile, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
+        pk_sm_1h = self.compute_1h_term(self.satellite_galaxy_profile, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
 
         pk_1h = pk_cm_1h + pk_sm_1h
         pk_2h = pk_cm_2h + pk_sm_2h
@@ -1559,6 +1551,10 @@ class AlignmentSpectra(GalaxySpectra):
         Non-linear matter power spectrum.
     fortuna : bool, optional
         Whether to use the Fortuna model.
+    one_halo_ktrunc_ia : float, optional
+        Truncation wavenumber for the 1-halo IA term.
+    two_halo_ktrunc_ia : float, optional
+        Truncation wavenumber for the 2-halo IA term.
     align_params : dict, optional
         Parameters for the alignment model.
     galaxy_spectra_kwargs : dict
@@ -1569,6 +1565,8 @@ class AlignmentSpectra(GalaxySpectra):
             mpivot_sat=None,
             matter_power_nl=None,
             fortuna=False,
+            one_halo_ktrunc_ia=4.0,
+            two_halo_ktrunc_ia=6.0,
             align_params={},
             **galaxy_spectra_kwargs
         ):
@@ -1578,6 +1576,8 @@ class AlignmentSpectra(GalaxySpectra):
         
         self.t_eff = t_eff
         self.fortuna = fortuna
+        self.one_halo_ktrunc_ia = one_halo_ktrunc_ia
+        self.two_halo_ktrunc_ia = two_halo_ktrunc_ia
         self.align_params = align_params
         
         self.align_params.update({
@@ -1791,23 +1791,10 @@ class AlignmentSpectra(GalaxySpectra):
     
         return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * self.alignment_gi[:, np.newaxis, np.newaxis]
 
-    def compute_power_spectrum_mi(
-            self,
-            one_halo_ktrunc=None,
-            two_halo_ktrunc=None,
-            poisson_par=None
-        ):
+    @cached_property
+    def compute_power_spectrum_mi(self):
         """
         Compute the matter-intrinsic alignment power spectrum.
-
-        Parameters:
-        -----------
-        one_halo_ktrunc : float, optional
-            Truncation wavenumber for the 1-halo term.
-        two_halo_ktrunc : float, optional
-            Truncation wavenumber for the 2-halo term.
-        poisson_par : dict, optional
-            Parameters for the Poisson distribution.
 
         Returns:
         --------
@@ -1828,13 +1815,13 @@ class AlignmentSpectra(GalaxySpectra):
             pk_sm_2h = (-1.0) * self.matter_power_lin * self.Is_align_term * self.Im_term
             pk_cm_2h = (-1.0) * self.matter_power_lin * self.Ic_align_term * self.Im_term
         elif self.fortuna:
-            pk_cm_2h = self.hod.f_c[:, :, np.newaxis] * self.peff * self.alignment_amplitude_2h * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
+            pk_cm_2h = self.hod.f_c[:, :, np.newaxis] * self.peff * self.alignment_amplitude_2h * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
         else:
-            pk_sm_2h = (-1.0) * self.matter_power_lin * self.Is_align_term * self.Im_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
-            pk_cm_2h = (-1.0) * self.matter_power_lin * self.Ic_align_term * self.Im_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
+            pk_sm_2h = (-1.0) * self.matter_power_lin * self.Is_align_term * self.Im_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            pk_cm_2h = (-1.0) * self.matter_power_lin * self.Ic_align_term * self.Im_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
 
-        pk_sm_1h = (-1.0) * self.compute_1h_term(matter_profile_1h, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia(one_halo_ktrunc)
-        #pk_cm_1h = (-1.0) * self.compute_1h_term(matter_profile_1h, self.central_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia(one_halo_ktrunc)
+        pk_sm_1h = (-1.0) * self.compute_1h_term(matter_profile_1h, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
+        #pk_cm_1h = (-1.0) * self.compute_1h_term(matter_profile_1h, self.central_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
 
         if self.bnl:
             pk_1h = pk_sm_1h
@@ -1851,23 +1838,10 @@ class AlignmentSpectra(GalaxySpectra):
                 
         return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
     
-    def compute_power_spectrum_ii(
-            self,
-            one_halo_ktrunc=None,
-            two_halo_ktrunc=None,
-            poisson_par=None
-        ):
+    @cached_property
+    def compute_power_spectrum_ii(self):
         """
         Compute the intrinsic-intrinsic alignment power spectrum.
-
-        Parameters:
-        -----------
-        one_halo_ktrunc : float, optional
-            Truncation wavenumber for the 1-halo term.
-        two_halo_ktrunc : float, optional
-            Truncation wavenumber for the 2-halo term.
-        poisson_par : dict, optional
-            Parameters for the Poisson distribution.
 
         Returns:
         --------
@@ -1885,14 +1859,14 @@ class AlignmentSpectra(GalaxySpectra):
             pk_cc_2h = self.matter_power_lin * self.Ic_align_term * self.Ic_align_term + self.matter_power_lin * I_NL_cc
             pk_cs_2h = self.matter_power_lin * self.Ic_align_term * self.Is_align_term + self.matter_power_lin * I_NL_cs
         elif self.fortuna:
-            pk_cc_2h = self.hod.f_c[:, :, np.newaxis]**2.0 * self.peff * self.alignment_amplitude_2h_II * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
+            pk_cc_2h = self.hod.f_c[:, :, np.newaxis]**2.0 * self.peff * self.alignment_amplitude_2h_II * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
         else:
-            pk_ss_2h = self.matter_power_lin * self.Is_align_term * self.Is_align_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
-            pk_cc_2h = self.matter_power_lin * self.Ic_align_term * self.Ic_align_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
-            pk_cs_2h = self.matter_power_lin * self.Ic_align_term * self.Is_align_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
+            pk_ss_2h = self.matter_power_lin * self.Is_align_term * self.Is_align_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            pk_cc_2h = self.matter_power_lin * self.Ic_align_term * self.Ic_align_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            pk_cs_2h = self.matter_power_lin * self.Ic_align_term * self.Is_align_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
 
-        pk_ss_1h = self.compute_1h_term(self.satellite_alignment_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia(one_halo_ktrunc)
-        #pk_cs_1h = self.compute_1h_term(self.central_alignment_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia(one_halo_ktrunc)
+        pk_ss_1h = self.compute_1h_term(self.satellite_alignment_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
+        #pk_cs_1h = self.compute_1h_term(self.central_alignment_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
 
         if self.fortuna:
             pk_1h = pk_ss_1h
@@ -1905,23 +1879,10 @@ class AlignmentSpectra(GalaxySpectra):
                 
         return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
     
-    def compute_power_spectrum_gi(
-            self,
-            one_halo_ktrunc=None,
-            two_halo_ktrunc=None,
-            poisson_par=None
-        ):
+    @cached_property
+    def compute_power_spectrum_gi(self):
         """
         Compute the galaxy-intrinsic alignment power spectrum.
-
-        Parameters:
-        -----------
-        one_halo_ktrunc : float, optional
-            Truncation wavenumber for the 1-halo term.
-        two_halo_ktrunc : float, optional
-            Truncation wavenumber for the 2-halo term.
-        poisson_par : dict, optional
-            Parameters for the Poisson distribution.
 
         Returns:
         --------
@@ -1936,12 +1897,12 @@ class AlignmentSpectra(GalaxySpectra):
             pk_cc_2h = self.matter_power_lin * self.Ic_term * self.Ic_align_term + self.matter_power_lin * I_NL_cc
             pk_cs_2h = self.matter_power_lin * self.Ic_term * self.Is_align_term + self.matter_power_lin * I_NL_cs
         elif self.fortuna:
-            pk_cc_2h = -1.0 * self.peff * self.Ic_term * self.alignment_amplitude_2h[:,] * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
+            pk_cc_2h = -1.0 * self.peff * self.Ic_term * self.alignment_amplitude_2h[:,] * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
         else:
-            pk_cc_2h = self.matter_power_lin * self.Ic_term * self.Ic_align_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
-            pk_cs_2h = self.matter_power_lin * self.Ic_term * self.Is_align_term * self.two_halo_truncation_ia(two_halo_ktrunc)[np.newaxis, np.newaxis, :]
+            pk_cc_2h = self.matter_power_lin * self.Ic_term * self.Ic_align_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            pk_cs_2h = self.matter_power_lin * self.Ic_term * self.Is_align_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
 
-        pk_cs_1h = self.compute_1h_term(self.central_galaxy_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia(one_halo_ktrunc)
+        pk_cs_1h = self.compute_1h_term(self.central_galaxy_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
 
         if self.fortuna:
             pk_1h = pk_cs_1h

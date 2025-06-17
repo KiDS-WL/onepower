@@ -343,7 +343,9 @@ def execute(block, config):
         'eta_cen': eta_cen,
         'eta_sat': eta_sat,
         'overdensity': config_hmf['overdensity'],
-        'delta_c': config_hmf['delta_c']
+        'delta_c': config_hmf['delta_c'],
+        'one_halo_ktrunc': one_halo_ktrunc,
+        'two_halo_ktrunc': two_halo_ktrunc,
         
     }
     galaxy_kwargs = {}
@@ -401,6 +403,7 @@ def execute(block, config):
 
         galaxy_kwargs.update({
             #'u_sat': u_sat,
+            'poisson_par': poisson_par,
             'pointmass': point_mass,
         })
         
@@ -440,6 +443,8 @@ def execute(block, config):
     
     if alignment:
         align_kwargs.update({
+            'one_halo_ktrunc_ia': one_halo_ktrunc_ia,
+            'two_halo_ktrunc_ia': two_halo_ktrunc_ia,
             'fortuna': fortuna,
             't_eff': block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0),
         })
@@ -609,10 +614,7 @@ def execute(block, config):
                     block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb])
     
     if p_mm or response:
-        pk_mm_1h, pk_mm_2h, pk_mm, _ = power.compute_power_spectrum_mm(
-            one_halo_ktrunc = one_halo_ktrunc,
-            two_halo_ktrunc = two_halo_ktrunc
-        )
+        pk_mm_1h, pk_mm_2h, pk_mm, _ = power.compute_power_spectrum_mm
         if response:
             # Here we save the computed Pmm to datablock as matter_power_hm,
             # but not replacing the Pnl with it, as in the response
@@ -626,11 +628,7 @@ def execute(block, config):
             block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm[0])
 
     if p_gg:
-        pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = power.compute_power_spectrum_gg(
-            one_halo_ktrunc = one_halo_ktrunc,
-            two_halo_ktrunc = two_halo_ktrunc,
-            poisson_par = poisson_par
-        )
+        pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = power.compute_power_spectrum_gg
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
 
@@ -645,11 +643,7 @@ def execute(block, config):
                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg[nb])
 
     if p_gm:
-        pk_gm_1h, pk_gm_2h, pk_gm, bgm_linear = power.compute_power_spectrum_gm(
-            one_halo_ktrunc = one_halo_ktrunc,
-            two_halo_ktrunc = two_halo_ktrunc,
-            poisson_par = poisson_par
-        )
+        pk_gm_1h, pk_gm_2h, pk_gm, bgm_linear = power.compute_power_spectrum_gm
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
         
@@ -664,11 +658,7 @@ def execute(block, config):
                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm[nb])
     
     if p_II:
-        pk_II_1h, pk_II_2h, pk_II, _ = power.compute_power_spectrum_ii(
-            one_halo_ktrunc = one_halo_ktrunc_ia,
-            two_halo_ktrunc = two_halo_ktrunc_ia,
-            poisson_par = poisson_par
-        )
+        pk_II_1h, pk_II_2h, pk_II, _ = power.compute_power_spectrum_ii
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
         
@@ -682,11 +672,7 @@ def execute(block, config):
                 block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II[nb])
     
     if p_gI:
-        pk_gI_1h, pk_gI_2h, pk_gI, _ = power.compute_power_spectrum_gi(
-            one_halo_ktrunc = one_halo_ktrunc_ia,
-            two_halo_ktrunc = two_halo_ktrunc_ia,
-            poisson_par = poisson_par
-        )
+        pk_gI_1h, pk_gI_2h, pk_gI, _ = power.compute_power_spectrum_gi
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             
@@ -700,11 +686,7 @@ def execute(block, config):
                 block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI[nb])
     
     if p_mI:
-        pk_mI_1h, pk_mI_2h, pk_mI, _ = power.compute_power_spectrum_mi(
-            one_halo_ktrunc = one_halo_ktrunc_ia,
-            two_halo_ktrunc = two_halo_ktrunc_ia,
-            poisson_par = poisson_par
-        )
+        pk_mI_1h, pk_mI_2h, pk_mI, _ = power.compute_power_spectrum_mi
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             
