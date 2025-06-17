@@ -50,11 +50,11 @@ class HOD:
     """
     def __init__(
             self,
-            mass = None,
-            dndlnm = None,
-            halo_bias = None,
-            z_vec = None,
-            hod_settings = {}
+            mass=None,
+            dndlnm=None,
+            halo_bias=None,
+            z_vec=None,
+            hod_settings={}
         ):
         if mass is None or dndlnm is None:
             raise ValueError("Mass and halo mass function need to be specified!")
@@ -471,20 +471,20 @@ class Cacciato(HOD):
     """
     def __init__(
             self,
-            log10_obs_norm_c = 9.95,
-            log10_m_ch = 11.24,
-            g1 = 3.18,
-            g2 = 0.245,
-            sigma_log10_O_c = 0.157,
-            norm_s = 0.562,
-            pivot = 12.0,
-            alpha_s = -1.18,
-            beta_s = 2,
-            b0 = -1.17,
-            b1 = 1.53,
-            b2 = -0.217,
-            A_cen = None,
-            A_sat = None,
+            log10_obs_norm_c=9.95,
+            log10_m_ch=11.24,
+            g1=3.18,
+            g2=0.245,
+            sigma_log10_O_c=0.157,
+            norm_s=0.562,
+            pivot=12.0,
+            alpha_s=-1.18,
+            beta_s=2,
+            b0=-1.17,
+            b1=1.53,
+            b2=-0.217,
+            A_cen=None,
+            A_sat=None,
             **hod_kwargs
         ):
 
@@ -700,12 +700,12 @@ class Simple(HOD):
     """
     def __init__(
             self,
-            obs = None,
-            log10_Mmin = np.array([12.0]),
-            log10_Msat = np.array([13.0]),
-            alpha = np.array([1.0]),
-            A_cen = None,
-            A_sat = None,
+            obs=None,
+            log10_Mmin=np.array([12.0]),
+            log10_Msat=np.array([13.0]),
+            alpha=np.array([1.0]),
+            A_cen=None,
+            A_sat=None,
             **hod_kwargs
         ):
         # Call super init MUST BE DONE FIRST.
@@ -765,12 +765,12 @@ class Zehavi(HOD):
     """
     def __init__(
             self,
-            obs = None,
-            log10_Mmin = np.array([12.0]),
-            log10_Msat = np.array([13.0]),
-            alpha = np.array([1.0]),
-            A_cen = None,
-            A_sat = None,
+            obs=None,
+            log10_Mmin=np.array([12.0]),
+            log10_Msat=np.array([13.0]),
+            alpha=np.array([1.0]),
+            A_cen=None,
+            A_sat=None,
             **hod_kwargs
         ):
         # Call super init MUST BE DONE FIRST.
@@ -832,14 +832,14 @@ class Zheng(HOD):
     """
     def __init__(
             self,
-            obs = None,
-            log10_Mmin = np.array([12.0]),
-            log10_M0 = np.array([12.0]),
-            log10_M1 = np.array([13.0]),
-            sigma = np.array([0.15]),
-            alpha = np.array([1.0]),
-            A_cen = None,
-            A_sat = None,
+            obs=None,
+            log10_Mmin=np.array([12.0]),
+            log10_M0=np.array([12.0]),
+            log10_M1=np.array([13.0]),
+            sigma=np.array([0.15]),
+            alpha=np.array([1.0]),
+            A_cen=None,
+            A_sat=None,
             **hod_kwargs
         ):
         # Call super init MUST BE DONE FIRST.
@@ -903,14 +903,14 @@ class Zhai(HOD):
     """
     def __init__(
             self,
-            obs = None,
-            log10_Mmin = np.array([13.68]),
-            log10_Msat = np.array([14.87]),
-            log10_Mcut = np.array([12.32]),
-            sigma = np.array([0.82]),
-            alpha = np.array([0.41]),
-            A_cen = None,
-            A_sat = None,
+            obs=None,
+            log10_Mmin=np.array([13.68]),
+            log10_Msat=np.array([14.87]),
+            log10_Mcut=np.array([12.32]),
+            sigma=np.array([0.82]),
+            alpha=np.array([0.41]),
+            A_cen=None,
+            A_sat=None,
             **hod_kwargs
         ):
         # Call super init MUST BE DONE FIRST.

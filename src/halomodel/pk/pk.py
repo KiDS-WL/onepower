@@ -51,29 +51,16 @@ gI: galaxy-intrinsic alignment
 mI: matter-intrinsic alignment
 """
 from functools import cached_property
+import warnings
 import numpy as np
 import numexpr as ne
-from scipy.integrate import simpson, quad, trapezoid
-from scipy.optimize import curve_fit
+from scipy.integrate import simpson, trapezoid
 from scipy.ndimage import gaussian_filter1d
-import warnings
 
 from .ia_rad import SatelliteAlignment
 from .bnl import NonLinearBias
 from ..hod import hod as hod_class
 from ..hmi.hmi import HaloModelIngredients
-
-
-#import sys
-#sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/hod")
-#import hod as hod_class
-
-#sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/hmf")
-#from halo_model_ingredients import HaloModelIngredients
-
-#sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/ia")
-#from ia_radial import SatelliteAlignment
-#from bnl import NonLinearBias
 
 valid_units = ['1/h', '1/h^2']
 
@@ -204,14 +191,14 @@ class MatterSpectra(HaloModelIngredients):
         Additional keyword arguments for the HaloModelIngredients.
     """
     def __init__(self,
-            matter_power_lin = None,
-            mb = None,
-            dewiggle = False,
-            bnl = False,
-            beta_nl = None,
-            hod_model_mm = 'Cacciato',
-            hod_params_mm = {},
-            hod_settings_mm = {},
+            matter_power_lin=None,
+            mb=None,
+            dewiggle=False,
+            bnl=False,
+            beta_nl=None,
+            hod_model_mm='Cacciato',
+            hod_params_mm={},
+            hod_settings_mm={},
             **hmf_kwargs
         ):
         
@@ -277,16 +264,16 @@ class MatterSpectra(HaloModelIngredients):
             The non-linear bias.
         """
         bnl = NonLinearBias(
-            mass = self.mass,
-            z_vec = self.z_vec,
-            k_vec = self.k_vec,
-            h0 = self.h0,
-            sigma_8 = self.sigma_8,
-            omega_b = self.omega_b,
-            omega_c = self.omega_c,
-            omega_lambda = 1.0 - self.omega_m,
-            n_s = self.n_s,
-            w0 = self.w0
+            mass=self.mass,
+            z_vec=self.z_vec,
+            k_vec=self.k_vec,
+            h0=self.h0,
+            sigma_8=self.sigma_8,
+            omega_b=self.omega_b,
+            omega_c=self.omega_c,
+            omega_lambda=1.0 - self.omega_m,
+            n_s=self.n_s,
+            w0=self.w0
         )
         return bnl.bnl
         
@@ -305,11 +292,11 @@ class MatterSpectra(HaloModelIngredients):
         if self.mead_correction == 'fit' and self.hod_model_mm == 'Cacciato':
             hod = self.select_hod_model(self.hod_model_mm)
             return hod(
-                mass = self.mass,
-                dndlnm = self.dndlnm,
-                halo_bias = self.halo_bias,
-                z_vec = self.z_vec,
-                hod_settings = self.hod_settings_mm,
+                mass=self.mass,
+                dndlnm=self.dndlnm,
+                halo_bias=self.halo_bias,
+                z_vec=self.z_vec,
+                hod_settings=self.hod_settings_mm,
                 **self.hod_params_mm
             )
         else:
@@ -1211,12 +1198,12 @@ class GalaxySpectra(MatterSpectra):
         Additional keyword arguments for the MatterSpectra.
     """
     def __init__(self,
-            pointmass = None,
-            compute_observable = False,
-            hod_model = 'Cacciato',
-            hod_params = {},
-            hod_settings = {},
-            obs_settings = {},
+            pointmass=None,
+            compute_observable=False,
+            hod_model='Cacciato',
+            hod_params={},
+            hod_settings={},
+            obs_settings={},
             **matter_spectra_kwargs
         ):
         
@@ -1242,11 +1229,11 @@ class GalaxySpectra(MatterSpectra):
         """
         hod = self.select_hod_model(self.hod_model)
         return hod(
-            mass = self.mass,
-            dndlnm = self.dndlnm,
-            halo_bias = self.halo_bias,
-            z_vec = self.z_vec,
-            hod_settings = self.hod_settings,
+            mass=self.mass,
+            dndlnm=self.dndlnm,
+            halo_bias=self.halo_bias,
+            z_vec=self.z_vec,
+            hod_settings=self.hod_settings,
             **self.hod_params
         )
         
@@ -1292,11 +1279,11 @@ class GalaxySpectra(MatterSpectra):
         if self.hod_model == 'Cacciato' and self.compute_observable:
             hod = self.select_hod_model(self.hod_model)
             return hod(
-                mass = self.mass,
-                dndlnm = self.dndlnm,
-                halo_bias = self.halo_bias,
-                z_vec = self.z_vec,
-                hod_settings = self.obs_settings,
+                mass=self.mass,
+                dndlnm=self.dndlnm,
+                halo_bias=self.halo_bias,
+                z_vec=self.z_vec,
+                hod_settings=self.obs_settings,
                 **self.hod_params
             )
         else:
@@ -1578,11 +1565,11 @@ class AlignmentSpectra(GalaxySpectra):
         Additional keyword arguments for the GalaxySpectra.
     """
     def __init__(self,
-            t_eff = None,
-            mpivot_sat = None,
-            matter_power_nl = None,
-            fortuna = False,
-            align_params = {},
+            t_eff=None,
+            mpivot_sat=None,
+            matter_power_nl=None,
+            fortuna=False,
+            align_params={},
             **galaxy_spectra_kwargs
         ):
         

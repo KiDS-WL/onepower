@@ -38,18 +38,18 @@ class NonLinearBias:
         If redshift dependence is to be evaluated in Bnl
     """
     def __init__(self,
-            mass = None,
-            z_vec = None,
-            k_vec = None,
-            h0 = 0.7,
-            sigma_8 = 0.8,
-            A_s = None,
-            omega_b = 0.05,
-            omega_c = 0.25,
-            omega_lambda = 0.7,
-            n_s = 1.0,
-            w0 = -1.0,
-            z_dep = False
+            mass=None,
+            z_vec=None,
+            k_vec=None,
+            h0=0.7,
+            sigma_8=0.8,
+            A_s=None,
+            omega_b=0.05,
+            omega_c=0.25,
+            omega_lambda=0.7,
+            n_s=1.0,
+            w0=-1.0,
+            z_dep=False
         ):
         self.mass = mass
         self.z_vec = z_vec

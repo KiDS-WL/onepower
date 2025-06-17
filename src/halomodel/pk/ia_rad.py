@@ -47,16 +47,16 @@ class SatelliteAlignment(AlignmentAmplitudes):
     """
     def __init__(
             self,
-            mass = None,
-            c = None,
-            r_s = None,
-            rvir = None,
-            n_hankel = 350,
-            nmass = 5,
-            nk = 10,
-            ell_max = 6,
-            truncate = False,
-            method = 'fftlog',
+            mass=None,
+            c=None,
+            r_s=None,
+            rvir=None,
+            n_hankel=350,
+            nmass=5,
+            nk=10,
+            ell_max=6,
+            truncate=False,
+            method='fftlog',
             **amplitude_kwargs
         ):
         # Call super init MUST BE DONE FIRST.

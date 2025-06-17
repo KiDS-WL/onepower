@@ -5,13 +5,11 @@ from scipy.interpolate import interp1d
 from scipy.optimize import root_scalar
 from scipy.integrate import simpson, solve_ivp, quad
 from astropy.cosmology import Flatw0waCDM, Planck15
-import hmf
 from hmf.halos.mass_definitions import SphericalOverdensity
 from halomod.halo_model import DMHaloModel
 from halomod.concentration import make_colossus_cm, interp_concentration
 import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
-import time
 
 """
 A module for computing various cosmological quantities and halo model ingredients.
@@ -84,17 +82,17 @@ class CosmologyBase:
         Log10 of AGN temperature.
     """
     def __init__(self,
-            h0 = 0.0,
-            omega_c = 0.0,
-            omega_b = 0.0,
-            omega_m = 0.0,
-            w0 = 0.0,
-            wa = 0.0,
-            n_s = 0.0,
-            tcmb = 0-0,
-            m_nu = 0.0,
-            sigma_8 = 0.0,
-            log10T_AGN = 0.0,
+            h0=0.0,
+            omega_c=0.0,
+            omega_b=0.0,
+            omega_m=0.0,
+            w0=0.0,
+            wa=0.0,
+            n_s=0.0,
+            tcmb=0-0,
+            m_nu=0.0,
+            sigma_8=0.0,
+            log10T_AGN=0.0,
         ):
         self.h0 = h0
         self.omega_c = omega_c
@@ -371,30 +369,30 @@ class HaloModelIngredients(CosmologyBase):
     """
     #TO-DO: set defaults to sensible values!
     def __init__(self,
-            k_vec = None,
-            z_vec = None,
-            lnk_min = 0.0,
-            lnk_max = 0.0,
-            dlnk = 0.0,
-            Mmin = 0.0,
-            Mmax = 0.0,
-            dlog10m = 0.0,
-            mdef_model = None,
-            hmf_model = None,
-            bias_model = None,
-            halo_profile_model = None,
-            halo_concentration_model = None,
-            transfer_model = None,
-            transfer_params = {},
-            growth_model = None,
-            growth_params = {},
-            norm_cen = 0.0,
-            norm_sat = 0.0,
-            eta_cen = 0.0,
-            eta_sat = 0.0,
-            overdensity = 0.0,
-            delta_c = 0.0,
-            mead_correction = None,
+            k_vec=None,
+            z_vec=None,
+            lnk_min=0.0,
+            lnk_max=0.0,
+            dlnk=0.0,
+            Mmin=0.0,
+            Mmax=0.0,
+            dlog10m=0.0,
+            mdef_model=None,
+            hmf_model=None,
+            bias_model=None,
+            halo_profile_model=None,
+            halo_concentration_model=None,
+            transfer_model=None,
+            transfer_params={},
+            growth_model=None,
+            growth_params={},
+            norm_cen=0.0,
+            norm_sat=0.0,
+            eta_cen=0.0,
+            eta_sat=0.0,
+            overdensity=0.0,
+            delta_c=0.0,
+            mead_correction=None,
             **cosmology_kwargs
         ):
         super().__init__(**cosmology_kwargs)
