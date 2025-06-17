@@ -677,7 +677,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         Return the amplitude of matter fluctuations on 8 Mpc scales at the given redshifts.
         """
-        return np.squeeze(np.array([x.sigma8_z for x in self.hmf_cen]))
+        return np.array([x.sigma8_z[0] for x in self.hmf_cen])
 
     @property
     def fnu(self):

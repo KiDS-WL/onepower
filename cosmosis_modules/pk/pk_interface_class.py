@@ -123,8 +123,8 @@ def setup(options):
     config_hmf['delta_c'] = options[option_section, 'delta_c']
     config_hmf['bias_model'] = options.get_string(option_section, 'bias_model')
     
-    config_hmf['lnk_min'] = -18.0
-    config_hmf['lnk_max'] = 18.0
+    config_hmf['lnk_min'] = np.log(1e-8)#-18.0
+    config_hmf['lnk_max'] = np.log(2e4)#18.0
     config_hmf['dlnk'] = 0.05#0.001
 
 
@@ -548,7 +548,7 @@ def execute(block, config):
         block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnm)
         block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'nu', nu)
         block.put_double_array_1d('hmf', 'neff', neff)
-        block.put_double_array_1d('hmf', 'sigma8_z', np.squeeze(sigma8_z))
+        block.put_double_array_1d('hmf', 'sigma8_z', sigma8_z)
     
         # Linear halo bias
         block.put_grid('halobias', 'z', z_vec, 'm_h', mass, 'b_hb', halo_bias)
