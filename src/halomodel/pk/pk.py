@@ -1745,8 +1745,7 @@ class AlignmentSpectra(GalaxySpectra):
             self.mass_avg[:, :, np.newaxis, np.newaxis]
         )
         return profile
-
-
+        
     @cached_property
     def Ic_align_term(self):
         """

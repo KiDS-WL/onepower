@@ -125,7 +125,7 @@ def setup(options):
     
     config_hmf['lnk_min'] = -18.0
     config_hmf['lnk_max'] = 18.0
-    config_hmf['dlnk'] = 0.001
+    config_hmf['dlnk'] = 0.05#0.001
 
 
     """Setup function to parse options and return configuration."""
@@ -182,6 +182,9 @@ def setup(options):
     matter = p_mm
     galaxy = p_gg or p_gm
     alignment = p_gI or p_mI or p_II
+    
+    central_IA = options.get_string(option_section, 'central_IA_depends_on', default='halo_mass')
+    satellite_IA = options.get_string(option_section, 'satellite_IA_depends_on', default='halo_mass')
 
     population_name = options.get_string(option_section, 'output_suffix', default='').lower()
     pop_name = f'_{population_name}' if population_name else ''
@@ -252,11 +255,11 @@ def setup(options):
         obs_settings['nobs'] = options[option_section, 'nobs_smf']
         obs_settings['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
 
-    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl
+    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl, central_IA, satellite_IA
 
 def execute(block, config):
     """Execute function to compute power spectra based on configuration."""
-    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl = config
+    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl, central_IA, satellite_IA = config
 
     norm_cen = block[config_hmf['profile_value_name'], 'norm_cen']
     norm_sat = block[config_hmf['profile_value_name'], 'norm_sat']
@@ -443,10 +446,7 @@ def execute(block, config):
 
         align_params = {}
         
-        block.put_string(f'intrinsic_alignment_parameters{pop_name}', 'central_IA_depends_on', 'halo_mass')
-        block.put_string(f'intrinsic_alignment_parameters{pop_name}', 'satellite_IA_depends_on', 'halo_mass')
-        
-        if block.get_string(f'intrinsic_alignment_parameters{pop_name}', 'satellite_IA_depends_on') == 'halo_mass':
+        if central_IA == 'halo_mass':
             align_params.update({
                 'beta_sat': block[f'intrinsic_alignment_parameters{pop_name}', 'beta_sat'],
                 'mpivot_sat': block[f'intrinsic_alignment_parameters{pop_name}', 'M_pivot'],
@@ -457,7 +457,7 @@ def execute(block, config):
                 'mpivot_sat': None,
             })
 
-        if block.get_string(f'intrinsic_alignment_parameters{pop_name}', 'central_IA_depends_on') == 'halo_mass':
+        if satellite_IA == 'halo_mass':
             align_params.update({
                 'beta_cen': block[f'intrinsic_alignment_parameters{pop_name}', 'beta'],
                 'mpivot_cen': block[f'intrinsic_alignment_parameters{pop_name}', 'M_pivot'],
@@ -481,46 +481,43 @@ def execute(block, config):
             'align_params': align_params,
         })
 
-    if matter:
-        matter_power = MatterSpectra(**matter_kwargs)
-        hmf = matter_power
-    if galaxy:
+    hod = True
+    if matter and not galaxy:
+        power = MatterSpectra(**matter_kwargs)
+        hod = False
+    if matter and galaxy:
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs}
-        galaxy_power = GalaxySpectra(**comb_kwargs)
-        hod = galaxy_power
-        hmf = galaxy_power
+        power = GalaxySpectra(**comb_kwargs)
     if alignment:
         comb_kwargs = {**matter_kwargs, **galaxy_kwargs, **align_kwargs}
-        alignment_power = AlignmentSpectra(**comb_kwargs)
-        hod = alignment_power
-        hmf = alignment_power
+        power = AlignmentSpectra(**comb_kwargs)
 
-    mass = hmf.mass
+    mass = power.mass
     # not optimal, rethink!
     if matter:
         #mass = hmf.mass
         
-        u_dm_cen = hmf.u_dm
-        u_dm_sat = hmf.u_sat
-        mean_density0 = hmf.mean_density0
-        mean_density_z = hmf.mean_density_z
-        rho_crit = hmf.mean_density0 / block[cosmo_params, 'omega_m']
-        rho_halo = hmf.rho_halo
+        u_dm_cen = power.u_dm
+        u_dm_sat = power.u_sat
+        mean_density0 = power.mean_density0
+        mean_density_z = power.mean_density_z
+        rho_crit = power.mean_density0 / block[cosmo_params, 'omega_m']
+        rho_halo = power.rho_halo
         
-        dndlnm = hmf.dndlnm
-        halo_bias = hmf.halo_bias
-        nu = hmf.nu
-        neff = hmf.neff
-        sigma8_z = hmf.sigma8_z
-        fnu = hmf.fnu
+        dndlnm = power.dndlnm
+        halo_bias = power.halo_bias
+        nu = power.nu
+        neff = power.neff
+        sigma8_z = power.sigma8_z
+        fnu = power.fnu
         
-        conc_cen = hmf.conc_cen
-        conc_sat = hmf.conc_sat
-        r_s_cen = hmf.r_s_cen
-        r_s_sat = hmf.r_s_sat
+        conc_cen = power.conc_cen
+        conc_sat = power.conc_sat
+        r_s_cen = power.r_s_cen
+        r_s_sat = power.r_s_sat
         
-        rvir_cen = hmf.rvir_cen
-        rvir_sat = hmf.rvir_sat
+        rvir_cen = power.rvir_cen
+        rvir_sat = power.rvir_sat
         
         # TODO: Clean these up. Put more of them into the same folder
         block.put_grid('concentration_m', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
@@ -560,16 +557,16 @@ def execute(block, config):
         block[cosmo_params, 'fnu'] = fnu
 
     if hod:
-        N_cen = hod.hod.compute_hod_cen
-        N_sat = hod.hod.compute_hod_sat
-        N_tot = hod.hod.compute_hod
-        numdens_cen = hod.hod.compute_number_density_cen
-        numdens_sat = hod.hod.compute_number_density_sat
-        numdens_tot = hod.hod.compute_number_density
-        fraction_c = hod.hod.f_c
-        fraction_s = hod.hod.f_s
-        mass_avg = hod.mass_avg
-        f_star = hod.fstar
+        N_cen = power.hod.compute_hod_cen
+        N_sat = power.hod.compute_hod_sat
+        N_tot = power.hod.compute_hod
+        numdens_cen = power.hod.compute_number_density_cen
+        numdens_sat = power.hod.compute_number_density_sat
+        numdens_tot = power.hod.compute_number_density
+        fraction_c = power.hod.f_c
+        fraction_s = power.hod.f_s
+        mass_avg = power.mass_avg
+        f_star = power.fstar
         
         hod_bins = N_cen.shape[0]
         block.put_int(hod_section_name, 'nbins', hod_bins)
@@ -587,12 +584,12 @@ def execute(block, config):
             block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_s[nb])
             block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg[nb])
         
-        if hod.obs_func is not None and obs_settings['save_observable']:
-            obs_func = hod.obs_func
-            obs_func_c = hod.obs_func_cen
-            obs_func_s = hod.obs_func_sat
-            obs_z = hod.obs_func_z
-            obs_range = hod.obs_func_obs
+        if power.obs_func is not None and obs_settings['save_observable']:
+            obs_func = power.obs_func
+            obs_func_c = power.obs_func_cen
+            obs_func_s = power.obs_func_sat
+            obs_z = power.obs_func_z
+            obs_range = power.obs_func_obs
             obs_bins = obs_range.shape[0]
             
             observable_section_name = obs_settings['observable_section_name']
@@ -612,7 +609,7 @@ def execute(block, config):
                     block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb])
     
     if p_mm or response:
-        pk_mm_1h, pk_mm_2h, pk_mm, _ = matter_power.compute_power_spectrum_mm(
+        pk_mm_1h, pk_mm_2h, pk_mm, _ = power.compute_power_spectrum_mm(
             one_halo_ktrunc = one_halo_ktrunc,
             two_halo_ktrunc = two_halo_ktrunc
         )
@@ -629,7 +626,7 @@ def execute(block, config):
             block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm[0])
 
     if p_gg:
-        pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = galaxy_power.compute_power_spectrum_gg(
+        pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = power.compute_power_spectrum_gg(
             one_halo_ktrunc = one_halo_ktrunc,
             two_halo_ktrunc = two_halo_ktrunc,
             poisson_par = poisson_par
@@ -648,7 +645,7 @@ def execute(block, config):
                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg[nb])
 
     if p_gm:
-        pk_gm_1h, pk_gm_2h, pk_gm, bgm_linear = galaxy_power.compute_power_spectrum_gm(
+        pk_gm_1h, pk_gm_2h, pk_gm, bgm_linear = power.compute_power_spectrum_gm(
             one_halo_ktrunc = one_halo_ktrunc,
             two_halo_ktrunc = two_halo_ktrunc,
             poisson_par = poisson_par
@@ -667,7 +664,7 @@ def execute(block, config):
                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm[nb])
     
     if p_II:
-        pk_II_1h, pk_II_2h, pk_II, _ = alignment_power.compute_power_spectrum_ii(
+        pk_II_1h, pk_II_2h, pk_II, _ = power.compute_power_spectrum_ii(
             one_halo_ktrunc = one_halo_ktrunc_ia,
             two_halo_ktrunc = two_halo_ktrunc_ia,
             poisson_par = poisson_par
@@ -685,7 +682,7 @@ def execute(block, config):
                 block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II[nb])
     
     if p_gI:
-        pk_gI_1h, pk_gI_2h, pk_gI, _ = alignment_power.compute_power_spectrum_gi(
+        pk_gI_1h, pk_gI_2h, pk_gI, _ = power.compute_power_spectrum_gi(
             one_halo_ktrunc = one_halo_ktrunc_ia,
             two_halo_ktrunc = two_halo_ktrunc_ia,
             poisson_par = poisson_par
@@ -703,7 +700,7 @@ def execute(block, config):
                 block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI[nb])
     
     if p_mI:
-        pk_mI_1h, pk_mI_2h, pk_mI, _ = alignment_power.compute_power_spectrum_mi(
+        pk_mI_1h, pk_mI_2h, pk_mI, _ = power.compute_power_spectrum_mi(
             one_halo_ktrunc = one_halo_ktrunc_ia,
             two_halo_ktrunc = two_halo_ktrunc_ia,
             poisson_par = poisson_par
