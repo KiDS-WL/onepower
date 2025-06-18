@@ -57,7 +57,7 @@ import numexpr as ne
 from scipy.integrate import simpson, trapezoid
 from scipy.ndimage import gaussian_filter1d
 
-from .ia_rad import SatelliteAlignment
+from .ia import SatelliteAlignment
 from .bnl import NonLinearBias
 from ..hod import hod as hod_class
 from ..hmi.hmi import HaloModelIngredients
