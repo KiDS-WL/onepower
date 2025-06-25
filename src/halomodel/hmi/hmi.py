@@ -41,8 +41,8 @@ class SOVirial_Mead(SphericalOverdensity):
 
     def halo_density(self, z=0, cosmo=Planck15):
         """The density of haloes under this definition."""
-        return self.params["overdensity"].reshape(z.shape) * self.mean_density(z, cosmo)
-        #return self.params["overdensity"] * self.mean_density(z, cosmo)
+        #return self.params["overdensity"].reshape(z.shape) * self.mean_density(z, cosmo)
+        return self.params["overdensity"] * self.mean_density(z, cosmo)
 
     @property
     def colossus_name(self):
