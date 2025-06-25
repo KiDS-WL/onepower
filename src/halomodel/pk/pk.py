@@ -60,7 +60,7 @@ from scipy.ndimage import gaussian_filter1d
 from .ia import SatelliteAlignment
 from .bnl import NonLinearBias
 from ..hod import hod as hod_class
-from ..hmi.hmi import HaloModelIngredients
+from ..hmi.hmi import HaloModelIngredients, HaloModelIngredientsNoLoop
 
 valid_units = ['1/h', '1/h^2']
 

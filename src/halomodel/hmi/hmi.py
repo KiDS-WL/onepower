@@ -6,7 +6,7 @@ from scipy.optimize import root_scalar
 from scipy.integrate import simpson, solve_ivp, quad
 from astropy.cosmology import Flatw0waCDM, Planck15
 from hmf.halos.mass_definitions import SphericalOverdensity
-from halomod.halo_model import DMHaloModel
+from halomod.halo_model import DMHaloModel, TracerHaloModel
 from halomod.concentration import make_colossus_cm, interp_concentration
 import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
@@ -41,7 +41,8 @@ class SOVirial_Mead(SphericalOverdensity):
 
     def halo_density(self, z=0, cosmo=Planck15):
         """The density of haloes under this definition."""
-        return self.params["overdensity"] * self.mean_density(z, cosmo)
+        return self.params["overdensity"].reshape(z.shape) * self.mean_density(z, cosmo)
+        #return self.params["overdensity"] * self.mean_density(z, cosmo)
 
     @property
     def colossus_name(self):
@@ -884,3 +885,441 @@ class HaloModelIngredients(CosmologyBase):
                 af = root_scalar(af_root, bracket=(1e-3, 1.)).root
             zf[iM] = -1.0 + 1.0 / af
         return zf
+
+
+class HaloModelIngredientsNoLoop(CosmologyBase):
+    # This class interacts with the redshift vectorised version of hmf and halomod,
+    # which are currently in developement phase
+    # It works preliminary, but returns quantities that might be wrong or not checked
+    # if the vectorisation works properly.
+    # Not to be used at this moment!
+
+    """
+    A class to compute various ingredients for the halo model.
+    This includes halo mass functions, bias models, halo profiles, and concentration models.
+    Based on the hmf and halomod packages.
+
+    Parameters:
+    -----------
+    k_vec : array_like, optional
+        Array of wavenumbers.
+    z_vec : array_like, optional
+        Array of redshifts.
+    lnk_min : float, optional
+        Minimum natural log of wavenumber (for hmf).
+    lnk_max : float, optional
+        Maximum natural log of wavenumber (for hmf).
+    dlnk : float, optional
+        Spacing in natural log of wavenumber (for hmf).
+    Mmin : float, optional
+        Minimum halo mass (for hmf).
+    Mmax : float, optional
+        Maximum halo mass (for hmf).
+    dlog10m : float, optional
+        Spacing in log10 of halo mass (for hmf).
+    mdef_model : str, optional
+        Mass definition model (for hmf).
+    hmf_model : str, optional
+        Halo mass function model (for hmf).
+    bias_model : str, optional
+        Halo bias model (for halomod).
+    halo_profile_model : str, optional
+        Halo profile model (for halomod).
+    halo_concentration_model : str, optional
+        Halo concentration model (for halomod).
+    transfer_model : str, optional
+        Transfer function model (for hmf).
+    transfer_params : dict, optional
+        Parameters for the transfer function (for hmf).
+    growth_model : str, optional
+        Growth function model (for hmf).
+    growth_params : dict, optional
+        Parameters for the growth function (for hmf).
+    norm_cen : float, optional
+        Normalization of c(M) relation for central galaxies.
+    norm_sat : float, optional
+        Normalization of c(M) relation for satellite galaxies.
+    eta_cen : float, optional
+        Bloating parameter for central galaxies.
+    eta_sat : float, optional
+        Bloating parameter for satellite galaxies.
+    overdensity : float, optional
+        Overdensity parameter.
+    delta_c : float, optional
+        Critical density threshold for collapse.
+    mead_correction : str, optional
+        Correction model from Mead et al.
+    
+    """
+    #TO-DO: set defaults to sensible values!
+    def __init__(self,
+            k_vec=None,
+            z_vec=None,
+            lnk_min=0.0,
+            lnk_max=0.0,
+            dlnk=0.0,
+            Mmin=0.0,
+            Mmax=0.0,
+            dlog10m=0.0,
+            mdef_model=None,
+            hmf_model=None,
+            bias_model=None,
+            halo_profile_model=None,
+            halo_concentration_model=None,
+            transfer_model=None,
+            transfer_params={},
+            growth_model=None,
+            growth_params={},
+            norm_cen=0.0,
+            norm_sat=0.0,
+            eta_cen=0.0,
+            eta_sat=0.0,
+            overdensity=0.0,
+            delta_c=0.0,
+            mead_correction=None,
+            **cosmology_kwargs
+        ):
+        super().__init__(**cosmology_kwargs)
+    
+        self.k_vec = k_vec
+        self.z_vec = z_vec
+        self.lnk_min = lnk_min
+        self.lnk_max = lnk_max
+        self.dlnk = dlnk
+        self.Mmin = Mmin
+        self.Mmax = Mmax
+        self.dlog10m = dlog10m
+        self.halo_profile_model = halo_profile_model
+        self.transfer_model = transfer_model
+        self.transfer_params = transfer_params
+        self.growth_model = growth_model
+        self.growth_params = growth_params
+        self.mead_correction = mead_correction
+
+        self.norm_cen = norm_cen * np.ones_like(self.z_vec)
+        self.norm_sat = norm_sat * np.ones_like(self.z_vec)
+
+        self.halo_profile_params = {'cosmo': self.cosmo_model}
+        self.scale_factor = self.cosmo_model.scale_factor(self.z_vec)
+
+        if self.mead_correction in ['feedback', 'nofeedback']:
+            self._setup_mead_correction()
+        else:
+            self._setup_default(hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, eta_cen, eta_sat)
+        
+    def _setup_mead_correction(self):
+        """
+        Set up the Mead corrections for the halo model.
+        """
+        self.disable_mass_conversion = True
+        self.hmf_model = 'ST'
+        self.bias_model = 'ST99'
+        self.halo_concentration_model = interp_concentration(getattr(concentration_classes, 'Bullock01'))
+        
+        self.delta_c = self.dc_Mead
+        self.mdef_model = SOVirial_Mead
+        self.mdef_params = {'overdensity': np.array([overdensity for overdensity in self.Dv_Mead])}
+
+        #self.norm_cen = np.ones_like(self.z_vec) # tmp
+        #self.norm_sat = np.ones_like(self.z_vec) # tmp
+        #self.eta_sat = eta_sat * np.ones_like(self.z_vec) # tmp
+
+        if self.mead_correction == 'nofeedback':
+            self.K = 5.196 * np.ones_like(self.z_vec)
+        elif self.mead_correction == 'feedback':
+            theta_agn = self.log10T_AGN - 7.8
+            self.K = (5.196 / 4.0) * ((3.44 - 0.496 * theta_agn) * np.power(10.0, self.z_vec * (-0.0671 - 0.0371 * theta_agn)))
+
+    def _setup_default(self, hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, eta_cen, eta_sat):
+        """
+        Set up the default halo model.
+
+        Parameters:
+        -----------
+        hmf_model : str
+            Halo mass function model.
+        bias_model : str
+            Halo bias model.
+        halo_concentration_model : str
+            Halo concentration model.
+        mdef_model : str
+            Mass definition model.
+        overdensity : float
+            Overdensity parameter.
+        delta_c : float
+            Critical density threshold for collapse.
+        eta_cen : float
+            Bloating parameter for central galaxies.
+        eta_sat : float
+            Bloating parameter for satellite galaxies.
+        """
+        self.disable_mass_conversion = False
+        self.hmf_model = hmf_model
+        self.bias_model = bias_model
+        try:
+            self.halo_concentration_model = interp_concentration(getattr(concentration_classes, halo_concentration_model))
+        except:
+            self.halo_concentration_model = interp_concentration(make_colossus_cm(halo_concentration_model))
+        self.mdef_model = mdef_model
+        self.mdef_params = {} if self.mdef_model == 'SOVirial' else {'overdensity': overdensity}
+        self.delta_c = (3.0 / 20.0) * (12.0 * np.pi) ** (2.0 / 3.0) * (1.0 + 0.0123 * np.log10(self.cosmo_model.Om(self.z_vec))) if self.mdef_model == 'SOVirial' else delta_c * np.ones_like(self.z_vec)
+        
+        self.eta_cen = eta_cen * np.ones_like(self.z_vec)
+        self.eta_sat = eta_sat * np.ones_like(self.z_vec)
+        
+    @cached_property
+    def hmf_generator(self):
+        """
+        Generate halo mass function models for central and satellite galaxies at different redshifts.
+        Setups the hmf and halomod classes at desired cosmology and uses the "update" functionality
+        to calculate the models at different redshifts.
+        """
+        
+        x = DMHaloModel(
+                z=self.z_vec,
+                lnk_min=self.lnk_min,
+                lnk_max=self.lnk_max,
+                dlnk=self.dlnk,
+                Mmin=self.Mmin,
+                Mmax=self.Mmax,
+                dlog10m=self.dlog10m,
+                hmf_model=self.hmf_model,
+                mdef_model=self.mdef_model,
+                disable_mass_conversion=self.disable_mass_conversion,
+                bias_model=self.bias_model,
+                halo_profile_model=self.halo_profile_model,
+                halo_profile_params=self.halo_profile_params,
+                halo_concentration_model=self.halo_concentration_model,
+                cosmo_model=self.cosmo_model,
+                sigma_8=self.sigma_8,
+                n=self.n_s,
+                transfer_model=self.transfer_model,
+                transfer_params=self.transfer_params,
+                growth_model=self.growth_model,
+                growth_params=self.growth_params,
+                mdef_params=self.mdef_params,
+                delta_c=self.delta_c
+            )
+        
+        y = x.clone()
+        x_out = []
+        y_out = []
+        if self.mead_correction in ['feedback', 'nofeedback']:
+            # For centrals
+            eta_cen = 0.1281 * x.sigma8_z**(-0.3644)
+            x.update(
+                halo_profile_params={'eta_bloat': eta_cen[:, np.newaxis]},
+                halo_concentration_params={'norm': self.norm_cen[:, np.newaxis], 'K': self.K[:, np.newaxis]}
+            )
+            #yield x
+            
+            # For satellites
+            eta_sat = 0.1281 * y.sigma8_z**(-0.3644)
+            y.update(
+                halo_profile_params={'eta_bloat': eta_sat[:, np.newaxis]},
+                halo_concentration_params={'norm': self.norm_sat[:, np.newaxis], 'K': self.K[:, np.newaxis]}
+            )
+            #yield y
+        else:
+            x.update(
+                halo_profile_params={'eta_bloat': self.eta_cen[:, np.newaxis]},
+                halo_concentration_params={'norm': self.norm_cen[:, np.newaxis]}
+            )
+            #yield x
+            
+            y.update(
+                halo_profile_params={'eta_bloat': self.eta_sat[:, np.newaxis]},
+                halo_concentration_params={'norm': self.norm_sat[:, np.newaxis]}
+            )
+            #yield y
+        return x, y
+
+    @cached_property
+    def hmf_cen(self):
+        """
+        Return the halo mass function for central galaxies.
+        """
+        return self.hmf_generator[0]
+
+    @cached_property
+    def hmf_sat(self):
+        """
+        Return the halo mass function for satellite galaxies.
+        """
+        return self.hmf_generator[1]
+
+    @property
+    def mass(self):
+        """
+        Return the masses.
+        """
+        return self.hmf_cen.m
+
+    @property
+    def power(self):
+        """
+        Return the linear power spectrum at z.
+        """
+        return self.hmf_cen.power
+        
+    @property
+    def nonlinear_power(self):
+        """
+        Return the non-linear power spectrum at z (if options passed).
+        """
+        return self.hmf_cen.nonlinear_power
+        
+    @property
+    def kh(self):
+        """
+        Return the k vector defined using lnk in hmf.
+        """
+        return self.hmf_cen.k
+
+    @property
+    def halo_overdensity_mean(self):
+        """
+        Return the mean halo overdensity.
+        """
+        return self.hmf_cen.halo_overdensity_mean
+
+    @property
+    def nu(self):
+        """
+        Return the peak height parameter.
+        """
+        return self.hmf_cen.nu**0.5
+
+    @property
+    def dndlnm(self):
+        """
+        Return the differential mass function.
+        """
+        return self.hmf_cen.dndlnm
+
+    @property
+    def mean_density0(self):
+        """
+        Return the mean density at redshift zero.
+        """
+        return np.array([self.hmf_cen.mean_density0 for _ in self.z_vec])
+
+    @property
+    def mean_density_z(self):
+        """
+        Return the mean density at the given redshifts.
+        """
+        return self.hmf_cen.mean_density
+
+    @property
+    def rho_halo(self):
+        """
+        Return the halo density.
+        """
+        return self.hmf_cen.halo_overdensity_mean * self.hmf_cen.mean_density0
+
+    @property
+    def halo_bias(self):
+        """
+        Return the halo bias.
+        """
+        return self.hmf_cen.halo_bias
+
+    @property
+    def neff(self):
+        """
+        Return the effective spectral index.
+        """
+        return self.hmf_cen.n_eff_at_collapse
+
+    @property
+    def sigma8_z(self):
+        """
+        Return the amplitude of matter fluctuations on 8 Mpc scales at the given redshifts.
+        """
+        return self.hmf_cen.sigma8_z
+
+    @property
+    def fnu(self):
+        """
+        Return the neutrino density fraction.
+        """
+        return np.array([self.cosmo_model.Onu0 / self.cosmo_model.Om0 for _ in self.z_vec])
+
+    @property
+    def conc_cen(self):
+        """
+        Return the concentration for matter/central galaxies.
+        """
+        return self.hmf_cen.cmz_relation
+
+    @property
+    def nfw_cen(self):
+        """
+        Return the NFW profile for matter/central galaxies.
+        """
+        return self.hmf_cen.halo_profile.u(self.k_vec, self.hmf_cen.m)
+
+    @property
+    def u_dm(self):
+        """
+        Return the normalized NFW profile for dark matter.
+        """
+        return self.nfw_cen / np.expand_dims(self.nfw_cen[:, 0, :], 1)
+
+    @property
+    def r_s_cen(self):
+        """
+        Return the scale radius for matter/central galaxies.
+        """
+        return self.hmf_cen.halo_profile._rs_from_m(self.hmf_cen.m)
+
+    @property
+    def rvir_cen(self):
+        """
+        Return the virial radius for matter/central galaxies.
+        """
+        return self.hmf_cen.halo_profile.halo_mass_to_radius(self.hmf_cen.m)
+
+    @property
+    def conc_sat(self):
+        """
+        Return the concentration for satellite galaxies.
+        """
+        return self.hmf_sat.cmz_relation
+
+    @property
+    def nfw_sat(self):
+        """
+        Return the NFW profile for satellite galaxies.
+        """
+        return self.hmf_sat.halo_profile.u(self.k_vec, self.hmf_sat.m)
+
+    @property
+    def u_sat(self):
+        """
+        Return the normalized NFW profile for satellite galaxies.
+        """
+        return self.nfw_sat / np.expand_dims(self.nfw_sat[:, 0, :], 1)
+
+    @property
+    def r_s_sat(self):
+        """
+        Return the scale radius for satellite galaxies.
+        """
+        return self.hmf_sat.halo_profile._rs_from_m(self.hmf_sat.m)
+
+    @property
+    def rvir_sat(self):
+        """
+        Return the virial radius for satellite galaxies.
+        """
+        return self.hmf_sat.halo_profile.halo_mass_to_radius(self.hmf_sat.m)
+    
+    @property
+    def growth_factor(self):
+        """
+        Return the growth factor.
+        """
+        # TO-DO: Check against interpolated one from CAMB!
+        return self.hmf_cen._growth_factor_fn(self.z_vec)
