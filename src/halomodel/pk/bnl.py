@@ -4,7 +4,7 @@ from dark_emulator import darkemu
 from collections import OrderedDict
 from scipy.interpolate import interp1d, RegularGridInterpolator
 from scipy.optimize import curve_fit
-
+from functools import cached_property
 
 class NonLinearBias:
     """
