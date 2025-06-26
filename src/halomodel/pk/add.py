@@ -8,7 +8,7 @@ from hmf._internals._framework import Framework
 #from .pk import MatterSpecta, GalaxySpectra, AlignmentSpectra
 import .pk as power_class
 
-class HaloModel(Framework):
+class AddUpsample(Framework):
     """
     The halo model.
 
