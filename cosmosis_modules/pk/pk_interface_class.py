@@ -617,7 +617,10 @@ def execute(block, config):
                     block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb])
     
     if p_mm or response:
-        pk_mm_1h, pk_mm_2h, pk_mm, _ = power.compute_power_spectrum_mm
+        #pk_mm_1h, pk_mm_2h, pk_mm, _ = power.compute_power_spectrum_mm
+        pk_mm_1h = power.compute_power_spectrum_mm.pk_1h
+        pk_mm_2h = power.compute_power_spectrum_mm.pk_2h
+        pk_mm = power.compute_power_spectrum_mm.pk_tot
         if response:
             # Here we save the computed Pmm to datablock as matter_power_hm,
             # but not replacing the Pnl with it, as in the response
@@ -631,7 +634,11 @@ def execute(block, config):
             block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm[0])
 
     if p_gg:
-        pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = power.compute_power_spectrum_gg
+        #pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = power.compute_power_spectrum_gg
+        pk_gg_1h = power.compute_power_spectrum_gg.pk_1h
+        pk_gg_2h = power.compute_power_spectrum_gg.pk_2h
+        pk_gg = power.compute_power_spectrum_gg.pk_tot
+        bg_linear = power.compute_power_spectrum_gg.galaxy_linear_bias
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
 
@@ -646,7 +653,11 @@ def execute(block, config):
                 block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg[nb])
 
     if p_gm:
-        pk_gm_1h, pk_gm_2h, pk_gm, bgm_linear = power.compute_power_spectrum_gm
+        #pk_gm_1h, pk_gm_2h, pk_gm, bgm_linear = power.compute_power_spectrum_gm
+        pk_gm_1h = power.compute_power_spectrum_gm.pk_1h
+        pk_gm_2h = power.compute_power_spectrum_gm.pk_2h
+        pk_gm = power.compute_power_spectrum_gm.pk_tot
+        bgm_linear = power.compute_power_spectrum_gm.galaxy_linear_bias
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
         
@@ -661,7 +672,10 @@ def execute(block, config):
                 block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm[nb])
     
     if p_II:
-        pk_II_1h, pk_II_2h, pk_II, _ = power.compute_power_spectrum_ii
+        #pk_II_1h, pk_II_2h, pk_II, _ = power.compute_power_spectrum_ii
+        pk_II_1h = power.compute_power_spectrum_ii.pk_1h
+        pk_II_2h = power.compute_power_spectrum_ii.pk_2h
+        pk_II = power.compute_power_spectrum_ii.pk_tot
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
         
@@ -675,7 +689,12 @@ def execute(block, config):
                 block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II[nb])
     
     if p_gI:
-        pk_gI_1h, pk_gI_2h, pk_gI, _ = power.compute_power_spectrum_gi
+        #pk_gI_1h, pk_gI_2h, pk_gI, _ = power.compute_power_spectrum_gi
+        pk_gI_1h = power.compute_power_spectrum_gi.pk_1h
+        pk_gI_2h = power.compute_power_spectrum_gi.pk_2h
+        pk_gI = power.compute_power_spectrum_gi.pk_tot
+                                        
+        #quit()
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             
@@ -689,7 +708,10 @@ def execute(block, config):
                 block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI[nb])
     
     if p_mI:
-        pk_mI_1h, pk_mI_2h, pk_mI, _ = power.compute_power_spectrum_mi
+        #pk_mI_1h, pk_mI_2h, pk_mI, _ = power.compute_power_spectrum_mi
+        pk_mI_1h = power.compute_power_spectrum_mi.pk_1h
+        pk_mI_2h = power.compute_power_spectrum_mi.pk_2h
+        pk_mI = power.compute_power_spectrum_mi.pk_tot
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             

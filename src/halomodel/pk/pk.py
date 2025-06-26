@@ -167,6 +167,17 @@ def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25)
     return Pk_wiggle
 
 
+class PowerSpectrumResult:
+    """
+    A helper class to attach the power spectrum outputs as atributes
+    """
+    def __init__(self, pk_1h, pk_2h, pk_tot, galaxy_linear_bias):
+        self.pk_1h = pk_1h
+        self.pk_2h = pk_2h
+        self.pk_tot = pk_tot
+        self.galaxy_linear_bias = galaxy_linear_bias
+
+
 class MatterSpectra(HaloModelIngredients):
     """
     Class to compute matter power spectra using the halo model approach.
@@ -1224,7 +1235,7 @@ class MatterSpectra(HaloModelIngredients):
                 pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
                 pk_tot = pk_1h + pk_2h
     
-        return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
+        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
 
 
 class GalaxySpectra(MatterSpectra):
@@ -1560,7 +1571,7 @@ class GalaxySpectra(MatterSpectra):
         pk_tot = pk_1h + pk_2h
         galaxy_linear_bias = np.sqrt(self.Ic_term * self.Ic_term + self.Is_term * self.Is_term + 2.0 * self.Ic_term * self.Is_term)
             
-        return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
+        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
     
     @cached_quantity
     def compute_power_spectrum_gm(self):
@@ -1599,7 +1610,7 @@ class GalaxySpectra(MatterSpectra):
         pk_tot = pk_1h + pk_2h
         galaxy_linear_bias = np.sqrt(self.Ic_term * self.Im_term + self.Is_term * self.Im_term)
     
-        return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
+        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
 
 
 class AlignmentSpectra(GalaxySpectra):
@@ -1922,7 +1933,7 @@ class AlignmentSpectra(GalaxySpectra):
             pk_2h = pk_cm_2h + pk_sm_2h
             pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
                 
-        return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
+        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
     
     @cached_quantity
     def compute_power_spectrum_ii(self):
@@ -1963,7 +1974,7 @@ class AlignmentSpectra(GalaxySpectra):
             pk_2h = pk_cc_2h + pk_ss_2h + pk_cs_2h
             pk_tot = pk_ss_1h + pk_cc_2h + pk_ss_2h + pk_cs_2h
                 
-        return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
+        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
     
     @cached_quantity
     def compute_power_spectrum_gi(self):
@@ -1999,4 +2010,4 @@ class AlignmentSpectra(GalaxySpectra):
             pk_2h = pk_cs_2h + pk_cc_2h
             pk_tot = pk_cs_1h + pk_cs_2h + pk_cc_2h
     
-        return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
+        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
