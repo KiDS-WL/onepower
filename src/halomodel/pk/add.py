@@ -86,6 +86,8 @@ class AddUpsample(Framework):
         # TODO: Add the cross terms
         # This is not optimised, but it is good to first choose what we want to implement
         # in terms of cross terms.
+        
+        # fraction to be provided as a 2D table of z and f_red, and interpolated!
         if name in ['intrinsic_power', 'galaxy_power', 'galaxy_intrinsic_power']:
             pk_tot = self.fraction[:, np.newaxis]**2.0 * pk_red + (1.0 - self.fraction[:, np.newaxis])**2.0 * pk_blue
         else:
