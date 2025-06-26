@@ -212,6 +212,7 @@ def setup(options):
     if options.has_value(option_section, 'observables_file_hod'):
         hod_settings['observables_file'] = options.get_string(option_section, 'observables_file_hod')
         hod_settings['observable_z'] = True
+        nbins = 1
     else:
         hod_settings['observables_file'] = None
         hod_settings['observable_z'] = False
@@ -220,6 +221,7 @@ def setup(options):
         hod_settings['zmin'] = np.asarray([options[option_section, 'zmin_hod']]).flatten()
         hod_settings['zmax'] = np.asarray([options[option_section, 'zmax_hod']]).flatten()
         hod_settings['nz'] = options[option_section, 'nz_hod']
+        nbins = len(hod_settings['obs_min'])
     hod_settings['nobs'] = options[option_section, 'nobs_hod']
     hod_settings['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
     
@@ -255,11 +257,11 @@ def setup(options):
         obs_settings['nobs'] = options[option_section, 'nobs_smf']
         obs_settings['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
 
-    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl, central_IA, satellite_IA
+    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl, central_IA, satellite_IA, nbins
 
 def execute(block, config):
     """Execute function to compute power spectra based on configuration."""
-    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl, central_IA, satellite_IA = config
+    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl, central_IA, satellite_IA, nbins = config
 
     norm_cen = block[config_hmf['profile_value_name'], 'norm_cen']
     norm_sat = block[config_hmf['profile_value_name'], 'norm_sat']
@@ -426,6 +428,7 @@ def execute(block, config):
                         raise Exception(f'Error: parameter {param} is needed for the requested hod model: {hod_model}')
                     param_list.append(block[hod_values_name, param_bin])
                 hod_params[param] = np.array(param_list)
+                
         galaxy_kwargs.update({
             'hod_model': hod_model,
             'hod_params': hod_params,

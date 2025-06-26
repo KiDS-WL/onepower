@@ -10,6 +10,8 @@ from halomod.halo_model import DMHaloModel, TracerHaloModel
 from halomod.concentration import make_colossus_cm, interp_concentration
 import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
+from hmf._internals._cache import cached_quantity, parameter
+from hmf._internals._framework import Framework
 
 """
 A module for computing various cosmological quantities and halo model ingredients.
@@ -53,7 +55,7 @@ class SOVirial_Mead(SphericalOverdensity):
         return "SOVirial"
 
 
-class CosmologyBase:
+class CosmologyBase(Framework):
     """
     A cosmology base class
 
@@ -107,7 +109,51 @@ class CosmologyBase:
         self.sigma_8 = sigma_8
         self.log10T_AGN = log10T_AGN
 
-    @cached_property
+    @parameter("param")
+    def h0(self, val):
+        return val
+        
+    @parameter("param")
+    def omega_c(self, val):
+        return val
+        
+    @parameter("param")
+    def omega_b(self, val):
+        return val
+        
+    @parameter("param")
+    def omega_m(self, val):
+        return val
+
+    @parameter("param")
+    def w0(self, val):
+        return val
+        
+    @parameter("param")
+    def wa(self, val):
+        return val
+        
+    @parameter("param")
+    def n_s(self, val):
+        return val
+        
+    @parameter("param")
+    def tcmb(self, val):
+        return val
+        
+    @parameter("param")
+    def m_nu(self, val):
+        return val
+        
+    @parameter("param")
+    def sigma_8(self, val):
+        return val
+        
+    @parameter("param")
+    def log10T_AGN(self, val):
+        return val
+
+    @cached_quantity
     def cosmo_model(self):
         """
         Return the astropy cosmology object assuming Flatw0waCDM model.
@@ -193,7 +239,7 @@ class CosmologyBase:
         AH = -0.5 * (Om * a**-3 + (1.0 + 3.0 * self.cosmo_model.w(z)) * Ode * self.cosmo_model.de_density_scale(z))
         return AH
 
-    @cached_property
+    @cached_quantity
     def get_mead_growth_fnc(self):
         """
         Solve the linear growth ODE and returns an interpolating function for the solution.
@@ -223,14 +269,14 @@ class CosmologyBase:
         g = solve_ivp(fun, (a[0], a[-1]), y0, t_eval=a).y[0]
         return interp1d(a, g, kind='cubic', assume_sorted=True)
 
-    @cached_property
+    @cached_quantity
     def get_mead_growth(self):
         """
         Return the Mead growth factor at the scale factors.
         """
         return self.get_mead_growth_fnc(self.scale_factor)
 
-    @cached_property
+    @cached_quantity
     def get_mead_accumulated_growth(self):
         """
         Calculates the accumulated growth at scale factor 'a'.
@@ -263,7 +309,7 @@ class CosmologyBase:
         """
         return p0 + p1 * (1.0 - x) + p2 * (1.0 - x)**2.0 + p3 * (1.0 - y)
 
-    @cached_property
+    @cached_quantity
     def dc_Mead(self):
         """
         Delta_c fitting function from Mead et al. 2021 (2009.01858).
@@ -286,7 +332,7 @@ class CosmologyBase:
         dc0 = (3.0 / 20.0) * (12.0 * np.pi)**(2.0 / 3.0)
         return dc_Mead * dc0 * (1.0 - 0.041 * f_nu)
 
-    @cached_property
+    @cached_quantity
     def Dv_Mead(self):
         """
         Delta_v fitting function from Mead et al. 2021 (2009.01858), eq A.2.
@@ -423,6 +469,102 @@ class HaloModelIngredients(CosmologyBase):
             self._setup_mead_correction()
         else:
             self._setup_default(hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, eta_cen, eta_sat)
+            
+    @parameter("param")
+    def k_vec(self, val):
+        return val
+        
+    @parameter("param")
+    def z_vec(self, val):
+        return val
+        
+    @parameter("param")
+    def lnk_min(self, val):
+        return val
+        
+    @parameter("param")
+    def lnk_max(self, val):
+        return val
+        
+    @parameter("param")
+    def dlnk(self, val):
+        return val
+        
+    @parameter("param")
+    def Mmin(self, val):
+        return val
+        
+    @parameter("param")
+    def Mmax(self, val):
+        return val
+        
+    @parameter("param")
+    def dlog10m(self, val):
+        return val
+    
+    @parameter("param")
+    def mdef_model(self, val):
+        return val
+    
+    @parameter("param")
+    def hmf_model(self, val):
+        return val
+        
+    @parameter("param")
+    def bias_model(self, val):
+        return val
+        
+    @parameter("param")
+    def halo_profile_model(self, val):
+        return val
+
+    @parameter("param")
+    def transfer_model(self, val):
+        return val
+        
+    @parameter("param")
+    def transfer_params(self, val):
+        return val
+        
+    @parameter("param")
+    def growth_model(self, val):
+        return val
+        
+    @parameter("param")
+    def growth_params(self, val):
+        return val
+        
+    @parameter("switch")
+    def mead_correction(self, val):
+        return val
+        
+    @parameter("param")
+    def norm_cen(self, val):
+        return val
+        
+    @parameter("param")
+    def norm_sat(self, val):
+        return val
+        
+    @parameter("param")
+    def k_vec(self, val):
+        return val
+        
+    @parameter("param")
+    def eta_cen(self, val):
+        return val
+        
+    @parameter("param")
+    def eta_sat(self, val):
+        return val
+        
+    @parameter("param")
+    def delta_c(self, val):
+        return val
+        
+    @parameter("param")
+    def overdensity(self, val):
+        return val
         
     def _setup_mead_correction(self):
         """
@@ -484,7 +626,7 @@ class HaloModelIngredients(CosmologyBase):
         self.eta_cen = eta_cen * np.ones_like(self.z_vec)
         self.eta_sat = eta_sat * np.ones_like(self.z_vec)
         
-    @cached_property
+    @cached_quantity
     def hmf_generator(self):
         """
         Generate halo mass function models for central and satellite galaxies at different redshifts.
@@ -575,189 +717,189 @@ class HaloModelIngredients(CosmologyBase):
                 y_out.append(y.clone())
         return x_out, y_out
 
-    @cached_property
+    @cached_quantity
     def hmf_cen(self):
         """
         Return the halo mass function for central galaxies.
         """
         return self.hmf_generator[0]
 
-    @cached_property
+    @cached_quantity
     def hmf_sat(self):
         """
         Return the halo mass function for satellite galaxies.
         """
         return self.hmf_generator[1]
 
-    @property
+    @cached_quantity
     def mass(self):
         """
         Return the masses.
         """
         return self.hmf_cen[0].m
 
-    @property
+    @cached_quantity
     def power(self):
         """
         Return the linear power spectrum at z.
         """
         return np.array([x.power for x in self.hmf_cen])
         
-    @property
+    @cached_quantity
     def nonlinear_power(self):
         """
         Return the non-linear power spectrum at z (if options passed).
         """
         return np.array([x.nonlinear_power for x in self.hmf_cen])
         
-    @property
+    @cached_quantity
     def kh(self):
         """
         Return the k vector defined using lnk in hmf.
         """
         return self.hmf_cen[0].k
 
-    @property
+    @cached_quantity
     def halo_overdensity_mean(self):
         """
         Return the mean halo overdensity.
         """
         return np.array([x.halo_overdensity_mean for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def nu(self):
         """
         Return the peak height parameter.
         """
         return np.array([x.nu**0.5 for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def dndlnm(self):
         """
         Return the differential mass function.
         """
         return np.array([x.dndlnm for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def mean_density0(self):
         """
         Return the mean density at redshift zero.
         """
         return np.array([x.mean_density0 for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def mean_density_z(self):
         """
         Return the mean density at the given redshifts.
         """
         return np.array([x.mean_density for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def rho_halo(self):
         """
         Return the halo density.
         """
         return np.array([x.halo_overdensity_mean * x.mean_density0 for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def halo_bias(self):
         """
         Return the halo bias.
         """
         return np.array([x.halo_bias for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def neff(self):
         """
         Return the effective spectral index.
         """
         return np.array([x.n_eff_at_collapse for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def sigma8_z(self):
         """
         Return the amplitude of matter fluctuations on 8 Mpc scales at the given redshifts.
         """
         return np.array([x.sigma8_z[0] for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def fnu(self):
         """
         Return the neutrino density fraction.
         """
         return np.array([self.cosmo_model.Onu0 / self.cosmo_model.Om0 for _ in self.z_vec])
 
-    @property
+    @cached_quantity
     def conc_cen(self):
         """
         Return the concentration for matter/central galaxies.
         """
         return np.array([x.cmz_relation for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def nfw_cen(self):
         """
         Return the NFW profile for matter/central galaxies.
         """
         return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def u_dm(self):
         """
         Return the normalized NFW profile for dark matter.
         """
         return self.nfw_cen / np.expand_dims(self.nfw_cen[:, 0, :], 1)
 
-    @property
+    @cached_quantity
     def r_s_cen(self):
         """
         Return the scale radius for matter/central galaxies.
         """
         return np.array([x.halo_profile._rs_from_m(x.m) for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def rvir_cen(self):
         """
         Return the virial radius for matter/central galaxies.
         """
         return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self.hmf_cen])
 
-    @property
+    @cached_quantity
     def conc_sat(self):
         """
         Return the concentration for satellite galaxies.
         """
         return np.array([x.cmz_relation for x in self.hmf_sat])
 
-    @property
+    @cached_quantity
     def nfw_sat(self):
         """
         Return the NFW profile for satellite galaxies.
         """
         return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self.hmf_sat])
 
-    @property
+    @cached_quantity
     def u_sat(self):
         """
         Return the normalized NFW profile for satellite galaxies.
         """
         return self.nfw_sat / np.expand_dims(self.nfw_sat[:, 0, :], 1)
 
-    @property
+    @cached_quantity
     def r_s_sat(self):
         """
         Return the scale radius for satellite galaxies.
         """
         return np.array([x.halo_profile._rs_from_m(x.m) for x in self.hmf_sat])
 
-    @property
+    @cached_quantity
     def rvir_sat(self):
         """
         Return the virial radius for satellite galaxies.
         """
         return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self.hmf_sat])
     
-    @property
+    @cached_quantity
     def growth_factor(self):
         """
         Return the growth factor.

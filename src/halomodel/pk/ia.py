@@ -6,6 +6,8 @@ from scipy.interpolate import RegularGridInterpolator, interp1d
 from scipy.fft import fht, fhtoffset
 from hankel import HankelTransform
 from astropy.io import fits
+from hmf._internals._cache import cached_quantity, parameter
+from hmf._internals._framework import Framework
 
 """
 A module for computing intrinsic alignment properties.
@@ -13,10 +15,8 @@ This module provides classes and functions to calculate various properties
 related to the intrinsic alignment of central and satellite galaxies within dark matter halos.
 """
 
-valid_methods = ['hankel', 'fftlog']
 
-
-class AlignmentAmplitudes:
+class AlignmentAmplitudes(Framework):
     """
     Parameters:
     -----------
@@ -72,41 +72,98 @@ class AlignmentAmplitudes:
         self.central_ia_depends_on = central_ia_depends_on
         self.satellite_ia_depends_on = satellite_ia_depends_on
         
-        self.gamma_2h_amp = gamma_2h_amplitude
+        self.gamma_2h_amplitude = gamma_2h_amplitude
         self.beta_cen = beta_cen
         self.beta_two = beta_two
         self.gamma_1h_slope = gamma_1h_slope
         self.gamma_1h_amp = gamma_1h_amplitude
         self.beta_sat = beta_sat
         
-        self.mpivot_cen = 10.0 ** mpivot_cen if mpivot_cen is not None else None
-        self.mpivot_sat = 10.0 ** mpivot_sat if mpivot_sat is not None else None
-        self.lpivot_cen = 10.0 ** lpivot_cen if lpivot_cen is not None else None
-        self.lpivot_sat = 10.0 ** lpivot_sat if lpivot_sat is not None else None
+        self.mpivot_cen = mpivot_cen
+        self.mpivot_sat = mpivot_sat
+        self.lpivot_cen = lpivot_cen
+        self.lpivot_sat = lpivot_sat
         
         self.z_loglum_file_centrals = z_loglum_file_centrals
         self.z_loglum_file_satellites = z_loglum_file_satellites
 
-        self._validate_ia_depends_on()
         self.lum_centrals, self.lum_pdf_z_centrals = self._initialize_luminosity_arrays('centrals')
         self.lum_satellites, self.lum_pdf_z_satellites = self._initialize_luminosity_arrays('satellites')
         
         self._process_centrals()
         self._process_satellites()
         
-    def _validate_ia_depends_on(self):
+    @parameter("param")
+    def z_vec(self, val):
+        return val
+        
+    @parameter("switch")
+    def central_ia_depends_on(self, val):
         """
-        Validate the central and satellite intrinsic alignment dependencies.
+        Validate the central intrinsic alignment dependencies.
 
         Raises:
         -------
         ValueError : If an invalid option is provided for central_ia_depends_on or satellite_ia_depends_on.
         """
         valid_options = ['constant', 'luminosity', 'halo_mass']
-        if self.central_ia_depends_on not in valid_options:
+        if val not in valid_options:
             raise ValueError(f'Choose one of the following options for central_IA_depends_on: {valid_options}')
-        if self.satellite_ia_depends_on not in valid_options:
+        return val
+        
+    @parameter("switch")
+    def satellite_ia_depends_on(self, val):
+        """
+        Validate the satellite intrinsic alignment dependencies.
+
+        Raises:
+        -------
+        ValueError : If an invalid option is provided for central_ia_depends_on or satellite_ia_depends_on.
+        """
+        valid_options = ['constant', 'luminosity', 'halo_mass']
+        if val not in valid_options:
             raise ValueError(f'Choose one of the following options for satellite_IA_depends_on: {valid_options}')
+        return val
+        
+    @parameter("param")
+    def gamma_2h_amplitude(self, val):
+        return val
+        
+    @parameter("param")
+    def gamma_1h_slope(self, val):
+        return val
+        
+    @parameter("param")
+    def gamma_1h_amplitude(self, val):
+        return val
+        
+    @parameter("param")
+    def beta_sat(self, val):
+        return val
+        
+    @parameter("param")
+    def mpivot_cen(self, val):
+        return 10.0 ** val if val is not None else None
+        
+    @parameter("param")
+    def mpivot_sat(self, val):
+        return 10.0 ** val if val is not None else None
+        
+    @parameter("param")
+    def lpivot_cen(self, val):
+        return 10.0 ** val if val is not None else None
+        
+    @parameter("param")
+    def lpivot_sat(self, val):
+        return 10.0 ** val if val is not None else None
+        
+    @parameter("param")
+    def z_loglum_file_centrals(self, val):
+        return val
+        
+    @parameter("param")
+    def z_loglum_file_satellites(self, val):
+        return val
 
     def _initialize_luminosity_arrays(self, galaxy_type):
         """
@@ -226,21 +283,21 @@ class AlignmentAmplitudes:
         Process the central galaxies.
         """
         if self.central_ia_depends_on == 'constant':
-            self.alignment_gi = self.gamma_2h_amp * np.ones_like(self.z_vec)
+            self.alignment_gi = self.gamma_2h_amplitude * np.ones_like(self.z_vec)
         elif self.central_ia_depends_on == 'luminosity':
             if self.lpivot_cen is None:
                 raise ValueError('You have chosen central luminosity scaling without providing a pivot luminosity parameter. Include lpivot_cen.')
             if self.beta_two is not None:
                 mean_lscaling = np.array([self.broken_powerlaw(self.lum_centrals[i], self.lum_pdf_z_centrals[i], self.gamma_2h_amp, self.lpivot_cen, self.beta_cen, self.beta_two) for i in range(self.z_vec.size)])
             else:
-                mean_lscaling = self.gamma_2h_amp * self.mean_l_l0_to_beta(self.lum_centrals, self.lum_pdf_z_centrals, self.lpivot_cen, self.beta_cen)
+                mean_lscaling = self.gamma_2h_amplitude * self.mean_l_l0_to_beta(self.lum_centrals, self.lum_pdf_z_centrals, self.lpivot_cen, self.beta_cen)
             self.alignment_gi = mean_lscaling
         elif self.central_ia_depends_on == 'halo_mass':
             if self.mpivot_cen is None:
                 raise ValueError('You have chosen central halo-mass scaling without providing a pivot mass parameter. Include mpivot_cen.')
             if self.beta_two is not None:
                 raise ValueError('A double power law model for the halo mass dependence of centrals has not been implemented.')
-            self.alignment_gi = self.gamma_2h_amp * np.ones_like(self.z_vec)
+            self.alignment_gi = self.gamma_2h_amplitude * np.ones_like(self.z_vec)
             
     def _process_satellites(self):
         """
@@ -312,28 +369,15 @@ class SatelliteAlignment(AlignmentAmplitudes):
         self.theta_k = np.pi / 2.0
         self.phi_k = 0.0
         self.method = method
+        self.nk = nk
+        self.n_hankel = n_hankel
+        self.mass = mass
+        self.c = c
+        self.r_s = r_s
+        self.rvir = rvir
+        self.method = method
         
-        if self.method not in valid_methods:
-            raise ValueError(
-                f"The valid methods to evaluate the fourier tranform of IA shear field are: {valid_methods}. Requested method: {self.method}!"
-            )
-        
-        # Slope of the power law that describes the satellite alignment
-        # gamma_1h_slope is from AlignmentAmplitudes
-        # gamma_1h_amplitude is from AlignmentAmplitudes
-        # self.z_vec is from AlignmentAmplitudes
-        
-        # CCL and Fortuna use ell_max=6. SB10 uses ell_max = 2.
-        # Higher/lower increases/decreases accuracy but slows/speeds the code
-        if self.ell_max > 11:
-            raise ValueError("Please reduce ell_max < 11 or update ia_radial_interface.py")
-        self.ell_values = np.arange(0, self.ell_max + 1, 2)
-        
-        if method == 'hankel':
-            self.nk = nk
-            self.k_vec = np.logspace(np.log10(1e-3), np.log10(1e3), self.nk)
-            self.n_hankel = n_hankel
-        
+        if self.method == 'hankel':
             if mass.size < nmass:
                 raise ValueError(
                     "The halo mass resolution is too low for the radial IA calculation. "
@@ -345,14 +389,63 @@ class SatelliteAlignment(AlignmentAmplitudes):
             # Initilise the hankel transform
             self.hankel = self.h_transform
             
-        if method == 'fftlog':
+        if self.method == 'fftlog':
             # For FFTLog there is no need to downsample, as the method is fast!
-            self.mass = mass
-            self.c = c
-            self.r_s = r_s
-            self.rvir = rvir
+            # But we fix the nk!
             self.nk = 100
-            self.k_vec = np.logspace(np.log10(1e-3), np.log10(1e3), self.nk)
+        
+    @parameter("param")
+    def mass(self, val):
+        return val
+        
+    @parameter("param")
+    def c(self, val):
+        return val
+        
+    @parameter("param")
+    def r_s(self, val):
+        return val
+        
+    @parameter("param")
+    def r_vir(self, val):
+        return val
+        
+    @parameter("param")
+    def n_hankel(self, val):
+        return val
+        
+    @parameter("param")
+    def nk(self, val):
+        return val
+        
+    @parameter("param")
+    def ell_max(self, val):
+        if val > 11:
+            raise ValueError("Please reduce ell_max < 11 or update ia_radial_interface.py")
+        return val
+        
+    @parameter("switch")
+    def truncate(self, val):
+        return val
+        
+    @parameter("switch")
+    def method(self, val):
+        valid_methods = ['hankel', 'fftlog']
+        if val not in valid_methods:
+            raise ValueError(
+                f"The valid methods to evaluate the fourier tranform of IA shear field are: {valid_methods}. Requested method: {val}!"
+            )
+        return val
+        
+    @cached_quantity
+    def ell_values(self):
+        # CCL and Fortuna use ell_max=6. SB10 uses ell_max = 2.
+        # Higher/lower increases/decreases accuracy but slows/speeds the code
+        return np.arange(0, self.ell_max + 1, 2)
+    
+    @cached_quantity
+    def k_vec(self):
+        return np.logspace(np.log10(1e-3), np.log10(1e3), self.nk)
         
     def downsample_halo_parameters(
             self,
@@ -404,7 +497,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
 
         return mass, c, r_s, rvir
         
-    @cached_property
+    @cached_quantity
     def h_transform(self):
         """
         Initialize Hankel transform
@@ -484,7 +577,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
                 )
             return 2.0**l * sum1 * phase
 
-    @cached_property
+    @cached_quantity
     def wkm_f_ell(self):
         """
         Integral of the angular part in eq B8 (SB10) using the Legendre polynomials
@@ -544,7 +637,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
             nfw = np.where(r >= rvir, 0.0, nfw)
         return gamma * nfw
 
-    @cached_property
+    @cached_quantity
     def compute_uell_gamma_r_hankel(self):
         """
         THIS FUNCTION IS THE SLOWEST PART!

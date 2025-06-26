@@ -56,6 +56,8 @@ import numpy as np
 import numexpr as ne
 from scipy.integrate import simpson, trapezoid
 from scipy.ndimage import gaussian_filter1d
+from hmf._internals._cache import cached_quantity, parameter
+from hmf._internals._framework import Framework
 
 from .ia import SatelliteAlignment
 from .bnl import NonLinearBias
@@ -243,6 +245,41 @@ class MatterSpectra(HaloModelIngredients):
             self.I21 = self.prepare_I21_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I22 = self.prepare_I22_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.beta_nl)
             
+    @parameter("param")
+    def mb(self, val):
+        return val
+        
+    @parameter("switch")
+    def bnl(self, val):
+        return val
+        
+    @parameter("switch")
+    def dewiggle(self, val):
+        return val
+        
+    @parameter("switch")
+    def matter_power_lin(self, val):
+        return val
+        
+    @parameter("param")
+    def one_halo_ktrunc(self, val):
+        return val
+        
+    @parameter("param")
+    def two_halo_ktrunc(self, val):
+        return val
+        
+    @parameter("param")
+    def hod_model_mm(self, val):
+        return val
+        
+    @parameter("param")
+    def hod_settings_mm(self, val):
+        return val
+        
+    @parameter("param")
+    def hod_params_mm(self, val):
+        return val
         
     def select_hod_model(self, val):
         """
@@ -262,7 +299,7 @@ class MatterSpectra(HaloModelIngredients):
             return val
         return getattr(hod_class, val)
         
-    @cached_property
+    @cached_quantity
     def calc_bnl(self):
         """
         Calculate the non-linear bias using the NonLinearBias class.
@@ -286,7 +323,7 @@ class MatterSpectra(HaloModelIngredients):
         )
         return bnl.bnl
         
-    @cached_property
+    @cached_quantity
     def hod_mm(self):
         """
         Initialize and return the HOD model for matter-matter power spectrum.
@@ -311,7 +348,7 @@ class MatterSpectra(HaloModelIngredients):
         else:
             return None
         
-    @cached_property
+    @cached_quantity
     def fstar_mm(self):
         """
         Compute the stellar fraction for the matter-matter power spectrum.
@@ -328,7 +365,7 @@ class MatterSpectra(HaloModelIngredients):
                 fstar = fstar * self.h0
             return fstar
         else:
-            return np.zeros(1, self.z_vec.size, self.mass.size)
+            return np.zeros((1, self.z_vec.size, self.mass.size))
         
     def dewiggle_plin(self, plin):
         """
@@ -380,7 +417,7 @@ class MatterSpectra(HaloModelIngredients):
         Wm_0 = mass / mean_density0
         return Wm_0 * u_dm * (1.0 - fnu)
 
-    @cached_property
+    @cached_quantity
     def matter_profile(self):
         """
         Compute the matter profile grid in z, k, and M.
@@ -398,7 +435,7 @@ class MatterSpectra(HaloModelIngredients):
         )
         return profile
         
-    @cached_property
+    @cached_quantity
     def matter_profile_2h(self):
         """
         Compute the matter profile grid in z, k, and M.
@@ -459,7 +496,7 @@ class MatterSpectra(HaloModelIngredients):
         #Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
         return Wm
 
-    @cached_property
+    @cached_quantity
     def matter_profile_with_feedback(self):
         """
         Compute the matter profile grid with feedback.
@@ -769,7 +806,7 @@ class MatterSpectra(HaloModelIngredients):
             warnings.warn('Warning: Mass function/bias correction is negative!', RuntimeWarning)
         return A
 
-    @cached_property
+    @cached_quantity
     def missing_mass_integral(self):
         """
         Compute the integral over the missing mass.
@@ -787,7 +824,7 @@ class MatterSpectra(HaloModelIngredients):
         )
         return missing_mass
 
-    @cached_property
+    @cached_quantity
     def A_term(self):
         """
         Return the integral over the missing mass.
@@ -799,7 +836,7 @@ class MatterSpectra(HaloModelIngredients):
         """
         return self.missing_mass_integral
 
-    @cached_property
+    @cached_quantity
     def Im_term(self):
         """
         Compute the integral for the matter term in the 2-halo power spectrum, eq 35 of Asgari, Mead, Heymans 2023.
@@ -1143,7 +1180,7 @@ class MatterSpectra(HaloModelIngredients):
     
         return np.ones_like(mass)
     
-    @cached_property
+    @cached_quantity
     def compute_power_spectrum_mm(
             self,
             one_halo_ktrunc=None,
@@ -1234,8 +1271,36 @@ class GalaxySpectra(MatterSpectra):
         self.hod_params = hod_params
         self.hod_model = hod_model
         self.obs_settings = obs_settings
+        
+    @parameter("switch")
+    def pointmass(self, val):
+        return val
+        
+    @parameter("switch")
+    def compute_observable(self, val):
+        return val
+        
+    @parameter("param")
+    def poisson_par(self, val):
+        return val
+        
+    @parameter("param")
+    def hod_model(self, val):
+        return val
+        
+    @parameter("param")
+    def hod_params(self, val):
+        return val
+        
+    @parameter("param")
+    def hod_settings(self, val):
+        return val
+        
+    @parameter("param")
+    def obs_settings(self, val):
+        return val
     
-    @cached_property
+    @cached_quantity
     def hod(self):
         """
         Initialize and return the HOD model.
@@ -1255,7 +1320,7 @@ class GalaxySpectra(MatterSpectra):
             **self.hod_params
         )
         
-    @cached_property
+    @cached_quantity
     def fstar(self):
         """
         Compute the stellar fraction.
@@ -1271,7 +1336,7 @@ class GalaxySpectra(MatterSpectra):
             fstar = fstar * self.h0
         return fstar
         
-    @cached_property
+    @cached_quantity
     def mass_avg(self):
         """
         Compute the average mass.
@@ -1284,7 +1349,7 @@ class GalaxySpectra(MatterSpectra):
         # Possibly move this to HOD!
         return self.hod.compute_avg_halo_mass_cen / self.hod.compute_number_density
             
-    @cached_property
+    @cached_quantity
     def obs(self):
         """
         Initialize and return the observable function.
@@ -1307,7 +1372,7 @@ class GalaxySpectra(MatterSpectra):
         else:
             return None
             
-    @cached_property
+    @cached_quantity
     def obs_func(self):
         """
         Return the observable function in correct units.
@@ -1321,7 +1386,7 @@ class GalaxySpectra(MatterSpectra):
             return None
         return np.log(10.0) * np.squeeze(self.obs.obs, axis=2) * self.obs.obs_func
         
-    @cached_property
+    @cached_quantity
     def obs_func_cen(self):
         """
         Return the observable function for central galaxies in correct units.
@@ -1335,7 +1400,7 @@ class GalaxySpectra(MatterSpectra):
             return None
         return np.log(10.0) * np.squeeze(self.obs.obs, axis=2) * self.obs.obs_func_cen
 
-    @cached_property
+    @cached_quantity
     def obs_func_sat(self):
         """
         Return the observable function for satellite galaxies in correct units.
@@ -1349,7 +1414,7 @@ class GalaxySpectra(MatterSpectra):
             return None
         return np.log(10.0) * np.squeeze(self.obs.obs, axis=2) * self.obs.obs_func_sat
 
-    @cached_property
+    @cached_quantity
     def obs_func_obs(self):
         """
         Return the observable function x-axis.
@@ -1363,7 +1428,7 @@ class GalaxySpectra(MatterSpectra):
             return None
         return np.squeeze(self.obs.obs, axis=2)
         
-    @cached_property
+    @cached_quantity
     def obs_func_z(self):
         """
         Return the redshift for the observable function.
@@ -1377,7 +1442,7 @@ class GalaxySpectra(MatterSpectra):
             return None
         return self.obs.z
 
-    @cached_property
+    @cached_quantity
     def central_galaxy_profile(self):
         """
         Compute the galaxy profile for a sample of central galaxies.
@@ -1390,7 +1455,7 @@ class GalaxySpectra(MatterSpectra):
         """
         return self.hod.f_c[:, :, np.newaxis, np.newaxis] * self.hod.compute_hod_cen[:, :, np.newaxis, :] * np.ones_like(self.u_sat[np.newaxis, :, :, :]) / self.hod.compute_number_density_cen[:, :, np.newaxis, np.newaxis]
 
-    @cached_property
+    @cached_quantity
     def satellite_galaxy_profile(self):
         """
         Compute the galaxy profile for a sample of satellite galaxies.
@@ -1425,7 +1490,7 @@ class GalaxySpectra(MatterSpectra):
         integrand = profile * b_m * dndlnm / mass
         return simpson(integrand, mass, axis=-1)
 
-    @cached_property
+    @cached_quantity
     def Ic_term(self):
         """
         Compute the integral for the central galaxy term in the 2-halo power spectrum.
@@ -1443,7 +1508,7 @@ class GalaxySpectra(MatterSpectra):
         )
         return term
 
-    @cached_property
+    @cached_quantity
     def Is_term(self):
         """
         Compute the integral for the satellite galaxy term in the 2-halo power spectrum.
@@ -1461,7 +1526,7 @@ class GalaxySpectra(MatterSpectra):
         )
         return term
 
-    @cached_property
+    @cached_quantity
     def compute_power_spectrum_gg(self):
         """
         Compute the galaxy-galaxy power spectrum.
@@ -1497,7 +1562,7 @@ class GalaxySpectra(MatterSpectra):
             
         return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
     
-    @cached_property
+    @cached_quantity
     def compute_power_spectrum_gm(self):
         """
         Compute the galaxy-matter power spectrum.
@@ -1545,8 +1610,6 @@ class AlignmentSpectra(GalaxySpectra):
     -----------
     t_eff : float, optional
         Effective parameter for the Fortuna model.
-    mpivot_sat : float, optional
-        Pivot mass for satellite galaxies.
     matter_power_nl : array_like, optional
         Non-linear matter power spectrum.
     fortuna : bool, optional
@@ -1562,7 +1625,6 @@ class AlignmentSpectra(GalaxySpectra):
     """
     def __init__(self,
             t_eff=None,
-            mpivot_sat=None,
             matter_power_nl=None,
             fortuna=False,
             one_halo_ktrunc_ia=4.0,
@@ -1587,7 +1649,7 @@ class AlignmentSpectra(GalaxySpectra):
             'c': self.conc_cen,
             'r_s': self.r_s_cen,
             'rvir': self.rvir_cen[0],
-            'method': 'fftlog'
+            'method': 'hankel'#'fftlog'
         })
         
         # Set up the aligment amplitudes and radial dependence
@@ -1612,7 +1674,31 @@ class AlignmentSpectra(GalaxySpectra):
                 raise ValueError("Shape of input power spectra is not equal to redshift and k-vec dimensions!")
             self.peff = (1.0 - self.t_eff) * self.matter_power_nl + self.t_eff * self.matter_power_lin
     
-    @cached_property
+    @parameter("switch")
+    def fortuna(self, val):
+        return val
+        
+    @parameter("param")
+    def t_eff(self, val):
+        return val
+        
+    @parameter("switch")
+    def matter_power_nl(self, val):
+        return val
+        
+    @parameter("param")
+    def one_halo_ktrunc_ia(self, val):
+        return val
+        
+    @parameter("param")
+    def two_halo_ktrunc_ia(self, val):
+        return val
+        
+    @parameter("param")
+    def align_params(self, val):
+        return val
+    
+    @cached_quantity
     def wkm_sat(self):
         """
         Compute the radial alignment profile of satellite galaxies.
@@ -1688,7 +1774,7 @@ class AlignmentSpectra(GalaxySpectra):
             additional_term = 1.0
         return f_s * Nsat * wkm_sat / numdenssat * additional_term
 
-    @cached_property
+    @cached_quantity
     def central_alignment_profile(self):
         """
         Prepare the grid in z, k and mass for the central alignment
@@ -1712,7 +1798,7 @@ class AlignmentSpectra(GalaxySpectra):
         )
         return profile
 
-    @cached_property
+    @cached_quantity
     def satellite_alignment_profile(self):
         """
         Prepare the grid in z, k and mass for the satellite alignment
@@ -1735,7 +1821,7 @@ class AlignmentSpectra(GalaxySpectra):
         )
         return profile
         
-    @cached_property
+    @cached_quantity
     def Ic_align_term(self):
         """
         Compute the integral for the central galaxy alignment term in the 2-halo power spectrum.
@@ -1753,7 +1839,7 @@ class AlignmentSpectra(GalaxySpectra):
         )
         return I_g_align + self.A_term * self.central_alignment_profile[:, :, :, 0] * self.mean_density0[np.newaxis, :, np.newaxis] / self.mass[0]
         
-    @cached_property
+    @cached_quantity
     def Is_align_term(self):
         """
         Compute the integral for the satellite galaxy alignment term in the 2-halo power spectrum.
@@ -1791,7 +1877,7 @@ class AlignmentSpectra(GalaxySpectra):
     
         return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * self.alignment_gi[:, np.newaxis, np.newaxis]
 
-    @cached_property
+    @cached_quantity
     def compute_power_spectrum_mi(self):
         """
         Compute the matter-intrinsic alignment power spectrum.
@@ -1838,7 +1924,7 @@ class AlignmentSpectra(GalaxySpectra):
                 
         return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
     
-    @cached_property
+    @cached_quantity
     def compute_power_spectrum_ii(self):
         """
         Compute the intrinsic-intrinsic alignment power spectrum.
@@ -1879,7 +1965,7 @@ class AlignmentSpectra(GalaxySpectra):
                 
         return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
     
-    @cached_property
+    @cached_quantity
     def compute_power_spectrum_gi(self):
         """
         Compute the galaxy-intrinsic alignment power spectrum.

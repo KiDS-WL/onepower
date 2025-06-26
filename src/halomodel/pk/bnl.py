@@ -5,8 +5,10 @@ from collections import OrderedDict
 from scipy.interpolate import interp1d, RegularGridInterpolator
 from scipy.optimize import curve_fit
 from functools import cached_property
+from hmf._internals._cache import cached_quantity, parameter
+from hmf._internals._framework import Framework
 
-class NonLinearBias:
+class NonLinearBias(Framework):
     """
     A class to compute the non-linear bias using the Dark Emulator.
 
@@ -54,18 +56,75 @@ class NonLinearBias:
         self.mass = mass
         self.z_vec = z_vec
         self.k_vec = k_vec
+        self.h0 = h0
         self.sigma_8 = sigma_8
         self.A_s = A_s
         
-        self.ombh2 = omega_b * h0**2.0
-        self.omch2 = omega_c * h0**2.0
+        self.omega_b = omega_b
+        self.omega_c = omega_c
         self.omega_lambda = omega_lambda
         self.n_s = n_s
         self.w0 = w0
         
         self.z_dep = z_dep
+        
+    @parameter("param")
+    def mass(self, val):
+        return val
+        
+    @parameter("param")
+    def z_vec(self, val):
+        return val
+        
+    @parameter("param")
+    def k_vec(self, val):
+        return val
+        
+    @parameter("param")
+    def sigma_8(self, val):
+        return val
+        
+    @parameter("param")
+    def A_s(self, val):
+        return val
+        
+    @parameter("param")
+    def h0(self, val):
+        return val
+        
+    @parameter("param")
+    def omega_b(self, val):
+        return val
+        
+    @parameter("param")
+    def omega_c(self, val):
+        return val
+        
+    @parameter("param")
+    def omega_lambda(self, val):
+        return val
+        
+    @parameter("param")
+    def n_s(self, val):
+        return val
+        
+    @parameter("param")
+    def w0(self, val):
+        return val
+        
+    @parameter("switch")
+    def z_dep(self, val):
+        return val
     
-    @cached_property
+    @cached_quantity
+    def ombh2(self):
+        return self.omega_b * self.h0**2.0
+        
+    @cached_quantity
+    def omch2(self):
+        return self.omega_c * self.h0**2.0
+    
+    @cached_quantity
     def emulator(self):
         """
         Initialize the Dark Emulator with the given cosmological parameters.
@@ -96,7 +155,7 @@ class NonLinearBias:
         emu.set_cosmology(cparam)
         return emu
     
-    @cached_property
+    @cached_quantity
     def bnl(self):
         """
         Compute the non-linear bias interpolation function.
@@ -312,7 +371,7 @@ class NonLinearBias:
     
         return beta_func
     
-    @cached_property
+    @cached_quantity
     def create_bnl_interpolation_function(self):
         """
         Create an interpolation function for the non-linear bias.
