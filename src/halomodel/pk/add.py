@@ -23,14 +23,26 @@ class AddUpsample(Framework):
     """
     def __init__(
             self,
-            fraction=1.0,
+            z=0.0,
+            k=0.0,
+            fraction_z=None,
+            fraction=None,
+            power_name_1,
+            power_name_2,
             model_1_params=None,
             model_2_params=None,
+            requested_spectra={},
         ):
         super().__init__()
+        self.z = z
+        self.k = k
+        self.fraction_z = fraction_z
         self.fraction = fraction
+        self.power_name_1 = power_name_1
+        self.power_name_2 = power_name_2
         self._model_1_params = model_1_params or {}
         self._model_2_params = model_2_params or {}
+        self.requested_spectra = requested_spectra
         
     def select_power(self, val):
         """
@@ -50,6 +62,19 @@ class AddUpsample(Framework):
             return val
         return getattr(power_class, val)
         
+    @cached_property
+    def frac_1(self):
+        if self.fraction is None:
+            return None
+        f = np.interp1d(self.fraction_z, self.fraction, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
+        return f(self.z)
+        
+    @cached_property
+    def frac_2(self):
+        if self.fraction is None:
+            return None
+        return 1.0-self.frac_1
+        
     @subframework
     def power_1(self):
         """First Halo Model."""
@@ -59,38 +84,32 @@ class AddUpsample(Framework):
     def power_2(self):
         """Second Halo Model."""
         return self.select_power(self.power_name_2)(**self._model_2_params)
+        
+    def select_spectra(self):
+        for mode in requested_spectra:
+            
 
-    def extrapolate_power(self, z_ext, k_ext, extrapolate_option):
-        # For matter-intrinsic and galaxy-intrinsic, pk_tot will usually be negative (for A_IA > 0)
-        # If we're interpolating over log10(pk_tot) negative power is problematic
-        # Check to see if it is negative, and take the absolute value
-        if np.sum(pk_in) < 0:
-            power *= -1
-            changed_sign = True
-        else:
-            changed_sign = False
+
+
+    def extrapolate_spectra(self, z_ext, k_ext, extrapolate_option):
     
-        inter_func_z = interp1d(self.z, power, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
+        inter_func_z = interp1d(z, power, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=0)
         pk_tot_ext_z = inter_func_z(z_ext)
     
-        inter_func_k = interp1d(np.log10(self.k), pk_tot_ext_z, kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
+        inter_func_k = interp1d(np.log10(k), pk_tot_ext_z, kind='linear', fill_value='extrapolate', bounds_error=False, axis=1)
         pk_tot_ext = inter_func_k(np.log10(k_ext))
-    
-        # Introduce the sign convention back for the GI terms
-        if changed_sign:
-            pk_tot_ext *= -1
-    
+
         return pk_tot_ext
 
-    def add_red_and_blue_power(self, pk_red, pk_blue, name):
+    def add_spectra(self, pk_1, pk_2, mode):
         # TODO: Add the cross terms
-        # This is not optimised, but it is good to first choose what we want to implement
-        # in terms of cross terms.
+        # Not valid / implemented for matter-intrinsic, matter-matter
+        if mode == 'mm':
+            raise ValueError("Cannot add matter-matter power spectra! Use extrapolate option!")
         
-        # fraction to be provided as a 2D table of z and f_red, and interpolated!
-        if name in ['intrinsic_power', 'galaxy_power', 'galaxy_intrinsic_power']:
-            pk_tot = self.fraction[:, np.newaxis]**2.0 * pk_red + (1.0 - self.fraction[:, np.newaxis])**2.0 * pk_blue
+        if mode in ['gm', 'mi']:
+            pk_tot = self.frac_1[:, np.newaxis] * pk_1 + (1.0 - self.frac_1[:, np.newaxis]) * pk_2
         else:
-            pk_tot = self.fraction[:, np.newaxis] * pk_red + (1.0 - self.fraction[:, np.newaxis]) * pk_blue
+            pk_tot = self.frac_1[:, np.newaxis]**2.0 * pk_1 + (1.0 - self.frac_1[:, np.newaxis])**2.0 * pk_2
 
         return pk_tot

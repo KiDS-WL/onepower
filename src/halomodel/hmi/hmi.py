@@ -659,8 +659,8 @@ class HaloModelIngredients(CosmologyBase):
                 delta_c=self.delta_c[0]
             )
         y = x.clone()
-        x_out = []
-        y_out = []
+        x_out, y_out = [], []
+        
         if self.mead_correction in ['feedback', 'nofeedback']:
             # For centrals
             for z, mdef_par, dc, norm_cen, k in zip(self.z_vec, self.mdef_params, self.delta_c, self.norm_cen, self.K):
