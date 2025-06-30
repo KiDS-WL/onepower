@@ -214,6 +214,7 @@ def execute(block, config):
             
         block.put_double_array_1d(output_section_name, f'bin_{i + 1}', obs_func)
         block.put_double_array_1d(output_section_name, f'obs_{i + 1}', obs_arr[i])
+        block.put_double_array_1d(output_section_name, f'log_mass', np.log10(obs_arr[i]))
 
     block[output_section_name, 'nbin'] = nbins
     block[output_section_name, 'sample'] = config['sample'] if config['sample'] is not None else 'None'

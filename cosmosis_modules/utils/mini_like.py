@@ -14,8 +14,8 @@ def execute(block, config):
 
     d = block[input_section_name, "data"]
     mu = block[input_section_name, "theory"]
-    print('data:',np.round(d,decimals=4))
-    print('theory:',np.round(mu,decimals=4)) 
+    #print('data:',np.round(d,decimals=4))
+    #sprint('theory:',np.round(mu,decimals=4)) 
     # dir(block)
     # for key in block.keys('hod_parameters_bright'):
     #     print(key, '=', block[key])
