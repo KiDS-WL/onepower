@@ -85,17 +85,17 @@ class CosmologyBase(Framework):
         Log10 of AGN temperature.
     """
     def __init__(self,
-            h0=0.0,
-            omega_c=0.0,
-            omega_b=0.0,
-            omega_m=0.0,
-            w0=0.0,
+            h0=0.7,
+            omega_c=0.25,
+            omega_b=0.05,
+            omega_m=0.3,
+            w0=-1.0,
             wa=0.0,
-            n_s=0.0,
-            tcmb=0-0,
-            m_nu=0.0,
-            sigma_8=0.0,
-            log10T_AGN=0.0,
+            n_s=0.9,
+            tcmb=2.7255,
+            m_nu=0.06,
+            sigma_8=0.8,
+            log10T_AGN=7.8,
         ):
         self.h0 = h0
         self.omega_c = omega_c
@@ -416,30 +416,30 @@ class HaloModelIngredients(CosmologyBase):
     """
     #TO-DO: set defaults to sensible values!
     def __init__(self,
-            k_vec=None,
-            z_vec=None,
-            lnk_min=0.0,
-            lnk_max=0.0,
-            dlnk=0.0,
-            Mmin=0.0,
-            Mmax=0.0,
-            dlog10m=0.0,
-            mdef_model=None,
-            hmf_model=None,
-            bias_model=None,
-            halo_profile_model=None,
-            halo_concentration_model=None,
-            transfer_model=None,
-            transfer_params={},
-            growth_model=None,
-            growth_params={},
-            norm_cen=0.0,
-            norm_sat=0.0,
+            k_vec=np.logspace(-4, 4, 100),
+            z_vec=np.linspace(0.0, 3.0, 15),
+            lnk_min=np.log(10**(-4.0)),
+            lnk_max=np.log(10**(4.0)),
+            dlnk=(np.log(10**(-4.0)) - np.log(10**(4.0))) / 100,
+            Mmin=9.0,
+            Mmax=16.0,
+            dlog10m=0.06,
+            mdef_model='SOMean',
+            hmf_model='Tinker10',
+            bias_model='Tinker10',
+            halo_profile_model='NFW',
+            halo_concentration_model='Duffy08',
+            transfer_model='CAMB',
+            transfer_params: dict | None = {},
+            growth_model='CambGrowth',
+            growth_params: dict | None = {},
+            norm_cen=1.0,
+            norm_sat=1.0,
             eta_cen=0.0,
             eta_sat=0.0,
-            overdensity=0.0,
-            delta_c=0.0,
-            mead_correction=None,
+            overdensity=200,
+            delta_c=1.686,
+            mead_correction: str | None = None,
             **cosmology_kwargs
         ):
         super().__init__(**cosmology_kwargs)
@@ -459,8 +459,8 @@ class HaloModelIngredients(CosmologyBase):
         self.growth_params = growth_params
         self.mead_correction = mead_correction
 
-        self.norm_cen = norm_cen * np.ones_like(self.z_vec)
-        self.norm_sat = norm_sat * np.ones_like(self.z_vec)
+        self.norm_cen = norm_cen
+        self.norm_sat = norm_sat
 
         self.halo_profile_params = {'cosmo': self.cosmo_model}
         self.scale_factor = self.cosmo_model.scale_factor(self.z_vec)
@@ -540,11 +540,11 @@ class HaloModelIngredients(CosmologyBase):
         
     @parameter("param")
     def norm_cen(self, val):
-        return val
+        return val * np.ones_like(self.z_vec)
         
     @parameter("param")
     def norm_sat(self, val):
-        return val
+        return val * np.ones_like(self.z_vec)
         
     @parameter("param")
     def k_vec(self, val):
@@ -552,11 +552,11 @@ class HaloModelIngredients(CosmologyBase):
         
     @parameter("param")
     def eta_cen(self, val):
-        return val
+        return val * np.ones_like(self.z_vec)
         
     @parameter("param")
     def eta_sat(self, val):
-        return val
+        return val * np.ones_like(self.z_vec)
         
     @parameter("param")
     def delta_c(self, val):
@@ -623,8 +623,8 @@ class HaloModelIngredients(CosmologyBase):
         self.mdef_params = [{} if self.mdef_model == 'SOVirial' else {'overdensity': overdensity} for _ in self.z_vec]
         self.delta_c = (3.0 / 20.0) * (12.0 * np.pi) ** (2.0 / 3.0) * (1.0 + 0.0123 * np.log10(self.cosmo_model.Om(self.z_vec))) if self.mdef_model == 'SOVirial' else delta_c * np.ones_like(self.z_vec)
         
-        self.eta_cen = eta_cen * np.ones_like(self.z_vec)
-        self.eta_sat = eta_sat * np.ones_like(self.z_vec)
+        self.eta_cen = eta_cen
+        self.eta_sat = eta_sat
         
     @cached_quantity
     def hmf_generator(self):
@@ -1095,29 +1095,29 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
     """
     #TO-DO: set defaults to sensible values!
     def __init__(self,
-            k_vec=None,
-            z_vec=None,
-            lnk_min=0.0,
-            lnk_max=0.0,
-            dlnk=0.0,
-            Mmin=0.0,
-            Mmax=0.0,
-            dlog10m=0.0,
-            mdef_model=None,
-            hmf_model=None,
-            bias_model=None,
-            halo_profile_model=None,
-            halo_concentration_model=None,
-            transfer_model=None,
+            k_vec=np.logspace(-4, 4, 100),
+            z_vec=np.linspace(0.0, 3.0, 15),
+            lnk_min=np.log(10**(-4.0)),
+            lnk_max=np.log(10**(4.0)),
+            dlnk=(np.log(10**(-4.0)) - np.log(10**(4.0))) / 100,
+            Mmin=9.0,
+            Mmax=16.0,
+            dlog10m=0.06,
+            mdef_model='SOMean',
+            hmf_model='Tinker10',
+            bias_model='Tinker10',
+            halo_profile_model='NFW',
+            halo_concentration_model='Duffy08',
+            transfer_model='CAMB',
             transfer_params={},
-            growth_model=None,
+            growth_model='CambGrowth',
             growth_params={},
-            norm_cen=0.0,
-            norm_sat=0.0,
+            norm_cen=1.0,
+            norm_sat=1.0,
             eta_cen=0.0,
             eta_sat=0.0,
-            overdensity=0.0,
-            delta_c=0.0,
+            overdensity=200,
+            delta_c=1.686,
             mead_correction=None,
             **cosmology_kwargs
         ):

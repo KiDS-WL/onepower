@@ -12,6 +12,18 @@ This module provides classes and functions to calculate properties of galaxies w
 using various HOD models and conditional observable functions (COFs).
 """
 
+_defaults = {
+    'observables_file': None,
+    'observable_z': False,
+    'obs_min': np.array([8.0]),
+    'obs_max': np.array([12.0]),
+    'zmin': np.array([0.0]),
+    'zmax': np.array([0.2]),
+    'nz': 15,
+    'nobs': 300,
+    'observable_h_unit': '1/h^2',
+}
+
 def load_data(file_name):
     """
     Load data from a file.
@@ -56,7 +68,7 @@ class HOD(Framework):
             dndlnm=None,
             halo_bias=None,
             z_vec=None,
-            hod_settings={}
+            hod_settings: dict =_defaults
         ):
         self.mass = mass
         self.z_vec = z_vec
@@ -739,7 +751,7 @@ class Cacciato(HOD):
             N_sat = N_sat + delta_pop_s
         return N_sat
 
-    @property
+    @cached_quantity
     def _compute_stellar_fraction_cen(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
@@ -748,7 +760,7 @@ class Cacciato(HOD):
         """
         return simpson(self.COF_cen * self.obs, self.obs) / self.mass
 
-    @property
+    @cached_quantity
     def _compute_stellar_fraction_sat(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
@@ -757,7 +769,7 @@ class Cacciato(HOD):
         """
         return simpson(self.COF_sat * self.obs, self.obs) / self.mass
 
-    @property
+    @cached_quantity
     def _compute_stellar_fraction(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
@@ -839,7 +851,7 @@ class Simple(HOD):
     def Msat(self):
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
 
-    @property
+    @cached_quantity
     def _compute_hod_cen(self):
         """
         Compute the HOD for central galaxies.
@@ -850,7 +862,7 @@ class Simple(HOD):
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @property
+    @cached_quantity
     def _compute_hod_sat(self):
         """
         Compute the HOD for satellite galaxies.
@@ -938,7 +950,7 @@ class Zehavi(HOD):
     def Msat(self):
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
 
-    @property
+    @cached_quantity
     def _compute_hod_cen(self):
         """
         Compute the HOD for central galaxies.
@@ -949,7 +961,7 @@ class Zehavi(HOD):
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @property
+    @cached_quantity
     def _compute_hod_sat(self):
         """
         Compute the HOD for satellite galaxies.
@@ -1053,7 +1065,7 @@ class Zheng(HOD):
     def M1(self):
         return 10.0**self.log10_M1[:, np.newaxis, np.newaxis]
 
-    @property
+    @cached_quantity
     def _compute_hod_cen(self):
         """
         Compute the HOD for central galaxies.
@@ -1064,7 +1076,7 @@ class Zheng(HOD):
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @property
+    @cached_quantity
     def _compute_hod_sat(self):
         """
         Compute the HOD for satellite galaxies.
@@ -1167,7 +1179,7 @@ class Zhai(HOD):
     def Mcut(self):
         return 10.0**self.log10_Mcut[:, np.newaxis, np.newaxis]
 
-    @property
+    @cached_quantity
     def _compute_hod_cen(self):
         """
         Compute the HOD for central galaxies.
@@ -1178,7 +1190,7 @@ class Zhai(HOD):
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @property
+    @cached_quantity
     def _compute_hod_sat(self):
         """
         Compute the HOD for satellite galaxies.

@@ -688,6 +688,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
                     
         return uk_l
 
+    @cached_quantity
     def wkm(self):
         """
         Return the computed wkm_f_ell values along with the redshift, mass, and k vectors.

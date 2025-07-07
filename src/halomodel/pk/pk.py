@@ -178,7 +178,7 @@ class PowerSpectrumResult:
         self.galaxy_linear_bias = galaxy_linear_bias
 
 
-class MatterSpectra(HaloModelIngredients):
+class Spectra(HaloModelIngredients):
     """
     Class to compute matter power spectra using the halo model approach.
     
@@ -204,20 +204,62 @@ class MatterSpectra(HaloModelIngredients):
         Parameters for the HOD model.
     hod_settings_mm : dict, optional
         Settings for the HOD model.
+    hod_model : str, optional
+        HOD model to use.
+    hod_params : dict, optional
+        Parameters for the HOD model.
+    hod_settings : dict, optional
+        Settings for the HOD model.
+    obs_settings : dict, optional
+        Settings for the observable.
+    pointmass : bool, optional
+        Whether to use point mass approximation.
+    compute_observable : bool, optional
+        Whether to compute observable.
+    poisson_par : dict, optional
+        Parameters for the Poisson distribution.
+    t_eff : float, optional
+        Effective parameter for the Fortuna model.
+    matter_power_nl : array_like, optional
+        Non-linear matter power spectrum.
+    fortuna : bool, optional
+        Whether to use the Fortuna model.
+    one_halo_ktrunc_ia : float, optional
+        Truncation wavenumber for the 1-halo IA term.
+    two_halo_ktrunc_ia : float, optional
+        Truncation wavenumber for the 2-halo IA term.
+    align_params : dict, optional
+        Parameters for the alignment model.
+    
+        
     hmf_kwargs : dict
         Additional keyword arguments for the HaloModelIngredients.
     """
     def __init__(self,
             matter_power_lin=None,
-            mb=None,
+            mb=13.87,
             dewiggle=False,
             bnl=False,
             beta_nl=None,
             one_halo_ktrunc=0.1,
             two_halo_ktrunc=2.0,
             hod_model_mm='Cacciato',
-            hod_params_mm={},
-            hod_settings_mm={},
+            hod_params_mm: dict = {},
+            hod_settings_mm: dict = {},
+            pointmass=False,
+            compute_observable=False,
+            poisson_par: dict = {},
+            hod_model='Cacciato',
+            hod_params: dict  = {},
+            hod_settings: dict = {},
+            obs_settings: dict = {},
+            t_eff: float = None,
+            matter_power_nl=None,
+            fortuna=False,
+            one_halo_ktrunc_ia=4.0,
+            two_halo_ktrunc_ia=6.0,
+            align_params: dict = {},
+            
             **hmf_kwargs
         ):
         
@@ -256,6 +298,54 @@ class MatterSpectra(HaloModelIngredients):
             self.I21 = self.prepare_I21_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.beta_nl)
             self.I22 = self.prepare_I22_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.beta_nl)
             
+        # Galaxy spectra specific kwargs:
+        self.pointmass = pointmass
+        self.compute_observable = compute_observable
+        self.poisson_par = poisson_par
+        self.hod_settings = hod_settings
+        self.hod_params = hod_params
+        self.hod_model = hod_model
+        self.obs_settings = obs_settings
+        
+        # Alignment spectra specific kwargs:
+        self.t_eff = t_eff
+        self.fortuna = fortuna
+        self.one_halo_ktrunc_ia = one_halo_ktrunc_ia
+        self.two_halo_ktrunc_ia = two_halo_ktrunc_ia
+        self.align_params = align_params
+        
+        self.align_params.update({
+            'z_vec': self.z_vec,
+            'mass': self.mass,
+            'z_vec': self.z_vec,
+            'c': self.conc_cen,
+            'r_s': self.r_s_cen,
+            'rvir': self.rvir_cen[0],
+            'method': 'fftlog'
+        })
+        
+        # Set up the aligment amplitudes and radial dependence
+        self.alignment_class = SatelliteAlignment(**self.align_params)
+        self.beta_cen = self.alignment_class.beta_cen
+        self.beta_sat = self.alignment_class.beta_sat
+        self.mpivot_cen = self.alignment_class.mpivot_cen
+        self.mpivot_sat = self.alignment_class.mpivot_sat
+        self.alignment_gi = self.alignment_class.alignment_gi
+        
+        self.alignment_amplitude_2h, self.alignment_amplitude_2h_II, self.C1 = self.compute_two_halo_alignment
+        
+        #TO-DO: Maybe implement a separate HOD instance for IA, with a separate set of central/satellite galaxy profiles for IA P(k)
+    
+        if self.fortuna:
+            if matter_power_nl is None:
+                self.matter_power_nl = self.nonlinear_power
+            else:
+                self.matter_power_nl = matter_power_nl
+            self.matter_power_nl = self.nonlinear_power if matter_power_nl is None else matter_power_nl
+            if self.matter_power_nl.shape != (self.z_vec.size, self.k_vec.size):
+                raise ValueError("Shape of input power spectra is not equal to redshift and k-vec dimensions!")
+            self.peff = (1.0 - self.t_eff) * self.matter_power_nl + self.t_eff * self.matter_power_lin
+    
     @parameter("param")
     def mb(self, val):
         return val
@@ -290,6 +380,58 @@ class MatterSpectra(HaloModelIngredients):
         
     @parameter("param")
     def hod_params_mm(self, val):
+        return val
+    
+    @parameter("switch")
+    def pointmass(self, val):
+        return val
+        
+    @parameter("switch")
+    def compute_observable(self, val):
+        return val
+        
+    @parameter("param")
+    def poisson_par(self, val):
+        return val
+        
+    @parameter("param")
+    def hod_model(self, val):
+        return val
+        
+    @parameter("param")
+    def hod_params(self, val):
+        return val
+        
+    @parameter("param")
+    def hod_settings(self, val):
+        return val
+        
+    @parameter("param")
+    def obs_settings(self, val):
+        return val
+    
+    @parameter("switch")
+    def fortuna(self, val):
+        return val
+        
+    @parameter("param")
+    def t_eff(self, val):
+        return val
+        
+    @parameter("switch")
+    def matter_power_nl(self, val):
+        return val
+        
+    @parameter("param")
+    def one_halo_ktrunc_ia(self, val):
+        return val
+        
+    @parameter("param")
+    def two_halo_ktrunc_ia(self, val):
+        return val
+        
+    @parameter("param")
+    def align_params(self, val):
         return val
         
     def select_hod_model(self, val):
@@ -589,7 +731,7 @@ class MatterSpectra(HaloModelIngredients):
         )
         return profile
 
-    @property
+    @cached_quantity
     def one_halo_truncation(self):
         """
         1-halo term truncation at large scales (small k)
@@ -609,7 +751,7 @@ class MatterSpectra(HaloModelIngredients):
         k_frac = self.k_vec / self.one_halo_ktrunc
         return (k_frac**4.0) / (1.0 + k_frac**4.0)
 
-    @property
+    @cached_quantity
     def two_halo_truncation(self):
         """
         2-halo term truncation at larger k-values (large k).
@@ -634,7 +776,7 @@ class MatterSpectra(HaloModelIngredients):
         return 1.0 - 0.05 * (k_frac**nd)/(1.0 + k_frac**nd)
         #return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
-    @property
+    @cached_quantity
     def one_halo_truncation_ia(self):
         """
         1-halo term truncation for IA.
@@ -653,7 +795,7 @@ class MatterSpectra(HaloModelIngredients):
             return np.ones_like(self.k_vec)
         return 1.0 - np.exp(-(self.k_vec / self.one_halo_ktrunc_ia)**2.0)
 
-    @property
+    @cached_quantity
     def two_halo_truncation_ia(self):
         """
         2-halo term truncation for IA.
@@ -1194,18 +1336,9 @@ class MatterSpectra(HaloModelIngredients):
     @cached_quantity
     def compute_power_spectrum_mm(
             self,
-            one_halo_ktrunc=None,
-            two_halo_ktrunc=None
         ):
         """
         Compute the matter-matter power spectrum.
-
-        Parameters:
-        -----------
-        one_halo_ktrunc : float, optional
-            Truncation wavenumber for the 1-halo term.
-        two_halo_ktrunc : float, optional
-            Truncation wavenumber for the 2-halo term.
 
         Returns:
         --------
@@ -1237,79 +1370,9 @@ class MatterSpectra(HaloModelIngredients):
     
         return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
 
-
-class GalaxySpectra(MatterSpectra):
-    """
-    Class to compute galaxy power spectra using the halo model approach.
     
-    Parameters:
-    -----------
-    pointmass : bool, optional
-        Whether to use point mass approximation.
-    compute_observable : bool, optional
-        Whether to compute observable.
-    poisson_par : dict, optional
-        Parameters for the Poisson distribution.
-    hod_model : str, optional
-        HOD model to use.
-    hod_params : dict, optional
-        Parameters for the HOD model.
-    hod_settings : dict, optional
-        Settings for the HOD model.
-    obs_settings : dict, optional
-        Settings for the observable.
-    matter_spectra_kwargs : dict
-        Additional keyword arguments for the MatterSpectra.
-    """
-    def __init__(self,
-            pointmass=None,
-            compute_observable=False,
-            poisson_par={},
-            hod_model='Cacciato',
-            hod_params={},
-            hod_settings={},
-            obs_settings={},
-            **matter_spectra_kwargs
-        ):
-        
-        # Call super init MUST BE DONE FIRST.
-        super().__init__(**matter_spectra_kwargs)
-        
-        self.pointmass = pointmass
-        self.compute_observable = compute_observable
-        self.poisson_par = poisson_par
-        self.hod_settings = hod_settings
-        self.hod_params = hod_params
-        self.hod_model = hod_model
-        self.obs_settings = obs_settings
-        
-    @parameter("switch")
-    def pointmass(self, val):
-        return val
-        
-    @parameter("switch")
-    def compute_observable(self, val):
-        return val
-        
-    @parameter("param")
-    def poisson_par(self, val):
-        return val
-        
-    @parameter("param")
-    def hod_model(self, val):
-        return val
-        
-    @parameter("param")
-    def hod_params(self, val):
-        return val
-        
-    @parameter("param")
-    def hod_settings(self, val):
-        return val
-        
-    @parameter("param")
-    def obs_settings(self, val):
-        return val
+    # --------------------------------  Galaxy spectra specific funtions ------------------------------
+    
     
     @cached_quantity
     def hod(self):
@@ -1611,103 +1674,10 @@ class GalaxySpectra(MatterSpectra):
         galaxy_linear_bias = np.sqrt(self.Ic_term * self.Im_term + self.Is_term * self.Im_term)
     
         return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
-
-
-class AlignmentSpectra(GalaxySpectra):
-    """
-    Class to compute alignment power spectra using the halo model approach.
-
-    Parameters:
-    -----------
-    t_eff : float, optional
-        Effective parameter for the Fortuna model.
-    matter_power_nl : array_like, optional
-        Non-linear matter power spectrum.
-    fortuna : bool, optional
-        Whether to use the Fortuna model.
-    one_halo_ktrunc_ia : float, optional
-        Truncation wavenumber for the 1-halo IA term.
-    two_halo_ktrunc_ia : float, optional
-        Truncation wavenumber for the 2-halo IA term.
-    align_params : dict, optional
-        Parameters for the alignment model.
-    galaxy_spectra_kwargs : dict
-        Additional keyword arguments for the GalaxySpectra.
-    """
-    def __init__(self,
-            t_eff=None,
-            matter_power_nl=None,
-            fortuna=False,
-            one_halo_ktrunc_ia=4.0,
-            two_halo_ktrunc_ia=6.0,
-            align_params={},
-            **galaxy_spectra_kwargs
-        ):
         
-        # Call super init MUST BE DONE FIRST.
-        super().__init__(**galaxy_spectra_kwargs)
         
-        self.t_eff = t_eff
-        self.fortuna = fortuna
-        self.one_halo_ktrunc_ia = one_halo_ktrunc_ia
-        self.two_halo_ktrunc_ia = two_halo_ktrunc_ia
-        self.align_params = align_params
-        
-        self.align_params.update({
-            'z_vec': self.z_vec,
-            'mass': self.mass,
-            'z_vec': self.z_vec,
-            'c': self.conc_cen,
-            'r_s': self.r_s_cen,
-            'rvir': self.rvir_cen[0],
-            'method': 'hankel'#'fftlog'
-        })
-        
-        # Set up the aligment amplitudes and radial dependence
-        self.alignment_class = SatelliteAlignment(**self.align_params)
-        self.beta_cen = self.alignment_class.beta_cen
-        self.beta_sat = self.alignment_class.beta_sat
-        self.mpivot_cen = self.alignment_class.mpivot_cen
-        self.mpivot_sat = self.alignment_class.mpivot_sat
-        self.alignment_gi = self.alignment_class.alignment_gi
-        
-        self.alignment_amplitude_2h, self.alignment_amplitude_2h_II, self.C1 = self.compute_two_halo_alignment
-        
-        #TO-DO: Maybe implement a separate HOD instance for IA, with a separate set of central/satellite galaxy profiles for IA P(k)
+    # --------------------------------  Alignment spectra specific funtions ------------------------------
     
-        if self.fortuna:
-            if matter_power_nl is None:
-                self.matter_power_nl = self.nonlinear_power
-            else:
-                self.matter_power_nl = matter_power_nl
-            self.matter_power_nl = self.nonlinear_power if matter_power_nl is None else matter_power_nl
-            if self.matter_power_nl.shape != (self.z_vec.size, self.k_vec.size):
-                raise ValueError("Shape of input power spectra is not equal to redshift and k-vec dimensions!")
-            self.peff = (1.0 - self.t_eff) * self.matter_power_nl + self.t_eff * self.matter_power_lin
-    
-    @parameter("switch")
-    def fortuna(self, val):
-        return val
-        
-    @parameter("param")
-    def t_eff(self, val):
-        return val
-        
-    @parameter("switch")
-    def matter_power_nl(self, val):
-        return val
-        
-    @parameter("param")
-    def one_halo_ktrunc_ia(self, val):
-        return val
-        
-    @parameter("param")
-    def two_halo_ktrunc_ia(self, val):
-        return val
-        
-    @parameter("param")
-    def align_params(self, val):
-        return val
     
     @cached_quantity
     def wkm_sat(self):
@@ -1868,7 +1838,7 @@ class AlignmentSpectra(GalaxySpectra):
         )
         return I_g_align + self.A_term * self.satellite_alignment_profile[:, :, :, 0] * self.mean_density0[np.newaxis, :, np.newaxis] / self.mass[0]
     
-    @property
+    @cached_quantity
     def compute_two_halo_alignment(self):
         """
         Compute the two-halo alignment amplitudes.

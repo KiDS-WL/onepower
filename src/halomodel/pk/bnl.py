@@ -51,7 +51,7 @@ class NonLinearBias(Framework):
             omega_lambda=0.7,
             n_s=1.0,
             w0=-1.0,
-            z_dep=False
+            z_dep=False,
         ):
         self.mass = mass
         self.z_vec = z_vec
