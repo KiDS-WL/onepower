@@ -94,7 +94,135 @@ def get_string_or_none(cosmosis_block, section, name, default):
         raise ValueError(f'Parameter {name} is not an instance of a number or NoneType!')
 
     return param
+    
+def save_matter_results(block, power, z_vec, k_vec):
+    """Save matter results to the block."""
+    mass = power.mass
+    u_dm_cen = power.u_dm
+    u_dm_sat = power.u_sat
+    mean_density0 = power.mean_density0
+    mean_density_z = power.mean_density_z
+    rho_crit = power.mean_density0 / block[cosmo_params, 'omega_m']
+    rho_halo = power.rho_halo
+    
+    dndlnm = power.dndlnm
+    halo_bias = power.halo_bias
+    nu = power.nu
+    neff = power.neff
+    sigma8_z = power.sigma8_z
+    fnu = power.fnu
+    
+    conc_cen = power.conc_cen
+    conc_sat = power.conc_sat
+    r_s_cen = power.r_s_cen
+    r_s_sat = power.r_s_sat
+    
+    rvir_cen = power.rvir_cen
+    rvir_sat = power.rvir_sat
+    
+    # TODO: Clean these up. Put more of them into the same folder
+    block.put_grid('concentration_m', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
+    block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)
+    block.put_grid('nfw_scale_radius_m', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
+    block.put_grid('nfw_scale_radius_sat', 'z', z_vec, 'm_h', mass, 'rs', r_s_sat)
 
+    block.put_double_array_1d('virial_radius', 'm_h', mass)
+    # rvir doesn't change with z, hence no z-dimension
+    block.put_double_array_1d('virial_radius', 'rvir_m', rvir_cen[0])
+    block.put_double_array_1d('virial_radius', 'rvir_sat', rvir_sat[0])
+
+    block.put_double_array_1d('fourier_nfw_profile', 'z', z_vec)
+    block.put_double_array_1d('fourier_nfw_profile', 'm_h', mass)
+    block.put_double_array_1d('fourier_nfw_profile', 'k_h', k_vec)
+    block.put_double_array_nd('fourier_nfw_profile', 'ukm', u_dm_cen)
+    block.put_double_array_nd('fourier_nfw_profile', 'uksat', u_dm_sat)
+
+    # Density
+    block['density', 'mean_density0'] = mean_density0
+    block['density', 'rho_crit'] = rho_crit
+    block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
+    block.put_double_array_1d('density', 'rho_halo', rho_halo)
+    block.put_double_array_1d('density', 'z', z_vec)
+
+    # Halo mass function
+    block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnm)
+    block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'nu', nu)
+    block.put_double_array_1d('hmf', 'neff', neff)
+    block.put_double_array_1d('hmf', 'sigma8_z', sigma8_z)
+
+    # Linear halo bias
+    block.put_grid('halobias', 'z', z_vec, 'm_h', mass, 'b_hb', halo_bias)
+
+    # Fraction of neutrinos to total matter, f_nu = Ω_nu /Ω_m
+    block[cosmo_params, 'fnu'] = fnu
+    
+def save_hod_results(block, power, z_vec, hod_section_name, hod_settings):
+    """Save HOD results to the block."""
+    mass = power.mass
+    N_cen = power.hod.compute_hod_cen
+    N_sat = power.hod.compute_hod_sat
+    N_tot = power.hod.compute_hod
+    numdens_cen = power.hod.compute_number_density_cen
+    numdens_sat = power.hod.compute_number_density_sat
+    numdens_tot = power.hod.compute_number_density
+    fraction_c = power.hod.f_c
+    fraction_s = power.hod.f_s
+    mass_avg = power.mass_avg
+    f_star = power.fstar
+    
+    hod_bins = N_cen.shape[0]
+    block.put_int(hod_section_name, 'nbins', hod_bins)
+    block.put_bool(hod_section_name, 'observable_z', hod_settings['observable_z'])
+    for nb in range(hod_bins):
+        suffix = f'_{nb+1}' if hod_bins != 1 else ''
+        block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_sat{suffix}', N_sat[nb])
+        block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_cen{suffix}', N_cen[nb])
+        block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_tot{suffix}', N_tot[nb])
+        block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'f_star{suffix}', f_star[nb])
+        block.put_double_array_1d(hod_section_name, f'number_density_cen{suffix}', numdens_cen[nb])
+        block.put_double_array_1d(hod_section_name, f'number_density_sat{suffix}', numdens_sat[nb])
+        block.put_double_array_1d(hod_section_name, f'number_density_tot{suffix}', numdens_tot[nb])
+        block.put_double_array_1d(hod_section_name, f'central_fraction{suffix}', fraction_c[nb])
+        block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_s[nb])
+        block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg[nb])
+    return hod_bins
+    
+def save_obs_results(block, power, observable_section_name, obs_settings):
+    mass = power.mass
+    obs_func = power.obs_func
+    obs_func_c = power.obs_func_cen
+    obs_func_s = power.obs_func_sat
+    obs_z = power.obs_func_z
+    obs_range = power.obs_func_obs
+    obs_bins = obs_range.shape[0]
+    
+    block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
+    for nb in range(obs_bins):
+        if np.all(np.array([obs_settings['obs_min'].size, obs_settings['obs_max'].size, obs_settings['zmin'].size, obs_settings['zmax'].size, obs_settings['nz']]) == 1):
+            suffix_obs = '_med'
+            block.put_double_array_1d(observable_section_name, 'obs_val_med', np.squeeze(obs_range))
+            block.put_double_array_1d(observable_section_name, 'obs_func_med', np.squeeze(obs_func))
+            block.put_double_array_1d(observable_section_name, 'obs_func_med_c', np.squeeze(obs_func_c))
+            block.put_double_array_1d(observable_section_name, 'obs_func_med_s', np.squeeze(obs_func_s))
+        else:
+            suffix_obs = f'_{nb+1}'
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func{suffix_obs}', obs_func[nb])
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_c{suffix_obs}', obs_func_c[nb])
+            block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb])
+    
+def save_pk_to_grid(block, z_vec, k_vec, base_name, suffix, pk_1h, pk_2h, pk_tot, response, pk_mm=None, pk_mm_in=None):
+    """Save P(k) to the block."""
+    section_name = f"{base_name}{suffix}"
+    if response and pk_mm is not None and pk_mm_in is not None:
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h / pk_mm[0] * pk_mm_in)
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h / pk_mm[0] * pk_mm_in)
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot / pk_mm[0] * pk_mm_in)
+    else:
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h)
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
+    
+    
 def setup(options):
 
     # hmf config
@@ -375,6 +503,8 @@ def execute(block, config):
         k_nl, p_nl = pk_util.get_nonlinear_power_spectrum(block, z_vec)
         pk_mm_in = pk_util.log_linear_interpolation_k(p_nl, k_nl, k_vec)
         align_kwargs['matter_power_nl'] = pk_mm_in
+    else:
+        pk_mm_in = None
 
 
     # Add the non-linear P_hh to the 2h term
@@ -504,123 +634,16 @@ def execute(block, config):
     comb_kwargs = {**matter_kwargs, **galaxy_kwargs, **align_kwargs}
     power = Spectra(**comb_kwargs)
 
-    mass = power.mass
     # not optimal, rethink!
     if matter:
-        
-        u_dm_cen = power.u_dm
-        u_dm_sat = power.u_sat
-        mean_density0 = power.mean_density0
-        mean_density_z = power.mean_density_z
-        rho_crit = power.mean_density0 / block[cosmo_params, 'omega_m']
-        rho_halo = power.rho_halo
-        
-        dndlnm = power.dndlnm
-        halo_bias = power.halo_bias
-        nu = power.nu
-        neff = power.neff
-        sigma8_z = power.sigma8_z
-        fnu = power.fnu
-        
-        conc_cen = power.conc_cen
-        conc_sat = power.conc_sat
-        r_s_cen = power.r_s_cen
-        r_s_sat = power.r_s_sat
-        
-        rvir_cen = power.rvir_cen
-        rvir_sat = power.rvir_sat
-        
-        # TODO: Clean these up. Put more of them into the same folder
-        block.put_grid('concentration_m', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
-        block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)
-        block.put_grid('nfw_scale_radius_m', 'z', z_vec, 'm_h', mass, 'rs', r_s_cen)
-        block.put_grid('nfw_scale_radius_sat', 'z', z_vec, 'm_h', mass, 'rs', r_s_sat)
-    
-        block.put_double_array_1d('virial_radius', 'm_h', mass)
-        # rvir doesn't change with z, hence no z-dimension
-        block.put_double_array_1d('virial_radius', 'rvir_m', rvir_cen[0])
-        block.put_double_array_1d('virial_radius', 'rvir_sat', rvir_sat[0])
-    
-        block.put_double_array_1d('fourier_nfw_profile', 'z', z_vec)
-        block.put_double_array_1d('fourier_nfw_profile', 'm_h', mass)
-        block.put_double_array_1d('fourier_nfw_profile', 'k_h', k_vec)
-        block.put_double_array_nd('fourier_nfw_profile', 'ukm', u_dm_cen)
-        block.put_double_array_nd('fourier_nfw_profile', 'uksat', u_dm_sat)
-    
-    
-        # Density
-        block['density', 'mean_density0'] = mean_density0
-        block['density', 'rho_crit'] = rho_crit
-        block.put_double_array_1d('density', 'mean_density_z', mean_density_z)
-        block.put_double_array_1d('density', 'rho_halo', rho_halo)
-        block.put_double_array_1d('density', 'z', z_vec)
-    
-        # Halo mass function
-        block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'dndlnmh', dndlnm)
-        block.put_grid('hmf', 'z', z_vec, 'm_h', mass, 'nu', nu)
-        block.put_double_array_1d('hmf', 'neff', neff)
-        block.put_double_array_1d('hmf', 'sigma8_z', sigma8_z)
-    
-        # Linear halo bias
-        block.put_grid('halobias', 'z', z_vec, 'm_h', mass, 'b_hb', halo_bias)
-    
-        # Fraction of neutrinos to total matter, f_nu = Ω_nu /Ω_m
-        block[cosmo_params, 'fnu'] = fnu
+        save_matter_results(block, power, z_vec, k_vec)
 
     if hod:
-        N_cen = power.hod.compute_hod_cen
-        N_sat = power.hod.compute_hod_sat
-        N_tot = power.hod.compute_hod
-        numdens_cen = power.hod.compute_number_density_cen
-        numdens_sat = power.hod.compute_number_density_sat
-        numdens_tot = power.hod.compute_number_density
-        fraction_c = power.hod.f_c
-        fraction_s = power.hod.f_s
-        mass_avg = power.mass_avg
-        f_star = power.fstar
-        
-        hod_bins = N_cen.shape[0]
-        block.put_int(hod_section_name, 'nbins', hod_bins)
-        block.put_bool(hod_section_name, 'observable_z', hod_settings['observable_z'])
-        for nb in range(hod_bins):
-            suffix = f'_{nb+1}' if hod_bins != 1 else ''
-            block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_sat{suffix}', N_sat[nb])
-            block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_cen{suffix}', N_cen[nb])
-            block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_tot{suffix}', N_tot[nb])
-            block.put_grid(hod_section_name, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'f_star{suffix}', f_star[nb])
-            block.put_double_array_1d(hod_section_name, f'number_density_cen{suffix}', numdens_cen[nb])
-            block.put_double_array_1d(hod_section_name, f'number_density_sat{suffix}', numdens_sat[nb])
-            block.put_double_array_1d(hod_section_name, f'number_density_tot{suffix}', numdens_tot[nb])
-            block.put_double_array_1d(hod_section_name, f'central_fraction{suffix}', fraction_c[nb])
-            block.put_double_array_1d(hod_section_name, f'satellite_fraction{suffix}', fraction_s[nb])
-            block.put_double_array_1d(hod_section_name, f'average_halo_mass{suffix}', mass_avg[nb])
-        
+        hod_bins = save_hod_results(block, power, z_vec, hod_section_name, hod_settings)
         if power.obs_func is not None and obs_settings['save_observable']:
-            obs_func = power.obs_func
-            obs_func_c = power.obs_func_cen
-            obs_func_s = power.obs_func_sat
-            obs_z = power.obs_func_z
-            obs_range = power.obs_func_obs
-            obs_bins = obs_range.shape[0]
-            
-            observable_section_name = obs_settings['observable_section_name']
-            block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
-
-            for nb in range(obs_bins):
-                if np.all(np.array([obs_settings['obs_min'].size, obs_settings['obs_max'].size, obs_settings['zmin'].size, obs_settings['zmax'].size, obs_settings['nz']]) == 1):
-                    suffix_obs = '_med'
-                    block.put_double_array_1d(observable_section_name, 'obs_val_med', np.squeeze(obs_range))
-                    block.put_double_array_1d(observable_section_name, 'obs_func_med', np.squeeze(obs_func))
-                    block.put_double_array_1d(observable_section_name, 'obs_func_med_c', np.squeeze(obs_func_c))
-                    block.put_double_array_1d(observable_section_name, 'obs_func_med_s', np.squeeze(obs_func_s))
-                else:
-                    suffix_obs = f'_{nb+1}'
-                    block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func{suffix_obs}', obs_func[nb])
-                    block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_c{suffix_obs}', obs_func_c[nb])
-                    block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb])
+            save_obs_results(block, power, obs_settings['observable_section_name'], obs_settings)
     
     if p_mm or response:
-        #pk_mm_1h, pk_mm_2h, pk_mm, _ = power.compute_power_spectrum_mm
         pk_mm_1h = power.compute_power_spectrum_mm.pk_1h
         pk_mm_2h = power.compute_power_spectrum_mm.pk_2h
         pk_mm = power.compute_power_spectrum_mm.pk_tot
@@ -635,128 +658,71 @@ def execute(block, config):
             block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mm_1h[0])
             block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mm_2h[0])
             block.put_grid('matter_power_nl', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mm[0])
+    else:
+        pk_mm = None
 
     if p_gg:
-        #pk_gg_1h, pk_gg_2h, pk_gg, bg_linear = power.compute_power_spectrum_gg
         pk_gg_1h = power.compute_power_spectrum_gg.pk_1h
         pk_gg_2h = power.compute_power_spectrum_gg.pk_2h
         pk_gg = power.compute_power_spectrum_gg.pk_tot
         bg_linear = power.compute_power_spectrum_gg.galaxy_linear_bias
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
-
+            save_pk_to_grid(block, z_vec, k_vec, 'galaxy_power', suffix, pk_gg_1h[nb], pk_gg_2h[nb], pk_gg[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
             block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear[nb])
-            if response:
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h[nb] / pk_mm[0] * pk_mm_in)
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h[nb] / pk_mm[0] * pk_mm_in)
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg[nb] / pk_mm[0] * pk_mm_in)
-            else:
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gg_1h[nb])
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gg_2h[nb])
-                block.put_grid(f'galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gg[nb])
 
     if p_gm:
-        #pk_gm_1h, pk_gm_2h, pk_gm, bgm_linear = power.compute_power_spectrum_gm
         pk_gm_1h = power.compute_power_spectrum_gm.pk_1h
         pk_gm_2h = power.compute_power_spectrum_gm.pk_2h
         pk_gm = power.compute_power_spectrum_gm.pk_tot
         bgm_linear = power.compute_power_spectrum_gm.galaxy_linear_bias
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
-        
+            save_pk_to_grid(block, z_vec, k_vec, 'matter_galaxy_power', suffix, pk_gm_1h[nb], pk_gm_2h[nb], pk_gm[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
             block.put_grid(f'galaxy_matter_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bgm_linear', bgm_linear[nb])
-            if response:
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gm_1h[nb] / pk_mm[0] * pk_mm_in)
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gm_2h[nb] / pk_mm[0] * pk_mm_in)
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm[nb] / pk_mm[0] * pk_mm_in)
-            else:
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gm_1h[nb])
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gm_2h[nb])
-                block.put_grid(f'matter_galaxy_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gm[nb])
-
+            
     if alignment:
         power.update(hod_settings = hod_settings_ia)
-        N_cen = power.hod.compute_hod_cen
-        N_sat = power.hod.compute_hod_sat
-        N_tot = power.hod.compute_hod
-        numdens_cen = power.hod.compute_number_density_cen
-        numdens_sat = power.hod.compute_number_density_sat
-        numdens_tot = power.hod.compute_number_density
-        fraction_c = power.hod.f_c
-        fraction_s = power.hod.f_s
-        mass_avg = power.mass_avg
-        f_star = power.fstar
+        hod_bins = save_hod_results(block, power, z_vec, hod_section_name_ia, hod_settings_ia)
         
-        hod_bins = N_cen.shape[0]
-        block.put_int(hod_section_name_ia, 'nbins', hod_bins)
-        block.put_bool(hod_section_name_ia, 'observable_z', hod_settings_ia['observable_z'])
-        for nb in range(hod_bins):
-            suffix = f'_{nb+1}' if hod_bins != 1 else ''
-            block.put_grid(hod_section_name_ia, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_sat{suffix}', N_sat[nb])
-            block.put_grid(hod_section_name_ia, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_cen{suffix}', N_cen[nb])
-            block.put_grid(hod_section_name_ia, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'N_tot{suffix}', N_tot[nb])
-            block.put_grid(hod_section_name_ia, f'z{suffix}', z_vec, f'mass{suffix}', mass, f'f_star{suffix}', f_star[nb])
-            block.put_double_array_1d(hod_section_name_ia, f'number_density_cen{suffix}', numdens_cen[nb])
-            block.put_double_array_1d(hod_section_name_ia, f'number_density_sat{suffix}', numdens_sat[nb])
-            block.put_double_array_1d(hod_section_name_ia, f'number_density_tot{suffix}', numdens_tot[nb])
-            block.put_double_array_1d(hod_section_name_ia, f'central_fraction{suffix}', fraction_c[nb])
-            block.put_double_array_1d(hod_section_name_ia, f'satellite_fraction{suffix}', fraction_s[nb])
-            block.put_double_array_1d(hod_section_name_ia, f'average_halo_mass{suffix}', mass_avg[nb])
     
     if p_II:
-        #pk_II_1h, pk_II_2h, pk_II, _ = power.compute_power_spectrum_ii
         pk_II_1h = power.compute_power_spectrum_ii.pk_1h
         pk_II_2h = power.compute_power_spectrum_ii.pk_2h
         pk_II = power.compute_power_spectrum_ii.pk_tot
         for nb in range(hod_bins):
             suffix = f'{pop_name_ia}_{nb+1}' if hod_bins != 1 else f'{pop_name_ia}'
-        
-            if response:
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h[nb] / pk_mm[0] * pk_mm_in)
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_II_2h[nb] / pk_mm[0] * pk_mm_in)
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II[nb] / pk_mm[0] * pk_mm_in)
-            else:
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_II_1h[nb])
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_II_2h[nb])
-                block.put_grid(f'intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_II[nb])
+            save_pk_to_grid(block, z_vec, k_vec, 'intrinsic_power', suffix, pk_II_1h[nb], pk_II_2h[nb], pk_II[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
     
     if p_gI:
-        #pk_gI_1h, pk_gI_2h, pk_gI, _ = power.compute_power_spectrum_gi
         pk_gI_1h = power.compute_power_spectrum_gi.pk_1h
         pk_gI_2h = power.compute_power_spectrum_gi.pk_2h
         pk_gI = power.compute_power_spectrum_gi.pk_tot
-                                        
-        #quit()
         for nb in range(hod_bins):
             suffix = f'{pop_name_ia}_{nb+1}' if hod_bins != 1 else f'{pop_name_ia}'
-            
-            if response:
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h[nb] / pk_mm[0] * pk_mm_in)
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gI_2h[nb] / pk_mm[0] * pk_mm_in)
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI[nb] / pk_mm[0] * pk_mm_in)
-            else:
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_gI_1h[nb])
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_gI_2h[nb])
-                block.put_grid(f'galaxy_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_gI[nb])
+            save_pk_to_grid(block, z_vec, k_vec, 'galaxy_intrinsic_power', suffix, pk_gI_1h[nb], pk_gI_2h[nb], pk_gI[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
     
     if p_mI:
-        #pk_mI_1h, pk_mI_2h, pk_mI, _ = power.compute_power_spectrum_mi
         pk_mI_1h = power.compute_power_spectrum_mi.pk_1h
         pk_mI_2h = power.compute_power_spectrum_mi.pk_2h
         pk_mI = power.compute_power_spectrum_mi.pk_tot
         for nb in range(hod_bins):
             suffix = f'{pop_name_ia}_{nb+1}' if hod_bins != 1 else f'{pop_name_ia}'
+            save_pk_to_grid(block, z_vec, k_vec, 'matter_intrinsic_power', suffix, pk_mI_1h[nb], pk_mI_2h[nb], pk_mI[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
             
-            if response:
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h[nb] / pk_mm[0] * pk_mm_in)
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mI_2h[nb] / pk_mm[0] * pk_mm_in)
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI[nb] / pk_mm[0] * pk_mm_in)
-            else:
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_mI_1h[nb])
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_mI_2h[nb])
-                block.put_grid(f'matter_intrinsic_power{suffix}', 'z', z_vec, 'k_h', k_vec, 'p_k', pk_mI[nb])
-                
     return 0
+    
+def save_pk_to_grid(block, z_vec, k_vec, base_name, suffix, pk_1h, pk_2h, pk_tot, response, pk_mm=None, pk_mm_in=None):
+    """Save P(k) to the block."""
+    section_name = f"{base_name}{suffix}"
+    if response and pk_mm is not None and pk_mm_in is not None:
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h / pk_mm[0] * pk_mm_in)
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h / pk_mm[0] * pk_mm_in)
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot / pk_mm[0] * pk_mm_in)
+    else:
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h)
+        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
 
 def cleanup(config):
     # Usually python modules do not need to do anything here.
