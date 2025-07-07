@@ -711,18 +711,6 @@ def execute(block, config):
             save_pk_to_grid(block, z_vec, k_vec, 'matter_intrinsic_power', suffix, pk_mI_1h[nb], pk_mI_2h[nb], pk_mI[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
             
     return 0
-    
-def save_pk_to_grid(block, z_vec, k_vec, base_name, suffix, pk_1h, pk_2h, pk_tot, response, pk_mm=None, pk_mm_in=None):
-    """Save P(k) to the block."""
-    section_name = f"{base_name}{suffix}"
-    if response and pk_mm is not None and pk_mm_in is not None:
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h / pk_mm[0] * pk_mm_in)
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h / pk_mm[0] * pk_mm_in)
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot / pk_mm[0] * pk_mm_in)
-    else:
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h)
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
 
 def cleanup(config):
     # Usually python modules do not need to do anything here.
