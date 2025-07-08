@@ -46,18 +46,11 @@ gI: galaxy-intrinsic alignment
 mI: matter-intrinsic alignment
 """
 
-# TODO: IMPORTANT 1h term is too small compared to mead2020, see where this is coming from
-# MA: It is smaller when mnu > 0 because of the fnu factor in matter profile. It might be a better approximation
-# compared to simulations with neutrinos. We need to check this. I tried to compare with Euclid and Bacco emulator but
-# had difficulties running them.
-
-# NOTE: no truncation (halo exclusion problem) applied!
-
 from cosmosis.datablock import names, option_section
 import numpy as np
 import numbers
 import pk_util
-from halomodel.pk.pk import Spectra#MatterSpectra, GalaxySpectra, AlignmentSpectra
+from halomodel.pk.pk import Spectra
 from halomodel.pk.bnl import NonLinearBias
 
 cosmo_params = names.cosmological_parameters
@@ -69,6 +62,14 @@ parameters_models = {
         'log10_obs_norm_c', 'log10_m_ch', 'g1', 'g2', 'sigma_log10_O_c',
         'norm_s', 'pivot', 'alpha_s', 'beta_s', 'b0', 'b1', 'b2'
     ]
+}
+
+# Mapping of use_mead values to mead_correction values
+mead_correction_map = {
+    'mead2020': 'nofeedback',
+    'mead2020_feedback': 'feedback',
+    'fit_feedback': 'fit',
+    # Add more mappings here if needed
 }
 
 def get_string_or_none(cosmosis_block, section, name, default):
@@ -94,6 +95,141 @@ def get_string_or_none(cosmosis_block, section, name, default):
         raise ValueError(f'Parameter {name} is not an instance of a number or NoneType!')
 
     return param
+
+def setup_hod_settings(options, suffix):
+    """Setup HOD settings based on options."""
+    hod_settings = {}
+    if options.has_value(option_section, f'observables_file_{suffix}'):
+        hod_settings['observables_file'] = options.get_string(option_section, f'observables_file_{suffix}')
+        hod_settings['observable_z'] = True
+    else:
+        hod_settings['observables_file'] = None
+        hod_settings['observable_z'] = False
+        hod_settings['obs_min'] = np.asarray([options[option_section, f'log10_obs_min_{suffix}']]).flatten()
+        hod_settings['obs_max'] = np.asarray([options[option_section, f'log10_obs_max_{suffix}']]).flatten()
+        hod_settings['zmin'] = np.asarray([options[option_section, f'zmin_{suffix}']]).flatten()
+        hod_settings['zmax'] = np.asarray([options[option_section, f'zmax_{suffix}']]).flatten()
+        hod_settings['nz'] = options[option_section, f'nz_{suffix}']
+    hod_settings['nobs'] = options[option_section, f'nobs_{suffix}']
+    hod_settings['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
+    return hod_settings
+    
+def setup_hod_settings_mm(hod_settings):
+    """Setup matter-matter HOD settings based on options."""
+    hod_settings_mm = hod_settings.copy()
+    if hod_settings_mm['observables_file'] == None:
+        hod_settings_mm['obs_min'] = np.array([hod_settings['obs_min'].min()])
+        hod_settings_mm['obs_max'] = np.array([hod_settings['obs_max'].max()])
+        hod_settings_mm['zmin'] = np.array([hod_settings['zmin'].min()])
+        hod_settings_mm['zmax'] = np.array([hod_settings['zmax'].max()])
+        hod_settings_mm['nz'] = 15
+    hod_settings_mm['nobs'] = 100
+    return hod_settings_mm
+
+def setup_hmf_config(options):
+    """Setup function to parse options and return configuration for hmf."""
+    config_hmf = {
+        'log_mass_min': options.get_double(option_section, 'log_mass_min', default=9.0),
+        'log_mass_max': options.get_double(option_section, 'log_mass_max', default=16.0),
+        'dlog10m': (options.get_double(option_section, 'log_mass_max', default=16.0) - options.get_double(option_section, 'log_mass_min', default=9.0)) / options.get_int(option_section, 'nmass', default=200),
+        'z_vec': np.linspace(options.get_double(option_section, 'zmin_hmf'), options.get_double(option_section, 'zmax_hmf'), options.get_int(option_section, 'nz_hmf', default=15)),
+        'nk': options.get_int(option_section, 'nk', default=100),
+        'profile': options.get_string(option_section, 'profile', default='NFW'),
+        'profile_value_name': options.get_string(option_section, 'profile_value_name', default='profile_parameters'),
+        'hmf_model': options.get_string(option_section, 'hmf_model', default='Tinker10'),
+        'mdef_model': options.get_string(option_section, 'mdef_model', default='SOMean'),
+        'overdensity': options.get_double(option_section, 'overdensity', default=200.0),
+        'cm_model': options.get_string(option_section, 'cm_model', default='Duffy08'),
+        'delta_c': options.get_double(option_section, 'delta_c', default=1.686),
+        'bias_model': options.get_string(option_section, 'bias_model', default='Tinker10'),
+        'lnk_min': np.log(1e-8),#-18.0
+        'lnk_max': np.log(2e4),#18.0
+        'dlnk': 0.05,#0.001
+    }
+    return config_hmf
+
+def setup_pipeline_parameters(options):
+    """Setup pipeline parameters."""
+    p_mm = options.get_bool(option_section, 'p_mm', default=False)
+    p_gg = options.get_bool(option_section, 'p_gg', default=False)
+    p_gm = options.get_bool(option_section, 'p_gm', default=False)
+    p_gI = options.get_bool(option_section, 'p_gI', default=False)
+    p_mI = options.get_bool(option_section, 'p_mI', default=False)
+    p_II = options.get_bool(option_section, 'p_II', default=False)
+    # If True, calculate the response of the halo model for the requested power spectra compared to matter power
+    # multiplies this to input non-linear matter power spectra.
+    response = options.get_bool(option_section, 'response', default=False)
+    # If true, use the IA formalism of Fortuna et al. 2021: Truncated NLA at high k + 1-halo term
+    fortuna = options.get_bool(option_section, 'fortuna', default=False)
+    # If True, uses beta_nl
+    bnl = options.get_bool(option_section, 'bnl', default=False)
+
+    matter = p_mm
+    galaxy = p_gg or p_gm
+    alignment = p_gI or p_mI or p_II
+
+    # Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
+    # and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
+    # The user can change these values.
+    one_halo_ktrunc_ia = get_string_or_none(options, option_section, 'one_halo_ktrunc_ia', default=4.0)  # h/Mpc or None
+    two_halo_ktrunc_ia = get_string_or_none(options, option_section, 'two_halo_ktrunc_ia', default=6.0)  # h/Mpc or None
+    # General truncation of non-IA terms:
+    one_halo_ktrunc = get_string_or_none(options, option_section, 'one_halo_ktrunc', default=0.1)  # h/Mpc or None
+    two_halo_ktrunc = get_string_or_none(options, option_section, 'two_halo_ktrunc', default=2.0)  # h/Mpc or None
+
+    # Additional parameters
+    mead_correction = mead_correction_map.get(options.get_string(option_section, 'mead2020_correction', default='None'), None)
+    dewiggle = options.get_bool(option_section, 'dewiggle', default=False)
+    point_mass = options.get_bool(option_section, 'point_mass', default=False)
+    poisson_type = options.get_string(option_section, 'poisson_type', default='')
+
+    return (p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl,
+            alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia,
+            two_halo_ktrunc_ia, mead_correction, dewiggle, point_mass,
+            poisson_type)
+
+
+def setup_hod(options, alignment):
+
+    hod_section_name = options.get_string(option_section, 'hod_section_name')
+    hod_values_name = options.get_string(option_section, 'hod_values_name', default='hod_parameters').lower()
+
+    population_name = options.get_string(option_section, 'output_suffix', default='').lower()
+    pop_name = f'_{population_name}' if population_name else ''
+    
+    if alignment:
+        hod_section_name_ia = options.get_string(option_section, 'hod_section_name_ia')
+        population_name_ia = options.get_string(option_section, 'output_suffix_ia', default='').lower()
+        pop_name_ia = f'_{population_name_ia}' if population_name_ia else ''
+        central_IA = options.get_string(option_section, 'central_IA_depends_on', default='halo_mass')
+        satellite_IA = options.get_string(option_section, 'satellite_IA_depends_on', default='halo_mass')
+    else:
+        hod_section_name_ia = None
+        pop_name_ia = ''
+        central_IA = None
+        satellite_IA = None
+
+    hod_model = options.get_string(option_section, 'hod_model', default='Cacciato')
+    hod_settings = setup_hod_settings(options, 'hod')
+    hod_settings_mm = setup_hod_settings_mm(hod_settings)
+    nbins = len(hod_settings['obs_min'])
+    if alignment:
+        hod_settings_ia = setup_hod_settings(options, 'ia')
+    else:
+        hod_settings_ia = {}
+    if options.get_bool(option_section, 'save_observable', default=True):
+        obs_settings = setup_hod_settings(options, 'smf')
+        obs_settings['save_observable'] = options.get_bool(option_section, 'save_observable', default=True)
+        obs_settings['observable_section_name'] = options.get_string(
+            option_section, 'observable_section_name', default='stellar_mass_function'
+        ).lower()
+    else:
+        obs_settings = {}
+
+    return (hod_section_name, hod_values_name, pop_name, hod_model, 
+            hod_settings, hod_settings_mm, obs_settings, nbins, 
+            hod_settings_ia, hod_section_name_ia, pop_name_ia, 
+            central_IA, satellite_IA)
     
 def save_matter_results(block, power, z_vec, k_vec):
     """Save matter results to the block."""
@@ -159,12 +295,12 @@ def save_matter_results(block, power, z_vec, k_vec):
 def save_hod_results(block, power, z_vec, hod_section_name, hod_settings):
     """Save HOD results to the block."""
     mass = power.mass
-    N_cen = power.hod.compute_hod_cen
-    N_sat = power.hod.compute_hod_sat
-    N_tot = power.hod.compute_hod
-    numdens_cen = power.hod.compute_number_density_cen
-    numdens_sat = power.hod.compute_number_density_sat
-    numdens_tot = power.hod.compute_number_density
+    N_cen = power.hod.hod_cen
+    N_sat = power.hod.hod_sat
+    N_tot = power.hod.hod
+    numdens_cen = power.hod.number_density_cen
+    numdens_sat = power.hod.number_density_sat
+    numdens_tot = power.hod.number_density
     fraction_c = power.hod.f_c
     fraction_s = power.hod.f_s
     mass_avg = power.mass_avg
@@ -221,58 +357,22 @@ def save_pk_to_grid(block, z_vec, k_vec, base_name, suffix, pk_1h, pk_2h, pk_tot
         block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
         block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h)
         block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
-    
-    
+
 def setup(options):
 
+    (p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, 
+     fortuna, matter, galaxy, bnl, alignment, 
+     one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, 
+     mead_correction, dewiggle, point_mass, poisson_type) = setup_pipeline_parameters(options)
+
+    (hod_section_name, hod_values_name, pop_name, hod_model, 
+     hod_settings, hod_settings_mm, obs_settings, nbins, 
+     hod_settings_ia, hod_section_name_ia, pop_name_ia, 
+     central_IA, satellite_IA) = setup_hod(options, alignment)
+
     # hmf config
-    config_hmf = {}
-    # Log10 Minimum, Maximum and number of log10 mass bins for halo masses: M_halo
-    # Units are in log10(M_sun h^-1)
-    config_hmf['log_mass_min'] = options[option_section, 'log_mass_min']
-    config_hmf['log_mass_max'] = options[option_section, 'log_mass_max']
-    nmass = options[option_section, 'nmass']
-    config_hmf['dlog10m'] = (config_hmf['log_mass_max'] - config_hmf['log_mass_min']) / nmass
+    config_hmf = setup_hmf_config(options)
 
-    # Minimum and Maximum redshift and number of redshift bins for calculating the ingredients
-    zmin = options[option_section, 'zmin_hmf']
-    zmax = options[option_section, 'zmax_hmf']
-    nz = options[option_section, 'nz_hmf']
-    config_hmf['z_vec'] = np.linspace(zmin, zmax, nz)
-
-    # Model choices
-    config_hmf['nk'] = options[option_section, 'nk']
-    config_hmf['profile'] = options.get_string(option_section, 'profile', default='NFW')
-    config_hmf['profile_value_name'] = options.get_string(option_section, 'profile_value_name', default='profile_parameters')
-    config_hmf['hmf_model'] = options.get_string(option_section, 'hmf_model')
-    config_hmf['mdef_model'] = options.get_string(option_section, 'mdef_model')
-    config_hmf['overdensity'] = options[option_section, 'overdensity']
-    config_hmf['cm_model'] = options.get_string(option_section, 'cm_model')
-    config_hmf['delta_c'] = options[option_section, 'delta_c']
-    config_hmf['bias_model'] = options.get_string(option_section, 'bias_model')
-    
-    config_hmf['lnk_min'] = np.log(1e-8)#-18.0
-    config_hmf['lnk_max'] = np.log(2e4)#18.0
-    config_hmf['dlnk'] = 0.05#0.001
-
-
-    """Setup function to parse options and return configuration."""
-    p_mm = options.get_bool(option_section, 'p_mm', default=False)
-    p_gg = options.get_bool(option_section, 'p_gg', default=False)
-    p_gm = options.get_bool(option_section, 'p_gm', default=False)
-    p_gI = options.get_bool(option_section, 'p_gI', default=False)
-    p_mI = options.get_bool(option_section, 'p_mI', default=False)
-    p_II = options.get_bool(option_section, 'p_II', default=False)
-
-    # If True, calculate the response of the halo model for the requested power spectra compared to matter power
-    # multiplies this to input non-linear matter power spectra.
-    response = options.get_bool(option_section, 'response', default=False)
-
-    # If true, use the IA formalism of Fortuna et al. 2021: Truncated NLA at high k + 1-halo term
-    fortuna = options.get_bool(option_section, 'fortuna', default=False)
-    # If True, uses beta_nl
-    bnl = options.get_bool(option_section, 'bnl', default=False)
-    
     """
     if bnl:
         cached_bnl = {
@@ -284,140 +384,26 @@ def setup(options):
         cached_bnl = None
     """
     cached_bnl = None
-    
-    poisson_type = options.get_string(option_section, 'poisson_type', default='')
-    point_mass = options.get_bool(option_section, 'point_mass', default=False)
 
-    dewiggle = options.get_bool(option_section, 'dewiggle', default=False)
-
-    # Fortuna introduces a truncation of the 1-halo term at large scales to avoid the halo exclusion problem
-    # and a truncation of the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term
-    # The user can change these values.
-    one_halo_ktrunc_ia = get_string_or_none(options, option_section, 'one_halo_ktrunc_ia', default=4.0)  # h/Mpc or None
-    two_halo_ktrunc_ia = get_string_or_none(options, option_section, 'two_halo_ktrunc_ia', default=6.0)  # h/Mpc or None
-    # General truncation of non-IA terms:
-    one_halo_ktrunc = get_string_or_none(options, option_section, 'one_halo_ktrunc', default=0.1)  # h/Mpc or None
-    two_halo_ktrunc = get_string_or_none(options, option_section, 'two_halo_ktrunc', default=2.0)  # h/Mpc or None
-
-    # Initiate pipeline parameters
-    matter = False
-    galaxy = False
-    alignment = False
-
-    hod_section_name = options.get_string(option_section, 'hod_section_name')
-    hod_values_name = options.get_string(option_section, 'hod_values_name', default='hod_parameters').lower()
-
-    matter = p_mm
-    galaxy = p_gg or p_gm
-    alignment = p_gI or p_mI or p_II
-    
-    central_IA = options.get_string(option_section, 'central_IA_depends_on', default='halo_mass')
-    satellite_IA = options.get_string(option_section, 'satellite_IA_depends_on', default='halo_mass')
-
-    population_name = options.get_string(option_section, 'output_suffix', default='').lower()
-    pop_name = f'_{population_name}' if population_name else ''
-    
-    
-    hod_section_name_ia = options.get_string(option_section, 'hod_section_name_ia')
-    population_name_ia = options.get_string(option_section, 'output_suffix_ia', default='').lower()
-    pop_name_ia = f'_{population_name_ia}' if population_name_ia else ''
-
-    # Option to set similar corrections to HMcode2020
-    use_mead = options.get_string(option_section, 'use_mead2020_corrections', default='None')
-
-    # Mapping of use_mead values to mead_correction values
-    mead_correction_map = {
-        'mead2020': 'nofeedback',
-        'mead2020_feedback': 'feedback',
-        'fit_feedback': 'fit',
-        # Add more mappings here if needed
-    }
-
-    # Determine the mead_correction based on the mapping
-    mead_correction = mead_correction_map.get(use_mead, None)
-
-    hod_model = 'Cacciato'
-
-    hod_params = {}
-    hod_settings = {}
-    if options.has_value(option_section, 'observables_file_hod'):
-        hod_settings['observables_file'] = options.get_string(option_section, 'observables_file_hod')
-        hod_settings['observable_z'] = True
-        nbins = 1
-    else:
-        hod_settings['observables_file'] = None
-        hod_settings['observable_z'] = False
-        hod_settings['obs_min'] = np.asarray([options[option_section, 'log10_obs_min_hod']]).flatten()
-        hod_settings['obs_max'] = np.asarray([options[option_section, 'log10_obs_max_hod']]).flatten()
-        hod_settings['zmin'] = np.asarray([options[option_section, 'zmin_hod']]).flatten()
-        hod_settings['zmax'] = np.asarray([options[option_section, 'zmax_hod']]).flatten()
-        hod_settings['nz'] = options[option_section, 'nz_hod']
-        nbins = len(hod_settings['obs_min'])
-    hod_settings['nobs'] = options[option_section, 'nobs_hod']
-    hod_settings['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
-    
-    hod_settings_mm = {}
-    if options.has_value(option_section, 'observables_file_hod'):
-        hod_settings_mm['observables_file'] = options.get_string(option_section, 'observables_file_hod')
-    else:
-        hod_settings_mm['observables_file'] = None
-        hod_settings_mm['obs_min'] = np.array([hod_settings['obs_min'].min()])
-        hod_settings_mm['obs_max'] = np.array([hod_settings['obs_max'].max()])
-        hod_settings_mm['zmin'] = np.array([hod_settings['zmin'].min()])
-        hod_settings_mm['zmax'] = np.array([hod_settings['zmax'].max()])
-        hod_settings_mm['nz'] = 15
-    hod_settings_mm['nobs'] = 100
-    hod_settings_mm['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
-    
-    obs_settings = {}
-    obs_settings['save_observable'] = options.get_bool(option_section, 'save_observable', default=True)
-    if obs_settings['save_observable']:
-        obs_settings['observable_section_name'] = options.get_string(
-            option_section, 'observable_section_name', default='stellar_mass_function'
-        ).lower()
-        
-        if options.has_value(option_section, 'observables_file_smf'):
-            obs_settings['observables_file'] = options.get_string(option_section, 'observables_file_smf')
-        else:
-            obs_settings['observables_file'] = None
-            obs_settings['obs_min'] = np.asarray([options[option_section, 'log10_obs_min_smf']]).flatten()
-            obs_settings['obs_max'] = np.asarray([options[option_section, 'log10_obs_max_smf']]).flatten()
-            obs_settings['zmin'] = np.asarray([options[option_section, 'zmin_smf']]).flatten()
-            obs_settings['zmax'] = np.asarray([options[option_section, 'zmax_smf']]).flatten()
-            obs_settings['nz'] = options[option_section, 'nz_smf']
-        obs_settings['nobs'] = options[option_section, 'nobs_smf']
-        obs_settings['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
-        
-        
-    hod_settings_ia = {}
-    if alignment:
-        if options.has_value(option_section, 'observables_file_ia'):
-            hod_settings_ia['observables_file'] = options.get_string(option_section, 'observables_file_ia')
-            hod_settings_ia['observable_z'] = True
-            nbins = 1
-        else:
-            hod_settings_ia['observables_file'] = None
-            hod_settings_ia['observable_z'] = False
-            hod_settings_ia['obs_min'] = np.asarray([options[option_section, 'log10_obs_min_ia']]).flatten()
-            hod_settings_ia['obs_max'] = np.asarray([options[option_section, 'log10_obs_max_ia']]).flatten()
-            hod_settings_ia['zmin'] = np.asarray([options[option_section, 'zmin_ia']]).flatten()
-            hod_settings_ia['zmax'] = np.asarray([options[option_section, 'zmax_ia']]).flatten()
-            hod_settings_ia['nz'] = options[option_section, 'nz_ia']
-            nbins = len(hod_settings_ia['obs_min'])
-        hod_settings_ia['nobs'] = options[option_section, 'nobs_ia']
-        hod_settings_ia['observable_h_unit'] = options.get_string(option_section, 'observable_h_unit', default='1/h^2').lower()
-        
-
-    return p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl, central_IA, satellite_IA, nbins, hod_settings_ia, hod_section_name_ia, pop_name_ia
+    return (p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, 
+            fortuna, matter, galaxy, bnl, alignment, 
+            one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, 
+            hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, 
+            pop_name, hod_model, hod_settings, hod_settings_mm, obs_settings, 
+            hod_values_name, config_hmf, cached_bnl, central_IA, satellite_IA, 
+            nbins, hod_settings_ia, hod_section_name_ia, pop_name_ia)
 
 def execute(block, config):
     """Execute function to compute power spectra based on configuration."""
-    p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, fortuna, matter, galaxy, bnl, alignment, one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, pop_name, hod_model, hod_params, hod_settings, hod_settings_mm, obs_settings, hod_values_name, config_hmf, cached_bnl, central_IA, satellite_IA, nbins, hod_settings_ia, hod_section_name_ia, pop_name_ia = config
+    (p_mm, p_gg, p_gm, p_gI, p_mI, p_II, response, 
+     fortuna, matter, galaxy, bnl, alignment, 
+     one_halo_ktrunc, two_halo_ktrunc, one_halo_ktrunc_ia, two_halo_ktrunc_ia, 
+     hod_section_name, mead_correction, dewiggle, point_mass, poisson_type, 
+     pop_name, hod_model, hod_settings, hod_settings_mm, obs_settings, 
+     hod_values_name, config_hmf, cached_bnl, central_IA, satellite_IA, 
+     nbins, hod_settings_ia, hod_section_name_ia, pop_name_ia) = config
 
-    norm_cen = block[config_hmf['profile_value_name'], 'norm_cen']
-    norm_sat = block[config_hmf['profile_value_name'], 'norm_sat']
-    eta_cen = block[config_hmf['profile_value_name'], 'eta_cen']
-    eta_sat = block[config_hmf['profile_value_name'], 'eta_sat']
+    hod_params = {}
 
     # Power spectrum transfer function used to update the transfer function in hmf
     transfer_k = block['matter_power_transfer_func', 'k_h']
@@ -437,6 +423,49 @@ def execute(block, config):
     #config_hmf['dlnk'] = (config_hmf['lnk_max'] - config_hmf['lnk_min']) / config_hmf['nk']
     
     plin = pk_util.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
+
+    power_kwargs = {
+        'matter_power_lin': plin,
+        'mead_correction': mead_correction,
+        'dewiggle': dewiggle,
+        'k_vec': k_vec,
+        'z_vec': config_hmf['z_vec'],
+        'lnk_min': config_hmf['lnk_min'],
+        'lnk_max': config_hmf['lnk_max'],
+        'dlnk': config_hmf['dlnk'],
+        'Mmin': config_hmf['log_mass_min'],
+        'Mmax': config_hmf['log_mass_max'],
+        'dlog10m': config_hmf['dlog10m'],
+        'mdef_model': config_hmf['mdef_model'],
+        'hmf_model': config_hmf['hmf_model'],
+        'bias_model': config_hmf['bias_model'],
+        'halo_profile_model': config_hmf['profile'],
+        'halo_concentration_model': config_hmf['cm_model'],
+        'transfer_model': 'FromArray',
+        'transfer_params': {'k': transfer_k, 'T': transfer_func},
+        'growth_model': 'FromArray',
+        'growth_params': {'z': growth_z, 'd': growth_func},
+        'norm_cen': block[config_hmf['profile_value_name'], 'norm_cen'],
+        'norm_sat': block[config_hmf['profile_value_name'], 'norm_sat'],
+        'eta_cen': block[config_hmf['profile_value_name'], 'eta_cen'],
+        'eta_sat': block[config_hmf['profile_value_name'], 'eta_sat'],
+        'overdensity': config_hmf['overdensity'],
+        'delta_c': config_hmf['delta_c'],
+        'one_halo_ktrunc': one_halo_ktrunc,
+        'two_halo_ktrunc': two_halo_ktrunc,
+        'omega_c': block[cosmo_params, 'omega_c'],
+        'omega_m': block[cosmo_params, 'omega_m'],
+        'omega_b': block[cosmo_params, 'omega_b'],
+        'h0': block[cosmo_params, 'h0'],
+        'n_s': block[cosmo_params, 'n_s'],
+        'sigma_8': block[cosmo_params, 'sigma_8'],
+        'm_nu': block[cosmo_params, 'mnu'],
+        'w0': block[cosmo_params, 'w'],
+        'wa': block[cosmo_params, 'wa'],
+        'tcmb': block.get_double(cosmo_params, 'TCMB', default=2.7255),
+        'log10T_AGN': block['halo_model_parameters', 'logT_AGN'],
+        'mb': 10.0**block['halo_model_parameters', 'm_b'],
+    }
 
     """
     if bnl:
@@ -464,49 +493,6 @@ def execute(block, config):
 
         cached_bnl['num_calls'] = num_calls + 1
     """
-    matter_kwargs = {
-        'matter_power_lin': plin,
-        'mead_correction': mead_correction,
-        'dewiggle': dewiggle,
-        'k_vec': k_vec,
-        'z_vec': z_vec,
-        'lnk_min': config_hmf['lnk_min'],
-        'lnk_max': config_hmf['lnk_max'],
-        'dlnk': config_hmf['dlnk'],
-        'Mmin': config_hmf['log_mass_min'],
-        'Mmax': config_hmf['log_mass_max'],
-        'dlog10m': config_hmf['dlog10m'],
-        'mdef_model': config_hmf['mdef_model'],
-        'hmf_model': config_hmf['hmf_model'],
-        'bias_model': config_hmf['bias_model'],
-        'halo_profile_model': config_hmf['profile'],
-        'halo_concentration_model': config_hmf['cm_model'],
-        'transfer_model': 'FromArray',
-        'transfer_params': {'k': transfer_k, 'T': transfer_func},
-        'growth_model': 'FromArray',
-        'growth_params': {'z': growth_z, 'd': growth_func},
-        'norm_cen': norm_cen,
-        'norm_sat': norm_sat,
-        'eta_cen': eta_cen,
-        'eta_sat': eta_sat,
-        'overdensity': config_hmf['overdensity'],
-        'delta_c': config_hmf['delta_c'],
-        'one_halo_ktrunc': one_halo_ktrunc,
-        'two_halo_ktrunc': two_halo_ktrunc,
-        
-    }
-    galaxy_kwargs = {}
-    align_kwargs = {}
-
-
-    if response or fortuna:
-        k_nl, p_nl = pk_util.get_nonlinear_power_spectrum(block, z_vec)
-        pk_mm_in = pk_util.log_linear_interpolation_k(p_nl, k_nl, k_vec)
-        align_kwargs['matter_power_nl'] = pk_mm_in
-    else:
-        pk_mm_in = None
-
-
     # Add the non-linear P_hh to the 2h term
     if bnl:
         if block.has_value('bnl', 'beta_interp'):
@@ -515,25 +501,17 @@ def execute(block, config):
             raise Exception("You've set bnl = True. Looked for beta_intep in bnl, but didn't find it. Run bnl_interface.py to set this up.\n")
         if beta_interp.shape == np.array([0.0]).shape:
             raise ValueError('Non-linear halo bias module bnl is not initialized, or you have deleted it too early! This might be because you ran bnl_interface_delete.py before this module. \n')
-        matter_kwargs.update({
+        power_kwargs.update({
             'bnl': bnl,
             'beta_nl': beta_interp,
         })
-
-    matter_kwargs.update({
-        'omega_c': block[cosmo_params, 'omega_c'],
-        'omega_m': block[cosmo_params, 'omega_m'],
-        'omega_b': block[cosmo_params, 'omega_b'],
-        'h0': block[cosmo_params, 'h0'],
-        'n_s': block[cosmo_params, 'n_s'],
-        'sigma_8': block[cosmo_params, 'sigma_8'],
-        'm_nu': block[cosmo_params, 'mnu'],
-        'w0': block[cosmo_params, 'w'],
-        'wa': block[cosmo_params, 'wa'],
-        'tcmb': block.get_double(cosmo_params, 'TCMB', default=2.7255),
-        'log10T_AGN': block['halo_model_parameters', 'logT_AGN'],
-        'mb': 10.0**block['halo_model_parameters', 'm_b'],
-    })
+    
+    if response or fortuna:
+        k_nl, p_nl = pk_util.get_nonlinear_power_spectrum(block, z_vec)
+        pk_mm_in = pk_util.log_linear_interpolation_k(p_nl, k_nl, k_vec)
+        power_kwargs.update({'matter_power_nl': pk_mm_in})
+    else:
+        pk_mm_in = None
         
     if galaxy or alignment:
         poisson_par = {
@@ -542,11 +520,6 @@ def execute(block, config):
             'M_0': get_string_or_none(block, 'pk_parameters', 'M_0', default=None),
             'slope': get_string_or_none(block, 'pk_parameters', 'slope', default=None)
         }
-
-        galaxy_kwargs.update({
-            'poisson_par': poisson_par,
-            'pointmass': point_mass,
-        })
         
         hod_params['A_cen'] = block[hod_values_name, 'A_cen'] if block.has_value(hod_values_name, 'A_cen') else None
         hod_params['A_sat'] = block[hod_values_name, 'A_sat'] if block.has_value(hod_values_name, 'A_sat') else None
@@ -568,31 +541,23 @@ def execute(block, config):
                     param_list.append(block[hod_values_name, param_bin])
                 hod_params[param] = np.array(param_list)
                 
-        galaxy_kwargs.update({
+        power_kwargs.update({
+            'poisson_par': poisson_par,
+            'pointmass': point_mass,
             'hod_model': hod_model,
             'hod_params': hod_params,
             'hod_settings': hod_settings,
             'obs_settings': obs_settings,
             'compute_observable': obs_settings['save_observable'],
+            'hod_model_mm': hod_model,
+            'hod_params_mm': hod_params,
+            'hod_settings_mm': hod_settings_mm
         })
-    matter_kwargs.update({
-        'hod_model_mm': hod_model,
-        'hod_params_mm': hod_params,
-        'hod_settings_mm': hod_settings_mm
-    })
     
     # TO-DO: for aligments at least we need to split the calculation in red/blue and add here!
     
     if alignment:
-        align_kwargs.update({
-            'one_halo_ktrunc_ia': one_halo_ktrunc_ia,
-            'two_halo_ktrunc_ia': two_halo_ktrunc_ia,
-            'fortuna': fortuna,
-            't_eff': block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0),
-        })
-
         align_params = {}
-        
         if central_IA == 'halo_mass':
             align_params.update({
                 'beta_sat': block[f'intrinsic_alignment_parameters{pop_name_ia}', 'beta_sat'],
@@ -603,7 +568,6 @@ def execute(block, config):
                 'beta_sat': None,
                 'mpivot_sat': None,
             })
-
         if satellite_IA == 'halo_mass':
             align_params.update({
                 'beta_cen': block[f'intrinsic_alignment_parameters{pop_name_ia}', 'beta'],
@@ -614,7 +578,6 @@ def execute(block, config):
                 'beta_cen': None,
                 'mpivot_cen': None,
             })
-    
         align_params.update({
             'nmass': 5,
             'n_hankel': 350,
@@ -624,17 +587,17 @@ def execute(block, config):
             'gamma_1h_amplitude': block[f'intrinsic_alignment_parameters{pop_name_ia}', 'gamma_1h_amplitude'],
             'gamma_2h_amplitude': block[f'intrinsic_alignment_parameters{pop_name_ia}', 'gamma_2h_amplitude'],
         })
-        align_kwargs.update({
+        power_kwargs.update({
             'align_params': align_params,
+            'one_halo_ktrunc_ia': one_halo_ktrunc_ia,
+            'two_halo_ktrunc_ia': two_halo_ktrunc_ia,
+            'fortuna': fortuna,
+            't_eff': block.get_double('pk_parameters', 'linear_fraction_fortuna', default=0.0),
         })
 
-    hod = True
-    if matter and not galaxy:
-        hod = False
-    comb_kwargs = {**matter_kwargs, **galaxy_kwargs, **align_kwargs}
-    power = Spectra(**comb_kwargs)
+    hod = not (matter and not galaxy)
+    power = Spectra(**power_kwargs)
 
-    # not optimal, rethink!
     if matter:
         save_matter_results(block, power, z_vec, k_vec)
 
@@ -644,9 +607,9 @@ def execute(block, config):
             save_obs_results(block, power, obs_settings['observable_section_name'], obs_settings)
     
     if p_mm or response:
-        pk_mm_1h = power.compute_power_spectrum_mm.pk_1h
-        pk_mm_2h = power.compute_power_spectrum_mm.pk_2h
-        pk_mm = power.compute_power_spectrum_mm.pk_tot
+        pk_mm_1h = power.power_spectrum_mm.pk_1h
+        pk_mm_2h = power.power_spectrum_mm.pk_2h
+        pk_mm = power.power_spectrum_mm.pk_tot
         if response:
             # Here we save the computed Pmm to datablock as matter_power_hm,
             # but not replacing the Pnl with it, as in the response
@@ -662,20 +625,20 @@ def execute(block, config):
         pk_mm = None
 
     if p_gg:
-        pk_gg_1h = power.compute_power_spectrum_gg.pk_1h
-        pk_gg_2h = power.compute_power_spectrum_gg.pk_2h
-        pk_gg = power.compute_power_spectrum_gg.pk_tot
-        bg_linear = power.compute_power_spectrum_gg.galaxy_linear_bias
+        pk_gg_1h = power.power_spectrum_gg.pk_1h
+        pk_gg_2h = power.power_spectrum_gg.pk_2h
+        pk_gg = power.power_spectrum_gg.pk_tot
+        bg_linear = power.power_spectrum_gg.galaxy_linear_bias
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             save_pk_to_grid(block, z_vec, k_vec, 'galaxy_power', suffix, pk_gg_1h[nb], pk_gg_2h[nb], pk_gg[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
             block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear[nb])
 
     if p_gm:
-        pk_gm_1h = power.compute_power_spectrum_gm.pk_1h
-        pk_gm_2h = power.compute_power_spectrum_gm.pk_2h
-        pk_gm = power.compute_power_spectrum_gm.pk_tot
-        bgm_linear = power.compute_power_spectrum_gm.galaxy_linear_bias
+        pk_gm_1h = power.power_spectrum_gm.pk_1h
+        pk_gm_2h = power.power_spectrum_gm.pk_2h
+        pk_gm = power.power_spectrum_gm.pk_tot
+        bgm_linear = power.power_spectrum_gm.galaxy_linear_bias
         for nb in range(hod_bins):
             suffix = f'{pop_name}_{nb+1}' if hod_bins != 1 else f'{pop_name}'
             save_pk_to_grid(block, z_vec, k_vec, 'matter_galaxy_power', suffix, pk_gm_1h[nb], pk_gm_2h[nb], pk_gm[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
@@ -685,30 +648,29 @@ def execute(block, config):
         power.update(hod_settings = hod_settings_ia)
         hod_bins = save_hod_results(block, power, z_vec, hod_section_name_ia, hod_settings_ia)
         
+        if p_II:
+            pk_II_1h = power.power_spectrum_ii.pk_1h
+            pk_II_2h = power.power_spectrum_ii.pk_2h
+            pk_II = power.power_spectrum_ii.pk_tot
+            for nb in range(hod_bins):
+                suffix = f'{pop_name_ia}_{nb+1}' if hod_bins != 1 else f'{pop_name_ia}'
+                save_pk_to_grid(block, z_vec, k_vec, 'intrinsic_power', suffix, pk_II_1h[nb], pk_II_2h[nb], pk_II[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
     
-    if p_II:
-        pk_II_1h = power.compute_power_spectrum_ii.pk_1h
-        pk_II_2h = power.compute_power_spectrum_ii.pk_2h
-        pk_II = power.compute_power_spectrum_ii.pk_tot
-        for nb in range(hod_bins):
-            suffix = f'{pop_name_ia}_{nb+1}' if hod_bins != 1 else f'{pop_name_ia}'
-            save_pk_to_grid(block, z_vec, k_vec, 'intrinsic_power', suffix, pk_II_1h[nb], pk_II_2h[nb], pk_II[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
+        if p_gI:
+            pk_gI_1h = power.power_spectrum_gi.pk_1h
+            pk_gI_2h = power.power_spectrum_gi.pk_2h
+            pk_gI = power.power_spectrum_gi.pk_tot
+            for nb in range(hod_bins):
+                suffix = f'{pop_name_ia}_{nb+1}' if hod_bins != 1 else f'{pop_name_ia}'
+                save_pk_to_grid(block, z_vec, k_vec, 'galaxy_intrinsic_power', suffix, pk_gI_1h[nb], pk_gI_2h[nb], pk_gI[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
     
-    if p_gI:
-        pk_gI_1h = power.compute_power_spectrum_gi.pk_1h
-        pk_gI_2h = power.compute_power_spectrum_gi.pk_2h
-        pk_gI = power.compute_power_spectrum_gi.pk_tot
-        for nb in range(hod_bins):
-            suffix = f'{pop_name_ia}_{nb+1}' if hod_bins != 1 else f'{pop_name_ia}'
-            save_pk_to_grid(block, z_vec, k_vec, 'galaxy_intrinsic_power', suffix, pk_gI_1h[nb], pk_gI_2h[nb], pk_gI[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
-    
-    if p_mI:
-        pk_mI_1h = power.compute_power_spectrum_mi.pk_1h
-        pk_mI_2h = power.compute_power_spectrum_mi.pk_2h
-        pk_mI = power.compute_power_spectrum_mi.pk_tot
-        for nb in range(hod_bins):
-            suffix = f'{pop_name_ia}_{nb+1}' if hod_bins != 1 else f'{pop_name_ia}'
-            save_pk_to_grid(block, z_vec, k_vec, 'matter_intrinsic_power', suffix, pk_mI_1h[nb], pk_mI_2h[nb], pk_mI[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
+        if p_mI:
+            pk_mI_1h = power.power_spectrum_mi.pk_1h
+            pk_mI_2h = power.power_spectrum_mi.pk_2h
+            pk_mI = power.power_spectrum_mi.pk_tot
+            for nb in range(hod_bins):
+                suffix = f'{pop_name_ia}_{nb+1}' if hod_bins != 1 else f'{pop_name_ia}'
+                save_pk_to_grid(block, z_vec, k_vec, 'matter_intrinsic_power', suffix, pk_mI_1h[nb], pk_mI_2h[nb], pk_mI[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
             
     return 0
 

@@ -239,7 +239,7 @@ class AlignmentAmplitudes(Framework):
         alignment_ampl = np.where(xlum > l0, gamma_2h_lum * (xlum / l0)**beta, gamma_2h_lum * (xlum / l0)**beta_low)
         return simpson(pdf * alignment_ampl, xlum)
 
-    def compute_luminosity_pdf(z_loglum_file, nlbins):
+    def compute_luminosity_pdf(self, z_loglum_file, nlbins):
         """
         Compute the luminosity PDF.
 

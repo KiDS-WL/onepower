@@ -232,7 +232,7 @@ class HOD(Framework):
         return np.array([f(self.z_vec) for f in n_int])
 
     @cached_quantity
-    def ncen(self):
+    def _ncen(self):
         """
         Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
         This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
@@ -241,7 +241,7 @@ class HOD(Framework):
         return self._mass_integral(self._compute_hod_cen)
 
     @cached_quantity
-    def nsat(self):
+    def _nsat(self):
         """
         Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
         This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
@@ -250,7 +250,7 @@ class HOD(Framework):
         return self._mass_integral(self._compute_hod_sat)
 
     @cached_quantity
-    def ntot(self):
+    def _ntot(self):
         """
         Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
         This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
@@ -259,7 +259,7 @@ class HOD(Framework):
         return self._mass_integral(self._compute_hod)
 
     @cached_quantity
-    def mass_avg_cen(self):
+    def _mass_avg_cen(self):
         """
         The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
         M_mean = int ⟨Nx|M⟩ M n(M) dM
@@ -267,7 +267,7 @@ class HOD(Framework):
         return self._mean_mass_integral(self._compute_hod_cen)
 
     @cached_quantity
-    def mass_avg_sat(self):
+    def _mass_avg_sat(self):
         """
         The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
         M_mean = int ⟨Nx|M⟩ M n(M) dM
@@ -275,7 +275,7 @@ class HOD(Framework):
         return self._mean_mass_integral(self._compute_hod_sat)
 
     @cached_quantity
-    def mass_avg_tot(self):
+    def _mass_avg_tot(self):
         """
         The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
         M_mean = int ⟨Nx|M⟩ M n(M) dM
@@ -283,7 +283,7 @@ class HOD(Framework):
         return self._mean_mass_integral(self._compute_hod)
 
     @cached_quantity
-    def bg_cen(self):
+    def _bg_cen(self):
         """
         Mean linear halo bias for the given population of galaxies.
         b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
@@ -291,7 +291,7 @@ class HOD(Framework):
         return self._bias_integral(self._compute_hod_cen)
 
     @cached_quantity
-    def bg_sat(self):
+    def _bg_sat(self):
         """
         Mean linear halo bias for the given population of galaxies.
         b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
@@ -299,7 +299,7 @@ class HOD(Framework):
         return self._bias_integral(self._compute_hod_sat)
 
     @cached_quantity
-    def bg_tot(self):
+    def _bg_tot(self):
         """
         Mean linear halo bias for the given population of galaxies.
         b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
@@ -307,32 +307,32 @@ class HOD(Framework):
         return self._bias_integral(self._compute_hod)
 
     @cached_quantity
-    def compute_number_density_cen(self):
+    def number_density_cen(self):
         """
         Compute the number density of central galaxies.
         """
-        return self._interpolate(self.ncen)
+        return self._interpolate(self._ncen)
 
     @cached_quantity
-    def compute_number_density_sat(self):
+    def number_density_sat(self):
         """
         Compute the number density of satellite galaxies.
         """
-        return self._interpolate(self.nsat)
+        return self._interpolate(self._nsat)
 
     @cached_quantity
-    def compute_number_density(self):
+    def number_density(self):
         """
         Compute the number density of galaxies.
         """
-        return self._interpolate(self.ntot)
+        return self._interpolate(self._ntot)
 
     @cached_quantity
     def f_c(self):
         """
         Fraction of central galaxies.
         """
-        f_c = self.ncen / self.ntot
+        f_c = self._ncen / self._ntot
         return self._interpolate(f_c, fill_value=0.0)
 
     @cached_quantity
@@ -340,74 +340,74 @@ class HOD(Framework):
         """
         Fraction of satellite galaxies.
         """
-        f_s = self.nsat / self.ntot
+        f_s = self._nsat / self._ntot
         return self._interpolate(f_s, fill_value=0.0)
 
     @cached_quantity
-    def compute_avg_halo_mass_cen(self):
+    def avg_halo_mass_cen(self):
         """
         Compute the average halo mass for central galaxies.
         """
-        return self._interpolate(self.mass_avg_cen, fill_value=0.0)
+        return self._interpolate(self._mass_avg_cen, fill_value=0.0)
 
     @cached_quantity
-    def compute_avg_halo_mass_sat(self):
+    def avg_halo_mass_sat(self):
         """
         Compute the average halo mass for satellite galaxies.
         """
-        return self._interpolate(self.mass_avg_sat, fill_value=0.0)
+        return self._interpolate(self._mass_avg_sat, fill_value=0.0)
 
     @cached_quantity
-    def compute_avg_halo_mass(self):
+    def avg_halo_mass(self):
         """
         Compute the average halo mass for galaxies.
         """
-        return self._interpolate(self.mass_avg_tot, fill_value=0.0)
+        return self._interpolate(self._mass_avg_tot, fill_value=0.0)
 
     @cached_quantity
-    def compute_galaxy_linear_bias_cen(self):
+    def galaxy_linear_bias_cen(self):
         """
         Compute the galaxy linear bias for central galaxies.
         """
-        return self._interpolate(self.bg_cen)
+        return self._interpolate(self._bg_cen)
 
     @cached_quantity
-    def compute_galaxy_linear_bias_sat(self):
+    def galaxy_linear_bias_sat(self):
         """
         Compute the galaxy linear bias for satellite galaxies.
         """
-        return self._interpolate(self.bg_sat)
+        return self._interpolate(self._bg_sat)
 
     @cached_quantity
-    def compute_galaxy_linear_bias(self):
+    def galaxy_linear_bias(self):
         """
         Compute the galaxy linear bias for galaxies.
         """
-        return self._interpolate(self.bg_tot)
+        return self._interpolate(self._bg_tot)
 
     @cached_quantity
-    def compute_hod_cen(self):
+    def hod_cen(self):
         """
         Compute the HOD for central galaxies.
         """
         return self._interpolate(self._compute_hod_cen, axis=0)
 
     @cached_quantity
-    def compute_hod_sat(self):
+    def hod_sat(self):
         """
         Compute the HOD for satellite galaxies.
         """
         return self._interpolate(self._compute_hod_sat, axis=0)
 
     @cached_quantity
-    def compute_hod(self):
+    def hod(self):
         """
         Compute the HOD for galaxies.
         """
         return self._interpolate(self._compute_hod, axis=0)
 
     @cached_quantity
-    def compute_stellar_fraction_cen(self):
+    def stellar_fraction_cen(self):
         """
         Compute the stellar fraction for central galaxies.
         """
@@ -417,7 +417,7 @@ class HOD(Framework):
             return self._interpolate(self._compute_stellar_fraction_cen, axis=0)
 
     @cached_quantity
-    def compute_stellar_fraction_sat(self):
+    def stellar_fraction_sat(self):
         """
         Compute the stellar fraction for satellite galaxies.
         """
@@ -427,7 +427,7 @@ class HOD(Framework):
             return self._interpolate(self._compute_stellar_fraction_sat, axis=0)
 
     @cached_quantity
-    def compute_stellar_fraction(self):
+    def stellar_fraction(self):
         """
         Compute the stellar fraction for galaxies.
         """

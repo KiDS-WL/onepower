@@ -627,7 +627,7 @@ class HaloModelIngredients(CosmologyBase):
         self.eta_sat = eta_sat
         
     @cached_quantity
-    def hmf_generator(self):
+    def _hmf_generator(self):
         """
         Generate halo mass function models for central and satellite galaxies at different redshifts.
         Setups the hmf and halomod classes at desired cosmology and uses the "update" functionality
@@ -718,109 +718,109 @@ class HaloModelIngredients(CosmologyBase):
         return x_out, y_out
 
     @cached_quantity
-    def hmf_cen(self):
+    def _hmf_cen(self):
         """
         Return the halo mass function for central galaxies.
         """
-        return self.hmf_generator[0]
+        return self._hmf_generator[0]
 
     @cached_quantity
-    def hmf_sat(self):
+    def _hmf_sat(self):
         """
         Return the halo mass function for satellite galaxies.
         """
-        return self.hmf_generator[1]
+        return self._hmf_generator[1]
 
     @cached_quantity
     def mass(self):
         """
         Return the masses.
         """
-        return self.hmf_cen[0].m
+        return self._hmf_cen[0].m
 
     @cached_quantity
     def power(self):
         """
         Return the linear power spectrum at z.
         """
-        return np.array([x.power for x in self.hmf_cen])
+        return np.array([x.power for x in self._hmf_cen])
         
     @cached_quantity
     def nonlinear_power(self):
         """
         Return the non-linear power spectrum at z (if options passed).
         """
-        return np.array([x.nonlinear_power for x in self.hmf_cen])
+        return np.array([x.nonlinear_power for x in self._hmf_cen])
         
     @cached_quantity
     def kh(self):
         """
         Return the k vector defined using lnk in hmf.
         """
-        return self.hmf_cen[0].k
+        return self._hmf_cen[0].k
 
     @cached_quantity
     def halo_overdensity_mean(self):
         """
         Return the mean halo overdensity.
         """
-        return np.array([x.halo_overdensity_mean for x in self.hmf_cen])
+        return np.array([x.halo_overdensity_mean for x in self._hmf_cen])
 
     @cached_quantity
     def nu(self):
         """
         Return the peak height parameter.
         """
-        return np.array([x.nu**0.5 for x in self.hmf_cen])
+        return np.array([x.nu**0.5 for x in self._hmf_cen])
 
     @cached_quantity
     def dndlnm(self):
         """
         Return the differential mass function.
         """
-        return np.array([x.dndlnm for x in self.hmf_cen])
+        return np.array([x.dndlnm for x in self._hmf_cen])
 
     @cached_quantity
     def mean_density0(self):
         """
         Return the mean density at redshift zero.
         """
-        return np.array([x.mean_density0 for x in self.hmf_cen])
+        return np.array([x.mean_density0 for x in self._hmf_cen])
 
     @cached_quantity
     def mean_density_z(self):
         """
         Return the mean density at the given redshifts.
         """
-        return np.array([x.mean_density for x in self.hmf_cen])
+        return np.array([x.mean_density for x in self._hmf_cen])
 
     @cached_quantity
     def rho_halo(self):
         """
         Return the halo density.
         """
-        return np.array([x.halo_overdensity_mean * x.mean_density0 for x in self.hmf_cen])
+        return np.array([x.halo_overdensity_mean * x.mean_density0 for x in self._hmf_cen])
 
     @cached_quantity
     def halo_bias(self):
         """
         Return the halo bias.
         """
-        return np.array([x.halo_bias for x in self.hmf_cen])
+        return np.array([x.halo_bias for x in self._hmf_cen])
 
     @cached_quantity
     def neff(self):
         """
         Return the effective spectral index.
         """
-        return np.array([x.n_eff_at_collapse for x in self.hmf_cen])
+        return np.array([x.n_eff_at_collapse for x in self._hmf_cen])
 
     @cached_quantity
     def sigma8_z(self):
         """
         Return the amplitude of matter fluctuations on 8 Mpc scales at the given redshifts.
         """
-        return np.array([x.sigma8_z[0] for x in self.hmf_cen])
+        return np.array([x.sigma8_z[0] for x in self._hmf_cen])
 
     @cached_quantity
     def fnu(self):
@@ -834,14 +834,14 @@ class HaloModelIngredients(CosmologyBase):
         """
         Return the concentration for matter/central galaxies.
         """
-        return np.array([x.cmz_relation for x in self.hmf_cen])
+        return np.array([x.cmz_relation for x in self._hmf_cen])
 
     @cached_quantity
     def nfw_cen(self):
         """
         Return the NFW profile for matter/central galaxies.
         """
-        return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self.hmf_cen])
+        return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self._hmf_cen])
 
     @cached_quantity
     def u_dm(self):
@@ -855,28 +855,28 @@ class HaloModelIngredients(CosmologyBase):
         """
         Return the scale radius for matter/central galaxies.
         """
-        return np.array([x.halo_profile._rs_from_m(x.m) for x in self.hmf_cen])
+        return np.array([x.halo_profile._rs_from_m(x.m) for x in self._hmf_cen])
 
     @cached_quantity
     def rvir_cen(self):
         """
         Return the virial radius for matter/central galaxies.
         """
-        return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self.hmf_cen])
+        return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self._hmf_cen])
 
     @cached_quantity
     def conc_sat(self):
         """
         Return the concentration for satellite galaxies.
         """
-        return np.array([x.cmz_relation for x in self.hmf_sat])
+        return np.array([x.cmz_relation for x in self._hmf_sat])
 
     @cached_quantity
     def nfw_sat(self):
         """
         Return the NFW profile for satellite galaxies.
         """
-        return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self.hmf_sat])
+        return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self._hmf_sat])
 
     @cached_quantity
     def u_sat(self):
@@ -890,14 +890,14 @@ class HaloModelIngredients(CosmologyBase):
         """
         Return the scale radius for satellite galaxies.
         """
-        return np.array([x.halo_profile._rs_from_m(x.m) for x in self.hmf_sat])
+        return np.array([x.halo_profile._rs_from_m(x.m) for x in self._hmf_sat])
 
     @cached_quantity
     def rvir_sat(self):
         """
         Return the virial radius for satellite galaxies.
         """
-        return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self.hmf_sat])
+        return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self._hmf_sat])
     
     @cached_quantity
     def growth_factor(self):
@@ -905,7 +905,7 @@ class HaloModelIngredients(CosmologyBase):
         Return the growth factor.
         """
         # TO-DO: Check against interpolated one from CAMB!
-        return self.hmf_cen[0]._growth_factor_fn(self.z_vec)
+        return self._hmf_cen[0]._growth_factor_fn(self.z_vec)
     
     # Maybe implement at some point?
     # Rnl = DM_hmf.filter.mass_to_radius(DM_hmf.mass_nonlinear, DM_hmf.mean_density0)
@@ -1210,7 +1210,7 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         self.eta_sat = eta_sat * np.ones_like(self.z_vec)
         
     @cached_property
-    def hmf_generator(self):
+    def _hmf_generator(self):
         """
         Generate halo mass function models for central and satellite galaxies at different redshifts.
         Setups the hmf and halomod classes at desired cosmology and uses the "update" functionality
@@ -1277,109 +1277,109 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         return x, y
 
     @cached_property
-    def hmf_cen(self):
+    def _hmf_cen(self):
         """
         Return the halo mass function for central galaxies.
         """
-        return self.hmf_generator[0]
+        return self._hmf_generator[0]
 
     @cached_property
-    def hmf_sat(self):
+    def _hmf_sat(self):
         """
         Return the halo mass function for satellite galaxies.
         """
-        return self.hmf_generator[1]
+        return self._hmf_generator[1]
 
     @property
     def mass(self):
         """
         Return the masses.
         """
-        return self.hmf_cen.m
+        return self._hmf_cen.m
 
     @property
     def power(self):
         """
         Return the linear power spectrum at z.
         """
-        return self.hmf_cen.power
+        return self._hmf_cen.power
         
     @property
     def nonlinear_power(self):
         """
         Return the non-linear power spectrum at z (if options passed).
         """
-        return self.hmf_cen.nonlinear_power
+        return self._hmf_cen.nonlinear_power
         
     @property
     def kh(self):
         """
         Return the k vector defined using lnk in hmf.
         """
-        return self.hmf_cen.k
+        return self._hmf_cen.k
 
     @property
     def halo_overdensity_mean(self):
         """
         Return the mean halo overdensity.
         """
-        return self.hmf_cen.halo_overdensity_mean
+        return self._hmf_cen.halo_overdensity_mean
 
     @property
     def nu(self):
         """
         Return the peak height parameter.
         """
-        return self.hmf_cen.nu**0.5
+        return self._hmf_cen.nu**0.5
 
     @property
     def dndlnm(self):
         """
         Return the differential mass function.
         """
-        return self.hmf_cen.dndlnm
+        return self._hmf_cen.dndlnm
 
     @property
     def mean_density0(self):
         """
         Return the mean density at redshift zero.
         """
-        return np.array([self.hmf_cen.mean_density0 for _ in self.z_vec])
+        return np.array([self._hmf_cen.mean_density0 for _ in self.z_vec])
 
     @property
     def mean_density_z(self):
         """
         Return the mean density at the given redshifts.
         """
-        return self.hmf_cen.mean_density
+        return self._hmf_cen.mean_density
 
     @property
     def rho_halo(self):
         """
         Return the halo density.
         """
-        return self.hmf_cen.halo_overdensity_mean * self.hmf_cen.mean_density0
+        return self._hmf_cen.halo_overdensity_mean * self._hmf_cen.mean_density0
 
     @property
     def halo_bias(self):
         """
         Return the halo bias.
         """
-        return self.hmf_cen.halo_bias
+        return self._hmf_cen.halo_bias
 
     @property
     def neff(self):
         """
         Return the effective spectral index.
         """
-        return self.hmf_cen.n_eff_at_collapse
+        return self._hmf_cen.n_eff_at_collapse
 
     @property
     def sigma8_z(self):
         """
         Return the amplitude of matter fluctuations on 8 Mpc scales at the given redshifts.
         """
-        return self.hmf_cen.sigma8_z
+        return self._hmf_cen.sigma8_z
 
     @property
     def fnu(self):
@@ -1393,14 +1393,14 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         """
         Return the concentration for matter/central galaxies.
         """
-        return self.hmf_cen.cmz_relation
+        return self._hmf_cen.cmz_relation
 
     @property
     def nfw_cen(self):
         """
         Return the NFW profile for matter/central galaxies.
         """
-        return self.hmf_cen.halo_profile.u(self.k_vec, self.hmf_cen.m)
+        return self._hmf_cen.halo_profile.u(self.k_vec, self._hmf_cen.m)
 
     @property
     def u_dm(self):
@@ -1414,28 +1414,28 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         """
         Return the scale radius for matter/central galaxies.
         """
-        return self.hmf_cen.halo_profile._rs_from_m(self.hmf_cen.m)
+        return self._hmf_cen.halo_profile._rs_from_m(self._hmf_cen.m)
 
     @property
     def rvir_cen(self):
         """
         Return the virial radius for matter/central galaxies.
         """
-        return self.hmf_cen.halo_profile.halo_mass_to_radius(self.hmf_cen.m)
+        return self._hmf_cen.halo_profile.halo_mass_to_radius(self._hmf_cen.m)
 
     @property
     def conc_sat(self):
         """
         Return the concentration for satellite galaxies.
         """
-        return self.hmf_sat.cmz_relation
+        return self._hmf_sat.cmz_relation
 
     @property
     def nfw_sat(self):
         """
         Return the NFW profile for satellite galaxies.
         """
-        return self.hmf_sat.halo_profile.u(self.k_vec, self.hmf_sat.m)
+        return self._hmf_sat.halo_profile.u(self.k_vec, self._hmf_sat.m)
 
     @property
     def u_sat(self):
@@ -1449,14 +1449,14 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         """
         Return the scale radius for satellite galaxies.
         """
-        return self.hmf_sat.halo_profile._rs_from_m(self.hmf_sat.m)
+        return self._hmf_sat.halo_profile._rs_from_m(self._hmf_sat.m)
 
     @property
     def rvir_sat(self):
         """
         Return the virial radius for satellite galaxies.
         """
-        return self.hmf_sat.halo_profile.halo_mass_to_radius(self.hmf_sat.m)
+        return self._hmf_sat.halo_profile.halo_mass_to_radius(self._hmf_sat.m)
     
     @property
     def growth_factor(self):
@@ -1464,4 +1464,4 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         Return the growth factor.
         """
         # TO-DO: Check against interpolated one from CAMB!
-        return self.hmf_cen._growth_factor_fn(self.z_vec)
+        return self._hmf_cen._growth_factor_fn(self.z_vec)

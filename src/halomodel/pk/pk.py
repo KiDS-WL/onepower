@@ -512,7 +512,7 @@ class Spectra(HaloModelIngredients):
             The stellar fraction.
         """
         if self.mead_correction == 'fit' and self.hod_model_mm == 'Cacciato':
-            fstar = self.hod_mm.compute_stellar_fraction
+            fstar = self.hod_mm.stellar_fraction
             # Possibly move this to HOD!
             if self.hod_settings_mm['observable_h_unit'] == valid_units[1]:
                 fstar = fstar * self.h0
@@ -1334,7 +1334,7 @@ class Spectra(HaloModelIngredients):
         return np.ones_like(mass)
     
     @cached_quantity
-    def compute_power_spectrum_mm(
+    def power_spectrum_mm(
             self,
         ):
         """
@@ -1405,7 +1405,7 @@ class Spectra(HaloModelIngredients):
             The stellar fraction.
         """
         # Possibly move this to HOD!
-        fstar = self.hod.compute_stellar_fraction
+        fstar = self.hod.stellar_fraction
         if self.hod_settings['observable_h_unit'] == valid_units[1]:
             fstar = fstar * self.h0
         return fstar
@@ -1421,7 +1421,7 @@ class Spectra(HaloModelIngredients):
             The average mass.
         """
         # Possibly move this to HOD!
-        return self.hod.compute_avg_halo_mass_cen / self.hod.compute_number_density
+        return self.hod.avg_halo_mass_cen / self.hod.number_density
             
     @cached_quantity
     def obs(self):
@@ -1527,7 +1527,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             The galaxy profile for central galaxies.
         """
-        return self.hod.f_c[:, :, np.newaxis, np.newaxis] * self.hod.compute_hod_cen[:, :, np.newaxis, :] * np.ones_like(self.u_sat[np.newaxis, :, :, :]) / self.hod.compute_number_density_cen[:, :, np.newaxis, np.newaxis]
+        return self.hod.f_c[:, :, np.newaxis, np.newaxis] * self.hod.hod_cen[:, :, np.newaxis, :] * np.ones_like(self.u_sat[np.newaxis, :, :, :]) / self.hod.number_density_cen[:, :, np.newaxis, np.newaxis]
 
     @cached_quantity
     def satellite_galaxy_profile(self):
@@ -1539,7 +1539,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             The galaxy profile for satellite galaxies.
         """
-        return self.hod.f_s[:, :, np.newaxis, np.newaxis] * self.hod.compute_hod_sat[:, :, np.newaxis, :] * self.u_sat[np.newaxis, :, :, :] / self.hod.compute_number_density_sat[:, :, np.newaxis, np.newaxis]
+        return self.hod.f_s[:, :, np.newaxis, np.newaxis] * self.hod.hod_sat[:, :, np.newaxis, :] * self.u_sat[np.newaxis, :, :, :] / self.hod.number_density_sat[:, :, np.newaxis, np.newaxis]
 
     def compute_Ig_term(self, profile, mass, dndlnm, b_m):
         """
@@ -1601,7 +1601,7 @@ class Spectra(HaloModelIngredients):
         return term
 
     @cached_quantity
-    def compute_power_spectrum_gg(self):
+    def power_spectrum_gg(self):
         """
         Compute the galaxy-galaxy power spectrum.
 
@@ -1637,7 +1637,7 @@ class Spectra(HaloModelIngredients):
         return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
     
     @cached_quantity
-    def compute_power_spectrum_gm(self):
+    def power_spectrum_gm(self):
         """
         Compute the galaxy-matter power spectrum.
 
@@ -1792,8 +1792,8 @@ class Spectra(HaloModelIngredients):
             The satellite alignment profile.
         """
         profile = self.compute_satellite_galaxy_alignment_profile(
-            self.hod.compute_hod_sat[:, :, np.newaxis, :],
-            self.hod.compute_number_density_sat[:, :, np.newaxis, np.newaxis],
+            self.hod.hod_sat[:, :, np.newaxis, :],
+            self.hod.number_density_sat[:, :, np.newaxis, np.newaxis],
             self.hod.f_s[:, :, np.newaxis, np.newaxis],
             self.wkm_sat.transpose(0, 2, 1)[np.newaxis, :, :, :],
             self.beta_sat,
@@ -1859,7 +1859,7 @@ class Spectra(HaloModelIngredients):
         return alignment_amplitude_2h, alignment_amplitude_2h_II, C1 * self.alignment_gi[:, np.newaxis, np.newaxis]
 
     @cached_quantity
-    def compute_power_spectrum_mi(self):
+    def power_spectrum_mi(self):
         """
         Compute the matter-intrinsic alignment power spectrum.
 
@@ -1906,7 +1906,7 @@ class Spectra(HaloModelIngredients):
         return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
     
     @cached_quantity
-    def compute_power_spectrum_ii(self):
+    def power_spectrum_ii(self):
         """
         Compute the intrinsic-intrinsic alignment power spectrum.
 
@@ -1947,7 +1947,7 @@ class Spectra(HaloModelIngredients):
         return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
     
     @cached_quantity
-    def compute_power_spectrum_gi(self):
+    def power_spectrum_gi(self):
         """
         Compute the galaxy-intrinsic alignment power spectrum.
 
