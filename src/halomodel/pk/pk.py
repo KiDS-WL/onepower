@@ -171,7 +171,7 @@ class PowerSpectrumResult:
     """
     A helper class to attach the power spectrum outputs as atributes
     """
-    def __init__(self, pk_1h, pk_2h, pk_tot, galaxy_linear_bias):
+    def __init__(self, pk_1h=None, pk_2h=None, pk_tot=None, galaxy_linear_bias=None):
         self.pk_1h = pk_1h
         self.pk_2h = pk_2h
         self.pk_tot = pk_tot
@@ -1345,8 +1345,6 @@ class Spectra(HaloModelIngredients):
         tuple
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
         """
-        galaxy_linear_bias = None
-        
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
         elif self.mead_correction == 'fit':
@@ -1368,7 +1366,7 @@ class Spectra(HaloModelIngredients):
                 pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
                 pk_tot = pk_1h + pk_2h
     
-        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
+        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
 
     
     # --------------------------------  Galaxy spectra specific funtions ------------------------------
@@ -1610,8 +1608,6 @@ class Spectra(HaloModelIngredients):
         tuple
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
         """
-        galaxy_linear_bias = None
-        
         poisson = self.poisson_func(self.mass, **self.poisson_par)
         if self.bnl:
             I_NL = self.I_NL(self.central_galaxy_profile + self.satellite_galaxy_profile, self.central_galaxy_profile + self.satellite_galaxy_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm,self.A_term,self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
@@ -1634,7 +1630,7 @@ class Spectra(HaloModelIngredients):
         pk_tot = pk_1h + pk_2h
         galaxy_linear_bias = np.sqrt(self.Ic_term * self.Ic_term + self.Is_term * self.Is_term + 2.0 * self.Ic_term * self.Is_term)
             
-        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
+        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=galaxy_linear_bias)
     
     @cached_quantity
     def power_spectrum_gm(self):
@@ -1646,8 +1642,6 @@ class Spectra(HaloModelIngredients):
         tuple
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
         """
-        galaxy_linear_bias = None
-        
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
         elif self.mead_correction == 'fit' or self.pointmass:
@@ -1673,7 +1667,7 @@ class Spectra(HaloModelIngredients):
         pk_tot = pk_1h + pk_2h
         galaxy_linear_bias = np.sqrt(self.Ic_term * self.Im_term + self.Is_term * self.Im_term)
     
-        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
+        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=galaxy_linear_bias)
         
         
     # --------------------------------  Alignment spectra specific funtions ------------------------------
@@ -1868,8 +1862,6 @@ class Spectra(HaloModelIngredients):
         tuple
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
         """
-        galaxy_linear_bias = None
-
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
         elif self.mead_correction == 'fit' or self.pointmass:
@@ -1903,7 +1895,7 @@ class Spectra(HaloModelIngredients):
             pk_2h = pk_cm_2h + pk_sm_2h
             pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
                 
-        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
+        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
     
     @cached_quantity
     def power_spectrum_ii(self):
@@ -1915,8 +1907,6 @@ class Spectra(HaloModelIngredients):
         tuple
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
         """
-        galaxy_linear_bias = None
-        
         # Needs Poisson parameter as well!
         if self.bnl:
             I_NL_ss = self.I_NL(self.satellite_alignment_profile, self.satellite_alignment_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
@@ -1944,7 +1934,7 @@ class Spectra(HaloModelIngredients):
             pk_2h = pk_cc_2h + pk_ss_2h + pk_cs_2h
             pk_tot = pk_ss_1h + pk_cc_2h + pk_ss_2h + pk_cs_2h
                 
-        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
+        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
     
     @cached_quantity
     def power_spectrum_gi(self):
@@ -1956,8 +1946,6 @@ class Spectra(HaloModelIngredients):
         tuple
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
         """
-        galaxy_linear_bias = None
-        
         if self.bnl:
             I_NL_cc = self.I_NL(self.central_alignment_profile, self.central_galaxy_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
             I_NL_cs = self.I_NL(self.satellite_alignment_profile, self.central_galaxy_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self.beta_nl, self.I12, self.I21, self.I22)
@@ -1980,4 +1968,4 @@ class Spectra(HaloModelIngredients):
             pk_2h = pk_cs_2h + pk_cc_2h
             pk_tot = pk_cs_1h + pk_cs_2h + pk_cc_2h
     
-        return PowerSpectrumResult(pk_1h, pk_2h, pk_tot, galaxy_linear_bias)
+        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
