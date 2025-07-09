@@ -73,14 +73,8 @@ class HOD(Framework):
         self.mass = mass
         self.z_vec = z_vec
         self.hod_settings = hod_settings
-        self._dndlnm = dndlnm
-        self._halo_bias = halo_bias
-        
-        if mass is None or dndlnm is None:
-            raise ValueError("Mass and halo mass function need to be specified!")
-            
-        # Set all given parameters.
-        self._process_hod_settings(self.hod_settings)
+        self.dndlnm = dndlnm
+        self.halo_bias = halo_bias
         
     @parameter("param")
     def z_vec(self, val):
@@ -88,15 +82,21 @@ class HOD(Framework):
 
     @parameter("param")
     def mass(self, val):
+        if val is None:
+            raise ValueError("Mass needs to be specified!")
         # With newaxis we make sure the HOD shape is (nb, nz, nmass)
         return val[np.newaxis, np.newaxis, :]
 
     @parameter("param")
-    def _dndlnm(self, val):
+    def dndlnm(self, val):
+        if val is None:
+            raise ValueError("Halo mass function needs to be specified!")
         return val
 
     @parameter("param")
-    def _halo_bias(self, val):
+    def halo_bias(self, val):
+        if val is None:
+            raise ValueError("Halo bias function needs to be specified!")
         return val
         
     @parameter("param")
@@ -110,55 +110,72 @@ class HOD(Framework):
         return obs[:, :, np.newaxis, :]
         
     @cached_quantity
-    def dndlnm(self):
-        dndlnm_int = interp1d(
-            self.z_vec, self._dndlnm, kind='linear', fill_value='extrapolate',
+    def dndlnm_int(self):
+        dndlnm_fnc = interp1d(
+            self.z_vec, self.dndlnm, kind='linear', fill_value='extrapolate',
             bounds_error=False, axis=0
         )
-        return dndlnm_int(self.z)
+        return dndlnm_fnc(self.z)
 
     @cached_quantity
-    def halo_bias(self):
-        halo_bias_int = interp1d(
-            self.z_vec, self._halo_bias, kind='linear', fill_value='extrapolate',
+    def halo_bias_int(self):
+        halo_bias_fnc = interp1d(
+            self.z_vec, self.halo_bias, kind='linear', fill_value='extrapolate',
             bounds_error=False, axis=0
         )
-        return halo_bias_int(self.z)
+        return halo_bias_fnc(self.z)
         
-    def _process_hod_settings(self, hod_settings):
-        """
-        Process the HOD settings.
-
-        Parameters:
-        -----------
-        hod_settings : dict
-            Dictionary of HOD settings.
-        """
-        self.nobs = hod_settings['nobs']
-        if hod_settings['observables_file'] is not None:
-            z_bins, obs_min, obs_max = load_data(hod_settings['observables_file'])
-            self.nz = len(z_bins)
-            self.z = z_bins[np.newaxis, :]
-            self.nbins = 1
-            self.log_obs_min = np.log10(obs_min)[np.newaxis, :]
-            self.log_obs_max = np.log10(obs_max)[np.newaxis, :]
-            hod_settings['obs_min'] = np.log10(obs_min)
-            hod_settings['obs_max'] = np.log10(obs_max)
-            hod_settings['zmin'] = np.array([z_bins.min()])
-            hod_settings['zmax'] = np.array([z_bins.max()])
+    @cached_quantity
+    def data(self):
+        if self.hod_settings['observables_file'] is not None:
+            z_bins, obs_min, obs_max = load_data(self.hod_settings['observables_file'])
+            return z_bins, obs_min, obs_max
         else:
-            self.nz = hod_settings['nz']
-            obs_min = hod_settings['obs_min']
-            obs_max = hod_settings['obs_max']
-            zmin = hod_settings['zmin']
-            zmax = hod_settings['zmax']
-            if not np.all(np.array([obs_min.size, obs_max.size, zmin.size, zmax.size]) == obs_min.size):
-                raise ValueError('obs_min, obs_max, zmin, and zmax need to be of the same length.')
-            self.nbins = len(obs_min)
-            self.z = np.array([np.linspace(zmin_i, zmax_i, self.nz) for zmin_i, zmax_i in zip(zmin, zmax)])
-            self.log_obs_min = np.array([np.repeat(obs_min_i, self.nz) for obs_min_i in obs_min])
-            self.log_obs_max = np.array([np.repeat(obs_max_i, self.nz) for obs_max_i in obs_max])
+            return None
+
+    @cached_quantity
+    def nobs(self):
+        return self.hod_settings['nobs']
+
+    @cached_quantity
+    def nbins(self):
+        if self.hod_settings['observables_file'] is not None:
+            return 1
+        else:
+            return len(self.hod_settings['obs_min'])
+
+    @cached_quantity
+    def nz(self):
+        if self.hod_settings['observables_file'] is not None:
+            return len(self.data[0])
+        else:
+            return self.hod_settings['nz']
         
+    @cached_quantity
+    def z(self):
+        if self.hod_settings['observables_file'] is not None:
+            return self.data[0][np.newaxis, :]
+        else:
+            zmin = self.hod_settings['zmin']
+            zmax = self.hod_settings['zmax']
+            return np.array([np.linspace(zmin_i, zmax_i, self.nz) for zmin_i, zmax_i in zip(zmin, zmax)])
+        
+    @cached_quantity
+    def log_obs_min(self):
+        if self.hod_settings['observables_file'] is not None:
+            return np.log10(self.data[1])[np.newaxis, :]
+        else:
+            obs_min = self.hod_settings['obs_min']
+            return np.array([np.repeat(obs_min_i, self.nz) for obs_min_i in obs_min])
+
+    @cached_quantity
+    def log_obs_max(self):
+        if self.hod_settings['observables_file'] is not None:
+            return np.log10(self.data[2])[np.newaxis, :]
+        else:
+            obs_max = self.hod_settings['obs_max']
+            return np.array([np.repeat(obs_max_i, self.nz) for obs_max_i in obs_max])
+
     def _mass_integral(self, hod):
         """
         Compute the mass integral for a given HOD.
@@ -173,7 +190,7 @@ class HOD(Framework):
         array_like
             Integral of the HOD weighted by the halo mass function.
         """
-        integrand = hod * self.dndlnm / self.mass
+        integrand = hod * self.dndlnm_int / self.mass
         return simpson(integrand, self.mass, axis=-1)
 
     def _mean_mass_integral(self, hod):
@@ -190,7 +207,7 @@ class HOD(Framework):
         array_like
             Integral of the HOD weighted by the halo mass function and halo mass.
         """
-        integrand = hod * self.dndlnm
+        integrand = hod * self.dndlnm_int
         return simpson(integrand, self.mass, axis=-1)
 
     def _bias_integral(self, hod):
@@ -207,7 +224,7 @@ class HOD(Framework):
         array_like
             Integral of the HOD weighted by the halo bias and halo mass function.
         """
-        bg_integrand = hod * self.halo_bias * self.dndlnm / self.mass
+        bg_integrand = hod * self.halo_bias_int * self.dndlnm_int / self.mass
         return simpson(bg_integrand, self.mass, axis=-1) / self.ntot
 
     def _interpolate(self, data, fill_value='extrapolate', axis=-1):
@@ -659,7 +676,7 @@ class Cacciato(HOD):
         dn(m)/ dln m eq1 of 1306.6721
         obs_func unit is h^3 Mpc^{-3} dex^-1
         """
-        integrand = self.COF_cen * self.dndlnm[:, :, :, np.newaxis] / self.mass[:, :, :, np.newaxis]
+        integrand = self.COF_cen * self.dndlnm_int[:, :, :, np.newaxis] / self.mass[:, :, :, np.newaxis]
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
@@ -675,7 +692,7 @@ class Cacciato(HOD):
         dn(m)/ dln m eq1 of 1306.6721
         obs_func unit is h^3 Mpc^{-3} dex^-1
         """
-        integrand = self.COF_sat * self.dndlnm[:, :, :, np.newaxis] / self.mass[:, :, :, np.newaxis]
+        integrand = self.COF_sat * self.dndlnm_int[:, :, :, np.newaxis] / self.mass[:, :, :, np.newaxis]
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
@@ -691,7 +708,7 @@ class Cacciato(HOD):
         dn(m)/ dln m eq1 of 1306.6721
         obs_func unit is h^3 Mpc^{-3} dex^-1
         """
-        integrand = self.COF * self.dndlnm[:, :, :, np.newaxis] / self.mass[:, :, :, np.newaxis]
+        integrand = self.COF * self.dndlnm_int[:, :, :, np.newaxis] / self.mass[:, :, :, np.newaxis]
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 

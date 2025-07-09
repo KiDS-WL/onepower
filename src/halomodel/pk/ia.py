@@ -86,18 +86,12 @@ class AlignmentAmplitudes(Framework):
         
         self.z_loglum_file_centrals = z_loglum_file_centrals
         self.z_loglum_file_satellites = z_loglum_file_satellites
-
-        self.lum_centrals, self.lum_pdf_z_centrals = self._initialize_luminosity_arrays('centrals')
-        self.lum_satellites, self.lum_pdf_z_satellites = self._initialize_luminosity_arrays('satellites')
-        
-        self._process_centrals()
-        self._process_satellites()
         
     @parameter("param")
     def z_vec(self, val):
         return val
         
-    @parameter("switch")
+    @parameter("param")
     def central_ia_depends_on(self, val):
         """
         Validate the central intrinsic alignment dependencies.
@@ -111,7 +105,7 @@ class AlignmentAmplitudes(Framework):
             raise ValueError(f'Choose one of the following options for central_IA_depends_on: {valid_options}')
         return val
         
-    @parameter("switch")
+    @parameter("param")
     def satellite_ia_depends_on(self, val):
         """
         Validate the satellite intrinsic alignment dependencies.
@@ -164,10 +158,26 @@ class AlignmentAmplitudes(Framework):
     @parameter("param")
     def z_loglum_file_satellites(self, val):
         return val
+    
+    @cached_quantity
+    def lum_centrals(self):
+        return self._initialize_luminosity_array('centrals')
+    
+    @cached_quantity
+    def lum_pdf_z_centrals(self):
+        return self._initialize_luminosity_pdf_z_array('centrals')
+    
+    @cached_quantity
+    def lum_satellites(self):
+        return self._initialize_luminosity_array('satellites')
+    
+    @cached_quantity
+    def lum_pdf_z_satellites(self):
+        return self._initialize_luminosity_pdf_z_array('satellites')
 
-    def _initialize_luminosity_arrays(self, galaxy_type):
+    def _initialize_luminosity_array(self, galaxy_type):
         """
-        Initialize luminosity arrays based on galaxy type.
+        Initialize and return the luminosity array based on galaxy type.
 
         Parameters:
         -----------
@@ -176,21 +186,46 @@ class AlignmentAmplitudes(Framework):
 
         Returns:
         --------
-        tuple : (lum, lum_pdf_z)
-            Luminosity and luminosity PDF arrays.
+        numpy.ndarray : lum
+            Luminosity array.
         """
-        
         depends_on = self.central_ia_depends_on if galaxy_type == 'centrals' else self.satellite_ia_depends_on
         z_loglum_file = self.z_loglum_file_centrals if galaxy_type == 'centrals' else self.z_loglum_file_satellites
+
         if depends_on == 'luminosity':
             nlbins = 10000
-            lum, lum_pdf_z = self.compute_luminosity_pdf(z_loglum_file, nlbins)
+            lum, _ = self.compute_luminosity_pdf(z_loglum_file, nlbins)
         else:
             nlbins = 100000
             lum = np.ones([self.z_vec.size, nlbins])
+
+        return lum
+
+    def _initialize_luminosity_pdf_z_array(self, galaxy_type):
+        """
+        Initialize and return the luminosity PDF array based on galaxy type.
+
+        Parameters:
+        -----------
+        galaxy_type : str
+            Type of galaxy, either 'centrals' or 'satellites'.
+
+        Returns:
+        --------
+        numpy.ndarray : lum_pdf_z
+            Luminosity PDF array.
+        """
+        depends_on = self.central_ia_depends_on if galaxy_type == 'centrals' else self.satellite_ia_depends_on
+        z_loglum_file = self.z_loglum_file_centrals if galaxy_type == 'centrals' else self.z_loglum_file_satellites
+
+        if depends_on == 'luminosity':
+            nlbins = 10000
+            _, lum_pdf_z = self.compute_luminosity_pdf(z_loglum_file, nlbins)
+        else:
+            nlbins = 100000
             lum_pdf_z = np.ones([self.z_vec.size, nlbins])
 
-        return lum, lum_pdf_z
+        return lum_pdf_z
 
     def mean_l_l0_to_beta(xlum, pdf, l0, beta):
         """
@@ -277,13 +312,14 @@ class AlignmentAmplitudes(Framework):
                 pdf[i] = pdf_tmp
 
         return bincen, pdf
-        
-    def _process_centrals(self):
+            
+    @cached_quantity
+    def alignment_gi(self):
         """
-        Process the central galaxies.
+        Compute the alignment_gi based on the central galaxies' properties.
         """
         if self.central_ia_depends_on == 'constant':
-            self.alignment_gi = self.gamma_2h_amplitude * np.ones_like(self.z_vec)
+            return self.gamma_2h_amplitude * np.ones_like(self.z_vec)
         elif self.central_ia_depends_on == 'luminosity':
             if self.lpivot_cen is None:
                 raise ValueError('You have chosen central luminosity scaling without providing a pivot luminosity parameter. Include lpivot_cen.')
@@ -291,29 +327,32 @@ class AlignmentAmplitudes(Framework):
                 mean_lscaling = np.array([self.broken_powerlaw(self.lum_centrals[i], self.lum_pdf_z_centrals[i], self.gamma_2h_amp, self.lpivot_cen, self.beta_cen, self.beta_two) for i in range(self.z_vec.size)])
             else:
                 mean_lscaling = self.gamma_2h_amplitude * self.mean_l_l0_to_beta(self.lum_centrals, self.lum_pdf_z_centrals, self.lpivot_cen, self.beta_cen)
-            self.alignment_gi = mean_lscaling
+            return mean_lscaling
         elif self.central_ia_depends_on == 'halo_mass':
             if self.mpivot_cen is None:
                 raise ValueError('You have chosen central halo-mass scaling without providing a pivot mass parameter. Include mpivot_cen.')
             if self.beta_two is not None:
                 raise ValueError('A double power law model for the halo mass dependence of centrals has not been implemented.')
-            self.alignment_gi = self.gamma_2h_amplitude * np.ones_like(self.z_vec)
-            
-    def _process_satellites(self):
+            return self.gamma_2h_amplitude * np.ones_like(self.z_vec)
+        else:
+            raise ValueError('Invalid central_ia_depends_on value provided.')
+
+    @cached_quantity
+    def gamma_1h_amplitude(self):
         """
-        Process the satellite galaxies.
+        Compute the gamma_1h_amplitude based on the satellite galaxies' properties.
         """
         if self.satellite_ia_depends_on == 'constant':
-            self.gamma_1h_amplitude = self.gamma_1h_amp * np.ones_like(self.z_vec)
+            return self.gamma_1h_amp * np.ones_like(self.z_vec)
         elif self.satellite_ia_depends_on == 'luminosity':
             if self.lpivot_sat is None:
                 raise ValueError('You have chosen satellite luminosity scaling without providing a pivot luminosity parameter. Include lpivot_sat.')
             mean_lscaling = self.mean_l_l0_to_beta(self.lum_satellites, self.lum_pdf_z_satellites, self.lpivot_sat, self.beta_sat)
-            self.gamma_1h_amplitude = self.gamma_1h_amp * mean_lscaling
+            return self.gamma_1h_amp * mean_lscaling
         elif self.satellite_ia_depends_on == 'halo_mass':
             if self.mpivot_sat is None:
                 raise ValueError('You have chosen satellite halo-mass scaling without providing a pivot mass parameter. Include mpivot_sat.')
-            self.gamma_1h_amplitude = self.gamma_1h_amp * np.ones_like(self.z_vec)
+            return self.gamma_1h_amp * np.ones_like(self.z_vec)
 
 
 class SatelliteAlignment(AlignmentAmplitudes):
@@ -348,10 +387,10 @@ class SatelliteAlignment(AlignmentAmplitudes):
     """
     def __init__(
             self,
-            mass=None,
-            c=None,
-            r_s=None,
-            rvir=None,
+            mass_in=None,
+            c_in=None,
+            r_s_in=None,
+            rvir_in=None,
             n_hankel=350,
             nmass=5,
             nk=10,
@@ -363,56 +402,43 @@ class SatelliteAlignment(AlignmentAmplitudes):
         # Call super init MUST BE DONE FIRST.
         super().__init__(**amplitude_kwargs)
         
+        self.method = method
+        self.nmass = nmass
         self.ell_max = ell_max
         self.truncate = truncate
         # These are for now hardcoded choices
         self.theta_k = np.pi / 2.0
         self.phi_k = 0.0
-        self.method = method
         self.nk = nk
         self.n_hankel = n_hankel
-        self.mass = mass
-        self.c = c
-        self.r_s = r_s
-        self.rvir = rvir
-        self.method = method
-        
-        if self.method == 'hankel':
-            if mass.size < nmass:
-                raise ValueError(
-                    "The halo mass resolution is too low for the radial IA calculation. "
-                    "Please increase nmass when you run halo_model_ingredients.py"
-                )
-            self.mass, self.c, self.r_s, self.rvir = self.downsample_halo_parameters(
-                mass.size, nmass, mass, c, r_s, rvir
-            )
-            # Initilise the hankel transform
-            self.hankel = self.h_transform
-            
-        if self.method == 'fftlog':
-            # For FFTLog there is no need to downsample, as the method is fast!
-            # But we fix the nk!
-            self.nk = 100
-        
+        self.mass_in = mass_in
+        self.c_in = c_in
+        self.r_s_in = r_s_in
+        self.rvir_in = rvir_in
+    
     @parameter("param")
-    def mass(self, val):
+    def mass_in(self, val):
         return val
         
     @parameter("param")
-    def c(self, val):
+    def c_in(self, val):
+        return val
+
+    @parameter("param")
+    def r_s_in(self, val):
         return val
         
     @parameter("param")
-    def r_s(self, val):
-        return val
-        
-    @parameter("param")
-    def r_vir(self, val):
+    def rvir_in(self, val):
         return val
         
     @parameter("param")
     def n_hankel(self, val):
         return val
+    
+    @parameter("param")
+    def nmass(self, val):
+        return int(val)
         
     @parameter("param")
     def nk(self, val):
@@ -445,60 +471,58 @@ class SatelliteAlignment(AlignmentAmplitudes):
     
     @cached_quantity
     def k_vec(self):
-        return np.logspace(np.log10(1e-3), np.log10(1e3), self.nk)
+        if self.method == 'fftlog':
+            nk = 100
+        else:
+            nk = self.nk
+        return np.logspace(np.log10(1e-3), np.log10(1e3), nk)
         
-    def downsample_halo_parameters(
-            self,
-            nmass,
-            nmass_in,
-            mass_in,
-            c_in,
-            r_s_in,
-            rvir_in
-        ):
-        """
-        Downsample the halo parameters to reduce computational complexity.
+    def _downsample(self, quantity):
+        if self.method != 'hankel':
+            return quantity
 
-        Parameters:
-        -----------
-        nmass : int
-            Number of mass bins desired.
-        nmass_in : int
-            Number of mass bins in input.
-        mass_in : array_like
-            Input array of halo masses.
-        c_in : array_like
-            Input array of concentration parameters.
-        r_s_in : array_like
-            Input array of scale radii.
-        rvir_in : array_like
-            Input array of virial radii.
+        if self.mass_in.size == self.nmass:
+            return quantity
 
-        Returns:
-        --------
-        tuple
-            Downsampled arrays of halo masses, concentration parameters, scale radii, and virial radii.
-        """
-        if nmass == nmass_in:
-            return mass_in, c_in, r_s_in, rvir_in
+        if self.mass_in.size < self.nmass:
+            raise ValueError(
+                "The halo mass resolution is too low for the radial IA calculation. "
+                "Please increase nmass when you run halo_model_ingredients.py"
+            )
 
-        downsample_factor = nmass // nmass_in
-        mass = mass_in[::downsample_factor]
-        c = c_in[:, ::downsample_factor]
-        r_s = r_s_in[:, ::downsample_factor]
-        rvir = rvir_in[::downsample_factor]
+        downsample_factor = self.mass_in.size // self.nmass
 
-        # We make sure that the highest mass is included to avoid extrapolation issues
-        if mass[-1] != mass_in[-1]:
-            mass = np.append(mass, mass_in[-1])
-            c = np.concatenate((c, np.atleast_2d(c_in[:, -1]).T), axis=1)
-            r_s = np.concatenate((r_s, np.atleast_2d(r_s_in[:, -1]).T), axis=1)
-            rvir = np.append(rvir, rvir_in[-1])
+        if isinstance(quantity, np.ndarray) and quantity.ndim == 1:
+            downsampled_quantity = quantity[::downsample_factor]
+            if downsampled_quantity[-1] != quantity[-1]:
+                downsampled_quantity = np.append(downsampled_quantity, quantity[-1])
+        else:
+            downsampled_quantity = quantity[:, ::downsample_factor]
+            if np.all(downsampled_quantity[:, -1] != quantity[:, -1]):
+                downsampled_quantity = np.concatenate(
+                    (downsampled_quantity, np.atleast_2d(quantity[:, -1]).T),
+                    axis=1
+                )
+        return downsampled_quantity
 
-        return mass, c, r_s, rvir
-        
     @cached_quantity
-    def h_transform(self):
+    def mass(self):
+        return self._downsample(self.mass_in)
+
+    @cached_quantity
+    def c(self):
+        return self._downsample(self.c_in)
+
+    @cached_quantity
+    def r_s(self):
+        return self._downsample(self.r_s_in)
+
+    @cached_quantity
+    def rvir(self):
+        return self._downsample(self.rvir_in)  
+
+    @cached_quantity
+    def hankel(self):
         """
         Initialize Hankel transform
         HankelTransform(nu, # The order of the bessel function
@@ -515,7 +539,10 @@ class SatelliteAlignment(AlignmentAmplitudes):
         list
             A list of HankelTransform objects for each multipole moment.
         """
-        return [HankelTransform(ell + 0.5, self.n_hankel, np.pi / self.n_hankel) for ell in self.ell_values]
+        if self.method == 'hankel':
+            return [HankelTransform(ell + 0.5, self.n_hankel, np.pi / self.n_hankel) for ell in self.ell_values]
+        else:
+            return None
 
     def I_x(self, a, b):
         """

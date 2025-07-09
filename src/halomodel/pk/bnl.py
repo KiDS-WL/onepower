@@ -112,7 +112,7 @@ class NonLinearBias(Framework):
     def w0(self, val):
         return val
         
-    @parameter("switch")
+    @parameter("param")
     def z_dep(self, val):
         return val
     

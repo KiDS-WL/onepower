@@ -10,7 +10,7 @@ from halomod.halo_model import DMHaloModel, TracerHaloModel
 from halomod.concentration import make_colossus_cm, interp_concentration
 import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
-from hmf._internals._cache import cached_quantity, parameter
+from hmf._internals._cache import cached_quantity, parameter, subframework
 from hmf._internals._framework import Framework
 
 """
@@ -420,10 +420,10 @@ class HaloModelIngredients(CosmologyBase):
             z_vec=np.linspace(0.0, 3.0, 15),
             lnk_min=np.log(10**(-4.0)),
             lnk_max=np.log(10**(4.0)),
-            dlnk=(np.log(10**(-4.0)) - np.log(10**(4.0))) / 100,
+            dlnk=(np.log(10**(4.0)) - np.log(10**(-4.0))) / 100,
             Mmin=9.0,
             Mmax=16.0,
-            dlog10m=0.06,
+            dlog10m=0.05,
             mdef_model='SOMean',
             hmf_model='Tinker10',
             bias_model='Tinker10',
@@ -444,6 +444,8 @@ class HaloModelIngredients(CosmologyBase):
         ):
         super().__init__(**cosmology_kwargs)
     
+        self.mead_correction = mead_correction
+
         self.k_vec = k_vec
         self.z_vec = z_vec
         self.lnk_min = lnk_min
@@ -452,23 +454,28 @@ class HaloModelIngredients(CosmologyBase):
         self.Mmin = Mmin
         self.Mmax = Mmax
         self.dlog10m = dlog10m
+        self.mdef_model = mdef_model
+        self.hmf_model = hmf_model
+        self.bias_model = bias_model
+        self.halo_concentration_model = halo_concentration_model
         self.halo_profile_model = halo_profile_model
         self.transfer_model = transfer_model
         self.transfer_params = transfer_params
         self.growth_model = growth_model
         self.growth_params = growth_params
-        self.mead_correction = mead_correction
 
         self.norm_cen = norm_cen
         self.norm_sat = norm_sat
 
-        self.halo_profile_params = {'cosmo': self.cosmo_model}
-        self.scale_factor = self.cosmo_model.scale_factor(self.z_vec)
+        self.eta_cen = eta_cen
+        self.eta_sat = eta_sat
 
-        if self.mead_correction in ['feedback', 'nofeedback']:
-            self._setup_mead_correction()
-        else:
-            self._setup_default(hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, eta_cen, eta_sat)
+        self.overdensity = overdensity
+        self.delta_c = delta_c
+
+    @parameter("param")
+    def mead_correction(self, val):
+        return val
             
     @parameter("param")
     def k_vec(self, val):
@@ -503,7 +510,7 @@ class HaloModelIngredients(CosmologyBase):
         return val
     
     @parameter("param")
-    def mdef_model(self, val):
+    def mdef_model(self, val):  
         return val
     
     @parameter("param")
@@ -512,6 +519,10 @@ class HaloModelIngredients(CosmologyBase):
         
     @parameter("param")
     def bias_model(self, val):
+        return val
+    
+    @parameter("param")
+    def halo_concentration_model(self, val):
         return val
         
     @parameter("param")
@@ -534,29 +545,21 @@ class HaloModelIngredients(CosmologyBase):
     def growth_params(self, val):
         return val
         
-    @parameter("switch")
-    def mead_correction(self, val):
-        return val
-        
     @parameter("param")
     def norm_cen(self, val):
-        return val * np.ones_like(self.z_vec)
+        return np.atleast_1d(val)
         
     @parameter("param")
     def norm_sat(self, val):
-        return val * np.ones_like(self.z_vec)
-        
-    @parameter("param")
-    def k_vec(self, val):
-        return val
+        return np.atleast_1d(val)
         
     @parameter("param")
     def eta_cen(self, val):
-        return val * np.ones_like(self.z_vec)
+        return np.atleast_1d(val)
         
     @parameter("param")
     def eta_sat(self, val):
-        return val * np.ones_like(self.z_vec)
+        return np.atleast_1d(val)
         
     @parameter("param")
     def delta_c(self, val):
@@ -565,67 +568,94 @@ class HaloModelIngredients(CosmologyBase):
     @parameter("param")
     def overdensity(self, val):
         return val
-        
-    def _setup_mead_correction(self):
-        """
-        Set up the Mead corrections for the halo model.
-        """
-        self.disable_mass_conversion = True
-        self.hmf_model = 'ST'
-        self.bias_model = 'ST99'
-        self.halo_concentration_model = interp_concentration(getattr(concentration_classes, 'Bullock01'))
-        
-        self.delta_c = self.dc_Mead
-        self.mdef_model = SOVirial_Mead
-        self.mdef_params = [{'overdensity': overdensity} for overdensity in self.Dv_Mead]
+    
+    @cached_quantity
+    def _norm_c(self):
+        return self.norm_cen * np.ones_like(self.z_vec)
+    
+    @cached_quantity
+    def _norm_s(self):
+        return self.norm_sat * np.ones_like(self.z_vec)
 
-        #self.norm_cen = np.ones_like(self.z_vec) # tmp
-        #self.norm_sat = np.ones_like(self.z_vec) # tmp
-        #self.eta_sat = eta_sat * np.ones_like(self.z_vec) # tmp
+    @cached_quantity
+    def _eta_c(self):
+        return self.eta_cen * np.ones_like(self.z_vec)
 
+    @cached_quantity
+    def _eta_s(self):
+        return self.eta_sat * np.ones_like(self.z_vec)
+
+    @cached_quantity
+    def _delta_c_mod(self):
+        if self.mead_correction in ['feedback', 'nofeedback']:
+            val = self.dc_Mead
+        else:
+            val = (3.0 / 20.0) * (12.0 * np.pi) ** (2.0 / 3.0) * (1.0 + 0.0123 * np.log10(self.cosmo_model.Om(self.z_vec))) if self.mdef_model == 'SOVirial' else self.delta_c * np.ones_like(self.z_vec)
+        return val
+
+    @cached_quantity
+    def _mdef_mod(self):
+        if self.mead_correction in ['feedback', 'nofeedback']:
+           return SOVirial_Mead    
+        return self.mdef_model
+    
+    @cached_quantity
+    def _hmf_mod(self):
+        if self.mead_correction in ['feedback', 'nofeedback']:
+            return 'ST'
+        return self.hmf_model
+        
+    @cached_quantity
+    def _bias_mod(self):
+        if self.mead_correction in ['feedback', 'nofeedback']:
+            return 'ST99'
+        return self.bias_model
+    
+    @cached_quantity
+    def _halo_concentration_mod(self):
+        if self.mead_correction in ['feedback', 'nofeedback']:
+            val = interp_concentration(getattr(concentration_classes, 'Bullock01'))
+        else:
+            try:
+                val = interp_concentration(getattr(concentration_classes, self.halo_concentration_model))
+            except:
+                val = interp_concentration(make_colossus_cm(self.halo_concentration_model))
+        return val
+
+    @cached_quantity
+    def mdef_params(self):
+        if self.mead_correction in ['feedback', 'nofeedback']:
+            val = [{'overdensity': overdensity} for overdensity in self.Dv_Mead]
+        else:
+            val = [{} if self.mdef_model == 'SOVirial' else {'overdensity': self.overdensity} for _ in self.z_vec]
+        return val
+        
+    @cached_quantity
+    def halo_profile_params(self):
+        return {'cosmo': self.cosmo_model}
+    
+    @cached_quantity
+    def scale_factor(self):
+        return self.cosmo_model.scale_factor(self.z_vec)
+
+    @cached_quantity
+    def disable_mass_conversion(self):
+        if self.mead_correction in ['feedback', 'nofeedback']:
+            return True
+        else:
+            return False
+        
+    @cached_quantity
+    def K(self):
         if self.mead_correction == 'nofeedback':
-            self.K = 5.196 * np.ones_like(self.z_vec)
+            k = 5.196 * np.ones_like(self.z_vec)
         elif self.mead_correction == 'feedback':
             theta_agn = self.log10T_AGN - 7.8
-            self.K = (5.196 / 4.0) * ((3.44 - 0.496 * theta_agn) * np.power(10.0, self.z_vec * (-0.0671 - 0.0371 * theta_agn)))
+            k = (5.196 / 4.0) * ((3.44 - 0.496 * theta_agn) * np.power(10.0, self.z_vec * (-0.0671 - 0.0371 * theta_agn)))
+        else:
+            k = np.zeros_like(self.z_vec)
+        return k
 
-    def _setup_default(self, hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, eta_cen, eta_sat):
-        """
-        Set up the default halo model.
-
-        Parameters:
-        -----------
-        hmf_model : str
-            Halo mass function model.
-        bias_model : str
-            Halo bias model.
-        halo_concentration_model : str
-            Halo concentration model.
-        mdef_model : str
-            Mass definition model.
-        overdensity : float
-            Overdensity parameter.
-        delta_c : float
-            Critical density threshold for collapse.
-        eta_cen : float
-            Bloating parameter for central galaxies.
-        eta_sat : float
-            Bloating parameter for satellite galaxies.
-        """
-        self.disable_mass_conversion = False
-        self.hmf_model = hmf_model
-        self.bias_model = bias_model
-        try:
-            self.halo_concentration_model = interp_concentration(getattr(concentration_classes, halo_concentration_model))
-        except:
-            self.halo_concentration_model = interp_concentration(make_colossus_cm(halo_concentration_model))
-        self.mdef_model = mdef_model
-        self.mdef_params = [{} if self.mdef_model == 'SOVirial' else {'overdensity': overdensity} for _ in self.z_vec]
-        self.delta_c = (3.0 / 20.0) * (12.0 * np.pi) ** (2.0 / 3.0) * (1.0 + 0.0123 * np.log10(self.cosmo_model.Om(self.z_vec))) if self.mdef_model == 'SOVirial' else delta_c * np.ones_like(self.z_vec)
-        
-        self.eta_cen = eta_cen
-        self.eta_sat = eta_sat
-        
     @cached_quantity
     def _hmf_generator(self):
         """
@@ -641,13 +671,13 @@ class HaloModelIngredients(CosmologyBase):
                 Mmin=self.Mmin,
                 Mmax=self.Mmax,
                 dlog10m=self.dlog10m,
-                hmf_model=self.hmf_model,
-                mdef_model=self.mdef_model,
+                hmf_model=self._hmf_mod,
+                mdef_model=self._mdef_mod,
                 disable_mass_conversion=self.disable_mass_conversion,
-                bias_model=self.bias_model,
+                bias_model=self._bias_mod,
                 halo_profile_model=self.halo_profile_model,
                 halo_profile_params=self.halo_profile_params,
-                halo_concentration_model=self.halo_concentration_model,
+                halo_concentration_model=self._halo_concentration_mod,
                 cosmo_model=self.cosmo_model,
                 sigma_8=self.sigma_8,
                 n=self.n_s,
@@ -656,14 +686,14 @@ class HaloModelIngredients(CosmologyBase):
                 growth_model=self.growth_model,
                 growth_params=self.growth_params,
                 mdef_params=self.mdef_params[0],
-                delta_c=self.delta_c[0]
+                delta_c=self._delta_c_mod[0]
             )
         y = x.clone()
         x_out, y_out = [], []
         
         if self.mead_correction in ['feedback', 'nofeedback']:
             # For centrals
-            for z, mdef_par, dc, norm_cen, k in zip(self.z_vec, self.mdef_params, self.delta_c, self.norm_cen, self.K):
+            for z, mdef_par, dc, norm_cen, k in zip(self.z_vec, self.mdef_params, self._delta_c_mod, self._norm_c, self.K):
                 x.update(
                     z=z,
                     mdef_params=mdef_par,
@@ -674,11 +704,11 @@ class HaloModelIngredients(CosmologyBase):
                     halo_profile_params={'eta_bloat': eta_cen},
                     halo_concentration_params={'norm': norm_cen, 'K': k}
                 )
-                #yield x
+                #yield x.clone()
                 x_out.append(x.clone())
             
             # For satellites
-            for z, mdef_par, dc, norm_sat, k in zip(self.z_vec, self.mdef_params, self.delta_c, self.norm_sat, self.K):
+            for z, mdef_par, dc, norm_sat, k in zip(self.z_vec, self.mdef_params, self._delta_c_mod, self._norm_s, self.K):
                 y.update(
                     z=z,
                     mdef_params=mdef_par,
@@ -689,11 +719,11 @@ class HaloModelIngredients(CosmologyBase):
                     halo_profile_params={'eta_bloat': eta_sat},
                     halo_concentration_params={'norm': norm_sat, 'K': k}
                 )
-                #yield y
+                #yield y.clone()
                 y_out.append(y.clone())
         else:
             # For centrals
-            for z, mdef_par, dc, eta_cen, norm_cen in zip(self.z_vec, self.mdef_params, self.delta_c, self.eta_cen, self.norm_cen):
+            for z, mdef_par, dc, eta_cen, norm_cen in zip(self.z_vec, self.mdef_params, self._delta_c_mod, self._eta_c, self._norm_c):
                 x.update(
                     z=z,
                     mdef_params=mdef_par,
@@ -701,11 +731,11 @@ class HaloModelIngredients(CosmologyBase):
                     halo_profile_params={'eta_bloat': eta_cen},
                     halo_concentration_params={'norm': norm_cen}
                 )
-                #yield x
+                #yield x.clone()
                 x_out.append(x.clone())
             
             # For satellites
-            for z, mdef_par, dc, eta_sat, norm_sat in zip(self.z_vec, self.mdef_params, self.delta_c, self.eta_sat, self.norm_sat):
+            for z, mdef_par, dc, eta_sat, norm_sat in zip(self.z_vec, self.mdef_params, self._delta_c_mod, self._eta_s, self._norm_s):
                 y.update(
                     z=z,
                     mdef_params=mdef_par,
@@ -713,7 +743,7 @@ class HaloModelIngredients(CosmologyBase):
                     halo_profile_params={'eta_bloat': eta_sat},
                     halo_concentration_params={'norm': norm_sat}
                 )
-                #yield y
+                #yield y.clone()
                 y_out.append(y.clone())
         return x_out, y_out
 
@@ -1099,10 +1129,10 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
             z_vec=np.linspace(0.0, 3.0, 15),
             lnk_min=np.log(10**(-4.0)),
             lnk_max=np.log(10**(4.0)),
-            dlnk=(np.log(10**(-4.0)) - np.log(10**(4.0))) / 100,
+            dlnk=(np.log(10**(4.0)) - np.log(10**(-4.0))) / 100,
             Mmin=9.0,
             Mmax=16.0,
-            dlog10m=0.06,
+            dlog10m=0.05,
             mdef_model='SOMean',
             hmf_model='Tinker10',
             bias_model='Tinker10',
