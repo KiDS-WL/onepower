@@ -28,6 +28,7 @@ class UpsampledSpectra(Framework):
             model=None,
             model_1_params={},
             model_2_params=None,
+            extrapolate_option = 'extrapolate',
         ):
         super().__init__()
         self.z = z
@@ -37,11 +38,10 @@ class UpsampledSpectra(Framework):
         self.model = model
         self._model_1_params = model_1_params
         self._model_2_params = model_2_params
+        self.extrapolate_option = extrapolate_option
 
-    @parameter("model")
+    @parameter("param")
     def model(self, val):
-        if val is None:
-            val = Spectra(**self._model_1_params)
         return val
 
     @parameter("param")
@@ -67,6 +67,10 @@ class UpsampledSpectra(Framework):
     @parameter("param")
     def k(self, val):
         return val
+    
+    @parameter("param")
+    def extrapolate_option(self, val):
+        return val
                     
     @cached_property
     def frac_1(self):
@@ -86,6 +90,8 @@ class UpsampledSpectra(Framework):
     @cached_property
     def power_1(self):
         """First Halo Model."""
+        if self.model is None:
+            return Spectra(**self._model_1_params)
         return self.model
 
     @cached_property
@@ -100,20 +106,20 @@ class UpsampledSpectra(Framework):
             spectra2.update(**self._model_2_params)
         return spectra2
         
-    def results(self, requested_spectra):
+    def results(self, requested_spectra, requested_components):
         for mode in requested_spectra:
             collected_spectra = {}
-            for component in ['1h', '2h', 'tot']:    
+            for component in requested_components:    
                 p1 = getattr(self.power_1, f'power_spectrum_{mode}')
                 p1_component = getattr(p1, f'pk_{component}')
                 extrapolated_p1 = self.extrapolate_spectra(
-                    self.z, self.k, self.power_1.z_vec, self.power_1.k_vec, p1_component, extrapolate_option='extrapolate'
+                    self.z, self.k, self.power_1.z_vec, self.power_1.k_vec, p1_component, extrapolate_option=self.extrapolate_option
                 )
                 if self.power_2 is not None:
                     p2 = getattr(self.power_2, f'power_spectrum_{mode}')
                     p2_component = getattr(p2, f'pk_{component}')
                     extrapolated_p2 = self.extrapolate_spectra(
-                        self.z, self.k, self.power_2.z_vec, self.power_2.k_vec, p2_component, extrapolate_option='extrapolate'
+                        self.z, self.k, self.power_2.z_vec, self.power_2.k_vec, p2_component, extrapolate_option=self.extrapolate_option
                     )
                 else:
                     extrapolated_p2 = np.zeros_like(extrapolated_p1)
