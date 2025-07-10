@@ -111,46 +111,90 @@ class CosmologyBase(Framework):
 
     @parameter("param")
     def h0(self, val):
+        """
+        h0 : float
+            Hubble parameter (small h).
+        """
         return val
         
     @parameter("param")
     def omega_c(self, val):
+        """
+        omega_c : float
+            Cold dark matter density parameter.
+        """
         return val
         
     @parameter("param")
     def omega_b(self, val):
+        """
+        omega_b : float
+            Baryon density parameter.
+        """
         return val
         
     @parameter("param")
     def omega_m(self, val):
+        """
+        omega_m : float
+            Matter density parameter.
+        """
         return val
 
     @parameter("param")
     def w0(self, val):
+        """
+        w0 : float
+            Dark energy equation of state parameter.
+        """
         return val
         
     @parameter("param")
     def wa(self, val):
+        """
+        wa : float
+            Dark energy equation of state parameter.
+        """
         return val
         
     @parameter("param")
     def n_s(self, val):
+        """
+        n_s : float
+            Spectral index.
+        """
         return val
         
     @parameter("param")
     def tcmb(self, val):
+        """
+        tcmb : float
+            Temperature of the CMB.
+        """
         return val
         
     @parameter("param")
     def m_nu(self, val):
+        """
+        m_nu : float
+            Neutrino mass.
+        """
         return val
         
     @parameter("param")
     def sigma_8(self, val):
+        """
+        sigma_8 : float
+            Amplitude of matter fluctuations on 8 Mpc scales.
+        """
         return val
         
     @parameter("param")
     def log10T_AGN(self, val):
+        """
+        log10T_AGN : float
+            Log10 of AGN temperature.
+        """
         return val
 
     @cached_quantity
@@ -475,118 +519,230 @@ class HaloModelIngredients(CosmologyBase):
 
     @parameter("param")
     def mead_correction(self, val):
+        """
+        mead_correction : str
+            Correction model from Mead et al.
+        """
         return val
             
     @parameter("param")
     def k_vec(self, val):
+        """
+        k_vec : array_like
+            Array of wavenumbers.
+        """
         return val
         
     @parameter("param")
     def z_vec(self, val):
+        """
+        z_vec : array_like
+            Array of redshifts.
+        """
         return val
         
     @parameter("param")
     def lnk_min(self, val):
+        """
+        lnk_min : float
+            Minimum natural log of wavenumber (for hmf).
+        """
         return val
         
     @parameter("param")
     def lnk_max(self, val):
+        """
+        lnk_max : float
+            Maximum natural log of wavenumber (for hmf).
+        """
         return val
         
     @parameter("param")
     def dlnk(self, val):
+        """
+        dlnk : float
+            Spacing in natural log of wavenumber (for hmf).
+        """
         return val
         
     @parameter("param")
     def Mmin(self, val):
+        """
+        Mmin : float
+            Minimum halo mass (for hmf).
+        """
         return val
         
     @parameter("param")
     def Mmax(self, val):
+        """
+        Mmax : float
+            Maximum halo mass (for hmf).
+        """
         return val
         
     @parameter("param")
     def dlog10m(self, val):
+        """
+        dlog10m : float
+            Spacing in log10 of halo mass (for hmf).
+        """
         return val
     
     @parameter("param")
     def mdef_model(self, val):  
+        """
+        mdef_model : str
+            Mass definition model (for hmf).
+        """
         return val
     
     @parameter("param")
     def hmf_model(self, val):
+        """
+        hmf_model : str
+            Halo mass function model (for hmf).
+        """
         return val
         
     @parameter("param")
     def bias_model(self, val):
+        """
+        bias_model : str
+            Halo bias model (for halomod).
+        """
         return val
     
     @parameter("param")
     def halo_concentration_model(self, val):
+        """
+        halo_concentration_model : str
+            Halo concentration model (for halomod).
+        """
         return val
         
     @parameter("param")
     def halo_profile_model(self, val):
+        """
+        halo_profile_model : str
+            Halo profile model (for halomod).
+        """
         return val
 
     @parameter("param")
     def transfer_model(self, val):
+        """
+        transfer_model : str
+            Transfer function model (for hmf).
+        """
         return val
         
     @parameter("param")
     def transfer_params(self, val):
+        """
+        transfer_params : dict
+            Parameters for the transfer function (for hmf).
+        """
         return val
         
     @parameter("param")
     def growth_model(self, val):
+        """
+        growth_model : str
+            Growth function model (for hmf).
+        """
         return val
         
     @parameter("param")
     def growth_params(self, val):
+        """
+        growth_params : dict
+            Parameters for the growth function (for hmf).
+        """
         return val
         
     @parameter("param")
     def norm_cen(self, val):
+        """
+        norm_cen : float
+            Normalization of c(M) relation for central galaxies.
+        """
         return np.atleast_1d(val)
         
     @parameter("param")
     def norm_sat(self, val):
+        """
+        norm_sat : float
+            Normalization of c(M) relation for satellite galaxies.
+        """
         return np.atleast_1d(val)
         
     @parameter("param")
     def eta_cen(self, val):
+        """
+        eta_cen : float
+            Bloating parameter for central galaxies.
+        """
         return np.atleast_1d(val)
         
     @parameter("param")
     def eta_sat(self, val):
+        """
+        eta_sat : float
+            Bloating parameter for satellite galaxies.
+        """
         return np.atleast_1d(val)
         
     @parameter("param")
     def delta_c(self, val):
+        """
+        delta_c : float
+            Critical density threshold for collapse.
+        """
         return val
         
     @parameter("param")
     def overdensity(self, val):
+        """
+        overdensity : float
+            Overdensity parameter.
+        """
         return val
     
     @cached_quantity
     def _norm_c(self):
+        """
+        Sets the norm_cen parameter to the shape of redshift vector.
+        """
         return self.norm_cen * np.ones_like(self.z_vec)
     
     @cached_quantity
     def _norm_s(self):
+        """
+        Sets the norm_sat parameter to the shape of redshift vector.
+        """
         return self.norm_sat * np.ones_like(self.z_vec)
 
     @cached_quantity
     def _eta_c(self):
+        """
+        Sets the eta_cen parameter to the shape of redshift vector.
+        """
         return self.eta_cen * np.ones_like(self.z_vec)
 
     @cached_quantity
     def _eta_s(self):
+        """
+        Sets the eta_sat parameter to the shape of redshift vector.
+        """
         return self.eta_sat * np.ones_like(self.z_vec)
 
     @cached_quantity
     def _delta_c_mod(self):
+        """
+        Sets the delta_c parameter to the one used in HMCode or to the one for virial collapse.
+        Overrides the default passed value in those two cases.
+        """
         if self.mead_correction in ['feedback', 'nofeedback']:
             val = self.dc_Mead
         else:
@@ -595,24 +751,40 @@ class HaloModelIngredients(CosmologyBase):
 
     @cached_quantity
     def _mdef_mod(self):
+        """
+        Sets the mass definition to the one used in HMCode.
+        Overrides the default passed value in this case.
+        """
         if self.mead_correction in ['feedback', 'nofeedback']:
            return SOVirial_Mead    
         return self.mdef_model
     
     @cached_quantity
     def _hmf_mod(self):
+        """
+        Sets the mass function to the one used in HMCode.
+        Overrides the default passed value in this case.
+        """
         if self.mead_correction in ['feedback', 'nofeedback']:
             return 'ST'
         return self.hmf_model
         
     @cached_quantity
     def _bias_mod(self):
+        """
+        Sets the halo bias function to the one used in HMCode.
+        Overrides the default passed value in this case.
+        """
         if self.mead_correction in ['feedback', 'nofeedback']:
             return 'ST99'
         return self.bias_model
     
     @cached_quantity
     def _halo_concentration_mod(self):
+        """
+        Sets the c(M) relation to the one used in HMCode.
+        Overrides the default passed value in this case.
+        """
         if self.mead_correction in ['feedback', 'nofeedback']:
             val = interp_concentration(getattr(concentration_classes, 'Bullock01'))
         else:
@@ -624,6 +796,10 @@ class HaloModelIngredients(CosmologyBase):
 
     @cached_quantity
     def mdef_params(self):
+        """
+        Sets the overdensity parameter to the one used in HMCode or to the one for virial collapse.
+        Overrides the default passed value in those two cases.
+        """
         if self.mead_correction in ['feedback', 'nofeedback']:
             val = [{'overdensity': overdensity} for overdensity in self.Dv_Mead]
         else:
@@ -632,14 +808,24 @@ class HaloModelIngredients(CosmologyBase):
         
     @cached_quantity
     def halo_profile_params(self):
+        """
+        Packs the cosmology to a dictionary to be passed to the hmf.
+        Can in principle have more parameters that need to be passed to hmf that are not explicitly set.
+        """
         return {'cosmo': self.cosmo_model}
     
     @cached_quantity
     def scale_factor(self):
+        """
+        Return the scale factor.
+        """
         return self.cosmo_model.scale_factor(self.z_vec)
 
     @cached_quantity
     def disable_mass_conversion(self):
+        """
+        Dissables the mass conversion for the mass definitions defined in HMCode.
+        """
         if self.mead_correction in ['feedback', 'nofeedback']:
             return True
         else:
@@ -647,6 +833,10 @@ class HaloModelIngredients(CosmologyBase):
         
     @cached_quantity
     def K(self):
+        """
+        Sets the c(M) normalisations to the one used in HMCode.
+        Overrides the default passed value in this case.
+        """
         if self.mead_correction == 'nofeedback':
             k = 5.196 * np.ones_like(self.z_vec)
         elif self.mead_correction == 'feedback':

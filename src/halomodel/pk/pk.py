@@ -231,7 +231,6 @@ class Spectra(HaloModelIngredients):
     align_params : dict, optional
         Parameters for the alignment model.
     
-        
     hmf_kwargs : dict
         Additional keyword arguments for the HaloModelIngredients.
     """
@@ -297,78 +296,154 @@ class Spectra(HaloModelIngredients):
     
     @parameter("param")
     def mb(self, val):
+        """
+        mb : float
+            Gas distribution mass pivot parameter.
+        """
         return val
 
     @parameter("switch")
     def bnl(self, val):
+        """
+        bnl : bool
+            Whether to include non-linear bias.
+        """
         return val
     
     @parameter("param")
     def beta_nl(self, val):
+        """
+        beta_nl : array_like
+            Non-linear bias parameter.
+        """
         return val  
         
     @parameter("param")
     def dewiggle(self, val):
+        """
+        dewiggle : bool
+            Whether to dewiggle the power spectrum.
+        """
         return val
         
     @parameter("param")
     def matter_power_lin(self, val):
+        """
+        matter_power_lin : array_like
+            Linear matter power spectrum.
+        """
         return val
         
     @parameter("param")
     def one_halo_ktrunc(self, val):
+        """
+        one_halo_ktrunc : float
+            Truncation wavenumber for the 1-halo term.
+        """
         return val
         
     @parameter("param")
     def two_halo_ktrunc(self, val):
+        """
+        two_halo_ktrunc : float
+            Truncation wavenumber for the 2-halo term.
+        """
         return val
         
     @parameter("param")
     def hod_model_mm(self, val):
+        """
+        hod_model_mm : str
+            HOD model for matter-matter power spectrum.
+        """
         return val
         
     @parameter("param")
     def hod_settings_mm(self, val):
+        """
+        hod_settings_mm : dict
+            Settings for the HOD model.
+        """
         return val
         
     @parameter("param")
     def hod_params_mm(self, val):
+        """
+        hod_params_mm : dict
+            Parameters for the HOD model.
+        """
         return val
     
     @parameter("param")
     def pointmass(self, val):
+        """
+        pointmass : bool
+            Whether to use point mass approximation.
+        """
         return val
         
     @parameter("param")
     def compute_observable(self, val):
+        """
+        compute_observable : bool
+            Whether to compute observable.
+        """
         return val
         
     @parameter("param")
     def poisson_par(self, val):
+        """
+        poisson_par : dict
+            Parameters for the Poisson distribution.    
+        """
         return val
         
     @parameter("param")
     def hod_model(self, val):
+        """
+        hod_model : str
+            HOD model to use.
+        """
         return val
         
     @parameter("param")
     def hod_params(self, val):
+        """
+        hod_params : dict
+            Parameters for the HOD model.
+        """
         return val
         
     @parameter("param")
     def hod_settings(self, val):
+        """
+        hod_settings : dict
+            Settings for the HOD model.
+        """
         return val
         
     @parameter("param")
     def obs_settings(self, val):
+        """
+        obs_settings : dict
+            Settings for the observable.
+        """
         return val
     
     @parameter("param")
     def fortuna(self, val):
+        """
+        fortuna : bool
+            Whether to use the Fortuna model.
+        """
         return val
         
     @parameter("param")
     def t_eff(self, val):
+        """
+        t_eff : float
+            Effective parameter for the Fortuna model.
+        """
         return val
         
     @parameter("param")
@@ -377,18 +452,34 @@ class Spectra(HaloModelIngredients):
         
     @parameter("param")
     def one_halo_ktrunc_ia(self, val):
+        """
+        one_halo_ktrunc_ia : float
+            Truncation wavenumber for the 1-halo IA term.
+        """
         return val
         
     @parameter("param")
     def two_halo_ktrunc_ia(self, val):
+        """
+        two_halo_ktrunc_ia : float
+            Truncation wavenumber for the 2-halo IA term.
+        """
         return val
         
     @parameter("param")
     def align_params(self, val):
+        """
+        align_params : dict
+            Parameters for the alignment model.
+        """
         return val
     
     @cached_quantity
     def _beta_nl_array(self):
+        """
+        Returns the pre-calculated beta_nl values or
+        calculates it on the fly if beta_nl == None.
+        """
         if self.bnl:
             if self.beta_nl is None:
                 return self.calc_bnl
@@ -396,6 +487,11 @@ class Spectra(HaloModelIngredients):
 
     @cached_quantity
     def _pk_lin(self):
+        """
+        Returns the pre-calculated linear power spectrum or uses one from hmf.
+        Additionally it applies the dewiggle method if desired, or if 
+        HMCode2020 functionality is needed.
+        """
         # P(k) can be returned by hmf, together with the specified k_vec!
         if self.matter_power_lin is None:
             val = self.power
@@ -411,6 +507,9 @@ class Spectra(HaloModelIngredients):
 
     @cached_quantity
     def _pk_nl(self, val):
+        """
+        Returns the pre-calculated non-linear power spectrum or uses one from hmf.
+        """
         val = self.matter_power_nl
         if self.fortuna:
             if self.matter_power_nl is None:
@@ -421,6 +520,11 @@ class Spectra(HaloModelIngredients):
 
     @cached_quantity
     def peff(self):
+        """
+        Returns the mixture of linear and non-linear power spectrum, with t_eff as a ratio,
+        as used in Fortuna et al. IA model in order to have better 1h to 2h transition.
+        Only used if fortuna == True.
+        """
         if self.fortuna:
             return (1.0 - self.t_eff) * self._pk_nl + self.t_eff * self._pk_lin
         return None    
@@ -1686,7 +1790,9 @@ class Spectra(HaloModelIngredients):
     
     @cached_quantity
     def alignment_class(self):
-        # Set up the aligment amplitudes and radial dependence
+        """
+        Set up the aligment amplitudes and radial dependence.
+        """
         self.align_params.update({
             'z_vec': self.z_vec,
             'mass_in': self.mass,
@@ -1700,34 +1806,62 @@ class Spectra(HaloModelIngredients):
 
     @cached_quantity 
     def beta_cen(self):
+        """
+        beta_cen : float
+            Beta parameter for central galaxies.
+        """
         return self.alignment_class.beta_cen
     
     @cached_quantity
     def beta_sat(self):
+        """
+        beta_sat : float
+            Beta parameter for satellite galaxies.
+        """
         return self.alignment_class.beta_sat
     
     @cached_quantity
     def mpivot_cen(self):
+        """
+        mpivot_cen : float
+            Pivot mass for central galaxies.
+        """
         return self.alignment_class.mpivot_cen
     
     @cached_quantity
     def mpivot_sat(self):
+        """
+        mpivot_sat : float
+            Pivot mass for satellite galaxies.
+        """
         return self.alignment_class.mpivot_sat
 
     @cached_quantity
     def alignment_gi(self):
+        """
+        2h alignment amplitude.
+        """
         return self.alignment_class.alignment_gi
 
     @cached_quantity 
     def alignment_amplitude_2h(self):
+        """
+        The alignment amplitude for GI.
+        """
         return -1.0 * (self.C1[:, :, 0] * self.mean_density0[:, np.newaxis] / self.growth_factor[:, np.newaxis])
     
     @cached_quantity
     def alignment_amplitude_2h_II(self):
+        """
+        The alignment amplitude for II.
+        """
         return (self.C1[:, :, 0] * self.mean_density0[:, np.newaxis] / self.growth_factor[:, np.newaxis])**2.0
         
     @cached_quantity
     def C1(self):
+        """
+        Linear alignment coefficient C1 multiplited with the 2h amplitude.
+        """
         return 5e-14 * self.alignment_gi[:, np.newaxis, np.newaxis]
 
     @cached_quantity

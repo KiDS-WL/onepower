@@ -78,10 +78,18 @@ class HOD(Framework):
         
     @parameter("param")
     def z_vec(self, val):
+        """
+        z_vec : array_like
+            Array of redshifts.
+        """
         return val
 
     @parameter("param")
     def mass(self, val):
+        """
+        mass : array_like
+            Array of halo masses.
+        """
         if val is None:
             raise ValueError("Mass needs to be specified!")
         # With newaxis we make sure the HOD shape is (nb, nz, nmass)
@@ -89,28 +97,46 @@ class HOD(Framework):
 
     @parameter("param")
     def dndlnm(self, val):
+        """
+        dndlnm : array_like
+            Halo mass function.
+        """
         if val is None:
             raise ValueError("Halo mass function needs to be specified!")
         return val
 
     @parameter("param")
     def halo_bias(self, val):
+        """
+        halo_bias : array_like
+            Halo bias.
+        """
         if val is None:
             raise ValueError("Halo bias function needs to be specified!")
         return val
         
     @parameter("param")
     def hod_settings(self, val):
+        """
+        hod_settings : dict
+            Dictionary of HOD settings.
+        """
         return val
         
     @cached_quantity
     def obs(self):
+        """
+        Returns the array of observables at which to calculate the CSMF/CLF and integrate over to get the HOD
+        """
         obs = np.array([[np.logspace(self.log_obs_min[nb, jz], self.log_obs_max[nb, jz], self.nobs) for jz in range(self.nz)] for nb in range(self.nbins)])
         # With newaxis we make sure the COF shape is (nb, nz, nmass, nobs)
         return obs[:, :, np.newaxis, :]
         
     @cached_quantity
     def dndlnm_int(self):
+        """
+        Returns the interpolated halo mass function at HOD specific redshifts.
+        """
         dndlnm_fnc = interp1d(
             self.z_vec, self.dndlnm, kind='linear', fill_value='extrapolate',
             bounds_error=False, axis=0
@@ -119,6 +145,9 @@ class HOD(Framework):
 
     @cached_quantity
     def halo_bias_int(self):
+        """
+        Returns the interpolated halo bias function at HOD specific redshifts.
+        """
         halo_bias_fnc = interp1d(
             self.z_vec, self.halo_bias, kind='linear', fill_value='extrapolate',
             bounds_error=False, axis=0
@@ -127,6 +156,9 @@ class HOD(Framework):
         
     @cached_quantity
     def data(self):
+        """
+        Returns the z_bins, obs_min and obs_max quantities from tabulated observables file.
+        """
         if self.hod_settings['observables_file'] is not None:
             z_bins, obs_min, obs_max = load_data(self.hod_settings['observables_file'])
             return z_bins, obs_min, obs_max
@@ -135,10 +167,16 @@ class HOD(Framework):
 
     @cached_quantity
     def nobs(self):
+        """
+        Sets the number of observables in the observable array.
+        """
         return self.hod_settings['nobs']
 
     @cached_quantity
     def nbins(self):
+        """
+        Returns the number of HOD bins.
+        """
         if self.hod_settings['observables_file'] is not None:
             return 1
         else:
@@ -146,6 +184,9 @@ class HOD(Framework):
 
     @cached_quantity
     def nz(self):
+        """
+        Sets the number of redshift bins.
+        """
         if self.hod_settings['observables_file'] is not None:
             return len(self.data[0])
         else:
@@ -153,6 +194,9 @@ class HOD(Framework):
         
     @cached_quantity
     def z(self):
+        """
+        Sets the HOD specific redshift array.
+        """
         if self.hod_settings['observables_file'] is not None:
             return self.data[0][np.newaxis, :]
         else:
@@ -162,6 +206,9 @@ class HOD(Framework):
         
     @cached_quantity
     def log_obs_min(self):
+        """
+        Sets the min observable limits.
+        """
         if self.hod_settings['observables_file'] is not None:
             return np.log10(self.data[1])[np.newaxis, :]
         else:
@@ -170,6 +217,9 @@ class HOD(Framework):
 
     @cached_quantity
     def log_obs_max(self):
+        """
+        Sets the max observable limits.
+        """
         if self.hod_settings['observables_file'] is not None:
             return np.log10(self.data[2])[np.newaxis, :]
         else:
@@ -556,7 +606,7 @@ class Cacciato(HOD):
 
         # centrals
         # all observable masses in units of log10(M_sun h^-2)
-        self.M_char = 10.0**log10_m_ch  # M_char
+        self.log10_m_ch = log10_m_ch  # log10_m_ch
         self.g1 = g1  # gamma_1
         self.g2 = g2  # gamma_2
         self.log10_obs_norm_c = log10_obs_norm_c  # O_0, O_norm_c
@@ -575,59 +625,129 @@ class Cacciato(HOD):
         self.A_sat = A_sat
 
     @parameter("param")
-    def M_char(self, val):
+    def log10_m_ch(self, val):
+        """
+        log10_m_ch : float
+            Log10 of the characteristic mass.
+        """
         return val
         
     @parameter("param")
     def g1(self, val):
+        """
+        g1 : float
+            Low mass slope parameter for central galaxies.
+        """
         return val
         
     @parameter("param")
     def g2(self, val):
+        """
+        g2 : float
+            High mass slope parameter for central galaxies.
+        """
         return val
         
     @parameter("param")
     def log10_obs_norm_c(self, val):
+        """
+        log10_obs_norm_c : float
+            Log10 of the normalization for central galaxies.
+        """
         return val
         
     @parameter("param")
     def sigma_log10_O_c(self, val):
+        """
+        sigma_log10_O_c : float
+            Scatter in log10 of the observable for central galaxies.
+        """
+        return val
+    
+    @parameter("param")
+    def norm_s(self, val):
+        """
+        norm_s : float
+            Normalization for satellite galaxies.
+        """
         return val
         
     @parameter("param")
     def pivot(self, val):
+        """
+        pivot : float
+            Pivot mass for the normalization of the stellar mass function.
+        """
         return val
         
     @parameter("param")
     def alpha_s(self, val):
+        """
+        alpha_s : float
+            Slope parameter for satellite galaxies.
+        """
         return val
         
     @parameter("param")
     def beta_s(self, val):
+        """
+        beta_s : float
+            Exponent parameter for satellite galaxies.
+        """
         return val
         
     @parameter("param")
     def b0(self, val):
+        """
+        b0 : float
+            Parameter for the conditional stellar mass function.
+        """
         return val
         
     @parameter("param")
     def b1(self, val):
+        """
+        b1 : float
+            Parameter for the conditional stellar mass function.
+        """
         return val
         
     @parameter("param")
     def b2(self, val):
+        """
+        b2 : float
+            Parameter for the conditional stellar mass function.
+        """
         return val
         
     @parameter("param")
     def A_cen(self, val):
+        """
+        A_cen : float
+            Decorated HOD assembly bias parameter for central galaxies.
+        """
         return val
         
     @parameter("param")
     def A_sat(self, val):
+        """
+        A_sat : float
+            Decorated HOD assembly bias parameter for satellite galaxies.
+        """
         return val
         
     @cached_quantity
+    def M_char(self):
+        """
+        Returns the 10.**log10_m_ch
+        """
+        return 10.0**self.log10_m_ch
+
+    @cached_quantity
     def Obs_norm_c(self):
+        """
+        Returns the 10.**log10_obs_norm_c
+        """
         return 10.0**self.log10_obs_norm_c
 
     @cached_quantity
@@ -801,8 +921,6 @@ class Simple(HOD):
     
     Parameters:
     -----------
-    obs : array_like, optional
-        Observable.
     log10_Mmin : array_like
         Log10 of the minimum mass for central galaxies.
     log10_Msat : array_like
@@ -836,36 +954,62 @@ class Simple(HOD):
         
     @parameter("param")
     def log10_Mmin(self, val):
+        """
+        log10_Mmin : array_like
+            Log10 of the minimum mass for central galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
     @parameter("param")
     def log10_Msat(self, val):
+        """
+        og10_Msat : array_like
+            Log10 of the minimum mass for satellite galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
     @parameter("param")
     def alpha(self, val):
+        """
+        alpha : array_like
+            Slope parameter for satellite galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
     @parameter("param")
     def A_cen(self, val):
+        """
+        A_cen : float
+            Decorated HOD assembly bias parameter for central galaxies.
+        """
         return val
         
     @parameter("param")
     def A_sat(self, val):
+        """
+        A_sat : float
+            Decorated HOD assembly bias parameter for satellite galaxies.
+        """
         return val
         
     @cached_quantity
     def Mmin(self):
+        """
+        Returns the Mmin parameter in the correct shape and units.
+        """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def Msat(self):
+        """
+        Returns the Msat parameter in the correct shape and units.
+        """
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
 
     @cached_quantity
@@ -899,8 +1043,6 @@ class Zehavi(HOD):
     
     Parameters:
     -----------
-    obs : array_like, optional
-        Observable.
     log10_Mmin : array_like
         Log10 of the minimum mass for central galaxies.
     log10_Msat : array_like
@@ -916,7 +1058,6 @@ class Zehavi(HOD):
     """
     def __init__(
             self,
-            obs=None,
             log10_Mmin=12.0,
             log10_Msat=13.0,
             alpha=1.0,
@@ -935,36 +1076,62 @@ class Zehavi(HOD):
         
     @parameter("param")
     def log10_Mmin(self, val):
+        """
+        log10_Mmin : array_like
+            Log10 of the minimum mass for central galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
     @parameter("param")
     def log10_Msat(self, val):
+        """
+        log10_Msat : array_like
+            Log10 of the minimum mass for satellite galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
     @parameter("param")
     def alpha(self, val):
+        """
+        alpha : array_like
+            Slope parameter for satellite galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
     @parameter("param")
     def A_cen(self, val):
+        """
+        A_cen : float
+            Decorated HOD assembly bias parameter for central galaxies.
+        """
         return val
         
     @parameter("param")
     def A_sat(self, val):
+        """
+        A_sat : float
+            Decorated HOD assembly bias parameter for satellite galaxies.
+        """
         return val
         
     @cached_quantity
     def Mmin(self):
+        """
+        Returns the Mmin parameter in the correct shape and units.
+        """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def Msat(self):
+        """
+        Returns the Msat parameter in the correct shape and units.
+        """
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
 
     @cached_quantity
@@ -996,8 +1163,6 @@ class Zheng(HOD):
     
     Parameters:
     -----------
-    obs : array_like, optional
-        Observable.
     log10_Mmin : array_like
         Log10 of the minimum mass for central galaxies.
     log10_M0 : array_like
@@ -1017,7 +1182,6 @@ class Zheng(HOD):
     """
     def __init__(
             self,
-            obs=None,
             log10_Mmin=12.0,
             log10_M0=12.0,
             log10_M1=13.0,
@@ -1040,46 +1204,89 @@ class Zheng(HOD):
 
     @parameter("param")
     def log10_Mmin(self, val):
+        """
+        log10_Mmin : array_like
+            Log10 of the minimum mass for central galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
     @parameter("param")
-    def log10_Msat(self, val):
+    def log10_M0(self, val):
+        """
+        log10_M0 : array_like
+            Log10 of the cutoff mass for satellite galaxies.
+        """
+        if not hasattr(val, "__len__"):
+            val = [val]
+        return np.array(val)
+    
+    @parameter("param")
+    def log10_M1(self, val):
+        """
+        log10_M1 : array_like
+            Log10 of the normalization mass for satellite galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
     @parameter("param")
     def alpha(self, val):
+        """
+        alpha : array_like
+            Slope parameter for satellite galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
     @parameter("param")
     def sigma(self, val):
+        """
+        sigma : array_like
+            Scatter in the central galaxy occupation.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
     @parameter("param")
     def A_cen(self, val):
+        """
+        A_cen : float
+            Decorated HOD assembly bias parameter for central galaxies.
+        """
         return val
         
     @parameter("param")
     def A_sat(self, val):
+        """
+        A_sat : float
+            Decorated HOD assembly bias parameter for satellite galaxies.
+        """
         return val
         
     @cached_quantity
     def Mmin(self):
+        """
+        Returns the Mmin parameter in the correct shape and units.
+        """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def M0(self):
+        """
+        Returns the M0 parameter in the correct shape and units.
+        """
         return 10.0**self.log10_M0[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def M1(self):
+        """
+        Returns the M1 parameter in the correct shape and units.
+        """
         return 10.0**self.log10_M1[:, np.newaxis, np.newaxis]
 
     @cached_quantity
@@ -1111,8 +1318,6 @@ class Zhai(HOD):
     
     Parameters:
     -----------
-    obs : array_like, optional
-        Observable.
     log10_Mmin : array_like
         Log10 of the minimum mass for central galaxies.
     log10_Msat : array_like
@@ -1154,46 +1359,89 @@ class Zhai(HOD):
         
     @parameter("param")
     def log10_Mmin(self, val):
+        """
+        log10_Mmin : array_like
+            Log10 of the minimum mass for central galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
     @parameter("param")
     def log10_Msat(self, val):
+        """
+        log10_Msat : array_like
+            Log10 of the minimum mass for satellite galaxies.
+        """
+        if not hasattr(val, "__len__"):
+            val = [val]
+        return np.array(val)
+    
+    @parameter("param")
+    def log10_Mcut(self, val):
+        """
+        log10_Mcut : array_like
+            Log10 of the cutoff mass for satellite galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
     @parameter("param")
     def alpha(self, val):
+        """
+        alpha : array_like
+            Slope parameter for satellite galaxies.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
     @parameter("param")
     def sigma(self, val):
+        """
+        sigma : array_like
+            Scatter in the central galaxy occupation.
+        """
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
     @parameter("param")
     def A_cen(self, val):
+        """
+        A_cen : float, optional
+            Decorated HOD assembly bias parameter for central galaxies.
+        """
         return val
         
     @parameter("param")
     def A_sat(self, val):
+        """
+        A_sat : float, optional
+            Decorated HOD assembly bias parameter for satellite galaxies.
+        """
         return val
         
     @cached_quantity
     def Mmin(self):
+        """
+        Returns the Mmin parameter in the correct shape and units.
+        """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def Msat(self):
+        """
+        Returns the Msat parameter in the correct shape and units.
+        """
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def Mcut(self):
+        """
+        Returns the Mcut parameter in the correct shape and units.
+        """
         return 10.0**self.log10_Mcut[:, np.newaxis, np.newaxis]
 
     @cached_quantity

@@ -70,58 +70,112 @@ class NonLinearBias(Framework):
         
     @parameter("param")
     def mass(self, val):
+        """
+        mass : array_like
+            Array of halo masses.
+        """
         return val
         
     @parameter("param")
     def z_vec(self, val):
+        """
+        z_vec : array_like
+            Array of redshifts.
+        """
         return val
         
     @parameter("param")
     def k_vec(self, val):
+        """
+        k_vec : array_like
+            Array of wavenumbers.
+        """
         return val
         
     @parameter("param")
     def sigma_8(self, val):
+        """
+        sigma_8 : float
+            Amplitude of matter fluctuations on 8 Mpc scales.
+        """
         return val
         
     @parameter("param")
     def A_s(self, val):
+        """
+        A_s : float
+            Amplitude of the primordial power spectrum.
+        """
         return val
         
     @parameter("param")
     def h0(self, val):
+        """
+        h0 : float
+            Hubble parameter.
+        """
         return val
         
     @parameter("param")
     def omega_b(self, val):
+        """
+        omega_b : float
+            Baryon density parameter.
+        """
         return val
         
     @parameter("param")
     def omega_c(self, val):
+        """
+        omega_c : float
+            Cold dark matter density parameter.
+        """
         return val
         
     @parameter("param")
     def omega_lambda(self, val):
+        """
+        omega_lambda : float
+            Dark energy density parameter.
+        """
         return val
         
     @parameter("param")
     def n_s(self, val):
+        """
+        n_s : float
+            Spectral index.
+        """
         return val
         
     @parameter("param")
     def w0(self, val):
+        """
+        w0 : float
+            Dark energy equation of state parameter.
+        """
         return val
         
     @parameter("param")
     def z_dep(self, val):
+        """
+        z_dep : bool
+            If redshift dependence is to be evaluated in Bnl
+        """
         return val
     
     @cached_quantity
     def ombh2(self):
+        """
+        Returns the physical baryon density parameter.
+        """
         return self.omega_b * self.h0**2.0
         
     @cached_quantity
     def omch2(self):
+        """
+        Returns the physical cold dark matter density parameter.
+        """
         return self.omega_c * self.h0**2.0
     
     @cached_quantity

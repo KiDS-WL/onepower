@@ -76,7 +76,7 @@ class AlignmentAmplitudes(Framework):
         self.beta_cen = beta_cen
         self.beta_two = beta_two
         self.gamma_1h_slope = gamma_1h_slope
-        self.gamma_1h_amp = gamma_1h_amplitude
+        self.gamma_1h_amplitude = gamma_1h_amplitude
         self.beta_sat = beta_sat
         
         self.mpivot_cen = mpivot_cen
@@ -89,6 +89,10 @@ class AlignmentAmplitudes(Framework):
         
     @parameter("param")
     def z_vec(self, val):
+        """
+        z_vec : array-like
+            Redshift vector.
+        """
         return val
         
     @parameter("param")
@@ -121,58 +125,118 @@ class AlignmentAmplitudes(Framework):
         
     @parameter("param")
     def gamma_2h_amplitude(self, val):
+        """
+        gamma_2h_amplitude : float
+            Amplitude for 2-halo term.
+        """
         return val
         
     @parameter("param")
     def gamma_1h_slope(self, val):
+        """
+        gamma_1h_slope : float
+            Slope for 1-halo term.
+        """
         return val
         
     @parameter("param")
     def gamma_1h_amplitude(self, val):
+        """
+        gamma_1h_amplitude : float
+            Amplitude for 1-halo term.
+        """
         return val
+    
+    @parameter("param")
+    def beta_cen(self, val):
+        """
+        beta_cen : float
+            Beta parameter for central galaxies.
+        """
+        return val  
         
     @parameter("param")
     def beta_sat(self, val):
+        """
+        beta_sat : float
+            Beta parameter for satellite galaxies.
+        """
         return val
         
     @parameter("param")
     def mpivot_cen(self, val):
+        """
+        mpivot_cen : float
+            Pivot mass for central galaxies.
+        """
         return 10.0 ** val if val is not None else None
         
     @parameter("param")
     def mpivot_sat(self, val):
+        """
+        mpivot_sat : float
+            Pivot mass for satellite galaxies.
+        """
         return 10.0 ** val if val is not None else None
         
     @parameter("param")
     def lpivot_cen(self, val):
+        """
+        lpivot_cen : float
+            Pivot luminosity for central galaxies.
+        """
         return 10.0 ** val if val is not None else None
         
     @parameter("param")
     def lpivot_sat(self, val):
+        """
+        lpivot_sat : float
+            Pivot luminosity for satellite galaxies.
+        """
         return 10.0 ** val if val is not None else None
         
     @parameter("param")
     def z_loglum_file_centrals(self, val):
+        """
+        z_loglum_file_centrals : str
+            File path for central galaxy luminosity data.
+        """
         return val
         
     @parameter("param")
     def z_loglum_file_satellites(self, val):
+        """
+        z_loglum_file_satellites : str
+            File path for satellite galaxy luminosity data.
+        """
         return val
     
     @cached_quantity
     def lum_centrals(self):
+        """
+        Returns the luminosity array for centrals.
+        """
         return self._initialize_luminosity_array('centrals')
     
     @cached_quantity
     def lum_pdf_z_centrals(self):
+        """
+        Returns the luminosity array for satellites.
+        """
         return self._initialize_luminosity_pdf_z_array('centrals')
     
     @cached_quantity
     def lum_satellites(self):
+        """
+        Returns the luminosity PDF array for centrals.
+        """
         return self._initialize_luminosity_array('satellites')
     
     @cached_quantity
     def lum_pdf_z_satellites(self):
+        """
+        Returns the luminosity PDF array for satellites.
+        """
         return self._initialize_luminosity_pdf_z_array('satellites')
 
     def _initialize_luminosity_array(self, galaxy_type):
@@ -338,21 +402,21 @@ class AlignmentAmplitudes(Framework):
             raise ValueError('Invalid central_ia_depends_on value provided.')
 
     @cached_quantity
-    def gamma_1h_amplitude(self):
+    def gamma_1h_amp(self):
         """
         Compute the gamma_1h_amplitude based on the satellite galaxies' properties.
         """
         if self.satellite_ia_depends_on == 'constant':
-            return self.gamma_1h_amp * np.ones_like(self.z_vec)
+            return self.gamma_1h_amplitude * np.ones_like(self.z_vec)
         elif self.satellite_ia_depends_on == 'luminosity':
             if self.lpivot_sat is None:
                 raise ValueError('You have chosen satellite luminosity scaling without providing a pivot luminosity parameter. Include lpivot_sat.')
             mean_lscaling = self.mean_l_l0_to_beta(self.lum_satellites, self.lum_pdf_z_satellites, self.lpivot_sat, self.beta_sat)
-            return self.gamma_1h_amp * mean_lscaling
+            return self.gamma_1h_amplitude * mean_lscaling
         elif self.satellite_ia_depends_on == 'halo_mass':
             if self.mpivot_sat is None:
                 raise ValueError('You have chosen satellite halo-mass scaling without providing a pivot mass parameter. Include mpivot_sat.')
-            return self.gamma_1h_amp * np.ones_like(self.z_vec)
+            return self.gamma_1h_amplitude * np.ones_like(self.z_vec)
 
 
 class SatelliteAlignment(AlignmentAmplitudes):
@@ -362,13 +426,13 @@ class SatelliteAlignment(AlignmentAmplitudes):
 
     Parameters:
     -----------
-    mass : array_like, optional
+    mass_in : array_like
         Array of halo masses.
-    c : array_like, optional
+    c_in : array_like
         Concentration parameter.
-    r_s : array_like, optional
+    r_s_in : array_like
         Scale radius.
-    rvir : array_like, optional
+    rvir_in : array_like
         Virial radius.
     n_hankel : int, optional
         Number of steps in the Hankel transform integration.
@@ -418,44 +482,84 @@ class SatelliteAlignment(AlignmentAmplitudes):
     
     @parameter("param")
     def mass_in(self, val):
+        """
+        mass_in : array_like
+            Array of halo masses.
+        """
         return val
         
     @parameter("param")
     def c_in(self, val):
+        """
+        c_in : array_like
+            Concentration parameter.
+        """
         return val
 
     @parameter("param")
     def r_s_in(self, val):
+        """
+        r_s_in : array_like
+            Scale radius.
+        """
         return val
         
     @parameter("param")
     def rvir_in(self, val):
+        """
+        rvir_in : array_like
+            Virial radius.
+        """
         return val
         
     @parameter("param")
     def n_hankel(self, val):
+        """
+        n_hankel : int
+            Number of steps in the Hankel transform integration.
+        """
         return val
     
     @parameter("param")
     def nmass(self, val):
+        """
+        nmass : int
+            Number of mass bins.
+        """
         return int(val)
         
     @parameter("param")
     def nk(self, val):
+        """
+        nk : int
+            Number of k bins.
+        """
         return val
         
     @parameter("param")
     def ell_max(self, val):
+        """
+        ell_max : int
+            Maximum multipole moment.
+        """
         if val > 11:
             raise ValueError("Please reduce ell_max < 11 or update ia_radial_interface.py")
         return val
         
-    @parameter("switch")
+    @parameter("param")
     def truncate(self, val):
+        """
+        truncate : bool
+            Whether to truncate the NFW profile at the virial radius.
+        """
         return val
         
-    @parameter("switch")
+    @parameter("param")
     def method(self, val):
+        """
+        method : str
+            Which method to perform Fourier/Hankel transform to use
+        """
         valid_methods = ['hankel', 'fftlog']
         if val not in valid_methods:
             raise ValueError(
@@ -465,12 +569,18 @@ class SatelliteAlignment(AlignmentAmplitudes):
         
     @cached_quantity
     def ell_values(self):
+        """
+        Sets the ell values array.
+        """
         # CCL and Fortuna use ell_max=6. SB10 uses ell_max = 2.
         # Higher/lower increases/decreases accuracy but slows/speeds the code
         return np.arange(0, self.ell_max + 1, 2)
     
     @cached_quantity
     def k_vec(self):
+        """
+        Sets the k vector array.
+        """
         if self.method == 'fftlog':
             nk = 100
         else:
@@ -478,6 +588,19 @@ class SatelliteAlignment(AlignmentAmplitudes):
         return np.logspace(np.log10(1e-3), np.log10(1e3), nk)
         
     def _downsample(self, quantity):
+        """
+        Downsample the halo parameters to reduce computational complexity.
+
+        Parameter:
+        -----------
+        quantity : array_like
+            An array with a quantity that needs to be downsamples (c, rs, rvir or mass)
+
+        Returns:
+        --------
+        array
+            Downsampled arrays of either halo masses, concentration parameters, scale radii, and virial radii.
+        """
         if self.method != 'hankel':
             return quantity
 
@@ -507,18 +630,30 @@ class SatelliteAlignment(AlignmentAmplitudes):
 
     @cached_quantity
     def mass(self):
+        """
+        Downsampled mass_in if method == hankel, mass_in otherwise.
+        """
         return self._downsample(self.mass_in)
 
     @cached_quantity
     def c(self):
+        """
+        Downsampled c_in if method == hankel, c_in otherwise.
+        """
         return self._downsample(self.c_in)
 
     @cached_quantity
     def r_s(self):
+        """
+        Downsampled r_s_in if method == hankel, r_s_in otherwise.
+        """
         return self._downsample(self.r_s_in)
 
     @cached_quantity
     def rvir(self):
+        """
+        Downsampled rvir_in if method == hankel, rvir_in otherwise.
+        """
         return self._downsample(self.rvir_in)  
 
     @cached_quantity
@@ -694,7 +829,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
             for i, ell in enumerate(self.ell_values):
                 for jz in range(self.z_vec.size):
                     for im in range(self.mass.size):
-                        nfw_f = lambda x: self.gamma_r_nfw_profile(x, self.r_s[jz, im], self.rvir[im], self.gamma_1h_amplitude[jz], self.gamma_1h_slope, truncate=self.truncate) * np.sqrt((x * np.pi) / 2.0)
+                        nfw_f = lambda x: self.gamma_r_nfw_profile(x, self.r_s[jz, im], self.rvir[im], self.gamma_1h_amp[jz], self.gamma_1h_slope, truncate=self.truncate) * np.sqrt((x * np.pi) / 2.0)
                         uk_l[i, jz, im, :] = self.hankel[i].transform(nfw_f, self.k_vec)[0] / (self.k_vec**0.5 * mnfw[jz, im])
         
         if self.method == 'fftlog':
@@ -709,7 +844,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
                 offset = fhtoffset(dlnr, mu=mu, initial=-2*np.log(10.0), bias=bias)
                 k = np.exp(offset)/r[::-1]
         
-                nfw_f = self.gamma_r_nfw_profile(r[np.newaxis, np.newaxis, :], self.r_s[:, :, np.newaxis], self.rvir[np.newaxis, :, np.newaxis], self.gamma_1h_amplitude[:, np.newaxis, np.newaxis], self.gamma_1h_slope, truncate=self.truncate) * r**1.5 * np.sqrt(np.pi / 2.0)
+                nfw_f = self.gamma_r_nfw_profile(r[np.newaxis, np.newaxis, :], self.r_s[:, :, np.newaxis], self.rvir[np.newaxis, :, np.newaxis], self.gamma_1h_amp[:, np.newaxis, np.newaxis], self.gamma_1h_slope, truncate=self.truncate) * r**1.5 * np.sqrt(np.pi / 2.0)
                 ft = fht(nfw_f, dlnr, mu=mu, offset=offset, bias=bias) / (k**1.5 * mnfw[:, :, np.newaxis])
                 uk_l[i, :, :, :] = interp1d(k, ft, axis=-1, kind='linear', fill_value='extrapolate', bounds_error=False)(self.k_vec)
                     
