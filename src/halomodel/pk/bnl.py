@@ -385,7 +385,7 @@ class NonLinearBias(Framework):
         #b02 = np.zeros(len(M2))
         for iM, M0 in enumerate(M1):
             b01[iM] = np.sqrt(self.emulator.get_phh_mass(klin, M0, M0, z) / Pk_klin)
-    
+
         for iM1, M01 in enumerate(M1):
             for iM2, M02 in enumerate(M2):
                 if iM2 < iM1:

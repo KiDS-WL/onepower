@@ -198,10 +198,6 @@ class Spectra(HaloModelIngredients):
         Truncation wavenumber for the 1-halo term.
     two_halo_ktrunc : float, optional
         Truncation wavenumber for the 2-halo term.
-    hod_model_mm : str, optional
-        HOD model for matter-matter power spectrum.
-    hod_params_mm : dict, optional
-        Parameters for the HOD model.
     hod_settings_mm : dict, optional
         Settings for the HOD model.
     hod_model : str, optional
@@ -242,15 +238,13 @@ class Spectra(HaloModelIngredients):
             beta_nl=None,
             one_halo_ktrunc=0.1,
             two_halo_ktrunc=2.0,
-            hod_model_mm='Cacciato',
-            hod_params_mm: dict = {},
-            hod_settings_mm: dict = {},
             pointmass=False,
             compute_observable=False,
             poisson_par: dict = {},
             hod_model='Cacciato',
             hod_params: dict  = {},
             hod_settings: dict = {},
+            hod_settings_mm: dict = {},
             obs_settings: dict = {},
             t_eff: float = None,
             matter_power_nl=None,
@@ -272,10 +266,6 @@ class Spectra(HaloModelIngredients):
         
         self.one_halo_ktrunc = one_halo_ktrunc
         self.two_halo_ktrunc = two_halo_ktrunc
-        
-        self.hod_model_mm = hod_model_mm
-        self.hod_settings_mm = hod_settings_mm
-        self.hod_params_mm = hod_params_mm
             
         # Galaxy spectra specific kwargs:
         self.pointmass = pointmass
@@ -285,6 +275,8 @@ class Spectra(HaloModelIngredients):
         self.hod_params = hod_params
         self.hod_model = hod_model
         self.obs_settings = obs_settings
+
+        self.hod_settings_mm = hod_settings_mm
         
         # Alignment spectra specific kwargs:
         self.t_eff = t_eff
@@ -351,26 +343,10 @@ class Spectra(HaloModelIngredients):
         return val
         
     @parameter("param")
-    def hod_model_mm(self, val):
-        """
-        hod_model_mm : str
-            HOD model for matter-matter power spectrum.
-        """
-        return val
-        
-    @parameter("param")
     def hod_settings_mm(self, val):
         """
         hod_settings_mm : dict
             Settings for the HOD model.
-        """
-        return val
-        
-    @parameter("param")
-    def hod_params_mm(self, val):
-        """
-        hod_params_mm : dict
-            Parameters for the HOD model.
         """
         return val
     
@@ -604,15 +580,15 @@ class Spectra(HaloModelIngredients):
         object
             The HOD model for matter-matter power spectrum.
         """
-        if self.mead_correction == 'fit' and self.hod_model_mm == 'Cacciato':
-            hod = self.select_hod_model(self.hod_model_mm)
+        if self.mead_correction == 'fit' and self.hod_model == 'Cacciato':
+            hod = self.select_hod_model(self.hod_model)
             return hod(
                 mass=self.mass,
                 dndlnm=self.dndlnm,
                 halo_bias=self.halo_bias,
                 z_vec=self.z_vec,
                 hod_settings=self.hod_settings_mm,
-                **self.hod_params_mm
+                **self.hod_params
             )
         else:
             return None
@@ -627,7 +603,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             The stellar fraction.
         """
-        if self.mead_correction == 'fit' and self.hod_model_mm == 'Cacciato':
+        if self.mead_correction == 'fit' and self.hod_model == 'Cacciato':
             fstar = self.hod_mm.stellar_fraction
             # Possibly move this to HOD!
             if self.hod_settings_mm['observable_h_unit'] == valid_units[1]:
