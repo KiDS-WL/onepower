@@ -392,7 +392,6 @@ def setup(options):
     # hmf config
     config_hmf = setup_hmf_config(options)
 
-    #"""
     if bnl:
         cached_bnl = {
             'num_calls': 0,
@@ -401,8 +400,6 @@ def setup(options):
         }
     else:
         cached_bnl = None
-    #"""
-    #cached_bnl = None
 
     config_hmf['power'] = Spectra()
 
@@ -489,7 +486,6 @@ def execute(block, config):
         'mb': 10.0**block['halo_model_parameters', 'm_b'],
     }
 
-    #"""
     if bnl:
         num_calls = cached_bnl['num_calls']
         update_bnl = cached_bnl['update_bnl']
@@ -520,22 +516,6 @@ def execute(block, config):
             'bnl': bnl,
             'beta_nl': beta_interp,
         })
-    #"""
-    # Add the non-linear P_hh to the 2h term
-    """
-    if bnl:
-        
-        if block.has_value('bnl', 'beta_interp'):
-            beta_interp = block.get_double_array_nd('bnl', 'beta_interp')
-        else:
-            raise Exception("You've set bnl = True. Looked for beta_intep in bnl, but didn't find it. Run bnl_interface.py to set this up.\n")
-        if beta_interp.shape == np.array([0.0]).shape:
-            raise ValueError('Non-linear halo bias module bnl is not initialized, or you have deleted it too early! This might be because you ran bnl_interface_delete.py before this module. \n')
-        power_kwargs.update({
-            'bnl': bnl,
-            'beta_nl': beta_interp,
-        })
-    #"""
     
     if response or fortuna:
         k_nl, p_nl = pk_util.get_nonlinear_power_spectrum(block, z_vec)
