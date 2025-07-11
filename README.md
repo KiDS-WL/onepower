@@ -20,7 +20,7 @@ TATOOINE is a Python package for computing power spectra and one-point statistic
 
 ### TATOOINE is ideal for:
 
-- Forward modeling of galaxy surveys
+- Modeling of galaxy surveys
 - Cosmological parameter inference
 - Understanding the galaxy–halo connection in nonlinear regimes
 
@@ -51,7 +51,8 @@ pk_mm_1h = ps.power_spectrum_mm.pk_1h
 pk_mm_2h = ps.power_spectrum_mm.pk_2h
 ```
 
-
+One can also use the accompanying CosmoSIS interface and use the TATOOINE to predict the power spectra in the CosmoSIS framework.
+That open up many more options, specifically on the observables and statistics to predict.
 
 ---
 
