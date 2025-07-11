@@ -14,7 +14,6 @@ using various HOD models and conditional observable functions (COFs).
 
 _defaults = {
     'observables_file': None,
-    'observable_z': False,
     'obs_min': np.array([8.0]),
     'obs_max': np.array([12.0]),
     'zmin': np.array([0.0]),

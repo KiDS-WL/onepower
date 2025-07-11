@@ -28,7 +28,7 @@ class UpsampledSpectra(Framework):
             model=None,
             model_1_params={},
             model_2_params=None,
-            extrapolate_option = 'extrapolate',
+            extrapolate_option='extrapolate',
         ):
         super().__init__()
         self.z = z
@@ -78,7 +78,7 @@ class UpsampledSpectra(Framework):
             # We assume that if no fraction is given, the first model is 100% and the second is 0%
             # This is useful for cases where only one model is used.
             return np.ones_like(self.z)
-        f = np.interp1d(self.fraction_z, self.fraction, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
+        f = interp1d(self.fraction_z, self.fraction, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
         return f(self.z)
         
     @cached_property
