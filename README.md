@@ -1,6 +1,8 @@
 
 # TATOOINE
 
+![alt text](https://github.com/KiDS-WL/halomodel_for_cosmosis/blob/andrej_dev/logo.png?raw=true "TATOOINE")
+
 **TATOOINE**  
 *Tools for Analyzing Two-point and One-point cOrrelations, Intrinsic alignments, and Nonlinear structurE*
 
