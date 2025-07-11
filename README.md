@@ -61,11 +61,10 @@ The fits files are here: [Luminosity_redshift](https://ruhr-uni-bochum.sciebo.de
 
 ---
 
-## 📄 LaTeX Acronym Definition
+### 📄 LaTeX Acronym Definition
 
 Use the [`acro`](https://ctan.org/pkg/acro) package or just define it manually depending on your style. Here's both:
 
-### 1. With `acro` package
 ```latex
 \usepackage{acro}
 
@@ -76,6 +75,13 @@ Use the [`acro`](https://ctan.org/pkg/acro) package or just define it manually d
   format=\textsc
 }
 ```
+
+```
+\newcommand{\tatooine}{\textsc{TATOOINE} (Tools for Analyzing Two-point and One-point correlations, Intrinsic alignments, and nonlinEar structure)}
+```
+
+
+### 📄 Citation
 
 ```
 @misc{tatooine,
