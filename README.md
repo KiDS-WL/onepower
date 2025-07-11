@@ -21,8 +21,11 @@ TATOOINE is a Python package for computing power spectra and one-point statistic
 - Understanding the galaxy–halo connection in nonlinear regimes
 
 📦 View on GitHub
+
 📄 Read the Docs
+
 💾 Install via PyPI
+
 🖖 May the stats be with you.
 
 ---
