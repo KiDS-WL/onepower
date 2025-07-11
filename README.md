@@ -4,6 +4,10 @@
 **TATOOINE**  
 *Tools for Analyzing Two-point and One-point cOrrelations, Intrinsic alignments, and Nonlinear structurE*
 
+
+> “Modeling small-scale structure in a galaxy not so far away.”
+
+
 TATOOINE is a Python package for computing power spectra and one-point statistics using the halo model framework. It is designed for studying the galaxy–matter connection, cosmological structure formation, and intrinsic alignments, especially in the non-linear regime.
 
 ### Features
@@ -11,8 +15,6 @@ TATOOINE is a Python package for computing power spectra and one-point statistic
 - Predictions of **stellar mass functions** and / or **luminosity functions**
 - Modeling of **intrinsic alignments** using the halo model approach
 - Built on a flexible, extensible halo model architecture
-
-> “Modeling small-scale structure in a galaxy not so far away.”
 
 ### TATOOINE is ideal for:
 
