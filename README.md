@@ -2,7 +2,7 @@
 # TATOOINE
 
 **TATOOINE**  
-*Tools for Analyzing Two-point and One-point correlations, Intrinsic alignments, and nonlinEar structure*
+*Tools for Analyzing Two-point and One-point cOrrelations, Intrinsic alignments, and Nonlinear structurE*
 
 TATOOINE is a Python package for computing power spectra and one-point statistics using the halo model framework. It is designed for studying the galaxy–matter connection, cosmological structure formation, and intrinsic alignments, especially in the non-linear regime.
 
@@ -47,19 +47,6 @@ pk_mm_1h = ps.power_spectrum_mm.pk_1h
 pk_mm_2h = ps.power_spectrum_mm.pk_2h
 ```
 
-This code originated from the IA halo model repository of Maria-Cristina Fortuna and it is a designed so that it can natively interact with [CosmoSIS standard library](https://github.com/joezuntz/cosmosis-standard-library).
-
-Dependencies:
-
-1. The [halo mass function calculator, hmf](https://hmf.readthedocs.io/en/3.3.4/)
-2. The hmf interface [halomod](https://github.com/halomod/halomod).
-3. The [Dark Emulator](https://dark-emulator.readthedocs.io/en/latest/)
-4. The [Cosmopower](https://alessiospuriomancini.github.io/cosmopower/) machine learning library
-
-
-The fits files are here: [Luminosity_redshift](https://ruhr-uni-bochum.sciebo.de/s/ZdAE6nTf0OPyV6S)
-
-
 
 
 ---
@@ -73,14 +60,14 @@ Use the [`acro`](https://ctan.org/pkg/acro) package or just define it manually d
 
 \DeclareAcronym{tatooine}{
   short = TATOOINE ,
-  long  = Tools for Analyzing Two-point and One-point correlations, Intrinsic alignments, and nonlinEar structure ,
+  long  = Tools for Analyzing Two-point and One-point cOrrelations, Intrinsic alignments, and Nonlinear structurE ,
   class = abbrev ,
   format=\textsc
 }
 ```
 
 ```
-\newcommand{\tatooine}{\textsc{TATOOINE} (Tools for Analyzing Two-point and One-point correlations, Intrinsic alignments, and nonlinEar structure)}
+\newcommand{\tatooine}{\textsc{TATOOINE} (Tools for Analyzing Two-point and One-point cOrrelations, Intrinsic alignments, and Nonlinear structurE)}
 ```
 
 
@@ -89,9 +76,25 @@ Use the [`acro`](https://ctan.org/pkg/acro) package or just define it manually d
 ```
 @misc{tatooine,
   author       = {Your Name and Collaborators},
-  title        = {TATOOINE: Tools for Analyzing Two-point and One-point correlations, Intrinsic alignments, and nonlinEar structure},
+  title        = {TATOOINE: Tools for Analyzing Two-point and One-point cOrrelations, Intrinsic alignments, and Nonlinear structurE},
   year         = {2025},
   howpublished = {\url{https://github.com/yourusername/tatooine}},
   note         = {Version 1.0},
 }
 ```
+
+
+
+
+
+This code originated from the IA halo model repository of Maria-Cristina Fortuna and it is a designed so that it can natively interact with [CosmoSIS standard library](https://github.com/joezuntz/cosmosis-standard-library).
+
+Dependencies:
+
+1. The [halo mass function calculator, hmf](https://hmf.readthedocs.io/en/3.3.4/)
+2. The hmf interface [halomod](https://github.com/halomod/halomod).
+3. The [Dark Emulator](https://dark-emulator.readthedocs.io/en/latest/)
+4. The [Cosmopower](https://alessiospuriomancini.github.io/cosmopower/) machine learning library
+
+
+The fits files are here: [Luminosity_redshift](https://ruhr-uni-bochum.sciebo.de/s/ZdAE6nTf0OPyV6S)
