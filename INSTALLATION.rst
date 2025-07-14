@@ -45,7 +45,7 @@ If you intend to develop ``onepower``, clone the repository (or your fork of it)
 Move to the directory and install with::
 
 .. code-block:: bash
-    
+
     pip install -e ".[dev]"
 
 This will install all dependencies -- both for using and developing the package (testing,
