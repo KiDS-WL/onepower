@@ -25,7 +25,7 @@ OnePower is ideal for:
 - Cosmological parameter inference
 - Understanding the galaxy-halo connection in nonlinear regimes
 
-📦 `View on GitHub <https://github.com/yourusername/onepower>`_
+📦 `View on GitHub <https://github.com/yourusername/OnePower>`_
 
 📄 `Read the Docs <https://onepower.readthedocs.io>`_
 
@@ -58,7 +58,7 @@ Citation
 
 .. code-block:: bibtex
 
-    @misc{tatooine,
+    @misc{OnePower,
       author       = {Your Name and Collaborators},
       title        = {OnePower: A Python package for calculating power spectra using the halo model approach.},
       year         = {2025},
@@ -66,7 +66,8 @@ Citation
       note         = {Version 1.0},
     }
 
-This code originated from the IA halo model repository of Maria-Cristina Fortuna and it is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
+This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in Fortuna et al. 2021, and the halo model code used in Dvornik et al. 2023. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
+Please also cite above two papers!
 
 Dependencies:
 -------------
