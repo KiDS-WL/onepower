@@ -453,8 +453,13 @@ class Spectra(HaloModelIngredients):
     @cached_quantity
     def _beta_nl_array(self):
         """
-        Returns the pre-calculated beta_nl values or
+        Return the pre-calculated beta_nl values or
         calculates it on the fly if beta_nl == None.
+
+        Returns:
+        --------
+        ndarray
+            beta_nl
         """
         if self.bnl:
             if self.beta_nl is None:
@@ -464,9 +469,14 @@ class Spectra(HaloModelIngredients):
     @cached_quantity
     def _pk_lin(self):
         """
-        Returns the pre-calculated linear power spectrum or uses one from hmf.
+        Return the pre-calculated linear power spectrum or uses one from hmf.
         Additionally it applies the dewiggle method if desired, or if 
         HMCode2020 functionality is needed.
+
+        Returns:
+        --------
+        ndarray
+            linear power spectrum
         """
         # P(k) can be returned by hmf, together with the specified k_vec!
         if self.matter_power_lin is None:
@@ -485,6 +495,11 @@ class Spectra(HaloModelIngredients):
     def _pk_nl(self, val):
         """
         Returns the pre-calculated non-linear power spectrum or uses one from hmf.
+
+        Returns:
+        --------
+        ndarray
+            non-linear power spectrum
         """
         val = self.matter_power_nl
         if self.fortuna:
@@ -497,9 +512,14 @@ class Spectra(HaloModelIngredients):
     @cached_quantity
     def peff(self):
         """
-        Returns the mixture of linear and non-linear power spectrum, with t_eff as a ratio,
+        Return the mixture of linear and non-linear power spectrum, with t_eff as a ratio,
         as used in Fortuna et al. IA model in order to have better 1h to 2h transition.
         Only used if fortuna == True.
+
+        Returns:
+        --------
+        ndarray
+            effective power spectrum
         """
         if self.fortuna:
             return (1.0 - self.t_eff) * self._pk_nl + self.t_eff * self._pk_lin
@@ -549,6 +569,12 @@ class Spectra(HaloModelIngredients):
     
     @cached_quantity
     def I12(self):
+        """
+        Returns:
+        --------
+        ndarray
+            I12 integrand
+        """
         if self.bnl:
             return self.prepare_I12_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self._beta_nl_array)
         else:
@@ -556,6 +582,12 @@ class Spectra(HaloModelIngredients):
         
     @cached_quantity
     def I21(self):
+        """
+        Returns:
+        --------
+        ndarray
+            I21 integrand
+        """
         if self.bnl:
             return self.prepare_I21_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self._beta_nl_array)
         else:
@@ -563,6 +595,12 @@ class Spectra(HaloModelIngredients):
         
     @cached_quantity
     def I22(self):
+        """
+        Returns:
+        --------
+        ndarray
+            I22 integrand
+        """
         if self.bnl:
             return self.prepare_I22_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self._beta_nl_array)
         else:
@@ -1768,6 +1806,11 @@ class Spectra(HaloModelIngredients):
     def alignment_class(self):
         """
         Set up the aligment amplitudes and radial dependence.
+
+        Returns:
+        --------
+        object
+            The SatelliteAligment class
         """
         self.align_params.update({
             'z_vec': self.z_vec,

@@ -167,14 +167,24 @@ class NonLinearBias(Framework):
     @cached_quantity
     def ombh2(self):
         """
-        Returns the physical baryon density parameter.
+        Return the physical baryon density parameter.
+
+        Returns:
+        --------
+        array_like
+            ombh2
         """
         return self.omega_b * self.h0**2.0
         
     @cached_quantity
     def omch2(self):
         """
-        Returns the physical cold dark matter density parameter.
+        Return the physical cold dark matter density parameter.
+
+        Returns:
+        --------
+        array_like
+            omch2
         """
         return self.omega_c * self.h0**2.0
     

@@ -571,6 +571,11 @@ class SatelliteAlignment(AlignmentAmplitudes):
     def ell_values(self):
         """
         Sets the ell values array.
+
+        Returns:
+        --------
+        array_like
+            ell_values
         """
         # CCL and Fortuna use ell_max=6. SB10 uses ell_max = 2.
         # Higher/lower increases/decreases accuracy but slows/speeds the code
@@ -580,6 +585,11 @@ class SatelliteAlignment(AlignmentAmplitudes):
     def k_vec(self):
         """
         Sets the k vector array.
+
+        Returns:
+        --------
+        array_like
+            k_vec
         """
         if self.method == 'fftlog':
             nk = 100
@@ -632,6 +642,11 @@ class SatelliteAlignment(AlignmentAmplitudes):
     def mass(self):
         """
         Downsampled mass_in if method == hankel, mass_in otherwise.
+
+        Returns:
+        --------
+        array_like
+            mass
         """
         return self._downsample(self.mass_in)
 
@@ -639,6 +654,11 @@ class SatelliteAlignment(AlignmentAmplitudes):
     def c(self):
         """
         Downsampled c_in if method == hankel, c_in otherwise.
+
+        Returns:
+        --------
+        array_like
+            c
         """
         return self._downsample(self.c_in)
 
@@ -646,6 +666,11 @@ class SatelliteAlignment(AlignmentAmplitudes):
     def r_s(self):
         """
         Downsampled r_s_in if method == hankel, r_s_in otherwise.
+
+        Returns:
+        --------
+        array_like
+            r_s
         """
         return self._downsample(self.r_s_in)
 
@@ -653,6 +678,11 @@ class SatelliteAlignment(AlignmentAmplitudes):
     def rvir(self):
         """
         Downsampled rvir_in if method == hankel, rvir_in otherwise.
+
+        Returns:
+        --------
+        array_like
+            rvir
         """
         return self._downsample(self.rvir_in)  
 

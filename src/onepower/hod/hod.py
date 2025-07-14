@@ -126,6 +126,11 @@ class HOD(Framework):
     def obs(self):
         """
         Returns the array of observables at which to calculate the CSMF/CLF and integrate over to get the HOD
+
+        Returns:
+        --------
+        array_like
+            array of observables
         """
         obs = np.array([[np.logspace(self.log_obs_min[nb, jz], self.log_obs_max[nb, jz], self.nobs) for jz in range(self.nz)] for nb in range(self.nbins)])
         # With newaxis we make sure the COF shape is (nb, nz, nmass, nobs)
@@ -135,6 +140,11 @@ class HOD(Framework):
     def dndlnm_int(self):
         """
         Returns the interpolated halo mass function at HOD specific redshifts.
+
+        Returns:
+        --------
+        array_like
+            interpolated halo mass function at self.z
         """
         dndlnm_fnc = interp1d(
             self.z_vec, self.dndlnm, kind='linear', fill_value='extrapolate',
@@ -146,6 +156,11 @@ class HOD(Framework):
     def halo_bias_int(self):
         """
         Returns the interpolated halo bias function at HOD specific redshifts.
+
+        Returns:
+        --------
+        array_like
+            interpolated halo bias function at self.z
         """
         halo_bias_fnc = interp1d(
             self.z_vec, self.halo_bias, kind='linear', fill_value='extrapolate',
@@ -157,6 +172,10 @@ class HOD(Framework):
     def data(self):
         """
         Returns the z_bins, obs_min and obs_max quantities from tabulated observables file.
+
+        Returns:
+        --------
+        tupple or None
         """
         if self.hod_settings['observables_file'] is not None:
             z_bins, obs_min, obs_max = load_data(self.hod_settings['observables_file'])
@@ -168,6 +187,11 @@ class HOD(Framework):
     def nobs(self):
         """
         Sets the number of observables in the observable array.
+        
+        Returns:
+        --------
+        array_like
+            number of obserables in the observable array
         """
         return self.hod_settings['nobs']
 
@@ -175,6 +199,11 @@ class HOD(Framework):
     def nbins(self):
         """
         Returns the number of HOD bins.
+
+        Returns:
+        --------
+        int
+            number of HOD bins
         """
         if self.hod_settings['observables_file'] is not None:
             return 1
@@ -185,6 +214,11 @@ class HOD(Framework):
     def nz(self):
         """
         Sets the number of redshift bins.
+
+        Returns:
+        --------
+        int
+            number of redshift bins
         """
         if self.hod_settings['observables_file'] is not None:
             return len(self.data[0])
@@ -195,6 +229,11 @@ class HOD(Framework):
     def z(self):
         """
         Sets the HOD specific redshift array.
+
+        Returns:
+        --------
+        array_like
+            HOD specific redshifts
         """
         if self.hod_settings['observables_file'] is not None:
             return self.data[0][np.newaxis, :]
@@ -207,6 +246,11 @@ class HOD(Framework):
     def log_obs_min(self):
         """
         Sets the min observable limits.
+
+        Returns:
+        --------
+        array_like
+            min observable limits
         """
         if self.hod_settings['observables_file'] is not None:
             return np.log10(self.data[1])[np.newaxis, :]
@@ -218,6 +262,11 @@ class HOD(Framework):
     def log_obs_max(self):
         """
         Sets the max observable limits.
+
+        Returns:
+        --------
+        array_like
+            max observable limits
         """
         if self.hod_settings['observables_file'] is not None:
             return np.log10(self.data[2])[np.newaxis, :]
@@ -376,6 +425,11 @@ class HOD(Framework):
     def number_density_cen(self):
         """
         Compute the number density of central galaxies.
+
+        Returns:
+        --------
+        array_like
+            number density of central galaxies
         """
         return self._interpolate(self._ncen)
 
@@ -383,6 +437,11 @@ class HOD(Framework):
     def number_density_sat(self):
         """
         Compute the number density of satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            number density of satellite galaxies
         """
         return self._interpolate(self._nsat)
 
@@ -390,6 +449,11 @@ class HOD(Framework):
     def number_density(self):
         """
         Compute the number density of galaxies.
+        
+        Returns:
+        --------
+        array_like 
+            number density of all galaxies
         """
         return self._interpolate(self._ntot)
 
@@ -397,6 +461,11 @@ class HOD(Framework):
     def f_c(self):
         """
         Fraction of central galaxies.
+
+        Returns:
+        --------
+        array_like
+            fraction of central galaxies
         """
         f_c = self._ncen / self._ntot
         return self._interpolate(f_c, fill_value=0.0)
@@ -405,6 +474,11 @@ class HOD(Framework):
     def f_s(self):
         """
         Fraction of satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            fraction of satellite galaxies
         """
         f_s = self._nsat / self._ntot
         return self._interpolate(f_s, fill_value=0.0)
@@ -413,6 +487,11 @@ class HOD(Framework):
     def avg_halo_mass_cen(self):
         """
         Compute the average halo mass for central galaxies.
+
+        Returns:
+        --------
+        array_like
+            average halo mass for central galaxies
         """
         return self._interpolate(self._mass_avg_cen, fill_value=0.0)
 
@@ -420,6 +499,11 @@ class HOD(Framework):
     def avg_halo_mass_sat(self):
         """
         Compute the average halo mass for satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            average halo mass for satellite galaxies
         """
         return self._interpolate(self._mass_avg_sat, fill_value=0.0)
 
@@ -427,6 +511,11 @@ class HOD(Framework):
     def avg_halo_mass(self):
         """
         Compute the average halo mass for galaxies.
+
+        Returns:
+        --------
+        array_like
+            average halo mass for all galaxies
         """
         return self._interpolate(self._mass_avg_tot, fill_value=0.0)
 
@@ -434,6 +523,11 @@ class HOD(Framework):
     def galaxy_linear_bias_cen(self):
         """
         Compute the galaxy linear bias for central galaxies.
+
+        Returns:
+        --------
+        array_like
+            galaxy linear bias for central galaxies
         """
         return self._interpolate(self._bg_cen)
 
@@ -441,6 +535,11 @@ class HOD(Framework):
     def galaxy_linear_bias_sat(self):
         """
         Compute the galaxy linear bias for satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            galaxy linear bias for satellite galaxies
         """
         return self._interpolate(self._bg_sat)
 
@@ -448,6 +547,11 @@ class HOD(Framework):
     def galaxy_linear_bias(self):
         """
         Compute the galaxy linear bias for galaxies.
+
+        Returns:
+        --------
+        array_like
+            galaxy linear bias for all galaxies
         """
         return self._interpolate(self._bg_tot)
 
@@ -455,6 +559,11 @@ class HOD(Framework):
     def hod_cen(self):
         """
         Compute the HOD for central galaxies.
+
+        Returns:
+        --------
+        array_like
+            HOD of central galaxies
         """
         return self._interpolate(self._compute_hod_cen, axis=0)
 
@@ -462,6 +571,11 @@ class HOD(Framework):
     def hod_sat(self):
         """
         Compute the HOD for satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            HOD of satellite galaxies
         """
         return self._interpolate(self._compute_hod_sat, axis=0)
 
@@ -469,6 +583,11 @@ class HOD(Framework):
     def hod(self):
         """
         Compute the HOD for galaxies.
+
+        Returns:
+        --------
+        array_like
+            HOD of all galaxies
         """
         return self._interpolate(self._compute_hod, axis=0)
 
@@ -476,6 +595,11 @@ class HOD(Framework):
     def stellar_fraction_cen(self):
         """
         Compute the stellar fraction for central galaxies.
+
+        Returns:
+        --------
+        array_like
+            stellar fraction of central galaxies
         """
         if self._compute_stellar_fraction_cen is None:
             return np.zeros((self.nbins, self.z_vec.size, self.mass.shape[-1]))
@@ -486,6 +610,11 @@ class HOD(Framework):
     def stellar_fraction_sat(self):
         """
         Compute the stellar fraction for satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            stellar fraction of satellite galaxies
         """
         if self._compute_stellar_fraction_sat is None:
             return np.zeros((self.nbins, self.z_vec.size, self.mass.shape[-1]))
@@ -496,6 +625,11 @@ class HOD(Framework):
     def stellar_fraction(self):
         """
         Compute the stellar fraction for galaxies.
+
+        Returns:
+        --------
+        array_like
+            stellar fraction of all galaxies
         """
         if self._compute_stellar_fraction is None:
             return np.zeros((self.nbins, self.z_vec.size, self.mass.shape[-1]))
@@ -738,14 +872,24 @@ class Cacciato(HOD):
     @cached_quantity
     def M_char(self):
         """
-        Returns the 10.**log10_m_ch
+        Return the 10.**log10_m_ch
+
+        Returns:
+        --------
+        array_like
+            10.**log10_m_ch
         """
         return 10.0**self.log10_m_ch
 
     @cached_quantity
     def Obs_norm_c(self):
         """
-        Returns the 10.**log10_obs_norm_c
+        Return the 10.**log10_obs_norm_c
+
+        Returns:
+        --------
+        array_like
+            10.**log10_obs_norm_c
         """
         return 10.0**self.log10_obs_norm_c
 
@@ -756,6 +900,11 @@ class Cacciato(HOD):
         eq 17 of D23: 2210.03110:
         Φc(O|M) = 1/[√(2π) ln(10) σ_c O] exp[ -log(O/O∗c)^2/ (2 σ_c^2) ]
         Note Φc(O|M) is unitless.
+
+        Returns:
+        --------
+        array_like
+            COF of central galaxies
         """
         mean_obs_c = self.cal_mean_obs_c[:, :, :, np.newaxis]  # O∗c
         COF_c = (1.0 / (np.sqrt(2.0 * np.pi) * np.log(10.0) * self.sigma_log10_O_c * self.obs) *
@@ -769,6 +918,11 @@ class Cacciato(HOD):
         eq 18 of D23: 2210.03110:
         Φs(O|M) = ϕ∗s/O∗s (O/O∗s)^α_s exp [−(O/O∗s)^2], O*s is O∗s(M) = 0.56 O∗c(M)
         Note Φs(O|M) is unitless.
+
+        Returns:
+        --------
+        array_like
+            COF of satellite galaxies
         """
         obs_s_star = self.norm_s * self.cal_mean_obs_c[:, :, :, np.newaxis]
         obs_tilde = self.obs / obs_s_star
@@ -780,6 +934,11 @@ class Cacciato(HOD):
     def COF(self):
         """
         Total COF, sum of central and satellite COFs.
+
+        Returns:
+        --------
+        array_like
+            COF of all galaxies
         """
         return self.COF_cen + self.COF_sat
 
@@ -794,6 +953,11 @@ class Cacciato(HOD):
         len=len(m) [units \(h^3 Mpc^{-3}\)]
         dn(m)/ dln m eq1 of 1306.6721
         obs_func unit is h^3 Mpc^{-3} dex^-1
+
+        Returns:
+        --------
+        array_like
+            observable function of central galaxies
         """
         integrand = self.COF_cen * self.dndlnm_int[:, :, :, np.newaxis] / self.mass[:, :, :, np.newaxis]
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
@@ -810,6 +974,11 @@ class Cacciato(HOD):
         len=len(m) [units \(h^3 Mpc^{-3}\)]
         dn(m)/ dln m eq1 of 1306.6721
         obs_func unit is h^3 Mpc^{-3} dex^-1
+
+        Returns:
+        --------
+        array_like
+            observable function of satellite galaxies
         """
         integrand = self.COF_sat * self.dndlnm_int[:, :, :, np.newaxis] / self.mass[:, :, :, np.newaxis]
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
@@ -826,6 +995,11 @@ class Cacciato(HOD):
         len=len(m) [units \(h^3 Mpc^{-3}\)]
         dn(m)/ dln m eq1 of 1306.6721
         obs_func unit is h^3 Mpc^{-3} dex^-1
+
+        Returns:
+        --------
+        array_like
+            observable function of all galaxies
         """
         integrand = self.COF * self.dndlnm_int[:, :, :, np.newaxis] / self.mass[:, :, :, np.newaxis]
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
@@ -844,6 +1018,11 @@ class Cacciato(HOD):
         (observable can be galaxy luminosity or stellar mass)
         returns the observable given halo mass. Assumed to be a double power law with characteristic
         scale m_1, normalisation m_0 and slopes g_1 and g_2
+
+        Returns:
+        --------
+        array_like
+            observable given halo mass - SMHM relation
         """
         mean_obs_c = (self.Obs_norm_c * (self.mass / self.M_char)**self.g1 /
                       (1.0 + (self.mass / self.M_char))**(self.g1 - self.g2))
@@ -856,6 +1035,11 @@ class Cacciato(HOD):
         using a bias expansion around the pivot mass
         eq 22 of D23: 2210.03110
         log[ϕ∗s(M)] = b0 + b1(log m13) , m13 is logM_pivot, m13 = M/(hod_par.pivot M⊙ h−1)
+
+        Returns:
+        --------
+        array_like
+            normalisation of satellite COF function
         """
         logM_pivot = np.log10(self.mass) - self.pivot
         log_phi_s = self.b0 + self.b1 * logM_pivot + self.b2 * (logM_pivot**2.0)
@@ -1000,14 +1184,24 @@ class Simple(HOD):
     @cached_quantity
     def Mmin(self):
         """
-        Returns the Mmin parameter in the correct shape and units.
+        Return the Mmin parameter in the correct shape and units.
+
+        Returns:
+        --------
+        array_like
+            Mmin
         """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def Msat(self):
         """
-        Returns the Msat parameter in the correct shape and units.
+        Return the Msat parameter in the correct shape and units.
+
+        Returns:
+        --------
+        array_like
+            Msat
         """
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
 
@@ -1122,14 +1316,24 @@ class Zehavi(HOD):
     @cached_quantity
     def Mmin(self):
         """
-        Returns the Mmin parameter in the correct shape and units.
+        Return the Mmin parameter in the correct shape and units.
+
+        Returns:
+        --------
+        array_like
+            Mmin
         """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def Msat(self):
         """
-        Returns the Msat parameter in the correct shape and units.
+        Return the Msat parameter in the correct shape and units.
+
+        Returns:
+        --------
+        array_like
+            Msat
         """
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
 
@@ -1270,21 +1474,36 @@ class Zheng(HOD):
     @cached_quantity
     def Mmin(self):
         """
-        Returns the Mmin parameter in the correct shape and units.
+        Return the Mmin parameter in the correct shape and units.
+
+        Returns:
+        --------
+        array_like
+            Mmin
         """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def M0(self):
         """
-        Returns the M0 parameter in the correct shape and units.
+        Return the M0 parameter in the correct shape and units.
+
+        Returns:
+        --------
+        array_like
+            M0
         """
         return 10.0**self.log10_M0[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def M1(self):
         """
-        Returns the M1 parameter in the correct shape and units.
+        Return the M1 parameter in the correct shape and units.ž
+
+        Returns:
+        --------
+        array_like
+            M1
         """
         return 10.0**self.log10_M1[:, np.newaxis, np.newaxis]
 
@@ -1425,21 +1644,36 @@ class Zhai(HOD):
     @cached_quantity
     def Mmin(self):
         """
-        Returns the Mmin parameter in the correct shape and units.
+        Return the Mmin parameter in the correct shape and units.
+
+        Returns:
+        --------
+        array_like
+            Mmin
         """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def Msat(self):
         """
-        Returns the Msat parameter in the correct shape and units.
+        Return the Msat parameter in the correct shape and units.
+
+        Returns:
+        --------
+        array_like
+            Msat
         """
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
         
     @cached_quantity
     def Mcut(self):
         """
-        Returns the Mcut parameter in the correct shape and units.
+        Return the Mcut parameter in the correct shape and units.
+
+        Returns:
+        --------
+        array_like
+            Mcut
         """
         return 10.0**self.log10_Mcut[:, np.newaxis, np.newaxis]
 

@@ -201,6 +201,11 @@ class CosmologyBase(Framework):
     def cosmo_model(self):
         """
         Return the astropy cosmology object assuming Flatw0waCDM model.
+
+        Returns:
+        --------
+        object
+            astropy cosmology object
         """
         return Flatw0waCDM(
             H0=self.h0*100.0,
@@ -219,7 +224,7 @@ class CosmologyBase(Framework):
 
         Parameters:
         -----------
-        a : float
+        a : array_like
             Scale factor.
         Om : float
             Matter density parameter.
@@ -230,7 +235,7 @@ class CosmologyBase(Framework):
 
         Returns:
         --------
-        float
+        array_like
             Omega_m at scale factor 'a'.
         """
         return Om * a**-3 / self._Hubble2(a, Om, Ode, Ok)
@@ -242,7 +247,7 @@ class CosmologyBase(Framework):
 
         Parameters:
         -----------
-        a : float
+        a : array_like
             Scale factor.
         Om : float
             Matter density parameter.
@@ -253,7 +258,7 @@ class CosmologyBase(Framework):
 
         Returns:
         --------
-        float
+        array_like
             Squared Hubble parameter at scale factor 'a'.
         """
         z = -1.0 + 1.0 / a
@@ -267,7 +272,7 @@ class CosmologyBase(Framework):
 
         Parameters:
         -----------
-        a : float
+        a : array_like
             Scale factor.
         Om : float
             Matter density parameter.
@@ -276,7 +281,7 @@ class CosmologyBase(Framework):
 
         Returns:
         --------
-        float
+        array_like
             Squared Hubble parameter at scale factor 'a'.
         """
         z = -1.0 + 1.0 / a
@@ -289,6 +294,11 @@ class CosmologyBase(Framework):
         Solve the linear growth ODE and returns an interpolating function for the solution.
         TODO: w dependence for initial conditions; f here is correct for w=0 only.
         TODO: Could use d_init = a(1+(w-1)/(w(6w-5))*(Om_w/Om_m)*a**-3w) at early times with w = w(a<<1).
+
+        Returns:
+        --------
+        object
+            interpolating function g(a)
         """
         a_init = 1e-4
         Om = self.cosmo_model.Om0 + self.cosmo_model.Onu0
@@ -317,6 +327,11 @@ class CosmologyBase(Framework):
     def get_mead_growth(self):
         """
         Return the Mead growth factor at the scale factors.
+        
+        Returns:
+        --------
+        array_like
+            Mead 2020 growth factor as a function of scale factor 'a'
         """
         return self.get_mead_growth_fnc(self.scale_factor)
 
@@ -324,6 +339,11 @@ class CosmologyBase(Framework):
     def get_mead_accumulated_growth(self):
         """
         Calculates the accumulated growth at scale factor 'a'.
+
+        Returns:
+        --------
+        array_like
+            accumulated growth at scale factor 'a'
         """
         a_init = 1e-4
 
@@ -358,6 +378,11 @@ class CosmologyBase(Framework):
         """
         Delta_c fitting function from Mead et al. 2021 (2009.01858).
         All input parameters should be evaluated as functions of a/z.
+
+        Returns:
+        --------
+        array_like
+            Delta_c at redshifrs z
         """
         a = self.scale_factor
         Om = self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec)
@@ -381,6 +406,11 @@ class CosmologyBase(Framework):
         """
         Delta_v fitting function from Mead et al. 2021 (2009.01858), eq A.2.
         All input parameters should be evaluated as functions of a/z.
+
+        Returns:
+        --------
+        array_like
+            Overdensities at given redshifs    
         """
         a = self.scale_factor
         Om = self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec)
@@ -713,6 +743,11 @@ class HaloModelIngredients(CosmologyBase):
     def _norm_c(self):
         """
         Sets the norm_cen parameter to the shape of redshift vector.
+
+        Returns:
+        --------
+        array_like
+            norm_cen array
         """
         return self.norm_cen * np.ones_like(self.z_vec)
     
@@ -720,6 +755,11 @@ class HaloModelIngredients(CosmologyBase):
     def _norm_s(self):
         """
         Sets the norm_sat parameter to the shape of redshift vector.
+
+        Returns:
+        --------
+        array_like
+            norm_sat array
         """
         return self.norm_sat * np.ones_like(self.z_vec)
 
@@ -727,6 +767,12 @@ class HaloModelIngredients(CosmologyBase):
     def _eta_c(self):
         """
         Sets the eta_cen parameter to the shape of redshift vector.
+
+        Returns:
+        --------
+        array_like
+            eta_cen array
+        
         """
         return self.eta_cen * np.ones_like(self.z_vec)
 
@@ -734,6 +780,11 @@ class HaloModelIngredients(CosmologyBase):
     def _eta_s(self):
         """
         Sets the eta_sat parameter to the shape of redshift vector.
+
+        Returns:
+        --------
+        array_like
+            eta_sat array
         """
         return self.eta_sat * np.ones_like(self.z_vec)
 
@@ -742,6 +793,11 @@ class HaloModelIngredients(CosmologyBase):
         """
         Sets the delta_c parameter to the one used in HMCode or to the one for virial collapse.
         Overrides the default passed value in those two cases.
+
+        Returns:
+        --------
+        array_like
+            delta_c array
         """
         if self.mead_correction in ['feedback', 'nofeedback']:
             val = self.dc_Mead
@@ -754,6 +810,11 @@ class HaloModelIngredients(CosmologyBase):
         """
         Sets the mass definition to the one used in HMCode.
         Overrides the default passed value in this case.
+
+        Returns:
+        --------
+        object
+            SOVirial_Mead mass definition class if mead_correction is True, otherwise the input mass definition class
         """
         if self.mead_correction in ['feedback', 'nofeedback']:
            return SOVirial_Mead    
@@ -764,6 +825,11 @@ class HaloModelIngredients(CosmologyBase):
         """
         Sets the mass function to the one used in HMCode.
         Overrides the default passed value in this case.
+
+        Returns:
+        --------
+        object
+            hmf_model class, Sheth-Thormen model in case if meed_correction is True
         """
         if self.mead_correction in ['feedback', 'nofeedback']:
             return 'ST'
@@ -774,6 +840,11 @@ class HaloModelIngredients(CosmologyBase):
         """
         Sets the halo bias function to the one used in HMCode.
         Overrides the default passed value in this case.
+
+        Returns:
+        --------
+        object
+            bias_model class, Sheth-Thormen model in case if meed_correction is True
         """
         if self.mead_correction in ['feedback', 'nofeedback']:
             return 'ST99'
@@ -784,6 +855,11 @@ class HaloModelIngredients(CosmologyBase):
         """
         Sets the c(M) relation to the one used in HMCode.
         Overrides the default passed value in this case.
+
+        Returns:
+        --------
+        object
+            halo_concentration class, Bullock 2001 model in case if meed_correction is True
         """
         if self.mead_correction in ['feedback', 'nofeedback']:
             val = interp_concentration(getattr(concentration_classes, 'Bullock01'))
@@ -799,6 +875,11 @@ class HaloModelIngredients(CosmologyBase):
         """
         Sets the overdensity parameter to the one used in HMCode or to the one for virial collapse.
         Overrides the default passed value in those two cases.
+
+        Returns:
+        --------
+        array_like
+            array of mass mass definition dictionaries, one for each redshift
         """
         if self.mead_correction in ['feedback', 'nofeedback']:
             val = [{'overdensity': overdensity} for overdensity in self.Dv_Mead]
@@ -811,6 +892,11 @@ class HaloModelIngredients(CosmologyBase):
         """
         Packs the cosmology to a dictionary to be passed to the hmf.
         Can in principle have more parameters that need to be passed to hmf that are not explicitly set.
+
+        Returns:
+        --------
+        dict 
+            astropy cosmology object for hmf package
         """
         return {'cosmo': self.cosmo_model}
     
@@ -818,6 +904,11 @@ class HaloModelIngredients(CosmologyBase):
     def scale_factor(self):
         """
         Return the scale factor.
+
+        Returns:
+        --------
+        array_like
+            scale factor array
         """
         return self.cosmo_model.scale_factor(self.z_vec)
 
@@ -825,6 +916,10 @@ class HaloModelIngredients(CosmologyBase):
     def disable_mass_conversion(self):
         """
         Dissables the mass conversion for the mass definitions defined in HMCode.
+
+        Returns:
+        --------
+        bool
         """
         if self.mead_correction in ['feedback', 'nofeedback']:
             return True
@@ -836,6 +931,11 @@ class HaloModelIngredients(CosmologyBase):
         """
         Sets the c(M) normalisations to the one used in HMCode.
         Overrides the default passed value in this case.
+
+        Returns:
+        --------
+        array_like
+            normalisation of the Bullock 2001 c(M) relation, if mead_corrections is True
         """
         if self.mead_correction == 'nofeedback':
             k = 5.196 * np.ones_like(self.z_vec)
@@ -852,6 +952,11 @@ class HaloModelIngredients(CosmologyBase):
         Generate halo mass function models for central and satellite galaxies at different redshifts.
         Setups the hmf and halomod classes at desired cosmology and uses the "update" functionality
         to calculate the models at different redshifts.
+
+        Returns:
+        --------
+        tuple
+            tuple of lists of DMHaloModel objects for centrals and satellite galaxies at different redshifts
         """
         x = DMHaloModel(
                 z=0.0,
@@ -955,6 +1060,11 @@ class HaloModelIngredients(CosmologyBase):
     def mass(self):
         """
         Return the masses.
+
+        Returns:
+        --------
+        array_like
+            halo masses
         """
         return self._hmf_cen[0].m
 
@@ -962,6 +1072,11 @@ class HaloModelIngredients(CosmologyBase):
     def power(self):
         """
         Return the linear power spectrum at z.
+
+        Returns:
+        --------
+        array_like
+            linear power spectrum at z
         """
         return np.array([x.power for x in self._hmf_cen])
         
@@ -969,6 +1084,11 @@ class HaloModelIngredients(CosmologyBase):
     def nonlinear_power(self):
         """
         Return the non-linear power spectrum at z (if options passed).
+
+        Returns:
+        --------
+        array_like
+            non-linear power spectrum at z
         """
         return np.array([x.nonlinear_power for x in self._hmf_cen])
         
@@ -976,6 +1096,11 @@ class HaloModelIngredients(CosmologyBase):
     def kh(self):
         """
         Return the k vector defined using lnk in hmf.
+
+        Returns:
+        --------
+        array_like
+            k vector from hmf
         """
         return self._hmf_cen[0].k
 
@@ -983,6 +1108,11 @@ class HaloModelIngredients(CosmologyBase):
     def halo_overdensity_mean(self):
         """
         Return the mean halo overdensity.
+        
+        Returns:
+        --------
+        array_like
+            meah halo overdensity
         """
         return np.array([x.halo_overdensity_mean for x in self._hmf_cen])
 
@@ -990,6 +1120,11 @@ class HaloModelIngredients(CosmologyBase):
     def nu(self):
         """
         Return the peak height parameter.
+
+        Returns:
+        --------
+        array_like
+            peak heights
         """
         return np.array([x.nu**0.5 for x in self._hmf_cen])
 
@@ -997,6 +1132,11 @@ class HaloModelIngredients(CosmologyBase):
     def dndlnm(self):
         """
         Return the differential mass function.
+
+        Returns:
+        --------
+        array_like
+            dndlnm
         """
         return np.array([x.dndlnm for x in self._hmf_cen])
 
@@ -1004,6 +1144,11 @@ class HaloModelIngredients(CosmologyBase):
     def mean_density0(self):
         """
         Return the mean density at redshift zero.
+
+        Returns:
+        --------
+        array_like
+            mean density at z=0
         """
         return np.array([x.mean_density0 for x in self._hmf_cen])
 
@@ -1011,6 +1156,11 @@ class HaloModelIngredients(CosmologyBase):
     def mean_density_z(self):
         """
         Return the mean density at the given redshifts.
+
+        Returns:
+        --------
+        array_like 
+            mean density at z
         """
         return np.array([x.mean_density for x in self._hmf_cen])
 
@@ -1018,6 +1168,11 @@ class HaloModelIngredients(CosmologyBase):
     def rho_halo(self):
         """
         Return the halo density.
+
+        Returns:
+        --------
+        array_like
+            halo density at z
         """
         return np.array([x.halo_overdensity_mean * x.mean_density0 for x in self._hmf_cen])
 
@@ -1025,6 +1180,11 @@ class HaloModelIngredients(CosmologyBase):
     def halo_bias(self):
         """
         Return the halo bias.
+
+        Returns:
+        --------
+        array_like
+            halo bias function
         """
         return np.array([x.halo_bias for x in self._hmf_cen])
 
@@ -1032,6 +1192,11 @@ class HaloModelIngredients(CosmologyBase):
     def neff(self):
         """
         Return the effective spectral index.
+
+        Returns:
+        --------
+        array_like
+            effective spectral index
         """
         return np.array([x.n_eff_at_collapse for x in self._hmf_cen])
 
@@ -1039,6 +1204,11 @@ class HaloModelIngredients(CosmologyBase):
     def sigma8_z(self):
         """
         Return the amplitude of matter fluctuations on 8 Mpc scales at the given redshifts.
+
+        Returns:
+        --------
+        array_like
+            sigma8(z)
         """
         return np.array([x.sigma8_z[0] for x in self._hmf_cen])
 
@@ -1046,6 +1216,11 @@ class HaloModelIngredients(CosmologyBase):
     def fnu(self):
         """
         Return the neutrino density fraction.
+
+        Returns:
+        --------
+        array_like
+            neutrino density fraction
         """
         return np.array([self.cosmo_model.Onu0 / self.cosmo_model.Om0 for _ in self.z_vec])
 
@@ -1053,20 +1228,35 @@ class HaloModelIngredients(CosmologyBase):
     def conc_cen(self):
         """
         Return the concentration for matter/central galaxies.
+
+        Returns:
+        --------
+        array_like
+            concentration for matter/central galaxies
         """
         return np.array([x.cmz_relation for x in self._hmf_cen])
 
     @cached_quantity
     def nfw_cen(self):
         """
-        Return the NFW profile for matter/central galaxies.
+        Return the density profile for matter/central galaxies.
+
+        Returns:
+        --------
+        array_like
+            density profile for matter/central galaxies.
         """
         return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self._hmf_cen])
 
     @cached_quantity
     def u_dm(self):
         """
-        Return the normalized NFW profile for dark matter.
+        Return the normalized density profile for dark matter.
+
+        Returns:
+        --------
+        array_like
+            normalised density profile for matter/central galaxies.
         """
         return self.nfw_cen / np.expand_dims(self.nfw_cen[:, 0, :], 1)
 
@@ -1074,6 +1264,11 @@ class HaloModelIngredients(CosmologyBase):
     def r_s_cen(self):
         """
         Return the scale radius for matter/central galaxies.
+
+        Returns:
+        --------
+        array_like
+            scale radius for matter/central galaxies
         """
         return np.array([x.halo_profile._rs_from_m(x.m) for x in self._hmf_cen])
 
@@ -1081,6 +1276,11 @@ class HaloModelIngredients(CosmologyBase):
     def rvir_cen(self):
         """
         Return the virial radius for matter/central galaxies.
+
+        Returns:
+        --------
+        array_like
+            virial radius for matter/central galaxies
         """
         return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self._hmf_cen])
 
@@ -1088,20 +1288,35 @@ class HaloModelIngredients(CosmologyBase):
     def conc_sat(self):
         """
         Return the concentration for satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            concenctration for satellite galaxies
         """
         return np.array([x.cmz_relation for x in self._hmf_sat])
 
     @cached_quantity
     def nfw_sat(self):
         """
-        Return the NFW profile for satellite galaxies.
+        Return the density profile for satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            density profile for satellite galaxies
         """
         return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self._hmf_sat])
 
     @cached_quantity
     def u_sat(self):
         """
-        Return the normalized NFW profile for satellite galaxies.
+        Return the normalized density profile for satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            normalised density profile for satellite galaxies
         """
         return self.nfw_sat / np.expand_dims(self.nfw_sat[:, 0, :], 1)
 
@@ -1109,6 +1324,11 @@ class HaloModelIngredients(CosmologyBase):
     def r_s_sat(self):
         """
         Return the scale radius for satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            scale radius for satellite galaxies
         """
         return np.array([x.halo_profile._rs_from_m(x.m) for x in self._hmf_sat])
 
@@ -1116,6 +1336,11 @@ class HaloModelIngredients(CosmologyBase):
     def rvir_sat(self):
         """
         Return the virial radius for satellite galaxies.
+
+        Returns:
+        --------
+        array_like
+            virial radius for satellite galaxies
         """
         return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self._hmf_sat])
     
@@ -1123,6 +1348,11 @@ class HaloModelIngredients(CosmologyBase):
     def growth_factor(self):
         """
         Return the growth factor.
+
+        Returns:
+        --------
+        array_like
+            growth factor at z
         """
         # TO-DO: Check against interpolated one from CAMB!
         return self._hmf_cen[0]._growth_factor_fn(self.z_vec)
