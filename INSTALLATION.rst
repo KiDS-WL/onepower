@@ -24,12 +24,14 @@ User Install
 You may install the latest release of ``onepower`` using ``pip``::
 
 .. code-block:: bash
+
     pip install onepower
 
 This will install all uninstalled dependencies (see previous section).
 Alternatively, for the very bleeding edge, install from the master branch of the repo::
 
 .. code-block:: bash
+
     pip install onepower @ git+git:
 
 Developer Install
@@ -37,11 +39,13 @@ Developer Install
 If you intend to develop ``onepower``, clone the repository (or your fork of it)::
 
 .. code-block:: bash
+
     git clone https://github.com/<your-username>/onepower.git
 
 Move to the directory and install with::
 
 .. code-block:: bash
+    
     pip install -e ".[dev]"
 
 This will install all dependencies -- both for using and developing the package (testing,
