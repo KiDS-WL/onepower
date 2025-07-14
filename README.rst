@@ -75,3 +75,9 @@ Dependencies:
 4. The `Cosmopower <https://alessiospuriomancini.github.io/cosmopower/>`_ machine learning library
 
 The fits files are here: `Luminosity_redshift <https://ruhr-uni-bochum.sciebo.de/s/ZdAE6nTf0OPyV6S>`_
+
+
+Disclaimer
+----------
+
+This software is not affiliated with Tolkien Enterprises or any related franchise. The name "OnePower" is used solely as a thematic reference.
