@@ -51,6 +51,8 @@ Example usage
 
 One can also use the accompanying CosmoSIS interface and use the OnePower to predict the power spectra in the CosmoSIS framework. That opens up many more options, specifically on the observables and statistics to predict.
 
+If you want to calculate the covariance matrix for the power spectra calculated using OnePower, you can use the sister package `OneCovariance <https://github.com/rreischke/OneCovariance>`_!
+
 Citation
 --------
 
