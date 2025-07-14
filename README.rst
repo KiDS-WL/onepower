@@ -38,6 +38,8 @@ Installation
 
     pip install onepower
 
+For detailed installation instructions please see the Installation
+
 Example usage
 -------------
 
@@ -50,8 +52,12 @@ Example usage
     pk_mm_2h = ps.power_spectrum_mm.pk_2h
 
 One can also use the accompanying CosmoSIS interface and use the OnePower to predict the power spectra in the CosmoSIS framework. That opens up many more options, specifically on the observables and statistics to predict.
+See the .yaml file for the use of that specific interface module in CosmoSIS Standard Library or in cosmosis_modules folder
 
 If you want to calculate the covariance matrix for the power spectra calculated using OnePower, you can use the sister package `OneCovariance <https://github.com/rreischke/OneCovariance>`_!
+
+
+
 
 Citation
 --------
@@ -68,16 +74,6 @@ Citation
 
 This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in Fortuna et al. 2021, and the halo model code used in Dvornik et al. 2023. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
 Please also cite above two papers!
-
-Dependencies:
--------------
-
-1. The `halo mass function calculator, hmf <https://hmf.readthedocs.io/en/3.3.4/>`_
-2. The hmf interface `halomod <https://github.com/halomod/halomod>`_.
-3. The `Dark Emulator <https://dark-emulator.readthedocs.io/en/latest/>`_
-4. The `Cosmopower <https://alessiospuriomancini.github.io/cosmopower/>`_ machine learning library
-
-The fits files are here: `Luminosity_redshift <https://ruhr-uni-bochum.sciebo.de/s/ZdAE6nTf0OPyV6S>`_
 
 
 Disclaimer

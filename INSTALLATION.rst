@@ -10,30 +10,40 @@ Dependencies
 as you install the package itself. You therefore do not need to worry about installing
 them yourself, except in some circumstances.
 
+The list of dependencies used by ``onepower`` is:
+
+1. The `halo mass function calculator, hmf <https://hmf.readthedocs.io/en/3.3.4/>`_
+2. The `halomod <https://github.com/halomod/halomod>`_.
+3. The `Dark Emulator <https://dark-emulator.readthedocs.io/en/latest/>`_
+
+The optional input fits files as used in Fortuna et al. 2021 are available here: `Luminosity_redshift <https://ruhr-uni-bochum.sciebo.de/s/ZdAE6nTf0OPyV6S>`_
+
+
 User Install
 ------------
 You may install the latest release of ``onepower`` using ``pip``::
 
+.. code-block:: bash
     pip install onepower
 
 This will install all uninstalled dependencies (see previous section).
 Alternatively, for the very bleeding edge, install from the master branch of the repo::
 
+.. code-block:: bash
     pip install onepower @ git+git:
 
 Developer Install
 -----------------
 If you intend to develop ``onepower``, clone the repository (or your fork of it)::
 
+.. code-block:: bash
     git clone https://github.com/<your-username>/onepower.git
 
 Move to the directory and install with::
 
+.. code-block:: bash
     pip install -e ".[dev]"
 
 This will install all dependencies -- both for using and developing the package (testing,
 creating docs, etc.). Again, see above about dependencies with ``conda`` if you are
 using a ``conda`` environment (which is recommended).
-
-.. note:: Once the package is installed, you will need to locally run ``pre-commit install``,
-          to have constant checks on your code formatting before commits are accepted.
