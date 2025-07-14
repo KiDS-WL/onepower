@@ -1,4 +1,4 @@
-TATOOINE
+OnePower
 ========
 
 .. image:: https://github.com/KiDS-WL/halomodel_for_cosmosis/blob/andrej_dev/logo.png?raw=true
