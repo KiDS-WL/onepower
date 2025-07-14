@@ -45,7 +45,9 @@ extensions =extensions = [
     "sphinx.ext.intersphinx",
 ]
 
-numpydoc_show_class_members = False
+numpydoc_show_class_members = True #False
+numpydoc_show_inherited_class_members = True
+numpydoc_class_members_toctree = True
 autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
