@@ -2,76 +2,54 @@ TATOOINE
 ========
 
 .. image:: https://github.com/KiDS-WL/halomodel_for_cosmosis/blob/andrej_dev/logo.png?raw=true
-   :alt: TATOOINE
+   :alt: OnePower
 
-**TATOOINE**
-*Tools for Analyzing Two-point and One-point cOrrelations, Intrinsic alignments, and Nonlinear structurE*
+**OnePower**
+*A Python package for calculating power spectra using the halo model approach.*
 
-"Modeling small-scale structure in a galaxy not so far away."
+"The One Tool to Predict All Power Spectra."
 
-TATOOINE is a Python package for computing power spectra and one-point statistics using the halo model framework. It is designed for studying the galaxy–matter connection, cosmological structure formation, and intrinsic alignments, especially in the non-linear regime.
+OnePower is a Python package for computing power spectra and one-point statistics using the halo model framework. It is designed for studying the galaxy-matter connection, cosmological structure formation, and intrinsic alignments, especially in the non-linear regime.
 
 Features
 --------
 
-- Non-linear **matter–matter**, **galaxy–galaxy**, and **galaxy–matter** power spectra
+- Non-linear **matter-matter**, **galaxy-galaxy**, and **galaxy-matter** power spectra
 - Predictions of **stellar mass functions** and / or **luminosity functions**
 - Modeling of **intrinsic alignments** using the halo model approach
 - Built on a flexible, extensible halo model architecture
 
-TATOOINE is ideal for:
+OnePower is ideal for:
 
 - Modeling of galaxy surveys
 - Cosmological parameter inference
-- Understanding the galaxy–halo connection in nonlinear regimes
+- Understanding the galaxy-halo connection in nonlinear regimes
 
-📦 `View on GitHub <https://github.com/yourusername/tatooine>`_
+📦 `View on GitHub <https://github.com/yourusername/onepower>`_
 
-📄 `Read the Docs <https://tatooine.readthedocs.io>`_
+📄 `Read the Docs <https://onepower.readthedocs.io>`_
 
 💾 Install via PyPI
-
-🖖 May the stats be with you.
-
 
 Installation
 ------------
 
 .. code-block:: bash
 
-    pip install tatooine
+    pip install onepower
 
 Example usage
 -------------
 
 .. code-block:: python
 
-    from tatooine import Spectra
+    from onepower import Spectra
     ps = Spectra(...)
     pk_mm = ps.power_spectrum_mm.pk_tot
     pk_mm_1h = ps.power_spectrum_mm.pk_1h
     pk_mm_2h = ps.power_spectrum_mm.pk_2h
 
-One can also use the accompanying CosmoSIS interface and use the TATOOINE to predict the power spectra in the CosmoSIS framework. That opens up many more options, specifically on the observables and statistics to predict.
-
-LaTeX Acronym Definition
-------------------------
-
-Use the `acro <https://ctan.org/pkg/acro>`_ package or just define it manually depending on your style. Here's both:
-
-.. code-block:: latex
-
-    \usepackage{acro}
-    \DeclareAcronym{tatooine}{
-      short = TATOOINE ,
-      long  = Tools for Analyzing Two-point and One-point cOrrelations, Intrinsic alignments, and Nonlinear structurE ,
-      class = abbrev ,
-      format=\textsc
-    }
-
-.. code-block:: latex
-
-    \newcommand{\tatooine}{\textsc{TATOOINE} (Tools for Analyzing Two-point and One-point cOrrelations, Intrinsic alignments, and Nonlinear structurE)}
+One can also use the accompanying CosmoSIS interface and use the OnePower to predict the power spectra in the CosmoSIS framework. That opens up many more options, specifically on the observables and statistics to predict.
 
 Citation
 --------
@@ -80,9 +58,9 @@ Citation
 
     @misc{tatooine,
       author       = {Your Name and Collaborators},
-      title        = {TATOOINE: Tools for Analyzing Two-point and One-point cOrrelations, Intrinsic alignments, and Nonlinear structurE},
+      title        = {OnePower: A Python package for calculating power spectra using the halo model approach.},
       year         = {2025},
-      howpublished = {\url{https://github.com/yourusername/tatooine}},
+      howpublished = {\url{https://github.com/yourusername/onepower}},
       note         = {Version 1.0},
     }
 

@@ -6,8 +6,8 @@ API Summary
    :toctree: _autosummary
    :template: modules.rst
 
-   tatooine.pk.pk
-   tatooine.pk.ia
-   tatooine.pk.bnl
-   tatooine.hod.hod
-   tatooine.hmi.hmi
+   onepower.pk.pk
+   onepower.pk.ia
+   onepower.pk.bnl
+   onepower.hod.hod
+   onepower.hmi.hmi

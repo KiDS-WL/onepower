@@ -1,14 +1,14 @@
-Developing tatooine
+Developing OnePower
 ==============
 
-If you're interested in developing tatooine -- welcome! You should first read
+If you're interested in developing OnePower -- welcome! You should first read
 the guide to contributing. This page is about more technical details of how
-tatooine is developed, and its philosophy.
+OnePower is developed, and its philosophy.
 
 
 Branching and Releasing
 -----------------------
-The aim is to make tatooines's releases as useful, comprehendible, and automatic
+The aim is to make OnePowers's releases as useful, comprehendible, and automatic
 as possible. This section lays out explicitly how this works (mostly for the benefit of
 the admin(s)).
 
@@ -17,15 +17,15 @@ Versioning
 The first thing to mention is that we will try to use strict `semantic versioning <https://semver.org>`_. 
 Thus the versions are ``MAJOR.MINOR.PATCH``, with ``MAJOR`` including
 API-breaking changes, ``MINOR`` including new features, and ``PATCH`` fixing bugs or
-documentation etc. If you depend on tatooine, you can set your dependency as
-``tatooine >= X.Y < X+1`` and not worry that we'll break your code with an update.
+documentation etc. If you depend on onepower, you can set your dependency as
+``onepower >= X.Y < X+1`` and not worry that we'll break your code with an update.
 
 To mechanically handle versioning within the package, we use two methods that we make
 to work together automatically. The "true" version of the package is set with
 `setuptools-scm <https://pypi.org/project/setuptools-scm/>`_. This stores the version
 in the git tag. There are many benefits to this -- one is that the version is unique
 for every single change in the code, with commits on top of a release changing the
-version. This means that versions accessed via ``tatooine.__version__`` are unique and track
+version. This means that versions accessed via ``onepower.__version__`` are unique and track
 the exact code in the package (useful for reproducing results). To get the current
 version from command line, simply do ``python setup.py --version`` in the top-level
 directory.

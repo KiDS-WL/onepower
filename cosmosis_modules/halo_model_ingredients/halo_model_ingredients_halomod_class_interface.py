@@ -11,7 +11,7 @@ import halomod.concentration as concentration_classes
 import time
 
 
-from tatooine.hmi.hmi import HaloModelIngredients
+from onepower.hmi.hmi import HaloModelIngredients
 
 
 # Silencing a warning from hmf for which the nonlinear mass is still correctly calculated

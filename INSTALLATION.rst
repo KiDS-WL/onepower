@@ -1,31 +1,31 @@
 Installation
 ============
 
-This page will guide you through installing ``tatooine`` -- either as purely a user, or
+This page will guide you through installing ``onepower`` -- either as purely a user, or
 as a potential developer.
 
 Dependencies
 ------------
-``tatooine`` has a number of dependencies, all of which should be automatically installed
+``onepower`` has a number of dependencies, all of which should be automatically installed
 as you install the package itself. You therefore do not need to worry about installing
 them yourself, except in some circumstances.
 
 User Install
 ------------
-You may install the latest release of ``tatooine`` using ``pip``::
+You may install the latest release of ``onepower`` using ``pip``::
 
-    pip install tatooine
+    pip install onepower
 
 This will install all uninstalled dependencies (see previous section).
 Alternatively, for the very bleeding edge, install from the master branch of the repo::
 
-    pip install tatooine @ git+git:
+    pip install onepower @ git+git:
 
 Developer Install
 -----------------
-If you intend to develop ``tatooine``, clone the repository (or your fork of it)::
+If you intend to develop ``onepower``, clone the repository (or your fork of it)::
 
-    git clone https://github.com/<your-username>/tatooine.git
+    git clone https://github.com/<your-username>/onepower.git
 
 Move to the directory and install with::
 

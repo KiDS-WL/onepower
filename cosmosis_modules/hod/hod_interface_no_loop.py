@@ -8,7 +8,7 @@ from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp1d
 
-import tatooine.hod.hod as hods
+import onepower.hod.hod as hods
 
 cosmo_params = names.cosmological_parameters
 

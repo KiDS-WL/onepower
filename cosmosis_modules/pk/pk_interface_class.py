@@ -50,9 +50,9 @@ from cosmosis.datablock import names, option_section
 import numpy as np
 import numbers
 import pk_util
-from tatooine.pk.pk import Spectra
-from tatooine.pk.bnl import NonLinearBias
-from tatooine.pk.add import UpsampledSpectra
+from onepower.pk.pk import Spectra
+from onepower.pk.bnl import NonLinearBias
+from onepower.pk.add import UpsampledSpectra
 
 cosmo_params = names.cosmological_parameters
 
