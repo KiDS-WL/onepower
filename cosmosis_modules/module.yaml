@@ -90,6 +90,10 @@ params:
           meaning: "if True uses the beyond linear halo bias formalism of Mead & Verde 2020. If fortuna is True this is not used for p_*I."
           type: bool
           default: False
+      split_ia:
+          meaning: "if True it splits the calculation of IA power spectra to red and blue contributions. IA parameters and HOD settings need to be passed for the two different populations, as well as the fractions of red/blue galaxies."
+          type: bool
+          default: False
       point_mass:
           meaning: "Include the point mass correction in the P_gm"
           type: bool
@@ -103,11 +107,11 @@ params:
           type: str
           default: ''
       one_halo_ktrunc_ia:
-          meaning: "This is the k (h/Mpc) scale used to truncate the 1-halo term to avoid the halo exclusion problem. Only use for p_*I. If set to None, no truncation is applied."
+          meaning: "This is the k (h/Mpc) scale used to truncate the IA 1-halo term to avoid the halo exclusion problem. Only use for p_*I. If set to None, no truncation is applied."
           type: real or None
           default: 4.0
       two_halo_ktrunc_ia:
-          meaning: "This is the k (h/Mpc) scale used to truncate the NLA 2-halo term at small scales to avoid double-counting of the 1-halo term. Only use for p_*I and if fortuna is True. If set to None, no truncation is applied."
+          meaning: "This is the k (h/Mpc) scale used to truncate the IA 2-halo term at small scales to avoid double-counting of the 1-halo term. Only use for p_*I and if fortuna is True. If set to None, no truncation is applied."
           type: real or None
           default: 6.0
       one_halo_ktrunc:
@@ -119,18 +123,185 @@ params:
           type: real or None
           default: 2.0
       hod_section_name:
-          meaning: "Section name for hod parameters. This should match the section name for an hod module that is run before this module."
+          meaning: "Section name for HOD outputs."
           type: str
           default: 
-      output_suffix:
-          meaning: "Suffix to append on the resulting power spectra section name"
+      hod_section_name_ia:
+          meaning: "Section name for IA HOD outputs."
           type: str
-          default: ''
+          default: 
+      hod_section_name_ia_1:
+          meaning: "Section name for IA HOD outputs, if split_ia == True."
+          type: str
+          default: 
+      hod_section_name_ia_2:
+          meaning: "Section name for IA HOD outputs, if split_ia == True."
+          type: str
+          default: 
+      output_suffix_ia:
+          meaning: "Suffix for IA parameters and IA HOD outputs."
+          type: str
+          default: 
+      output_suffix_ia_1:
+          meaning: "Suffix for IA parameters and IA HOD outputs, if split_ia == True."
+          type: str
+          default: 
+      output_suffix_ia_2:
+          meaning: "Suffix for IA parameters and IA HOD outputs, if split_ia == True."
+          type: str
+          default: 
+      values_name:
+          meaning: "Section name for hod values."
+          type: str
+          default:
       use_mead2020_corrections:
           meaning: "Choose from mead2020, mead2020_feedback, fit_feedback and None. If not None or fit_feedback sets the ingredients to match Mead+ 2021, HMCode2020 paper. fit_feedback uses input HOD to apply baryonic feedback to the P_mm, linking the P_mm to P_gg and P_gm in a self-consistent way"
           type: str
           default: None
+      hod_model:
+          meaning: "Which halo model to use. See OnePower for available options."
+          type: str
+          default: 'Cacciato'
+      save_observable:
+          meaning: If true predicts the SMF/LF functions 
+          type: bool
+          default: True
+      observable_section_name:
+          meaning: output section name for the observable related quantities.
+          type: str
+          default: stellar_mass_function
+      observable_h_unit:
+          meaning: units of h for the observable, valid_units are 1/h and 1/h^2
+          type: str
+          default: 1/h^2
+      # The observables_file, nobs, zmin, zmax, nz, log10_obs_min and log10_obs_max should be provided with the _hod suffix for general HOD, _ia for single IA sample, or _ia_1 and _ia_2 for split IA sample
+      observables_file:
+          meaning: "(optional) text file containing the observable values, should contain 3 columns: z_bins, obs_min, obs_max"
+          type: str
+          default: 
+      nobs:
+          meaning: Number of observable bins within each observable-redshift bin 
+                for calculating variables in terms of the observables. Use at least 100
+                to avoid numerical issue when integrating.
+          type: int
+          default: 200
+      zmin:
+          meaning: "(optional) if observables_file not given, but we use the observable files then look for a scalar zmin. if no observable files are given, look for the minimum values for the redshift of each observable bin. zmin should have the same number of values as obs_min and obs_max. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space)."
+          type: real or real 1D
+          default:
+      zmax:
+          meaning: "(optional) if observables_file not given, but we use the observable files then look for a scalar zmax. If no observable files are given, look for the maximum values for the redshift of each observable bin. zmax should have the same number of values as obs_min and obs_max. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space)."
+          type: real or real 1D
+          default:
+      nz:
+          meaning: "(optional) if observables_file not given, then look for nz, with zmin and zmax make the number of redshift bins for which the observable is caluclated at. If we have bin edges defined the nz is the number of redshift bins in each redshift-observable box."
+          type: integer
+          default:
+      log10_obs_min:
+          meaning: "(optional) if no observable files are given, look for the minimum values for observables. If using multiple bins for the observable then provide the minimum value for each bin. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space). Note this is in log10 format."
+          type: real 1D
+          default: 
+      log10_obs_max:
+          meaning: "(optional) if no observable files are given, look for the maximum values for observables. If using multiple bins for the observable then provide the maximum value for each bin. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space). Note this is in log10 format."
+          type: real 1D
+          default:
+      central_IA_depends_on:
+          meaning: "IA dependence. Option are halo_mass, luminosity, constant"
+          type: str
+          default: "halo_mass"
+      satellite_IA_depends_on:
+          meaning: "IA dependence. Option are halo_mass, luminosity, constant"
+          type: str
+          default: "halo_mass"
+      log_mass_min:
+          meaning: "Minimum halo mass in log10(M_sun h^-1)."
+          type: real
+          default: 
+      log_mass_max:
+          meaning: "Maximum halo mass in log10(M_sun h^-1)."
+          type: real
+          default: 
+      nmass:
+          meaning: "Number of log10 binned halo masses."
+          type: integer
+          default: 
+      zmin_hmf:
+          meaning: "Minimum redshift used to calculate ingredients."
+          type: real
+          default: 
+      zmax_hmf:
+          meaning: "Maximum redshift used to calculate ingredients."
+          type: real
+          default: 
+      nz_hmf:
+          meaning: "Number of redshift bins."
+          type: integer
+          default: 
+      profile:
+          meaning: "type of profile, choose from: NFW, CoredNFW, Einasto, ... see full list:
+          https://halomod.readthedocs.io/en/latest/_autosummary/halomod.profiles.html"
+          type: str
+          default: NFW
+      nk:
+          meaning: "Number of k-modes for fourier transform of the profile."
+          type: integer
+          default: 
+      profile_value_name:
+          meaning: "Section name in values.ini for profile inputs."
+          type: str
+          default: profile_parameters
+      hmf_model:
+          meaning: "Model name for halo mass function, choose from options available in hmf"
+          type: str
+          default: 
+      mdef_model:
+          meaning: "Halo mass definition, choose from options availalbe in hmf"
+          type: str
+          default: 
+      overdensity:
+          meaning: Over density threshold, only used if mdef_model!=SOVirial
+          type: float 
+          default: 
+      cm_model:
+          meaning: "Desired c(M) relation, choose from option availalbe in hmf"
+          type: str
+          default: 
+      bias_model:
+          meaning: "Model name for halo bias function, choose from options available in hmf"
+          type: str
+          default: 
+      delta_c:
+          meaning: Critical density threshold for collapse.
+          type: float 
+          default: 
+
 inputs:
+    profile_value_name:
+        norm_cen:
+            meaning: Normalisation of c(M) relation for central galaxies / matter
+            type: real
+            default: 
+        norm_sat:
+            meaning: Normalisation of c(M) relation for satellite galaxies
+            type: real
+            default:
+        eta_cen:
+            meaning: Halo bloating for central galaxies / matter
+            type: real
+            default:
+        eta_sat:
+            meaning: Halo bloating for satellite galaxies
+            type: real
+            default:
+    matter_power_transfer_func:
+        k_h:
+          meaning: Wavenumbers k of samples in Mpc/h. 
+          type: real 1D
+          default:
+        t_k:
+          meaning: Linear transfer function at z=0.
+          type: real 1D
+          default:
     matter_power_lin:
         z:
             meaning: Redshifts of samples.
@@ -161,9 +332,17 @@ inputs:
           type: real 1D
           default:
     cosmological_parameters:
-        fnu:
+        n_s:
+            meaning: Spectral index of the primordial power spectrum
+            type: real
+            default: 
+        sigma_8:
+            meaning:  linear-theory standard deviation of matter density fluctuations in spheres of radius 8 Mpc/h, at z=0
+            type: real
+            default:
+        A_s:
           meaning: 
-          type: real
+          type: real 
         omega_c:
           meaning: 
           type: real
@@ -173,6 +352,21 @@ inputs:
         omega_b:
           meaning: 
           type: real
+        h0:
+          meaning: 
+          type: real
+        mnu:
+          meaning: 
+          type: real
+        w:
+          meaning: 
+          type: real
+        wa:
+          meaning: 
+          type: real
+        TCMB:
+          meaning: 
+          type: real
     halo_model_parameters:
         logT_AGN:
           meaning: 
@@ -180,24 +374,23 @@ inputs:
         m_b:
           meaning: 
           type: real
-    ia_small_scale_alignment{_suffix}:
-        instance:
+    intrinsic_alignment_parameters{_suffix}:
+        beta:
           meaning: 
-          type: str
+          type: 
         beta_sat:
           meaning: 
           type: 
         M_pivot:
           meaning: 
           type: 
-    ia_large_scale_alignment{_suffix}:
-        instance:
-          meaning: 
-          type: str
-        beta_sat:
+        gamma_1h_radial_slope:
           meaning: 
           type: 
-        M_pivot:
+        gamma_1h_amplitude:
+          meaning: 
+          type: 
+        gamma_2h_amplitude:
           meaning: 
           type: 
     pk_parameters:
@@ -213,6 +406,50 @@ inputs:
         linear_fraction_fortuna:
           meaning: if linear_fraction_fortuna is t_eff then pk_eff = (1.-t_eff)*pnl + t_eff*plin
           type: real
+    values_name:
+        log10_obs_norm_c: 
+            meaning: the normalisation for the central observable in log10(M_sun h^-2)
+            type: real
+        log10_M_ch:
+            meaning:  Characteristic halo mass for the central observable in log10(M_sun h^-2) 
+            type: real
+        g1:
+            meaning:  gamma_1 the power for M_halo<<M_ch that determines the mean observable value for centrals
+            type: real
+        g2:
+            meaning:  gamma_2 the power for M_halo>>M_ch that determines the mean observable value for centrals
+            type: real
+        sigma_log10_O_c:
+            meaning: the variance of log10 observable for central galaxies. This can in principle depend on halo mass but here we assume that it doesn't.
+            type: real
+        A_cen:
+            meaning: (optional) Assembly bias parameter, should be between -1 and 1. This parameterisation is based on arXiv:1512.03050, Hearin+ 2016 A_cen * np.fmin(n_cen, 1.0-n_cen)
+            type: real
+        norm_s:
+            meaning: Normalisation of the conditional observable function for satellites 
+            type: real
+        alpha_s: 
+            meaning: of the conditional observable function for satellites 
+            type: real
+        beta_s:
+            meaning: of the conditional observable function for satellites 
+            type: real
+        pivot:
+            meaning: log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+            type: real
+        b0:
+            meaning: log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+            type: real
+        b1:
+            meaning: log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+            type: real
+        b2:
+            meaning: log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+            type: real
+        A_sat:
+            meaning: (optional) Assembly bias parameter, should be between -1 and 1. This parameterisation is based on arXiv:1512.03050, Hearin+ 2016 delta_pop_s = A_sat * n_sat n_sat = n_sat + delta_pop_s
+            type: real
+
 outputs:
     matter_power_nl:
         p_k_1h:
@@ -330,7 +567,158 @@ outputs:
         z:
           meaning: 
           type: real 1D
+    concentration_m:
+        c:
+          meaning: concentration for centrals / matter
+          type: real 2D
+        z:
+          meaning: redshift at which c is calculated
+          type: real 1D
+        m_h:
+            type: real 1D
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+    concentration_sat:
+        c:
+          meaning: concentration for satellite galaxies
+          type: real 2D
+        z:
+          meaning: redshift at which c is calculated
+          type: real 1D
+        m_h:
+            type: real 1D
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+    virial_radius:
+        m_h:
+            type: real 1D
+            meaning: halo masses for which c is calculated, in M_sun h^-1
+        rvir_m:
+            type: real 1D
+            meaning: virial radius for matter (centrals), this has no z-dependence
+        rvir_sat:
+            type: real 1D
+            meaning: virial radius for satellites, this has no z-dependence
+    fourier_nfw_profile:
+        ukm:
+          meaning: Fourier transform of the normalised matter halo profile (centrals) as a functions of redshift, k and mass
+          type: real 1D
+        uksat: 
+          meaning: Fourier transform of the normalised halo profile for satellites as a functions of redshift, k and mass
+          type: real 1D
+        z:
+          type: real 1D
+          meaning: redshift
+        k_h:
+          meaning: Wavenumbers k of samples in Mpc/h. 
+          type: real 1D
+        m_h:
+          type: real 1D
+          meaning: halo masses, in M_sun h^-1
+    density:
+        mean_density0:
+          meaning: Mean density of universe at z=0, [Msun h^2 / Mpc**3]
+          type: real 
+        rho_crit:
+          meaning: critial matter density = mean_density0/Omega_m
+          type: real 
+        mean_density_z:
+          meaning: Mean density of universe at redshift z, [Msun h^2 / Mpc**3]
+          type: real 1D
+        z:
+          meaning: redshift for mean density
+          type: real 1D
+        rho_halo: 
+          meaning: Mean halo density
+          type: real 1D
+    hmf:
+        dndlnmh:
+          meaning: The differential mass function in terms of natural log of m, len=len(m) [units \(h^3 Mpc^{-3}\)] dn(m)/ dln m eq1 of 1306.6721
+          type: real 1D
+        m_h:
+          meaning: Halo masses in M_sun h^-1
+          type: real 1D
+        nu:
+          meaning: halo peak
+          type: real 1D
+        neff:
+          meaning: measures the slope of the linear power spectrum evaluated at the non-linear scale for different redshifts
+          type: real 1D
+        sigma8_z:
+          meaning: linear-theory standard deviation of matter density fluctuations in spheres of radius 8 Mpc/h, at a given redshift
+          type: real 1D
+        z:
+          meaning: redshift
+          type: real 1D
+    halobias:
+        b_hb:
+          meaning: Linear halo bias
+          type: real 1D
+        m_h:
+          meaning: Halo masses in M_sun h^-1
+          type: real 1D
+        z:
+          meaning: redshift
+          type: real 1D
+    cosmological_parameters:
+        f_nu: 
+          meaning: Fraction of neutrinos to total matter,  f_nu = Ω_nu /Ω_m
+          type: real
         
+    hod_section_name:
+        nbins:
+          meaning: number of observable-redshift bins
+          type: int 
+        mass{_i}:
+            meaning: 
+            type: real 1D
+        N_sat{_i}:
+            meaning: 
+            type: real 2D
+        N_cen{_i}:
+            meaning: 
+            type: real 2D
+        N_tot{_i}:
+            meaning: 
+            type: real 2D
+        f_star{_i}:
+            meaning: 
+            type: real 2D
+        number_density_cen{_i}:
+            meaning: 
+            type: real 1D
+        number_density_sat{_i}:
+            meaning: 
+            type: real 1D
+        number_density_tot{_i}:
+            meaning: 
+            type: real 1D
+        central_fraction{_i}:
+            meaning: 
+            type: real 1D
+        satellite_fraction{_i}:
+            meaning: 
+            type: real 1D
+        average_halo_mass{_i}:
+            meaning: 
+            type: real 1D
+    observable_section_name:
+        z_bin{_i}:
+            meaning: 
+            type: real 1D
+        obs_val{_i}:
+            meaning: 
+            type: real 1D
+        obs_func{_i}:
+            meaning: This is the observable function times ln(10) times observable. Φ(m*) m* ln(10) = 1/dlog10_m*  sum 1.0/V_max
+            type: real 2D
+        obs_val_med:
+            meaning: 
+            type:
+        obs_func_med:
+            meaning: 
+            type:
+        obs_func_definitionn:
+            meaning: 
+            type:
 
 
     

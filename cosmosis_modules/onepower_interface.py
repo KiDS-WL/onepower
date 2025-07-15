@@ -1,51 +1,3 @@
-"""
-This module has two modes: response and direct.
-If in direct mode it will directly calculate the power spectra.
-If in response mode it will calculate the response of the halo model to different power spectra with respect to P_mm
-and multiply that to an input P_mm to estimate the desired power, for example:
-res_gg = P^hm_gg / P^hm_mm
-res_gm = P^hm_gm / P^hm_mm
-Then uses these in combination with input matter power spectra, P_mm, to create 3D power for P_gg and P_gm:
-P_gg = res_gg * P_mm
-P_gm = res_gm * P_mm
-
-The following explains how P^hm_xy are calculated.
-Calculates 3D power spectra using the halo model approach:
-See section 2 of https://arxiv.org/pdf/2303.08752.pdf for details.
-
-P_uv = P^2h_uv + P^1h_uv  (1)
-
-P^1h_uv(k) = int_0^infty dM Wu(M, k) Wv(M, k) n(M)  (2)
-
-P^2h_uv(k) = int_0^infty int_0^infty dM1 dM2 Phh(M1, M2, k) Wu(M1, k) Wv(M2, k) n(M1) n(M2)  (3)
-
-Wx are the profile of the fields, u and v, showing how they fit into haloes.
-n(M) is the halo mass function, quantifying the number of haloes of each mass, M.
-Integrals are taken over halo mass.
-
-The halo-halo power spectrum can be written as,
-
-Phh(M1, M2, k) = b(M1) b(M2) P^lin_mm(k) (1 + beta_nl(M1, M2, k)) (4)
-
-In the vanilla halo model, the 2-halo term is usually simplified by assuming that haloes are linearly biased with respect to matter.
-This sets beta_nl to zero and effectively decouples the integrals in (3). Here we allow for both options to be calculated.
-If you want the option with beta_nl, the beta_nl module has to be run before this module.
-
-We truncate the 1-halo term so that it doesn't dominate at large scales.
-
-Linear matter power spectrum needs to be provided as well. The halo_model_ingredients and hod modules (for everything but mm)
-need to be run before this.
-
-Current power spectra that we predict are:
-mm: matter-matter
-gg: galaxy-galaxy
-gm: galaxy-matter
-
-II: intrinsic-intrinsic alignments
-gI: galaxy-intrinsic alignment
-mI: matter-intrinsic alignment
-"""
-
 from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp1d
@@ -226,7 +178,7 @@ def setup_pipeline_parameters(options):
 def setup_hod(options, alignment, split_ia):
 
     hod_section_name = options.get_string(option_section, 'hod_section_name')
-    hod_values_name = options.get_string(option_section, 'hod_values_name', default='hod_parameters').lower()
+    hod_values_name = options.get_string(option_section, 'values_name', default='hod_parameters').lower()
 
     population_name = options.get_string(option_section, 'output_suffix', default='').lower()
     pop_name = f'_{population_name}' if population_name else ''
