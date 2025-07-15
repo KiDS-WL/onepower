@@ -48,8 +48,8 @@ mI: matter-intrinsic alignment
 
 from cosmosis.datablock import names, option_section
 import numpy as np
+from scipy.interpolate import interp1d
 import numbers
-import pk_util
 from onepower.pk.pk import Spectra
 from onepower.pk.bnl import NonLinearBias
 from onepower.pk.add import UpsampledSpectra
@@ -96,6 +96,40 @@ def get_string_or_none(cosmosis_block, section, name, default):
         raise ValueError(f'Parameter {name} is not an instance of a number or NoneType!')
 
     return param
+
+def interpolate_in_z(input_grid, z_in, z_out, axis=0):
+    """
+    Interpolation in redshift
+    Default redshift axis is the first one.
+    """
+    f_interp = interp1d(z_in, input_grid, axis=axis)
+    return f_interp(z_out)
+
+def log_linear_interpolation_k(power_in, k_in, k_out, axis=1, kind='linear'):
+    """
+    log-linear interpolation for power spectra. This works well for extrapolating to higher k.
+    Ideally we want to have a different routine for interpolation (spline) and extrapolation (log-linear)
+    """
+    power_interp = interp1d(np.log(k_in), np.log(power_in), axis=axis, kind=kind, fill_value='extrapolate')
+    return np.exp(power_interp(np.log(k_out)))
+
+def get_linear_power_spectrum(block, z_vec):
+    """
+    Reads in linear matter power spectrum and downsamples
+    """
+    k_vec = block['matter_power_lin', 'k_h']
+    z_pl = block['matter_power_lin', 'z']
+    matter_power_lin = block['matter_power_lin', 'p_k']
+    return k_vec, interpolate_in_z(matter_power_lin, z_pl, z_vec)
+
+def get_nonlinear_power_spectrum(block, z_vec):
+    """
+    Reads in the non-linear matter power specturm and downsamples
+    """
+    k_nl = block['matter_power_nl', 'k_h']
+    z_nl = block['matter_power_nl', 'z']
+    matter_power_nl = block['matter_power_nl', 'p_k']
+    return k_nl, interpolate_in_z(matter_power_nl, z_nl, z_vec)
 
 def setup_hod_settings(options, suffix):
     """Setup HOD settings based on options."""
@@ -432,7 +466,7 @@ def execute(block, config):
     z_vec = config_hmf['z_vec']
 
     # Load the linear power spectrum and growth factor
-    k_vec_original, plin_original = pk_util.get_linear_power_spectrum(block, z_vec)
+    k_vec_original, plin_original = get_linear_power_spectrum(block, z_vec)
     k_vec = np.logspace(np.log10(k_vec_original[0]), np.log10(k_vec_original[-1]), num=config_hmf['nk'])#, endpoint=False)
     z_vec_original = block.get_double_array_1d('matter_power_lin', 'z')
 
@@ -441,7 +475,7 @@ def execute(block, config):
     #config_hmf['lnk_max'] = np.log(k_vec_original[-1])
     #config_hmf['dlnk'] = (config_hmf['lnk_max'] - config_hmf['lnk_min']) / config_hmf['nk']
     
-    plin = pk_util.log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
+    plin = log_linear_interpolation_k(plin_original, k_vec_original, k_vec)
 
     power_kwargs = {
         'matter_power_lin': plin,
@@ -518,8 +552,8 @@ def execute(block, config):
         })
     
     if response or fortuna:
-        k_nl, p_nl = pk_util.get_nonlinear_power_spectrum(block, z_vec)
-        pk_mm_in = pk_util.log_linear_interpolation_k(p_nl, k_nl, k_vec)
+        k_nl, p_nl = get_nonlinear_power_spectrum(block, z_vec)
+        pk_mm_in = log_linear_interpolation_k(p_nl, k_nl, k_vec)
         power_kwargs.update({'matter_power_nl': pk_mm_in})
     else:
         pk_mm_in = None
