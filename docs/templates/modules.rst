@@ -23,7 +23,9 @@
       :toctree: {{ objname }}
       :template: class.rst
    {% for item in classes %}
-      {{ item }}
+      {% if not item.endswith('NoLoop') %}
+       {{ item }}
+   {%- endif %}
    {%- endfor %}
    {% endif %}
    {% endblock %}
