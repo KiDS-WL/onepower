@@ -13,8 +13,8 @@ Contents
 
    installation
    tutorials
-   license
    api
+   license
    changelog
    contributors
    developing

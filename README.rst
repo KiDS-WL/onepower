@@ -18,6 +18,7 @@ Features
 - Predictions of **stellar mass functions** and / or **luminosity functions**
 - Modeling of **intrinsic alignments** using the halo model approach
 - Built on a flexible, extensible halo model architecture
+- Includes a interface module for interfacing the code with the `CosmoSIS <https://github.com/joezuntz/cosmosis>`_
 
 OnePower is ideal for:
 
@@ -30,15 +31,6 @@ OnePower is ideal for:
 📄 `Read the Docs <https://onepower.readthedocs.io>`_
 
 💾 Install via PyPI
-
-Installation
-------------
-
-.. code-block:: bash
-
-    pip install onepower
-
-For detailed installation instructions please see the Installation
 
 Example usage
 -------------
@@ -57,10 +49,11 @@ See the .yaml file for the use of that specific interface module in CosmoSIS Sta
 If you want to calculate the covariance matrix for the power spectra calculated using OnePower, you can use the sister package `OneCovariance <https://github.com/rreischke/OneCovariance>`_!
 
 
+Attribution
+-----------
 
-
-Citation
---------
+This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in Fortuna et al. 2021, and the halo model code used in Dvornik et al. 2023 and earlier papers. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
+Please also cite the papers below if you find this code useful in your research:
 
 .. code-block:: bibtex
 
@@ -71,10 +64,6 @@ Citation
       howpublished = {\url{https://github.com/yourusername/onepower}},
       note         = {Version 1.0},
     }
-
-This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in Fortuna et al. 2021, and the halo model code used in Dvornik et al. 2023. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
-Please also cite above two papers!
-
 
 Disclaimer
 ----------

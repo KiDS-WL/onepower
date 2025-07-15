@@ -1,3 +1,10 @@
+"""
+A module for computing non-linear halo bias.
+This module provides classes and functions to calculate non-linear halo bias using the Dark Emulator. 
+In future we might want to include other prescription of calculating the said quantity, namely the old Tinker05 and
+an analytic prescription from Flamingo sims.
+"""
+
 from functools import cached_property
 import numpy as np
 from dark_emulator import darkemu
@@ -71,96 +78,108 @@ class NonLinearBias(Framework):
     @parameter("param")
     def mass(self, val):
         """
-        mass : array_like
-            Array of halo masses.
+        Array of halo masses.
+
+        :type: array_like
         """
         return val
         
     @parameter("param")
     def z_vec(self, val):
         """
-        z_vec : array_like
-            Array of redshifts.
+        Array of redshifts.
+
+        :type: array_like
         """
         return val
         
     @parameter("param")
     def k_vec(self, val):
         """
-        k_vec : array_like
-            Array of wavenumbers.
+        Array of wavenumbers.
+
+        :type: array_like
         """
         return val
         
     @parameter("param")
     def sigma_8(self, val):
         """
-        sigma_8 : float
-            Amplitude of matter fluctuations on 8 Mpc scales.
+        Amplitude of matter fluctuations on 8 Mpc scales.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def A_s(self, val):
         """
-        A_s : float
-            Amplitude of the primordial power spectrum.
+        Amplitude of the primordial power spectrum.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def h0(self, val):
         """
-        h0 : float
-            Hubble parameter.
+        Hubble parameter.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def omega_b(self, val):
         """
-        omega_b : float
-            Baryon density parameter.
+        Baryon density parameter.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def omega_c(self, val):
         """
-        omega_c : float
-            Cold dark matter density parameter.
+        Cold dark matter density parameter.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def omega_lambda(self, val):
         """
-        omega_lambda : float
-            Dark energy density parameter.
+        Dark energy density parameter.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def n_s(self, val):
         """
-        n_s : float
-            Spectral index.
+        Spectral index.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def w0(self, val):
         """
-        w0 : float
-            Dark energy equation of state parameter.
+        Dark energy equation of state parameter.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def z_dep(self, val):
         """
-        z_dep : bool
-            If redshift dependence is to be evaluated in Bnl
+        If redshift dependence is to be evaluated in Bnl
+
+        :type: bool
         """
         return val
     

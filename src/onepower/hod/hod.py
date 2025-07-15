@@ -1,3 +1,9 @@
+"""
+A module for computing Halo Occupation Distribution (HOD) models.
+This module provides classes and functions to calculate properties of galaxies within dark matter halos,
+using various HOD models and conditional observable functions (COFs).
+"""
+
 from functools import cached_property
 import numpy as np
 from scipy.integrate import simpson
@@ -5,12 +11,6 @@ from scipy.special import erf
 from scipy.interpolate import interp1d
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework
-
-"""
-A module for computing Halo Occupation Distribution (HOD) models.
-This module provides classes and functions to calculate properties of galaxies within dark matter halos,
-using various HOD models and conditional observable functions (COFs).
-"""
 
 _defaults = {
     'observables_file': None,
@@ -78,16 +78,18 @@ class HOD(Framework):
     @parameter("param")
     def z_vec(self, val):
         """
-        z_vec : array_like
-            Array of redshifts.
+        Array of redshifts.
+
+        :type: array_like
         """
         return val
 
     @parameter("param")
     def mass(self, val):
         """
-        mass : array_like
-            Array of halo masses.
+        Array of halo masses.
+
+        :type: array_like
         """
         if val is None:
             raise ValueError("Mass needs to be specified!")
@@ -97,8 +99,9 @@ class HOD(Framework):
     @parameter("param")
     def dndlnm(self, val):
         """
-        dndlnm : array_like
-            Halo mass function.
+        Halo mass function.
+
+        :type: array_like
         """
         if val is None:
             raise ValueError("Halo mass function needs to be specified!")
@@ -107,8 +110,9 @@ class HOD(Framework):
     @parameter("param")
     def halo_bias(self, val):
         """
-        halo_bias : array_like
-            Halo bias.
+        Halo bias.
+
+        :type: array_like
         """
         if val is None:
             raise ValueError("Halo bias function needs to be specified!")
@@ -117,8 +121,9 @@ class HOD(Framework):
     @parameter("param")
     def hod_settings(self, val):
         """
-        hod_settings : dict
-            Dictionary of HOD settings.
+        Dictionary of HOD settings.
+
+        :type: dict
         """
         return val
         
@@ -348,76 +353,85 @@ class HOD(Framework):
 
     @cached_quantity
     def _ncen(self):
-        """
-        Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
+        r"""
+        Total number density of central galaxies with the given HOD.
         This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
-        Nx = int ⟨Nx|M⟩ n(M) dM
+        
+        :math:`N_{\rm x} = \int ⟨N_{rm x}|M⟩ n(M) {\rm d}M`
         """
         return self._mass_integral(self._compute_hod_cen)
 
     @cached_quantity
     def _nsat(self):
-        """
-        Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
+        r"""
+        Total number density of satellite galaxies with the given HOD.
         This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
-        Nx = int ⟨Nx|M⟩ n(M) dM
+       
+        :math:`N_{\rm x} = \int ⟨N_{rm x}|M⟩ n(M) {\rm d}M`
         """
         return self._mass_integral(self._compute_hod_sat)
 
     @cached_quantity
     def _ntot(self):
-        """
-        Total number density of galaxies with the given HOD, e.g. central and satellite galaxies
+        r"""
+        Total number density of galaxies with the given HOD.
         This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
-        Nx = int ⟨Nx|M⟩ n(M) dM
+        
+        :math:`N_{\rm x} = \int ⟨N_{rm x}|M⟩ n(M) {\rm d}M`
         """
         return self._mass_integral(self._compute_hod)
 
     @cached_quantity
     def _mass_avg_cen(self):
-        """
-        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
-        M_mean = int ⟨Nx|M⟩ M n(M) dM
+        r"""
+        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies.
+        
+        :math:`M_{\rm mean} = \int ⟨N_{_rm x}|M⟩ M n(M) {\rm d}M`
         """
         return self._mean_mass_integral(self._compute_hod_cen)
 
     @cached_quantity
     def _mass_avg_sat(self):
-        """
-        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
-        M_mean = int ⟨Nx|M⟩ M n(M) dM
+        r"""
+        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies.
+        
+        :math:`M_{\rm mean} = \int ⟨N_{_rm x}|M⟩ M n(M) {\rm d}M`
         """
         return self._mean_mass_integral(self._compute_hod_sat)
 
     @cached_quantity
     def _mass_avg_tot(self):
-        """
-        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies
-        M_mean = int ⟨Nx|M⟩ M n(M) dM
+        r"""
+        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies.
+        
+        :math:`M_{\rm mean} = \int ⟨N_{_rm x}|M⟩ M n(M) {\rm d}M`
         """
         return self._mean_mass_integral(self._compute_hod)
 
     @cached_quantity
     def _bg_cen(self):
-        """
+        r"""
         Mean linear halo bias for the given population of galaxies.
-        b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
+
+        :math:`b_{\rm lin, x} = \int ⟨N_{\rm x}|M⟩ b_h(M) n(M) {\rm d}M`
         """
         return self._bias_integral(self._compute_hod_cen)
 
     @cached_quantity
     def _bg_sat(self):
-        """
+        r"""
         Mean linear halo bias for the given population of galaxies.
-        b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
+        
+        :math:`b_{\rm lin, x} = \int ⟨N_{\rm x}|M⟩ b_h(M) n(M) {\rm d}M`
         """
         return self._bias_integral(self._compute_hod_sat)
 
     @cached_quantity
     def _bg_tot(self):
-        """
+        r"""
         Mean linear halo bias for the given population of galaxies.
-        b_lin_x = int ⟨Nx|M⟩ b_h(M) n(M) dM
+        
+        :math:`b_{\rm lin, x} = \int ⟨N_{\rm x}|M⟩ b_h(M) n(M) {\rm d}M`
         """
         return self._bias_integral(self._compute_hod)
 
@@ -670,16 +684,22 @@ class HOD(Framework):
         return None
 
 class Cacciato(HOD):
-    """
-    The conditional observable functions (COFs) tell us how many galaxies with the observed property O, exist in haloes of
-    mass M: Φ(O|M).
-    Integrating over the observable will give us the total number of galaxies in haloes of a given mass, the so-called
-    Halo Occupation Distribution (HOD).
+    r"""
+    Cacciato et al. 2013 HOD model.
+    The conditional observable functions (COFs) tell us how many galaxies with the observed property O, 
+    exist in haloes of mass M: :math:`\Phi(O|M)`.
+
+    Integrating over the observable will give us the total number of galaxies in haloes of a given mass, 
+    the so-called Halo Occupation Distribution (HOD).
+
     The observable can be galaxy stellar mass or galaxy luminosity or possibly other properties of galaxies.
     Note that the general mathematical form of the COFs might not hold for other observables.
+
     COF is different for central and satellite galaxies. The total COF can be written as the sum of the two:
-    Φ(O|M) = Φc(O|M) + Φs(O|M)
-    The halo mass dependence comes in through pivot observable values denoted by *, e.g. O∗c, O∗s
+
+    :math:`\Phi(O|M) = \Phi_{\rm c}(O|M) + \Phi_{\rm s}(O|M)`
+    
+    The halo mass dependence comes in through pivot observable values denoted by :math:`\star`, e.g. :math:`O_{\star, {\rm c}}`, :math:`O_{\star, {\rm s}}`
     
     Parameters:
     -----------
@@ -760,112 +780,126 @@ class Cacciato(HOD):
     @parameter("param")
     def log10_m_ch(self, val):
         """
-        log10_m_ch : float
-            Log10 of the characteristic mass.
+        Log10 of the characteristic mass.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def g1(self, val):
         """
-        g1 : float
-            Low mass slope parameter for central galaxies.
+        Low mass slope parameter for central galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def g2(self, val):
         """
-        g2 : float
-            High mass slope parameter for central galaxies.
+        High mass slope parameter for central galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def log10_obs_norm_c(self, val):
         """
-        log10_obs_norm_c : float
-            Log10 of the normalization for central galaxies.
+        Log10 of the normalization for central galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def sigma_log10_O_c(self, val):
         """
-        sigma_log10_O_c : float
-            Scatter in log10 of the observable for central galaxies.
+        Scatter in log10 of the observable for central galaxies.
+
+        :type: float
         """
         return val
     
     @parameter("param")
     def norm_s(self, val):
         """
-        norm_s : float
-            Normalization for satellite galaxies.
+        Normalization for satellite galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def pivot(self, val):
         """
-        pivot : float
-            Pivot mass for the normalization of the stellar mass function.
+        Pivot mass for the normalization of the stellar mass function.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def alpha_s(self, val):
         """
-        alpha_s : float
-            Slope parameter for satellite galaxies.
+        Slope parameter for satellite galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def beta_s(self, val):
         """
-        beta_s : float
-            Exponent parameter for satellite galaxies.
+        Exponent parameter for satellite galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def b0(self, val):
         """
-        b0 : float
-            Parameter for the conditional stellar mass function.
+        Parameter for the conditional stellar mass function.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def b1(self, val):
         """
-        b1 : float
-            Parameter for the conditional stellar mass function.
+        Parameter for the conditional stellar mass function.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def b2(self, val):
         """
-        b2 : float
-            Parameter for the conditional stellar mass function.
+        Parameter for the conditional stellar mass function.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def A_cen(self, val):
         """
-        A_cen : float
-            Decorated HOD assembly bias parameter for central galaxies.
+        Decorated HOD assembly bias parameter for central galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def A_sat(self, val):
         """
-        A_sat : float
-            Decorated HOD assembly bias parameter for satellite galaxies.
+        Decorated HOD assembly bias parameter for satellite galaxies.
+
+        :type: float
         """
         return val
         
@@ -895,11 +929,12 @@ class Cacciato(HOD):
 
     @cached_quantity
     def COF_cen(self):
-        """
-        COF for Central galaxies.
-        eq 17 of D23: 2210.03110:
-        Φc(O|M) = 1/[√(2π) ln(10) σ_c O] exp[ -log(O/O∗c)^2/ (2 σ_c^2) ]
-        Note Φc(O|M) is unitless.
+        r"""
+        COF for Central galaxies (eq 17 of D23: 2210.03110):
+
+        :math:`\Phi_{\rm c}(O|M) = 1/[\sqrt{(2\pi)} \ln(10) \sigma_{\rm c} O] \exp[-\log(O/O_{\star, {\rm c}})^{2}/ (2 \sigma_{\rm c}^{2})]`
+        
+        Note  :math:`\Phi_{\rm c}(O|M)` is unitless.
 
         Returns:
         --------
@@ -913,11 +948,13 @@ class Cacciato(HOD):
 
     @cached_quantity
     def COF_sat(self):
-        """
-        COF for satellite galaxies.
-        eq 18 of D23: 2210.03110:
-        Φs(O|M) = ϕ∗s/O∗s (O/O∗s)^α_s exp [−(O/O∗s)^2], O*s is O∗s(M) = 0.56 O∗c(M)
-        Note Φs(O|M) is unitless.
+        r"""
+        COF for satellite galaxies (eq 18 of D23: 2210.03110):
+
+        :math:`\Phi_{\rm s}(O|M) = \phi_{\star, {\rm s}}/O_{\star, {\rm s}} (O/O_{\star, {\rm s}})^{\alpha_{\rm s}} \exp [-(O/O_{\star, {\rm s}})^{2}]`,
+         
+        :math:`O_{\star, {\rm s}}` is :math:`O_{\star, {\rm s}}(M) = 0.56 O_{\star, {\rm c}}(M)`
+        Note :math:`\Phi_{\rm s}(O|M)` is unitless.
 
         Returns:
         --------
@@ -944,14 +981,19 @@ class Cacciato(HOD):
 
     @cached_quantity
     def obs_func_cen(self):
-        """
-        The Observable function, this is Φs(O|M), Φc(O|M) integrated over the halo mass weighted
-        with the Halo Mass Function (HMF) to give:  Φs(O),Φc(O)
-        Φx(O) =int Φx(O|M) n(M) dM,
+        r"""
+        The observable function (SMF/LF) for central galaxies.
+        Defined as: :math:`\Phi_{\rm c}(O|M)`, :math:`\Phi_{\rm s}(O|M)` integrated over the halo mass weighted
+        with the Halo Mass Function (HMF) to give:  :math:`\Phi_{\rm c}(O)`, :math:`\Phi_{\rm c}(O)`
+
+        :math:`\Phi_{\rm x}(O) = \int \Phi_{\rm x}(O|M) n(M) {\rm d}M`,
+
         dndlnm is basically n(M) x mass, it is the output of hmf
         The differential mass function in terms of natural log of m,
         len=len(m) [units \(h^3 Mpc^{-3}\)]
+        
         dn(m)/ dln m eq1 of 1306.6721
+        
         obs_func unit is h^3 Mpc^{-3} dex^-1
 
         Returns:
@@ -965,14 +1007,19 @@ class Cacciato(HOD):
 
     @cached_quantity
     def obs_func_sat(self):
-        """
-        The Observable function, this is Φs(O|M), Φc(O|M) integrated over the halo mass weighted
-        with the Halo Mass Function (HMF) to give:  Φs(O),Φc(O)
-        Φx(O) =int Φx(O|M) n(M) dM,
+        r"""
+        The observable function (SMF/LF) for satellite galaxies.
+        Defined as: :math:`\Phi_{\rm c}(O|M)`, :math:`\Phi_{\rm s}(O|M)` integrated over the halo mass weighted
+        with the Halo Mass Function (HMF) to give:  :math:`\Phi_{\rm c}(O)`, :math:`\Phi_{\rm c}(O)`
+
+        :math:`\Phi_{\rm x}(O) = \int \Phi_{\rm x}(O|M) n(M) {\rm d}M`,
+
         dndlnm is basically n(M) x mass, it is the output of hmf
         The differential mass function in terms of natural log of m,
         len=len(m) [units \(h^3 Mpc^{-3}\)]
+        
         dn(m)/ dln m eq1 of 1306.6721
+        
         obs_func unit is h^3 Mpc^{-3} dex^-1
 
         Returns:
@@ -986,14 +1033,19 @@ class Cacciato(HOD):
 
     @cached_quantity
     def obs_func(self):
-        """
-        The Observable function, this is Φs(O|M), Φc(O|M) integrated over the halo mass weighted
-        with the Halo Mass Function (HMF) to give:  Φs(O),Φc(O)
-        Φx(O) =int Φx(O|M) n(M) dM,
+        r"""
+        The observable function (SMF/LF).
+        Defined as: :math:`\Phi_{\rm c}(O|M)`, :math:`\Phi_{\rm s}(O|M)` integrated over the halo mass weighted
+        with the Halo Mass Function (HMF) to give:  :math:`\Phi_{\rm c}(O)`, :math:`\Phi_{\rm c}(O)`
+
+        :math:`\Phi_{\rm x}(O) = \int \Phi_{\rm x}(O|M) n(M) {\rm d}M`,
+
         dndlnm is basically n(M) x mass, it is the output of hmf
         The differential mass function in terms of natural log of m,
         len=len(m) [units \(h^3 Mpc^{-3}\)]
+        
         dn(m)/ dln m eq1 of 1306.6721
+        
         obs_func unit is h^3 Mpc^{-3} dex^-1
 
         Returns:
@@ -1007,17 +1059,20 @@ class Cacciato(HOD):
 
     @cached_quantity
     def cal_mean_obs_c(self):
-        """
-        eqs 19 of D23: 2210.03110
-        O∗c(M) = O_0 (M/M1)^γ1 / [1 + (M/M1)]^(γ1−γ2)
+        r"""
+        Stellar to halo mass relation (observable to halo mass relation).
+        Eqs 19 of D23: 2210.03110
+
+        :math:`O_{\star, {\rm c}}(M)` = O_0 (M/M_{1})^{\gamma_{1}} / [1 + (M/M_{1})]^{(\gamma_{1} - \gamma_{2})}`
+
         To get the values for the satellite call this * hod_par.norm_s
-        O∗s(M) = 0.56 O∗c(M)
-        Here M1 is a characteristic mass scale, and O_0 is the normalization.
-        used to be mor
+
+        :math:`O_{\star, {\rm s}}(M)` = 0.56 O_{\star, {\rm c}}(M)`
+
+        Here  :math:`M_1` is a characteristic mass scale, and :math:`O_0` is the normalization.
 
         (observable can be galaxy luminosity or stellar mass)
-        returns the observable given halo mass. Assumed to be a double power law with characteristic
-        scale m_1, normalisation m_0 and slopes g_1 and g_2
+        returns the observable given halo mass.
 
         Returns:
         --------
@@ -1030,11 +1085,11 @@ class Cacciato(HOD):
 
     @cached_quantity
     def phi_star_s(self):
-        """
-        pivot COF used in eq 21 of D23: 2210.03110
-        using a bias expansion around the pivot mass
-        eq 22 of D23: 2210.03110
-        log[ϕ∗s(M)] = b0 + b1(log m13) , m13 is logM_pivot, m13 = M/(hod_par.pivot M⊙ h−1)
+        r"""
+        Normalisation of satellite COF function.
+        Eqs 21 and 22 of D23: 2210.03110
+
+        :math:`log[\phi_{\star, {\rm s}}(M)] = b_0 + b_1(\log M_{13})` , :math:`M_{13} = M/({\rm pivot})`
 
         Returns:
         --------
@@ -1047,10 +1102,10 @@ class Cacciato(HOD):
 
     @property
     def _compute_hod_cen(self):
-        """
-        The HOD is computed by integrating over the COFs
+        r"""
         eq 23 of D23: 2210.03110
-        ⟨Nx|M⟩ =int_{O_low}^{O_high} Φx(O|M) dO
+
+        :math:`\langle N_{\rm x}|M \rangle = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) {\rm d}O`
         """
         N_cen = simpson(self.COF_cen, self.obs)
         if self.A_cen is not None:
@@ -1061,9 +1116,9 @@ class Cacciato(HOD):
     @property
     def _compute_hod_sat(self):
         """
-        The HOD is computed by integrating over the COFs
         eq 23 of D23: 2210.03110
-        ⟨Nx|M⟩ =int_{O_low}^{O_high} Φx(O|M) dO
+
+        :math:`\langle N_{\rm x}|M \rangle = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) {\rm d}O`
         """
         N_sat = simpson(self.COF_sat, self.obs)
         if self.A_sat is not None:
@@ -1075,8 +1130,9 @@ class Cacciato(HOD):
     def _compute_stellar_fraction_cen(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
-        O is weighted by the number of galaxies with the property O for each halo mass: Φx(O|M)
-        f_star = int_{O_low}^{O_high} Φx(O|M) O dO
+        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\Phi_{\rm x}(O|M)`
+
+        :math:`f_{\star} = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) O {\rm d}O`
         """
         return simpson(self.COF_cen * self.obs, self.obs) / self.mass
 
@@ -1084,8 +1140,9 @@ class Cacciato(HOD):
     def _compute_stellar_fraction_sat(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
-        O is weighted by the number of galaxies with the property O for each halo mass: Φx(O|M)
-        f_star = int_{O_low}^{O_high} Φx(O|M) O dO
+        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\Phi_{\rm x}(O|M)`
+
+        :math:`f_{\star} = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) O {\rm d}O`
         """
         return simpson(self.COF_sat * self.obs, self.obs) / self.mass
 
@@ -1093,8 +1150,9 @@ class Cacciato(HOD):
     def _compute_stellar_fraction(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
-        O is weighted by the number of galaxies with the property O for each halo mass: Φx(O|M)
-        f_star = int_{O_low}^{O_high} Φx(O|M) O dO
+        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\Phi_{\rm x}(O|M)`
+
+        :math:`f_{\star} = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) O {\rm d}O`
         """
         return simpson(self.COF * self.obs, self.obs) / self.mass
 
@@ -1138,8 +1196,9 @@ class Simple(HOD):
     @parameter("param")
     def log10_Mmin(self, val):
         """
-        log10_Mmin : array_like
-            Log10 of the minimum mass for central galaxies.
+        Log10 of the minimum mass for central galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1148,8 +1207,9 @@ class Simple(HOD):
     @parameter("param")
     def log10_Msat(self, val):
         """
-        og10_Msat : array_like
-            Log10 of the minimum mass for satellite galaxies.
+        Log10 of the minimum mass for satellite galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1158,8 +1218,9 @@ class Simple(HOD):
     @parameter("param")
     def alpha(self, val):
         """
-        alpha : array_like
-            Slope parameter for satellite galaxies.
+        Slope parameter for satellite galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1168,16 +1229,18 @@ class Simple(HOD):
     @parameter("param")
     def A_cen(self, val):
         """
-        A_cen : float
-            Decorated HOD assembly bias parameter for central galaxies.
+        Decorated HOD assembly bias parameter for central galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def A_sat(self, val):
         """
-        A_sat : float
-            Decorated HOD assembly bias parameter for satellite galaxies.
+        Decorated HOD assembly bias parameter for satellite galaxies.
+
+        :type: float
         """
         return val
         
@@ -1231,6 +1294,7 @@ class Simple(HOD):
 class Zehavi(HOD):
     """
     HOD model from Zehavi et al. (2004; https://arxiv.org/abs/astro-ph/0703457)
+
     Same as Zheng model in the limit that sigma=0 and M0=0
     Mean number of central galaxies is only ever 0 or 1 in this HOD
     
@@ -1270,8 +1334,9 @@ class Zehavi(HOD):
     @parameter("param")
     def log10_Mmin(self, val):
         """
-        log10_Mmin : array_like
-            Log10 of the minimum mass for central galaxies.
+        Log10 of the minimum mass for central galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1280,8 +1345,9 @@ class Zehavi(HOD):
     @parameter("param")
     def log10_Msat(self, val):
         """
-        log10_Msat : array_like
-            Log10 of the minimum mass for satellite galaxies.
+        Log10 of the minimum mass for satellite galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1290,8 +1356,9 @@ class Zehavi(HOD):
     @parameter("param")
     def alpha(self, val):
         """
-        alpha : array_like
-            Slope parameter for satellite galaxies.
+        Slope parameter for satellite galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1300,16 +1367,18 @@ class Zehavi(HOD):
     @parameter("param")
     def A_cen(self, val):
         """
-        A_cen : float
-            Decorated HOD assembly bias parameter for central galaxies.
+        Decorated HOD assembly bias parameter for central galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def A_sat(self, val):
         """
-        A_sat : float
-            Decorated HOD assembly bias parameter for satellite galaxies.
+        Decorated HOD assembly bias parameter for satellite galaxies.
+
+        :type: float
         """
         return val
         
@@ -1408,8 +1477,9 @@ class Zheng(HOD):
     @parameter("param")
     def log10_Mmin(self, val):
         """
-        log10_Mmin : array_like
-            Log10 of the minimum mass for central galaxies.
+        Log10 of the minimum mass for central galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1418,8 +1488,9 @@ class Zheng(HOD):
     @parameter("param")
     def log10_M0(self, val):
         """
-        log10_M0 : array_like
-            Log10 of the cutoff mass for satellite galaxies.
+        Log10 of the cutoff mass for satellite galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1428,8 +1499,9 @@ class Zheng(HOD):
     @parameter("param")
     def log10_M1(self, val):
         """
-        log10_M1 : array_like
-            Log10 of the normalization mass for satellite galaxies.
+        Log10 of the normalization mass for satellite galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1438,8 +1510,9 @@ class Zheng(HOD):
     @parameter("param")
     def alpha(self, val):
         """
-        alpha : array_like
-            Slope parameter for satellite galaxies.
+        Slope parameter for satellite galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1448,8 +1521,9 @@ class Zheng(HOD):
     @parameter("param")
     def sigma(self, val):
         """
-        sigma : array_like
-            Scatter in the central galaxy occupation.
+        Scatter in the central galaxy occupation.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1458,16 +1532,18 @@ class Zheng(HOD):
     @parameter("param")
     def A_cen(self, val):
         """
-        A_cen : float
-            Decorated HOD assembly bias parameter for central galaxies.
+        Decorated HOD assembly bias parameter for central galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def A_sat(self, val):
         """
-        A_sat : float
-            Decorated HOD assembly bias parameter for satellite galaxies.
+        Decorated HOD assembly bias parameter for satellite galaxies.
+
+        :type: float
         """
         return val
         
@@ -1578,8 +1654,9 @@ class Zhai(HOD):
     @parameter("param")
     def log10_Mmin(self, val):
         """
-        log10_Mmin : array_like
-            Log10 of the minimum mass for central galaxies.
+        Log10 of the minimum mass for central galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1588,8 +1665,9 @@ class Zhai(HOD):
     @parameter("param")
     def log10_Msat(self, val):
         """
-        log10_Msat : array_like
-            Log10 of the minimum mass for satellite galaxies.
+        Log10 of the minimum mass for satellite galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1598,8 +1676,9 @@ class Zhai(HOD):
     @parameter("param")
     def log10_Mcut(self, val):
         """
-        log10_Mcut : array_like
-            Log10 of the cutoff mass for satellite galaxies.
+        Log10 of the cutoff mass for satellite galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1608,8 +1687,9 @@ class Zhai(HOD):
     @parameter("param")
     def alpha(self, val):
         """
-        alpha : array_like
-            Slope parameter for satellite galaxies.
+        Slope parameter for satellite galaxies.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1618,8 +1698,9 @@ class Zhai(HOD):
     @parameter("param")
     def sigma(self, val):
         """
-        sigma : array_like
-            Scatter in the central galaxy occupation.
+        Scatter in the central galaxy occupation.
+
+        :type: array_like
         """
         if not hasattr(val, "__len__"):
             val = [val]
@@ -1628,16 +1709,18 @@ class Zhai(HOD):
     @parameter("param")
     def A_cen(self, val):
         """
-        A_cen : float, optional
-            Decorated HOD assembly bias parameter for central galaxies.
+        Decorated HOD assembly bias parameter for central galaxies.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def A_sat(self, val):
         """
-        A_sat : float, optional
-            Decorated HOD assembly bias parameter for satellite galaxies.
+        Decorated HOD assembly bias parameter for satellite galaxies.
+        
+        :type: float
         """
         return val
         

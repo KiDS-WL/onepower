@@ -1,3 +1,9 @@
+"""
+A module for computing various cosmological quantities and halo model ingredients.
+This module provides classes and functions to calculate properties of dark matter halos,
+cosmological parameters, and related quantities using different models and corrections.
+"""
+
 from functools import cached_property
 import warnings
 import numpy as np
@@ -12,12 +18,6 @@ import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
 from hmf._internals._cache import cached_quantity, parameter, subframework
 from hmf._internals._framework import Framework
-
-"""
-A module for computing various cosmological quantities and halo model ingredients.
-This module provides classes and functions to calculate properties of dark matter halos,
-cosmological parameters, and related quantities using different models and corrections.
-"""
 
 # Silencing a warning from hmf for which the nonlinear mass is still correctly calculated
 warnings.filterwarnings('ignore', message='Nonlinear mass outside mass range')
@@ -57,7 +57,7 @@ class SOVirial_Mead(SphericalOverdensity):
 
 class CosmologyBase(Framework):
     """
-    A cosmology base class
+    A cosmology base class.
 
     Parameters:
     -----------
@@ -112,88 +112,99 @@ class CosmologyBase(Framework):
     @parameter("param")
     def h0(self, val):
         """
-        h0 : float
-            Hubble parameter (small h).
+        Hubble parameter (small h).
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def omega_c(self, val):
         """
-        omega_c : float
-            Cold dark matter density parameter.
+        Cold dark matter density parameter.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def omega_b(self, val):
         """
-        omega_b : float
-            Baryon density parameter.
+        Baryon density parameter.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def omega_m(self, val):
         """
-        omega_m : float
-            Matter density parameter.
+        Matter density parameter.
+
+        :type: float
         """
         return val
 
     @parameter("param")
     def w0(self, val):
         """
-        w0 : float
-            Dark energy equation of state parameter.
+        Dark energy equation of state parameter.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def wa(self, val):
         """
-        wa : float
-            Dark energy equation of state parameter.
+        Dark energy equation of state parameter.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def n_s(self, val):
         """
-        n_s : float
-            Spectral index.
+        Spectral index.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def tcmb(self, val):
         """
-        tcmb : float
-            Temperature of the CMB.
+        Temperature of the CMB.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def m_nu(self, val):
         """
-        m_nu : float
-            Neutrino mass.
+        Neutrino mass.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def sigma_8(self, val):
         """
-        sigma_8 : float
-            Amplitude of matter fluctuations on 8 Mpc scales.
+        Amplitude of matter fluctuations on 8 Mpc scales.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def log10T_AGN(self, val):
         """
-        log10T_AGN : float
-            Log10 of AGN temperature.
+        Log10 of AGN temperature.
+
+        :type: float
         """
         return val
 
@@ -354,8 +365,9 @@ class CosmologyBase(Framework):
         return G
 
     def f_Mead(self, x, y, p0, p1, p2, p3):
-        """
-        Fitting function from Mead et al. 2021 (2009.01858), eq A3.
+        r"""
+        Fitting function from Mead et al. 2021 (2009.01858), eq A3,
+        used in :math:`\delta_c` and :math:`\Delta_{\rm v}` calculations.
 
         Parameters:
         -----------
@@ -375,8 +387,9 @@ class CosmologyBase(Framework):
 
     @cached_quantity
     def dc_Mead(self):
-        """
-        Delta_c fitting function from Mead et al. 2021 (2009.01858).
+        r"""
+        The critical overdensity for collapse :math:`\delta_c` 
+        fitting function from Mead et al. 2021 (2009.01858).
         All input parameters should be evaluated as functions of a/z.
 
         Returns:
@@ -403,8 +416,8 @@ class CosmologyBase(Framework):
 
     @cached_quantity
     def Dv_Mead(self):
-        """
-        Delta_v fitting function from Mead et al. 2021 (2009.01858), eq A.2.
+        r"""
+        Overdensity :math:`\Delta_{\rm v}` fitting function from Mead et al. 2021 (2009.01858), eq A.2.
         All input parameters should be evaluated as functions of a/z.
 
         Returns:
@@ -550,168 +563,189 @@ class HaloModelIngredients(CosmologyBase):
     @parameter("param")
     def mead_correction(self, val):
         """
-        mead_correction : str
-            Correction model from Mead et al.
+        Correction model from Mead et al.
+
+        :type: str
         """
         return val
             
     @parameter("param")
     def k_vec(self, val):
         """
-        k_vec : array_like
-            Array of wavenumbers.
+        Array of wavenumbers.
+
+        :type: array_like
         """
         return val
         
     @parameter("param")
     def z_vec(self, val):
         """
-        z_vec : array_like
-            Array of redshifts.
+        Array of redshifts.
+
+        :type: array_like
         """
         return val
         
     @parameter("param")
     def lnk_min(self, val):
         """
-        lnk_min : float
-            Minimum natural log of wavenumber (for hmf).
+        Minimum natural log of wavenumber (for hmf).
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def lnk_max(self, val):
         """
-        lnk_max : float
-            Maximum natural log of wavenumber (for hmf).
+        Maximum natural log of wavenumber (for hmf).
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def dlnk(self, val):
         """
-        dlnk : float
-            Spacing in natural log of wavenumber (for hmf).
+        Spacing in natural log of wavenumber (for hmf).
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def Mmin(self, val):
         """
-        Mmin : float
-            Minimum halo mass (for hmf).
+        Minimum halo mass (for hmf).
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def Mmax(self, val):
         """
-        Mmax : float
-            Maximum halo mass (for hmf).
+        Maximum halo mass (for hmf).
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def dlog10m(self, val):
         """
-        dlog10m : float
-            Spacing in log10 of halo mass (for hmf).
+        Spacing in log10 of halo mass (for hmf).
+
+        :type: float
         """
         return val
     
     @parameter("param")
     def mdef_model(self, val):  
         """
-        mdef_model : str
-            Mass definition model (for hmf).
+        Mass definition model (for hmf).
+
+        :type: str
         """
         return val
     
     @parameter("param")
     def hmf_model(self, val):
         """
-        hmf_model : str
-            Halo mass function model (for hmf).
+        Halo mass function model (for hmf).
+
+        :type: str
         """
         return val
         
     @parameter("param")
     def bias_model(self, val):
         """
-        bias_model : str
-            Halo bias model (for halomod).
+        Halo bias model (for halomod).
+
+        :type: str
         """
         return val
     
     @parameter("param")
     def halo_concentration_model(self, val):
         """
-        halo_concentration_model : str
-            Halo concentration model (for halomod).
+        Halo concentration model (for halomod).
+
+        :type: str
         """
         return val
         
     @parameter("param")
     def halo_profile_model(self, val):
         """
-        halo_profile_model : str
-            Halo profile model (for halomod).
+        Halo profile model (for halomod).
+
+        :type: str
         """
         return val
 
     @parameter("param")
     def transfer_model(self, val):
         """
-        transfer_model : str
-            Transfer function model (for hmf).
+        Transfer function model (for hmf).
+
+        :type: str
         """
         return val
         
     @parameter("param")
     def transfer_params(self, val):
         """
-        transfer_params : dict
-            Parameters for the transfer function (for hmf).
+        Parameters for the transfer function (for hmf).
+
+        :type: dict
         """
         return val
         
     @parameter("param")
     def growth_model(self, val):
         """
-        growth_model : str
-            Growth function model (for hmf).
+        Growth function model (for hmf).
+
+        :type: str
         """
         return val
         
     @parameter("param")
     def growth_params(self, val):
         """
-        growth_params : dict
-            Parameters for the growth function (for hmf).
+        Parameters for the growth function (for hmf).
+
+        :type: dict
         """
         return val
         
     @parameter("param")
     def norm_cen(self, val):
         """
-        norm_cen : float
-            Normalization of c(M) relation for central galaxies.
+        Normalization of c(M) relation for central galaxies.
+
+        :type: float
         """
         return np.atleast_1d(val)
         
     @parameter("param")
     def norm_sat(self, val):
         """
-        norm_sat : float
-            Normalization of c(M) relation for satellite galaxies.
+        Normalization of c(M) relation for satellite galaxies.
+
+        :type: float
         """
         return np.atleast_1d(val)
         
     @parameter("param")
     def eta_cen(self, val):
         """
-        eta_cen : float
-            Bloating parameter for central galaxies.
+        Bloating parameter for central galaxies.
+
+        :type: float
         """
         return np.atleast_1d(val)
         
@@ -725,17 +759,19 @@ class HaloModelIngredients(CosmologyBase):
         
     @parameter("param")
     def delta_c(self, val):
-        """
-        delta_c : float
-            Critical density threshold for collapse.
+        r"""
+        Critical density threshold for collapse :math:`\delta_c`.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def overdensity(self, val):
         """
-        overdensity : float
-            Overdensity parameter.
+        Overdensity parameter.
+
+        :type: float
         """
         return val
     
@@ -790,8 +826,8 @@ class HaloModelIngredients(CosmologyBase):
 
     @cached_quantity
     def _delta_c_mod(self):
-        """
-        Sets the delta_c parameter to the one used in HMCode or to the one for virial collapse.
+        r"""
+        Sets the :math:`\delta_c` parameter to the one used in HMCode or to the one for virial collapse.
         Overrides the default passed value in those two cases.
 
         Returns:
@@ -1063,7 +1099,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             halo masses
         """
         return self._hmf_cen[0].m
@@ -1075,7 +1111,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             linear power spectrum at z
         """
         return np.array([x.power for x in self._hmf_cen])
@@ -1087,7 +1123,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             non-linear power spectrum at z
         """
         return np.array([x.nonlinear_power for x in self._hmf_cen])
@@ -1111,7 +1147,7 @@ class HaloModelIngredients(CosmologyBase):
         
         Returns:
         --------
-        array_like
+        ndarray
             meah halo overdensity
         """
         return np.array([x.halo_overdensity_mean for x in self._hmf_cen])
@@ -1123,7 +1159,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             peak heights
         """
         return np.array([x.nu**0.5 for x in self._hmf_cen])
@@ -1135,7 +1171,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             dndlnm
         """
         return np.array([x.dndlnm for x in self._hmf_cen])
@@ -1183,7 +1219,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             halo bias function
         """
         return np.array([x.halo_bias for x in self._hmf_cen])
@@ -1231,7 +1267,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             concentration for matter/central galaxies
         """
         return np.array([x.cmz_relation for x in self._hmf_cen])
@@ -1243,7 +1279,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             density profile for matter/central galaxies.
         """
         return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self._hmf_cen])
@@ -1255,7 +1291,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             normalised density profile for matter/central galaxies.
         """
         return self.nfw_cen / np.expand_dims(self.nfw_cen[:, 0, :], 1)
@@ -1267,7 +1303,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             scale radius for matter/central galaxies
         """
         return np.array([x.halo_profile._rs_from_m(x.m) for x in self._hmf_cen])
@@ -1279,7 +1315,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             virial radius for matter/central galaxies
         """
         return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self._hmf_cen])
@@ -1291,7 +1327,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             concenctration for satellite galaxies
         """
         return np.array([x.cmz_relation for x in self._hmf_sat])
@@ -1303,7 +1339,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             density profile for satellite galaxies
         """
         return np.array([x.halo_profile.u(self.k_vec, x.m) for x in self._hmf_sat])
@@ -1315,7 +1351,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             normalised density profile for satellite galaxies
         """
         return self.nfw_sat / np.expand_dims(self.nfw_sat[:, 0, :], 1)
@@ -1327,7 +1363,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             scale radius for satellite galaxies
         """
         return np.array([x.halo_profile._rs_from_m(x.m) for x in self._hmf_sat])
@@ -1339,7 +1375,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like
+        ndarray
             virial radius for satellite galaxies
         """
         return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self._hmf_sat])

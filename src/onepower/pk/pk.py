@@ -1,55 +1,40 @@
-# Library of the power spectrum module
-"""
-Calculates 3D power spectra using the halo model approach:
-See section 2 of https://arxiv.org/pdf/2303.08752.pdf for details
+r"""
+A module for computing 3D power spectra using the halo model approach.
 
-P_uv = P^2h_uv + P^1h_uv  (1)
+See section 2 of https://arxiv.org/pdf/2303.08752.pdf for details.
+Brief description on the formalism:
 
-P^1h_uv (k) = int_0^infty dM Wu(M, k) Wv(M, k) n(M)  (2)
+:math:`P_{uv} = P^{\rm 2h}_{uv} + P^{\rm 1h}_{uv}` (1)
 
-P^2h_uv (k) = int_0^infty int_0^infty dM1 dM2 Phh(M1, M2, k) Wu(M1, k) Wv(M2, k) n(M1) n(M2)  (3)
+:math:`P^{\rm 1h}_{uv} (k) = \int_{0}^{\infty} {\rm d}M W_{u}(M, k) W_{v}(M, k) n(M)` (2)
 
-Wx are the profile of the fields, u and v, showing how they fit into haloes.
-n(M) is the halo mass function, quantifying the number of haloes of each mass, M.
+:math:`P^{\rm 2h}_{uv} (k) = \int_{0}^{\infty} \int_{0}^{\infty} {\rm d}M_{1} {\rm d}M_{2} P_{\rm hh}(M_{1}, M_{2}, k) W_{u}(M_{1}, k) W_{v}(M_{2}, k) n(M_{1}) n(M_{2})` (3)
+
+:math:`W_{\rm x}` are the profile of the fields, :math:`u` and :math:`v`, showing how they fit into haloes.
+:math:`n(M)` is the halo mass function, quantifying the number of haloes of each mass, :math:`M`.
 Integrals are taken over halo mass.
 
 The halo-halo power spectrum can be written as,
 
-Phh(M1,M2,k) = b(M1) b(M2) P^lin_mm(k) (1 + beta_nl(M1,M2,k)) (4)
+:math:`P_{\rm hh}(M_{1},M_{2},k) = b(M_{1}) b(M_{2}) P^{\rm lin}_{\rm mm}(k) (1 + \beta_{\rm nl}(M_{1},M_{2},k))` (4)
 
 In the vanilla halo model the 2-halo term is usually simplified by assuming that haloes are linearly biased with respect to matter.
-This sets beta_nl to zero and effectively decouples the integrals in (3). Here we allow for both options to be calculated.
-If you want the option with beta_nl the beta_nl modules has to be run before this module.
+This sets beta_nl to zero and effectively decouples the integrals. Here we allow for both options to be calculated.
 
 Equation (3) then becomes:
 
-P^2h_uv (k) = P^lin_mm(k) * [I_u * I_v + I^NL_uv] (5)
+:math:`P^{\rm 2h}_{uv} (k) = P^{\rm lin}_{\rm mm}(k) * [I_u * I_v + I^{\rm NL}_{uv}]` (5)
 
-where I_u and I_v are defined as:
+where :math:`I_u` and :math:`I_v` are defined as:
 
-I_x = int_0^infty dM b(M)  Wx(M, k) n(M) (6)
+:math:`I_{\rm x} = \int_{0}^{\infty} {\rm d}M b(M) W_{\rm x}(M, k) n(M)` (6)
 
 and the integral over beta_nl is
 
-I^NL_uv = int_0^infty int_0^infty dM1 dM2 b(M1) b(M2) beta_nl(M1,M2,k) Wu(M1, k) Wv(M2, k) n(M1) n(M2)  (7)
+:math:`I^{\rm NL}_{uv} = \int_{0}^{\infty} \int_{0}^{\infty} {\rm d}M_{1} {\rm d}M_{2} b(M_{1}) b(M_{2}) \beta_{\rm nl}(M_{1},M_{2},k) W_{u}(M_{1}, k) W_{v}(M_{2}, k) n(M_{1}) n(M_{2})`  (7)
 
----------------------------------------------------------------------------------------------------------------------
-
-We truncate the 1-halo term so that it doesn't dominate at large scales.
-
-The linear matter power spectrum needs to be provided.
-The halo_model_ingredients and hod modules (for everything but mm, unless you run 'stellar_fraction_from_observable_feedback' option)
-need to be run before this.
-
-Current power spectra that we predict are
-mm: matter-matter
-gg: galaxy-galaxy
-gm: galaxy-matter
-
-II: intrinsic-intrinsic alignments
-gI: galaxy-intrinsic alignment
-mI: matter-intrinsic alignment
 """
+
 from functools import cached_property
 import warnings
 import numpy as np
@@ -125,7 +110,8 @@ def sigmaV(k, power):
 
 def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25):
     """
-    Extract the wiggle from the linear power spectrum
+    Extract the wiggle from the linear power spectrum.
+
     TODO: Should get to work for uneven log(k) spacing
     NOTE: https://stackoverflow.com/questions/24143320/gaussian-sum-filter-for-irregular-spaced-points
     
@@ -226,9 +212,28 @@ class Spectra(HaloModelIngredients):
         Truncation wavenumber for the 2-halo IA term.
     align_params : dict, optional
         Parameters for the alignment model.
-    
     hmf_kwargs : dict
         Additional keyword arguments for the HaloModelIngredients.
+
+    Examples
+    --------
+    Since all parameters have reasonable defaults, the most obvious thing to do is
+
+    >>> power = Spectra()
+    >>> ps.power_spectrum_mm.pk_tot
+
+    Many different parameters may be passed, both models and parameters of those models.
+    For instance:
+
+    >>> power = Spectra(z=1.0, Mmin=8, hmf_model="SMT")
+    >>> ps.power_spectrum_mm.pk_1h
+
+    Once instantiated, changing parameters should be done through the :meth:`update`
+    method:
+
+    >>> power.update(hod_settings={nbins: 6})
+    >>> ps.power_spectrum_gm.pk_1h
+
     """
     def __init__(self,
             matter_power_lin=None,
@@ -288,173 +293,197 @@ class Spectra(HaloModelIngredients):
     
     @parameter("param")
     def mb(self, val):
-        """
-        mb : float
-            Gas distribution mass pivot parameter.
+        r"""
+        Gas distribution mass pivot parameter :math:`M_{\rm b}`.
+
+        :type: float
         """
         return val
 
     @parameter("switch")
     def bnl(self, val):
         """
-        bnl : bool
-            Whether to include non-linear bias.
+        Whether to include non-linear bias.
+
+        :type: bool
         """
         return val
     
     @parameter("param")
     def beta_nl(self, val):
-        """
-        beta_nl : array_like
-            Non-linear bias parameter.
+        r"""
+        Non-linear bias parameter :math:`\beta_{\rm nl}`.
+
+        :type: array_like
         """
         return val  
         
     @parameter("param")
     def dewiggle(self, val):
         """
-        dewiggle : bool
-            Whether to dewiggle the power spectrum.
+        Whether to dewiggle the power spectrum.
+
+        :type: bool
         """
         return val
         
     @parameter("param")
     def matter_power_lin(self, val):
         """
-        matter_power_lin : array_like
-            Linear matter power spectrum.
+        Linear matter power spectrum.
+
+        :type: ndarray
         """
         return val
         
     @parameter("param")
     def one_halo_ktrunc(self, val):
         """
-        one_halo_ktrunc : float
-            Truncation wavenumber for the 1-halo term.
+        Truncation wavenumber for the 1-halo term.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def two_halo_ktrunc(self, val):
         """
-        two_halo_ktrunc : float
-            Truncation wavenumber for the 2-halo term.
+        Truncation wavenumber for the 2-halo term.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def hod_settings_mm(self, val):
         """
-        hod_settings_mm : dict
-            Settings for the HOD model.
+        Settings for the HOD model.
+
+        :type: dict
         """
         return val
     
     @parameter("param")
     def pointmass(self, val):
         """
-        pointmass : bool
-            Whether to use point mass approximation.
+        Whether to use point mass approximation.
+
+        :type: bool
         """
         return val
         
     @parameter("param")
     def compute_observable(self, val):
         """
-        compute_observable : bool
-            Whether to compute observable.
+        Whether to compute observable.
+
+        :type: bool
         """
         return val
         
     @parameter("param")
     def poisson_par(self, val):
         """
-        poisson_par : dict
-            Parameters for the Poisson distribution.    
+        Parameters for the Poisson distribution.    
+
+        :type: dict
         """
         return val
         
     @parameter("param")
     def hod_model(self, val):
         """
-        hod_model : str
-            HOD model to use.
+        HOD model to use.
+        
+        :type: str
         """
         return val
         
     @parameter("param")
     def hod_params(self, val):
         """
-        hod_params : dict
-            Parameters for the HOD model.
+        Parameters for the HOD model.
+
+        :type: dict
         """
         return val
         
     @parameter("param")
     def hod_settings(self, val):
         """
-        hod_settings : dict
-            Settings for the HOD model.
+        Settings for the HOD model.
+
+        :type: dict
         """
         return val
         
     @parameter("param")
     def obs_settings(self, val):
         """
-        obs_settings : dict
-            Settings for the observable.
+        Settings for the observable.
+
+        :type: dict
         """
         return val
     
     @parameter("param")
     def fortuna(self, val):
         """
-        fortuna : bool
-            Whether to use the Fortuna model.
+        Whether to use the Fortuna model.
+
+        :type: bool
         """
         return val
         
     @parameter("param")
     def t_eff(self, val):
         """
-        t_eff : float
-            Effective parameter for the Fortuna model.
+        Effective parameter for the Fortuna model.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def matter_power_nl(self, val):
+        """
+        Non-linear matter power spectrum
+
+        :type: ndarray
+        """
         return val
         
     @parameter("param")
     def one_halo_ktrunc_ia(self, val):
         """
-        one_halo_ktrunc_ia : float
-            Truncation wavenumber for the 1-halo IA term.
+        Truncation wavenumber for the 1-halo IA term.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def two_halo_ktrunc_ia(self, val):
         """
-        two_halo_ktrunc_ia : float
-            Truncation wavenumber for the 2-halo IA term.
+        Truncation wavenumber for the 2-halo IA term.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def align_params(self, val):
         """
-        align_params : dict
-            Parameters for the alignment model.
+        Parameters for the alignment model.
+
+        :type: dict
         """
         return val
     
     @cached_quantity
     def _beta_nl_array(self):
         """
-        Return the pre-calculated beta_nl values or
-        calculates it on the fly if beta_nl == None.
+        Return the pre-calculated beta_nl values or calculates it on the fly if beta_nl == None.
 
         Returns:
         --------
@@ -512,8 +541,8 @@ class Spectra(HaloModelIngredients):
     @cached_quantity
     def peff(self):
         """
-        Return the mixture of linear and non-linear power spectrum, with t_eff as a ratio,
-        as used in Fortuna et al. IA model in order to have better 1h to 2h transition.
+        Return the mixture of linear and non-linear power spectrum.
+        t_eff as a ratio between the two as used in Fortuna et al. IA model in order to have better 1h to 2h transition.
         Only used if fortuna == True.
 
         Returns:
@@ -672,13 +701,17 @@ class Spectra(HaloModelIngredients):
         return plin_dw
 
     def compute_matter_profile(self, mass, mean_density0, u_dm, fnu):
-        """
+        r"""
         Compute the matter halo profile with a correction for neutrino mass fraction.
-        Feedback can be included through u_dm
-        We lower the amplitude of W(M, k,z) in the one-halo term by the factor 1− fν ,
-        where fν = Ων /Ωm is the neutrino mass fraction, to account for the fact that
+
+        Feedback can be included through u_dm.
+
+        We lower the amplitude of :math:`W(M, k, z)` in the one-halo term by the factor :math:`1-f_{\nu}`,
+        where :math:`f_{\nu}=\Omega_{\nu}/\Omega_{\mathrm{m}}` is the neutrino mass fraction, to account for the fact that
         we assume that hot neutrinos cannot cluster in haloes and therefore
-        do not contribute power to the one-halo term. Therefore W(M, k → 0,z) = (1− fν )M/ρ¯ and has units of volume
+        do not contribute power to the one-halo term. 
+        
+        Therefore :math:`W(M, k \rightarrow 0, z)=(1-f_{\nu})M/\bar{\rho}` and has units of volume.
         This is the same as Mead et al. 2021
         
         Parameters:
@@ -739,18 +772,18 @@ class Spectra(HaloModelIngredients):
         return profile
 
     def compute_matter_profile_with_feedback(self, mass, mean_density0, u_dm, z, fnu):
-        """
-        Compute the matter profile including feedback as modelled by hmcode2020.
+        r"""
+        Compute the matter profile including feedback as modelled by hmcode2020 (eq 25 of 2009.01858).
 
-        eq 25 of 2009.01858
-        W(M, k) = [Ω_c/Ω_m+ fg(M)]W(M, k) + f∗ M/ρ¯
-        The parameter 0 < f∗ < Ω_b/Ω_m can be thought of as an effective halo stellar mass fraction.
+        :math:`W(M, k) = [\Omega_{\rm c}/\Omega_{\rm m} + f_{\rm g}(M)] W(M, k) + f_{\star} M / \bar{\rho}`
+        
+        The parameter :math:`0 < f_{\star} < \Omega_{\rm b}/\Omega_{\rm m}` can be thought of as an effective halo stellar mass fraction.
 
-        Total matter profile from Mead2020 for baryonic feedback model
-        Table 4 and eq 26 of 2009.01858
-        f*(z) = f*_0 10^(z f*_z)
+        Table 4 and eq 26 of 2009.01858 defines as:
 
-        This profile does not have 1-fnu correction as that is already accounted for in  dm_to_matter_frac
+        :math:`f_{\star}(z) = f_{\star, 0} 10^{(z f_{\star, z})}`
+
+        This profile does not have :math:`1-f_{\nu}` correction as that is already accounted for in  dm_to_matter_frac
         
         Parameters:
         -----------
@@ -799,13 +832,13 @@ class Spectra(HaloModelIngredients):
         return profile
 
     def compute_matter_profile_with_feedback_stellar_fraction_from_obs(self, mass, mean_density0, u_dm, z, fnu, mb, fstar):
-        """
+        r"""
         Compute the matter profile using stellar fraction from observations.
 
-        Using f* from HOD/CSMF/CLF that also provides for point mass estimate when used in the
+        Using :math:`f_{\star}` from HOD/CSMF/CLF that also provides for point mass estimate when used in the
         GGL power spectra
 
-        This profile does not have 1-fnu correction as that is already accounted for in  dm_to_matter_frac
+        This profile does not have :math:`1-f_{\nu}` correction as that is already accounted for in  dm_to_matter_frac
         
         Parameters:
         -----------
@@ -967,8 +1000,9 @@ class Spectra(HaloModelIngredients):
     def two_halo_truncation_mead(self, sigma8_in):
         """
         2-halo term truncation in Mead et al. 2021, eq 16.
+
         As long as nd > 0, the multiplicative term in square brackets is
-        unity for k << kd and (1 − f) for k >> kd.
+        unity for k << kd and (1 - f) for k >> kd.
         This damping is used instead of the regular 2-halo term integrals
         
         Parameters:
@@ -989,12 +1023,16 @@ class Spectra(HaloModelIngredients):
         return 1.0 - f * (k_frac**nd) / (1.0 + k_frac**nd)
 
     def transition_smoothing(self, neff, p_1h, p_2h):
-        """
+        r"""
         Smooth the transition between 1 and 2 halo terms, eq 23 and table 2 of Mead et al. 2021.
-        α = 1 would correspond to a standard transition.
-        α < 1 smooths the transition while α > 1 sharpens it.
-        Delta^2(k) = k^3/(2 pi^2) P(k)
-        ∆^2_hmcode(k,z) = {[∆^2_2h(k,z)]^α +[∆^2_1h(k,z)]^α}^1/α
+
+        :math:`\alpha = 1` would correspond to a standard transition.
+
+        :math:`\alpha < 1` smooths the transition while :math:`\alpha > 1` sharpens it.
+
+        :math:`\Delta^{2}(k) = k^{3}/(2 \pi^{2}) P(k)`
+
+        :math:`\Delta^{2}_{\rm hmcode}(k,z) = \left({[\Delta^{2}_{\rm 2h}(k,z)]^{\alpha} +[\Delta^{2}_{\rm 1h}(k,z)]^{\alpha}} \right)^{1/{\alpha}}`
         
         Parameters:
         -----------
@@ -1018,22 +1056,32 @@ class Spectra(HaloModelIngredients):
         return Delta_hmcode / delta_prefac
 
     def compute_1h_term(self, profile_u, profile_v, mass, dndlnm):
-        """
+        r"""
         Compute the 1-halo term for two fields u and v, e.g. matter, galaxy, intrinsic alignment
         
-        P^1h_uv(k)= int W_u(k,z,M) W_v(k,z,M) n(M) dM
+        :math:`P^{\rm 1h}_{uv}(k)= \int W_{u}(k,z,M) W_{v}(k,z,M) n(M) {\rm d}M`
+
         If the fields are the same and they correspond to discrete tracers (e.g. satellite galaxies):
-        P^1h_uv(k)= 1/n_x^2 int <N_x(M)[N_x(M)-1]> U_x(k,z,M)^2 n(M) dM + 1/n_x
-        n_x = int N_x(M) n(M) dM
+
+        :math:`P^{\rm 1h}_{uv}(k)= 1/n_{x}^2 \int \langle N_{x}(M)[N_{x}(M)-1]\rangle U_{x}(k,z,M)^{2} n(M) {\rm d}M + 1/n_{x}`
+        
+        :math:`n_{x} = \int N_{x}(M) n(M) {\rm d}M`
+        
         The shot noise term is removed as we do our measurements in real space where it only shows up
         at zero lag which is not measured.
         See eq 22 of Asgari, Mead, Heymans 2023 review paper.
+        
         But for satellite galaxis we use:
-        <N_sat(N_sat-1)> = P_oisson <N_sat>^2:
-        P^1h_ss(k)= 1/n_s^2 int P_oisson <N_sat>^2 U_s(k,z,M)^2 n(M) dM
-        and write profile_u = profile_v = <N_sat> U_s(k,z,M) * sqrt(P_oisson)/n_s
-        for matter halo profile is: W_m = (M/rho_m) U_m(z,k,M)
-        for galaxies: W_g = (N_g(M)/n_g) U_g(z,k,M)
+        
+        :math:`\langle N_{\rm sat}(N_{\rm sat}-1)\rangle = \mathcal{P} \langle N_{\rm sat}\rangle ^ {2}`:
+        
+        :math:`P^{\rm 1h}_{\rm ss}(k)= 1/n_{\rm s}^{2} \int \mathcal{P} \langle N_{\rm sat}\rangle ^{2} U_{\rm s}(k,z,M)^{2} n(M) {\rm d}M`
+        
+        and write :math:`W_u = W_v = \langle N_{\rm sat}\rangle U_{\rm s}(k,z,M) \sqrt{\mathcal{P}}/n_{\rm s}`
+        
+        for matter halo profile is: :math:`W_{\rm m} = (M/\rho_{\rm m}) U_{\rm m}(z,k,M)`
+        
+        for galaxies: :math:`W_{\rm g} = (N_{\rm g}(M)/n_{\rm g}) U_{\rm g}(z,k,M)`
         
         Parameters:
         -----------
@@ -1055,17 +1103,25 @@ class Spectra(HaloModelIngredients):
         return simpson(integrand, mass, axis=-1)
 
     def compute_A_term(self, mass, b_dm, dndlnm, mean_density0):
-        """
+        r"""
         Integral over the missing haloes.
+
         This term is used to compensate for low mass haloes that are missing from the integral in the matter 2-halo term.
         Equation A.5 of Mead and Verde 2021, 2011.08858
-        A(M_min) = 1−[1/ρ¯ int_M_min^infty dM M b(M) n(M)]
-        Here all missing mass is assumed to be in halos of minimum mass M_min = min(mass)
+
+        :math:`A(M_{\rm min}) = 1 - [1/\bar{\rho} \int_{M_{\rm min}}^{\infty} {\rm d}M M b(M) n(M)]`
+
+        Here all missing mass is assumed to be in halos of minimum mass :math:`M_{\rm min} = {\rm min}(M)`
+
         This equation arises from
-        int_0^infty M b(M) n(M) dM = ρ¯ .
+
+        :math:`\int_{0}^{\infty} M b(M) n(M) {\rm d}M = \bar{\rho}`.
+        
         and
-        int_0^infty M n(M) dM = ρ¯ .
-        This ρ¯ is the mean matter density at that redshift.
+        
+        :math:`\int_{0}^{\infty} M n(M) dM = \bar{\rho}`.
+        
+        This :math:`\bar{\rho}` is the mean matter density at that redshift.
         
         Parameters:
         -----------
@@ -1121,9 +1177,12 @@ class Spectra(HaloModelIngredients):
 
     @cached_quantity
     def Im_term(self):
-        """
+        r"""
         Compute the integral for the matter term in the 2-halo power spectrum, eq 35 of Asgari, Mead, Heymans 2023.
-        2-halo term integral for matter, I_m = int_0^infty dM b(M) W_m(M,k) n(M) = int_0^infty dM b(M) M/rho_bar U_m(M,k) n(M)
+
+        2-halo term integral for matter, 
+        
+        :math:`I_{\rm m} = \int_{0}^{infty} {\rm d}M b(M) W_{\rm m}(M,k) n(M) = \int_{0}^{\infty} {\rm d}M b(M) M/{\bar{rho} U_{rm m}(M,k) n(M)`
 
         Returns:
         --------
@@ -1186,13 +1245,12 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I22 term.
         """
-    
-        """
-        integrand_22 = B_NL_k_z * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
-            * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] \
-            * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
-            / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_2[np.newaxis,np.newaxis,:,np.newaxis])
-        """
+
+        #integrand_22 = B_NL_k_z * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
+        #    * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] \
+        #    * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
+        #    / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_2[np.newaxis,np.newaxis,:,np.newaxis])
+        
         b_1e = b_1[:, :, np.newaxis, np.newaxis]
         b_2e = b_2[:, np.newaxis, :, np.newaxis]
         dndlnm_1e = dndlnm_1[:, :, np.newaxis, np.newaxis]
@@ -1226,10 +1284,9 @@ class Spectra(HaloModelIngredients):
             Integrand for the I12 term.
         """
     
-        """
-        integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
-            * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
-        """
+        #integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
+        #    * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
+    
         B_NL_k_z_e = B_NL_k_z[:, :, 0, :]
         b_2e = b_2[:, :, np.newaxis]
         dndlnm_2e = dndlnm_2[:, :, np.newaxis]
@@ -1261,10 +1318,9 @@ class Spectra(HaloModelIngredients):
             Integrand for the I21 term.
         """
     
-        """
-        integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
-            * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
-        """
+        #integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
+        #    * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
+        
         B_NL_k_z_e = B_NL_k_z[:, 0, :, :]
         b_1e = b_1[:, :, np.newaxis]
         dndlnm_1e = dndlnm_1[:, :, np.newaxis]
@@ -1346,13 +1402,14 @@ class Spectra(HaloModelIngredients):
         return I_NL
 
     def fg(self, mass, z_vec, fstar, beta=2):
-        """
+        r"""
         Compute the gas fraction, eq 24 of Mead et al. 2021.
         
-        fg(M) = [Ωb/Ωm− f∗] (M/Mb)^β/ (1 + (M/Mb)^β)
-        where fg is the halo gas fraction, the pre-factor in parenthesis is the
-        available gas reservoir, while Mb > 0 and β > 0 are fitted parameters.
-        Haloes of M >> Mb are unaffected while those of M < Mb have
+        :math:`f_{\rm g}(M) = [\Omega_{\rm b}/\Omega_{\rm m} - f_{\star}] (M/M_{\rm b})^{\beta}/ (1 + (M/M_{\rm b})^{\beta})`
+
+        where :math:`f_{\rm g}` is the halo gas fraction, the pre-factor in parenthesis is the
+        available gas reservoir, while :math:`M_{\rm b}` > 0` and :math:`\beta > 0` are fitted parameters.
+        Haloes of :math:`M >> M_{\rm b}` are unaffected while those of :math:`M < M_{\rm b}` have
         lost more than half of their gas
 
         theta_agn = log10_TAGN - 7.8
@@ -1380,14 +1437,16 @@ class Spectra(HaloModelIngredients):
         return (baryon_to_matter_fraction - fstar) * (mass / mb)**beta / (1.0 + (mass / mb)**beta)
 
     def fg_fit(self, mass, mb, fstar, beta=2):
-        """
+        r"""
         Compute the gas fraction for a general baryonic feedback model, eq 24 of Mead et al. 2021.
         
-        fg(M) = [Ωb/Ωm - f_*] (M/Mb)^β/ (1 + (M/Mb)^β)
-        where fg is the halo gas fraction, the pre-factor in parenthesis is the
-        available gas reservoir, while Mb > 0 and β > 0 are fitted parameters.
-        Haloes of M >> Mb are unaffected while those of M < Mb have
+        :math:`f_{\rm g}(M) = [\Omega_{\rm b}/\Omega_{\rm m} - f_{\star}] (M/M_{\rm b})^{\beta}/ (1 + (M/M_{\rm b})^{\beta})`
+
+        where :math:`f_{\rm g}` is the halo gas fraction, the pre-factor in parenthesis is the
+        available gas reservoir, while :math:`M_{\rm b}` > 0` and :math:`\beta > 0` are fitted parameters.
+        Haloes of :math:`M >> M_{\rm b}` are unaffected while those of :math:`M < M_{\rm b}` have
         lost more than half of their gas
+
 
         Parameters:
         -----------
@@ -1409,10 +1468,10 @@ class Spectra(HaloModelIngredients):
         return (baryon_to_matter_fraction - fstar) * (mass / mb)**beta / (1.0 + (mass / mb)**beta)
 
     def fs(self, z_vec):
-        """
+        r"""
         Compute the stellar fraction from table 4 and eq 26 of Mead et al. 2021.
         
-        f*(z) = f*_0 10^(z f*_z)
+        :math:`f_{\star}(z) = f_{\star, 0} 10^{(z f_{\star,z})}`
         
         Parameters:
         -----------
@@ -1648,7 +1707,6 @@ class Spectra(HaloModelIngredients):
     def central_galaxy_profile(self):
         """
         Compute the galaxy profile for a sample of central galaxies.
-        Sets u_sample to ones if centrals are in the centre of the halo
 
         Returns:
         --------
@@ -1826,32 +1884,28 @@ class Spectra(HaloModelIngredients):
     @cached_quantity 
     def beta_cen(self):
         """
-        beta_cen : float
-            Beta parameter for central galaxies.
+        Beta parameter for central galaxies.
         """
         return self.alignment_class.beta_cen
     
     @cached_quantity
     def beta_sat(self):
         """
-        beta_sat : float
-            Beta parameter for satellite galaxies.
+        Beta parameter for satellite galaxies.
         """
         return self.alignment_class.beta_sat
     
     @cached_quantity
     def mpivot_cen(self):
         """
-        mpivot_cen : float
-            Pivot mass for central galaxies.
+        Pivot mass for central galaxies.
         """
         return self.alignment_class.mpivot_cen
     
     @cached_quantity
     def mpivot_sat(self):
         """
-        mpivot_sat : float
-            Pivot mass for satellite galaxies.
+        Pivot mass for satellite galaxies.
         """
         return self.alignment_class.mpivot_sat
 
@@ -1961,10 +2015,12 @@ class Spectra(HaloModelIngredients):
 
     @cached_quantity
     def central_alignment_profile(self):
-        """
+        r"""
         Prepare the grid in z, k and mass for the central alignment
-        f_cen/n_cen N_cen gamma_hat(k,M)
-        where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
+        
+        :math:`\frac{f_{\rm cen}}{n_{\rm cen}} N_{\rm cen} \hat{\gamma}(k,M)`
+        
+        where :math:`\hat{\gamma}(k,M)` is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
         times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
 
         Returns:
@@ -1985,11 +2041,14 @@ class Spectra(HaloModelIngredients):
 
     @cached_quantity
     def satellite_alignment_profile(self):
-        """
+        r"""
         Prepare the grid in z, k and mass for the satellite alignment
-        f_sat/n_sat N_sat gamma_hat(k,M)
-        where gamma_hat(k,M) is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
+
+        :math:`\frac{f_{\rm sat}}{n_{\rm sat}} N_{\rm sat} \hat{\gamma}(k,M)`
+        
+        where :math:`\hat{\gamma}(k,M)` is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
         times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
+
         Returns:
         --------
         ndarray

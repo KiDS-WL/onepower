@@ -1,3 +1,9 @@
+"""
+A module for computing intrinsic alignment properties.
+This module provides classes and functions to calculate various properties 
+related to the intrinsic alignment of central and satellite galaxies within dark matter halos.
+"""
+
 from functools import cached_property
 import numpy as np
 from scipy.integrate import simpson
@@ -9,15 +15,10 @@ from astropy.io import fits
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework
 
-"""
-A module for computing intrinsic alignment properties.
-This module provides classes and functions to calculate various properties 
-related to the intrinsic alignment of central and satellite galaxies within dark matter halos.
-"""
-
-
 class AlignmentAmplitudes(Framework):
     """
+    Class to IA amplitudes given options and dependencies on either luminosity, stellar mass, or halo mass.    
+
     Parameters:
     -----------
     z_vec : array-like
@@ -90,8 +91,9 @@ class AlignmentAmplitudes(Framework):
     @parameter("param")
     def z_vec(self, val):
         """
-        z_vec : array-like
-            Redshift vector.
+        Redshift vector.
+
+        :type: array-like
         """
         return val
         
@@ -126,32 +128,36 @@ class AlignmentAmplitudes(Framework):
     @parameter("param")
     def gamma_2h_amplitude(self, val):
         """
-        gamma_2h_amplitude : float
-            Amplitude for 2-halo term.
+        Amplitude for 2-halo term.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def gamma_1h_slope(self, val):
         """
-        gamma_1h_slope : float
-            Slope for 1-halo term.
+        Slope for 1-halo term.
+
+        :type: float
         """
         return val
         
     @parameter("param")
     def gamma_1h_amplitude(self, val):
         """
-        gamma_1h_amplitude : float
-            Amplitude for 1-halo term.
+        Amplitude for 1-halo term.
+
+        :type: float
         """
         return val
     
     @parameter("param")
     def beta_cen(self, val):
         """
-        beta_cen : float
-            Beta parameter for central galaxies.
+        Beta parameter for central galaxies.
+
+        :type: float
         """
         return val  
         
@@ -166,48 +172,54 @@ class AlignmentAmplitudes(Framework):
     @parameter("param")
     def mpivot_cen(self, val):
         """
-        mpivot_cen : float
-            Pivot mass for central galaxies.
+        Pivot mass for central galaxies.
+
+        :type: float
         """
         return 10.0 ** val if val is not None else None
         
     @parameter("param")
     def mpivot_sat(self, val):
         """
-        mpivot_sat : float
-            Pivot mass for satellite galaxies.
+        Pivot mass for satellite galaxies.
+
+        :type: float
         """
         return 10.0 ** val if val is not None else None
         
     @parameter("param")
     def lpivot_cen(self, val):
         """
-        lpivot_cen : float
-            Pivot luminosity for central galaxies.
+        Pivot luminosity for central galaxies.
+
+        :type: float
         """
         return 10.0 ** val if val is not None else None
         
     @parameter("param")
     def lpivot_sat(self, val):
         """
-        lpivot_sat : float
-            Pivot luminosity for satellite galaxies.
+        Pivot luminosity for satellite galaxies.
+
+        :type: float
         """
         return 10.0 ** val if val is not None else None
         
     @parameter("param")
     def z_loglum_file_centrals(self, val):
         """
-        z_loglum_file_centrals : str
-            File path for central galaxy luminosity data.
+        File path for central galaxy luminosity data.
+
+        :type: str
         """
         return val
         
     @parameter("param")
     def z_loglum_file_satellites(self, val):
         """
-        z_loglum_file_satellites : str
-            File path for satellite galaxy luminosity data.
+        File path for satellite galaxy luminosity data.
+
+        :type: str
         """
         return val
     
@@ -483,64 +495,72 @@ class SatelliteAlignment(AlignmentAmplitudes):
     @parameter("param")
     def mass_in(self, val):
         """
-        mass_in : array_like
-            Array of halo masses.
+        Array of halo masses.
+
+        :type: array_like
         """
         return val
         
     @parameter("param")
     def c_in(self, val):
         """
-        c_in : array_like
-            Concentration parameter.
+        Concentration parameter.
+
+        :type: array_like
         """
         return val
 
     @parameter("param")
     def r_s_in(self, val):
         """
-        r_s_in : array_like
-            Scale radius.
+        Scale radius.
+
+        :type: array_like
         """
         return val
         
     @parameter("param")
     def rvir_in(self, val):
         """
-        rvir_in : array_like
-            Virial radius.
+        Virial radius.
+
+        :type: array_like
         """
         return val
         
     @parameter("param")
     def n_hankel(self, val):
         """
-        n_hankel : int
-            Number of steps in the Hankel transform integration.
+        Number of steps in the Hankel transform integration.
+
+        :type: int
         """
         return val
     
     @parameter("param")
     def nmass(self, val):
         """
-        nmass : int
-            Number of mass bins.
+        Number of mass bins.
+
+        :type: int
         """
         return int(val)
         
     @parameter("param")
     def nk(self, val):
         """
-        nk : int
-            Number of k bins.
+        Number of k bins.
+
+        :type: int
         """
         return val
         
     @parameter("param")
     def ell_max(self, val):
         """
-        ell_max : int
-            Maximum multipole moment.
+        Maximum multipole moment.
+
+        :type: int
         """
         if val > 11:
             raise ValueError("Please reduce ell_max < 11 or update ia_radial_interface.py")
@@ -549,16 +569,18 @@ class SatelliteAlignment(AlignmentAmplitudes):
     @parameter("param")
     def truncate(self, val):
         """
-        truncate : bool
-            Whether to truncate the NFW profile at the virial radius.
+        Whether to truncate the NFW profile at the virial radius.
+
+        :type: bool
         """
         return val
         
     @parameter("param")
     def method(self, val):
         """
-        method : str
-            Which method to perform Fourier/Hankel transform to use
+        Which method to perform Fourier/Hankel transform to use
+
+        :type: str
         """
         valid_methods = ['hankel', 'fftlog']
         if val not in valid_methods:
@@ -689,7 +711,8 @@ class SatelliteAlignment(AlignmentAmplitudes):
     @cached_quantity
     def hankel(self):
         """
-        Initialize Hankel transform
+        Initialize Hankel transform.
+
         HankelTransform(nu, # The order of the bessel function
                        N,  # Number of steps in the integration
                        h   # Proxy for "size" of steps in integration)
@@ -729,7 +752,8 @@ class SatelliteAlignment(AlignmentAmplitudes):
 
     def calculate_f_ell(self, l, gamma_b):
         """
-        Computes the angular part of the satellite intrinsic shear field,
+        Computes the angular part of the satellite intrinsic shear field.
+
         Eq. (C8) in `Fortuna et al. 2021 <https://arxiv.org/abs/2003.02700>`
         
         Parameters:
@@ -772,8 +796,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
     @cached_quantity
     def wkm_f_ell(self):
         """
-        Integral of the angular part in eq B8 (SB10) using the Legendre polynomials
-        assuming theta_e=theta, phi_e=phi (perfect radial alignment)
+        Integral of the angular part in eq B8 (SB10) using the Legendre polynomials assuming theta_e=theta, phi_e=phi (perfect radial alignment).
     
         Note CCL only calculates the real parts of w(k|m)f_ell and doesn't take the absolute value....
         which means you'll get negative values for wkm in CCL: they take the absolute value later.
@@ -832,9 +855,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
     @cached_quantity
     def compute_uell_gamma_r_hankel(self):
         """
-        THIS FUNCTION IS THE SLOWEST PART!
-        
-        Computes a 4D array containing u_ell as a function of l, z, m, and k.
+        Computes a 4D array containing u_ell as a function of l, z, m, and k. THIS FUNCTION IS THE SLOWEST PART!
   
         h_transf = HankelTransform(ell+0.5,N_hankel,pi/N_hankel)
         Note even though ell is not used in this function, h_transf depends on ell

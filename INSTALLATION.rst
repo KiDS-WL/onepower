@@ -15,8 +15,11 @@ The list of dependencies used by ``onepower`` is:
 1. The `halo mass function calculator, hmf <https://hmf.readthedocs.io/en/3.3.4/>`_
 2. The `halomod <https://github.com/halomod/halomod>`_.
 3. The `Dark Emulator <https://dark-emulator.readthedocs.io/en/latest/>`_
+4. ...
 
-The optional input fits files as used in Fortuna et al. 2021 are available here: `Luminosity_redshift <https://ruhr-uni-bochum.sciebo.de/s/ZdAE6nTf0OPyV6S>`_
+The optional input fits files as used in Fortuna et al. 2021 are available here: `Luminosity_redshift <https://ruhr-uni-bochum.sciebo.de/s/ZdAE6nTf0OPyV6S>`_.
+Those are required for the IA predictions to agree, as they provide sample properties and fractions of red and blue galaxies. 
+Similar data is required if any IA predictions are to be used.
 
 
 User Install
