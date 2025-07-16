@@ -12,3 +12,11 @@
 runs/*/chain/*
 trained_bnl/*
 pipeline_test
+src/tatooine/tatooine.egg-info
+src/tatooine.egg-info
+src/halomodel/halomodel.egg-info
+src/halomodel.egg-info
+src/onepower/onepower.egg-info
+src/onepower.egg-info
+/tmp_docs
+/docs/_autosummary

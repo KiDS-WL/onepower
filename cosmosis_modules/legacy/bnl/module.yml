@@ -1,0 +1,103 @@
+name: bnl_interface
+version: May2025
+purpose: "Calculates the non-linear halo bias correction using DarkQuest emulator"
+url: ""
+interface: bnl_interface.py
+attribution: [Andrej Dvornik, Marika Asgari, Maria-Cristina Fortuna]
+rules:
+    "If you use this module then please cite the papers below"
+cite:
+    - ""
+
+assumptions:
+    - ""
+
+explanation: |
+   Halo model calculations can include a non-linear halo bias correction to the intermediate scales and 1h-2h transition region. This can be achieved by using a radial halo bias function and halo exclusion, or measuered directly from simulations according to the Mead & Verde method.
+
+   For the details see:
+   Mead & Verde 2021
+   Mahony et al. 2022
+
+# List of parameters that can go in the params.ini file in the section for this module    
+params:
+      log_mass_min:
+          meaning: "Minimum halo mass in log10(M_sun h^-1)."
+          type: real
+          default: 
+      log_mass_max:
+          meaning: "Maximum halo mass in log10(M_sun h^-1)."
+          type: real
+          default: 
+      nmass:
+          meaning: "Number of log10 binned halo masses."
+          type: integer
+          default: 
+      zmin:
+          meaning: "Minimum redshift used to calculate ingredients."
+          type: real
+          default: 
+      zmax:
+          meaning: "Maximum redshift used to calculate ingredients."
+          type: real
+          default: 
+      nz:
+          meaning: "Number of redshift bins."
+          type: integer
+          default:
+      nk:
+          meaning: "Number of k-modes."
+          type: integer
+          default:
+      bnl:
+          meaning: "To calculate bnl or no."
+          type: bool
+          default:
+      update_bnl:
+          meaning: "Number likelihood calls before bnl gets recalculated."
+          type: int
+          default:
+inputs:
+    cosmological_parameters:
+        ombh2:
+            meaning: Physical density omega_b * h^2
+            type: real
+            default: 
+        omch2:
+            meaning:  Physical density omega_c * h^2
+            type: real
+            default:
+        omega_lambda:
+            meaning:  Dark energy density fraction of critical
+            type: real
+            default:
+        A_s:
+            meaning:  Amplitude of primordial fluctuations.
+            fluctuations in spheres of radius 8 Mpc/h, at z=0
+            type: real
+            default:
+        n_s:
+            meaning:  Primordial scalar spectral index
+            fluctuations in spheres of radius 8 Mpc/h, at z=0
+            type: real
+            default:
+        w:
+            meaning:  W(z=0) equation of state of dark energy.
+            type: real
+            default:
+    matter_power_lin:
+        k_h:
+          meaning: Linear matter power spectrum
+          type: real 1D
+          default:
+outputs:
+    bnl:
+        beta_interp:
+          meaning: non-linear halo bias correction
+          type: real ND
+        
+        
+
+
+
+
