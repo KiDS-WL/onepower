@@ -685,7 +685,8 @@ class HOD(Framework):
 
 class Cacciato(HOD):
     r"""
-    Cacciato et al. 2013 HOD model.
+    CSMF/CLF model from Cacciato et al. (2013). [1]_
+    
     The conditional observable functions (COFs) tell us how many galaxies with the observed property O, 
     exist in haloes of mass M: :math:`\Phi(O|M)`.
 
@@ -733,6 +734,11 @@ class Cacciato(HOD):
         Decorated HOD assembly bias parameter for satellite galaxies.
     hod_kwargs : dict
         Additional keyword arguments for the HOD class.
+
+    References
+    ----------
+    .. [1]  Cacciato, M. et al., "Cosmological constraints from a combination of galaxy clustering and lensing - III. Application to SDSS data",
+            https://academic.oup.com/mnras/article/430/2/767/2891826.
     """
     def __init__(
             self,
@@ -1293,7 +1299,7 @@ class Simple(HOD):
 
 class Zehavi(HOD):
     """
-    HOD model from Zehavi et al. (2004; https://arxiv.org/abs/astro-ph/0703457)
+    HOD model from Zehavi et al. (2004). [1]_
 
     Same as Zheng model in the limit that sigma=0 and M0=0
     Mean number of central galaxies is only ever 0 or 1 in this HOD
@@ -1312,6 +1318,11 @@ class Zehavi(HOD):
         Decorated HOD assembly bias parameter for satellite galaxies.
     hod_kwargs : dict
         Additional keyword arguments for the HOD class.
+
+    References
+    ----------
+    .. [1]  Zheng, Z. et al., "Galaxy Evolution from Halo Occupation Distribution Modeling of DEEP2 and SDSS Galaxy Clustering",
+            https://iopscience.iop.org/article/10.1086/521074.
     """
     def __init__(
             self,
@@ -1431,7 +1442,7 @@ class Zehavi(HOD):
 
 class Zheng(HOD):
     """
-    Zheng et al. (2005; https://arxiv.org/abs/astro-ph/0408564) HOD model
+    HOD model from Zheng et al. (2005). [1]_
     
     Parameters:
     -----------
@@ -1451,6 +1462,11 @@ class Zheng(HOD):
         Decorated HOD assembly bias parameter for satellite galaxies.
     hod_kwargs : dict
         Additional keyword arguments for the HOD class.
+
+    References
+    ----------
+    .. [1]  Zheng, Z. et al., "Theoretical Models of the Halo Occupation Distribution: Separating Central and Satellite Galaxies",
+            https://iopscience.iop.org/article/10.1086/466510.
     """
     def __init__(
             self,
@@ -1608,7 +1624,7 @@ class Zheng(HOD):
 
 class Zhai(HOD):
     """
-    HOD model from Zhai et al. (2017; https://arxiv.org/abs/1607.05383)
+    HOD model from Zhai et al. (2017). [1]_
     
     Parameters:
     -----------
@@ -1628,6 +1644,11 @@ class Zhai(HOD):
         Decorated HOD assembly bias parameter for satellite galaxies.
     hod_kwargs : dict
         Additional keyword arguments for the HOD model.
+
+    References
+    ----------
+    .. [1]  Zhai, Z. et al., "The clustering of luminous red galaxies at z ~ 0.7 from eBOSS and BOSS data",
+            https://iopscience.iop.org/article/10.3847/1538-4357aa8eee.
     """
     def __init__(
             self,
