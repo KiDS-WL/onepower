@@ -11,7 +11,7 @@ import halomod.concentration as concentration_classes
 import time
 
 
-from onepower.hmi.hmi import HaloModelIngredients
+from onepower.hmi import HaloModelIngredients
 
 
 # Silencing a warning from hmf for which the nonlinear mass is still correctly calculated

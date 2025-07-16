@@ -2,9 +2,9 @@ from cosmosis.datablock import names, option_section
 import numpy as np
 from scipy.interpolate import interp1d
 import numbers
-from onepower.pk.pk import Spectra
-from onepower.pk.bnl import NonLinearBias
-from onepower.pk.add import UpsampledSpectra
+from onepower.pk import Spectra
+from onepower.bnl import NonLinearBias
+from onepower.add import UpsampledSpectra
 
 cosmo_params = names.cosmological_parameters
 

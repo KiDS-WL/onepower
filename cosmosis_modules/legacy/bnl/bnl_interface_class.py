@@ -11,7 +11,7 @@ from collections import OrderedDict
 #import sys
 #sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/pk")
 #from bnl import NonLinearBias
-from onepower.pk.bnl import NonLinearBias
+from onepower.bnl import NonLinearBias
 
 cosmo_params = names.cosmological_parameters
 
