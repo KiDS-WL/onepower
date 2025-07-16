@@ -1,5 +1,5 @@
 Developing OnePower
-==============
+===================
 
 If you're interested in developing OnePower -- welcome! You should first read
 the guide to contributing. This page is about more technical details of how

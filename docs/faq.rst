@@ -2,7 +2,7 @@ FAQ
 ---
 
 What are the units of OnePower's outputs?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *All* quantities in ``onepower`` include little-*h*. So,
 for example, masses are in units of Msun/h, and distances in Mpc/h. This is consistent

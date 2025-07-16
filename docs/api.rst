@@ -6,8 +6,8 @@ API Summary
    :toctree: _autosummary
    :template: modules.rst
 
-   onepower.pk.pk
-   onepower.pk.ia
-   onepower.pk.bnl
-   onepower.hod.hod
-   onepower.hmi.hmi
+   onepower.pk
+   onepower.ia
+   onepower.bnl
+   onepower.hod
+   onepower.hmi
