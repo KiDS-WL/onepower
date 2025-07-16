@@ -43,6 +43,7 @@ extensions =extensions = [
     "nbsphinx",
     "IPython.sphinxext.ipython_console_highlighting",
     "sphinx.ext.intersphinx",
+    "pandoc",
 ]
 
 numpydoc_show_class_members = False

@@ -685,7 +685,7 @@ class HOD(Framework):
 
 class Cacciato(HOD):
     r"""
-    CSMF/CLF model from Cacciato et al. (2013). [1]_
+    CSMF/CLF model from Cacciato et al. (2013) [1]_.
     
     The conditional observable functions (COFs) tell us how many galaxies with the observed property O, 
     exist in haloes of mass M: :math:`\Phi(O|M)`.
@@ -1299,7 +1299,7 @@ class Simple(HOD):
 
 class Zehavi(HOD):
     """
-    HOD model from Zehavi et al. (2004). [1]_
+    HOD model from Zehavi et al. (2004) [1]_.
 
     Same as Zheng model in the limit that sigma=0 and M0=0
     Mean number of central galaxies is only ever 0 or 1 in this HOD
@@ -1442,7 +1442,7 @@ class Zehavi(HOD):
 
 class Zheng(HOD):
     """
-    HOD model from Zheng et al. (2005). [1]_
+    HOD model from Zheng et al. (2005) [1]_.
     
     Parameters:
     -----------
@@ -1624,7 +1624,7 @@ class Zheng(HOD):
 
 class Zhai(HOD):
     """
-    HOD model from Zhai et al. (2017). [1]_
+    HOD model from Zhai et al. (2017) [1]_.
     
     Parameters:
     -----------
