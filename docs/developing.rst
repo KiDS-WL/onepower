@@ -34,11 +34,11 @@ Branching
 ~~~~~~~~~
 For branching, the plan is to use a very similar model to `git-flow <https://nvie.com/posts/a-successful-git-branching-model/>`_.
 That is, we will have a ``dev`` branch which acts as the current truth against which to develop,
-and ``master`` essentially as a deployment branch.
+and ``main`` essentially as a deployment branch.
 I.e., the ``dev`` branch is where all features are merged (and some
-non-urgent bugfixes). ``master`` is always production-ready, and corresponds
+non-urgent bugfixes). ``main`` is always production-ready, and corresponds
 to a particular version on PyPI. Features should be branched from ``dev``,
-and merged back to ``dev``. Hotfixes can be branched directly from ``master``,
+and merged back to ``dev``. Hotfixes can be branched directly from ``main``,
 and merged back there directly, *as well as* back into ``dev``.
 *Breaking changes* must only be merged to ``dev`` when it has been decided that the next
 version will be a major version. We do not do any long-term support of releases
@@ -54,9 +54,9 @@ usually right.
           the version number yet (you want to merge multiple features into a nice release).
           In practice, this happens quite a lot.
 
-.. note:: OK then, why not just use ``master`` to accrue features and fixes until such
+.. note:: OK then, why not just use ``main`` to accrue features and fixes until such
           time we're ready to release? The problem here is that if you've merged a few
-          features into master, but then realize a patch fix is required, there's no
+          features into main, but then realize a patch fix is required, there's no
           easy way to release that patch without releasing all the merged features, thus
           updating the minor version of the code (which may not be desirable). You could
           then just keep all features in their own branches until you're ready to release,
