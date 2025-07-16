@@ -713,9 +713,6 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         Initialize Hankel transform.
 
-        HankelTransform(nu, # The order of the bessel function
-                       N,  # Number of steps in the integration
-                       h   # Proxy for "size" of steps in integration)
         We've used hankel.get_h to set h, N is then h=pi/N, finding best_h = 0.05, best_N=62
         If you want perfect agreement with CCL use: N=50000, h=0.00006 (VERY SLOW!!)
         
