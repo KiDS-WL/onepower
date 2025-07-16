@@ -46,8 +46,8 @@ from hmf._internals._framework import Framework
 
 from .ia import SatelliteAlignment
 from .bnl import NonLinearBias
-from .hod import hod as hod_class
-from .hmi import HaloModelIngredients, HaloModelIngredientsNoLoop
+from .hmi import HaloModelIngredients
+from . import hod as hod_class
 
 valid_units = ['1/h', '1/h^2']
 
