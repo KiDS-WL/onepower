@@ -6,7 +6,7 @@ OnePower
       <div align="center">
         <picture>
         <img
-          src="https://raw.githubusercontent.com/KiDS-WL/halomodel_for_cosmosis/refs/heads/andrej_dev/docs/logosmall_black.png"
+          src="https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png"
           alt="Logo"
         />
       </picture>
