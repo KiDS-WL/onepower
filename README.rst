@@ -1,13 +1,27 @@
 OnePower
 ========
 
-.. image:: https://github.com/KiDS-WL/halomodel_for_cosmosis/blob/andrej_dev/logo.png?raw=true
-   :alt: OnePower
+.. raw:: html
 
-**OnePower**
-*A Python package for calculating power spectra using the halo model approach.*
-
-"The One Tool to Predict All Power Spectra."
+      <div align="center">
+        <picture>
+          <source
+            srcset="https://raw.githubusercontent.com/KiDS-WL/halomodel_for_cosmosis/refs/heads/andrej_dev/docs/logosmall_black.png"
+            media="(prefers-color-scheme: light)"
+          />
+          <source
+            srcset="https://raw.githubusercontent.com/KiDS-WL/halomodel_for_cosmosis/refs/heads/andrej_dev/docs/logosmall_white.png"
+            media="(prefers-color-scheme: dark)"
+          />
+        <img
+          src="https://raw.githubusercontent.com/KiDS-WL/halomodel_for_cosmosis/refs/heads/andrej_dev/docs/logosmall_black.png"
+          alt="Logo"
+        />
+      </picture>
+    <p align="center">
+     <i>"The One Tool to Predict All Power Spectra."</i>
+    </p>
+    </div>
 
 OnePower is a Python package for computing power spectra and one-point statistics using the halo model framework. It is designed for studying the galaxy-matter connection, cosmological structure formation, and intrinsic alignments, especially in the non-linear regime.
 
