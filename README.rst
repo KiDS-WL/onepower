@@ -6,15 +6,15 @@ OnePower
       <div align="center">
         <picture>
           <source
-            srcset="https://raw.githubusercontent.com/KiDS-WL/halomodel_for_cosmosis/refs/heads/andrej_dev/docs/logosmall_black.png"
+            srcset="https://raw.githubusercontent.com/KiDS-WL/halomodel_for_cosmosis/refs/heads/main/docs/logosmall_black.png"
             media="(prefers-color-scheme: light)"
           />
           <source
-            srcset="https://raw.githubusercontent.com/KiDS-WL/halomodel_for_cosmosis/refs/heads/andrej_dev/docs/logosmall_white.png"
+            srcset="https://raw.githubusercontent.com/KiDS-WL/halomodel_for_cosmosis/refs/heads/main/docs/logosmall_white.png"
             media="(prefers-color-scheme: dark)"
           />
         <img
-          src="https://raw.githubusercontent.com/KiDS-WL/halomodel_for_cosmosis/refs/heads/andrej_dev/docs/logosmall_black.png"
+          src="https://raw.githubusercontent.com/KiDS-WL/halomodel_for_cosmosis/refs/heads/main/docs/logosmall_black.png"
           alt="Logo"
         />
       </picture>
