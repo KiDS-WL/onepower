@@ -2,6 +2,7 @@ ipykernel
 nbsphinx
 numpydoc
 pandoc
+sphinx_rtd_theme
 hmf
 halomod
 dark_emulator

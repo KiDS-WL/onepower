@@ -10,4 +10,5 @@ with ``onepower``, and use it efficiently.
     :maxdepth: 2
     
     examples/dvornik23
+    examples/showcase
     faq
