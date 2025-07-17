@@ -20,3 +20,4 @@ src/onepower/onepower.egg-info
 src/onepower.egg-info
 /tmp_docs
 /docs/_autosummary
+/docs/_build
