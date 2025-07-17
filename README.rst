@@ -40,9 +40,9 @@ OnePower is ideal for:
 - Cosmological parameter inference
 - Understanding the galaxy-halo connection in nonlinear regimes
 
-📦 `View on GitHub <https://github.com/yourusername/OnePower>`_
+📦 `View on GitHub <https://github.com/KiDS-WL/halomodel_for_cosmosis>`_
 
-📄 `Read the Docs <https://onepower.readthedocs.io>`_
+📄 `Read the Docs <https://kids-wl.github.io/halomodel_for_cosmosis/index.html>`_
 
 💾 Install via PyPI
 
