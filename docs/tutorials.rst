@@ -11,4 +11,5 @@ with ``onepower``, and use it efficiently.
     
     examples/dvornik23
     examples/showcase
+    examples/cosmosis_interface
     faq
