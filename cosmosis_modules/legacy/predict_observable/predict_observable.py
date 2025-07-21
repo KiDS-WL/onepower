@@ -8,11 +8,13 @@ for the difference in input data cosmology to the predicted output cosmology
 by multiplication of ratio of volumes according to More et al. 2013 and More et al. 2015
 """
 
+import ast
 from cosmosis.datablock import option_section, names
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.integrate import simpson
-from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
+from astropy.cosmology import Flatw0waCDM
+import astropy.cosmology as cosmology_classes
 
 def load_and_interpolate_obs(block, obs_section, suffix_in, extrapolate_option=0.0):
     """
@@ -127,7 +129,7 @@ def setup(options):
         cosmo_class = options.get_string(
             option_section, 'astropy_cosmology_class', default='LambdaCDM'
         )
-        cosmo_class_init = getattr(astropy.cosmology, cosmo_class)
+        cosmo_class_init = getattr(cosmology_classes, cosmo_class)
         cosmo_model_data = cosmo_class_init(**cosmo_kwargs)
     
         config['cosmo_model_data'] = cosmo_model_data
