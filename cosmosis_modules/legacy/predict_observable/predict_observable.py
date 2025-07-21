@@ -73,7 +73,7 @@ def setup(options):
     else:
         config['nbins'] = 1
         config['sample'] = None
-        config['suffixes'] = ['med']
+        config['suffixes'] = ['_1']
 
     obs_dist_file = options.get_string(option_section, 'obs_dist_file', default='')
     config['weighted_binning'] = options.get_bool(option_section, 'weighted_binning', default=False)
