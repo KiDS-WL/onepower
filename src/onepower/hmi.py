@@ -473,10 +473,14 @@ class HaloModelIngredients(CosmologyBase):
         Halo mass function model (for hmf).
     bias_model : str, optional
         Halo bias model (for halomod).
-    halo_profile_model : str, optional
-        Halo profile model (for halomod).
-    halo_concentration_model : str, optional
-        Halo concentration model (for halomod).
+    halo_profile_model_dm : str, optional
+        Halo profile model for dark matter / central galaxies (for halomod).
+    halo_profile_model_sat : str, optional
+        Halo profile model for satellite galaxies (for halomod).
+    halo_concentration_model_dm : str, optional
+        Halo concentration model for dark matter / central galaxies (for halomod).
+    halo_concentration_model_sat : str, optional
+        Halo concentration model for satellite galaxies (for halomod).
     transfer_model : str, optional
         Transfer function model (for hmf).
     transfer_params : dict, optional
@@ -514,8 +518,10 @@ class HaloModelIngredients(CosmologyBase):
             mdef_model='SOMean',
             hmf_model='Tinker10',
             bias_model='Tinker10',
-            halo_profile_model='NFW',
-            halo_concentration_model='Duffy08',
+            halo_profile_model_dm='NFW',
+            halo_concentration_model_dm='Duffy08',
+            halo_profile_model_sat='NFW',
+            halo_concentration_model_sat='Duffy08',
             transfer_model='CAMB',
             transfer_params: dict | None = {},
             growth_model='CambGrowth',
@@ -544,8 +550,10 @@ class HaloModelIngredients(CosmologyBase):
         self.mdef_model = mdef_model
         self.hmf_model = hmf_model
         self.bias_model = bias_model
-        self.halo_concentration_model = halo_concentration_model
-        self.halo_profile_model = halo_profile_model
+        self.halo_concentration_model_dm = halo_concentration_model_dm
+        self.halo_concentration_model_sat = halo_concentration_model_sat
+        self.halo_profile_model_dm = halo_profile_model_dm
+        self.halo_profile_model_sat = halo_profile_model_sat
         self.transfer_model = transfer_model
         self.transfer_params = transfer_params
         self.growth_model = growth_model
@@ -669,18 +677,36 @@ class HaloModelIngredients(CosmologyBase):
         return val
     
     @parameter("param")
-    def halo_concentration_model(self, val):
+    def halo_concentration_model_dm(self, val):
         """
-        Halo concentration model (for halomod).
+        Halo concentration model of dark matter / central galaxies (for halomod).
+
+        :type: str
+        """
+        return val
+    
+    @parameter("param")
+    def halo_concentration_model_sat(self, val):
+        """
+        Halo concentration model of satellite galaxies (for halomod).
 
         :type: str
         """
         return val
         
     @parameter("param")
-    def halo_profile_model(self, val):
+    def halo_profile_model_dm(self, val):
         """
-        Halo profile model (for halomod).
+        Halo profile model of dark matter / central galaxies (for halomod).
+
+        :type: str
+        """
+        return val
+    
+    @parameter("param")
+    def halo_profile_model_sat(self, val):
+        """
+        Halo profile model of satellite galaxies (for halomod).
 
         :type: str
         """
@@ -887,9 +913,9 @@ class HaloModelIngredients(CosmologyBase):
         return self.bias_model
     
     @cached_quantity
-    def _halo_concentration_mod(self):
+    def _halo_concentration_mod_dm(self):
         """
-        Sets the c(M) relation to the one used in HMCode.
+        Sets the c(M) relation of dark matter / centrals to the one used in HMCode.
         Overrides the default passed value in this case.
 
         Returns:
@@ -901,9 +927,25 @@ class HaloModelIngredients(CosmologyBase):
             val = interp_concentration(getattr(concentration_classes, 'Bullock01'))
         else:
             try:
-                val = interp_concentration(getattr(concentration_classes, self.halo_concentration_model))
+                val = interp_concentration(getattr(concentration_classes, self.halo_concentration_model_dm))
             except:
-                val = interp_concentration(make_colossus_cm(self.halo_concentration_model))
+                val = interp_concentration(make_colossus_cm(self.halo_concentration_model_dm))
+        return val
+    
+    @cached_quantity
+    def _halo_concentration_mod_sat(self):
+        """
+        Sets the c(M) relation of satellite galaxies.
+
+        Returns:
+        --------
+        object
+            halo_concentration class
+        """
+        try:
+            val = interp_concentration(getattr(concentration_classes, self.halo_concentration_model_sat))
+        except:
+            val = interp_concentration(make_colossus_cm(self.halo_concentration_model_sat))
         return val
 
     @cached_quantity
@@ -1006,9 +1048,9 @@ class HaloModelIngredients(CosmologyBase):
                 mdef_model=self._mdef_mod,
                 disable_mass_conversion=self.disable_mass_conversion,
                 bias_model=self._bias_mod,
-                halo_profile_model=self.halo_profile_model,
+                halo_profile_model=self.halo_profile_model_dm,
                 halo_profile_params=self.halo_profile_params,
-                halo_concentration_model=self._halo_concentration_mod,
+                halo_concentration_model=self._halo_concentration_mod_dm,
                 cosmo_model=self.cosmo_model,
                 sigma_8=self.sigma_8,
                 n=self.n_s,
@@ -1033,7 +1075,7 @@ class HaloModelIngredients(CosmologyBase):
                 eta_cen = 0.1281 * x.sigma8_z**(-0.3644)
                 x.update(
                     halo_profile_params={'eta_bloat': eta_cen},
-                    halo_concentration_params={'norm': norm_cen, 'K': k}
+                    halo_concentration_params={'norm': norm_cen, 'K': k},
                 )
                 #yield x.clone()
                 x_out.append(x.clone())
@@ -1043,12 +1085,14 @@ class HaloModelIngredients(CosmologyBase):
                 y.update(
                     z=z,
                     mdef_params=mdef_par,
-                    delta_c=dc
+                    delta_c=dc,
+                    halo_profile_model=self.halo_profile_model_sat,
+                    halo_concentration_model=self._halo_concentration_mod_sat,
                 )
                 eta_sat = 0.1281 * y.sigma8_z**(-0.3644)
                 y.update(
                     halo_profile_params={'eta_bloat': eta_sat},
-                    halo_concentration_params={'norm': norm_sat, 'K': k}
+                    halo_concentration_params={'norm': norm_sat, 'K': k},
                 )
                 #yield y.clone()
                 y_out.append(y.clone())
@@ -1060,7 +1104,7 @@ class HaloModelIngredients(CosmologyBase):
                     mdef_params=mdef_par,
                     delta_c=dc,
                     halo_profile_params={'eta_bloat': eta_cen},
-                    halo_concentration_params={'norm': norm_cen}
+                    halo_concentration_params={'norm': norm_cen},
                 )
                 #yield x.clone()
                 x_out.append(x.clone())
@@ -1071,8 +1115,10 @@ class HaloModelIngredients(CosmologyBase):
                     z=z,
                     mdef_params=mdef_par,
                     delta_c=dc,
+                    halo_profile_model=self.halo_profile_model_sat,
+                    halo_concentration_model=self._halo_concentration_mod_sat,
                     halo_profile_params={'eta_bloat': eta_sat},
-                    halo_concentration_params={'norm': norm_sat}
+                    halo_concentration_params={'norm': norm_sat},
                 )
                 #yield y.clone()
                 y_out.append(y.clone())

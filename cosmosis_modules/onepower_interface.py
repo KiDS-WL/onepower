@@ -443,8 +443,10 @@ def execute(block, config):
         'mdef_model': config_hmf['mdef_model'],
         'hmf_model': config_hmf['hmf_model'],
         'bias_model': config_hmf['bias_model'],
-        'halo_profile_model': config_hmf['profile'],
-        'halo_concentration_model': config_hmf['cm_model'],
+        'halo_profile_model_dm': config_hmf['profile'],
+        'halo_concentration_model_dm': config_hmf['cm_model'],
+        'halo_profile_model_sat': config_hmf['profile'], # Pass this parameter separetely for satellites
+        'halo_concentration_model_sat': config_hmf['cm_model'], # Pass this parameters separately for satellites
         'transfer_model': 'FromArray',
         'transfer_params': {'k': transfer_k, 'T': transfer_func},
         'growth_model': 'FromArray',
