@@ -336,17 +336,16 @@ def save_obs_results(block, power, observable_section_name, obs_settings):
     obs_z = power.obs_func_z
     obs_range = power.obs_func_obs
     obs_bins = obs_range.shape[0]
-    
+
     block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
     for nb in range(obs_bins):
+        suffix_obs = f'_{nb+1}'
         if np.all(np.array([obs_settings['obs_min'].size, obs_settings['obs_max'].size, obs_settings['zmin'].size, obs_settings['zmax'].size, obs_settings['nz']]) == 1):
-            suffix_obs = '_med'
-            block.put_double_array_1d(observable_section_name, 'obs_val_med', np.squeeze(obs_range))
-            block.put_double_array_1d(observable_section_name, 'obs_func_med', np.squeeze(obs_func))
-            block.put_double_array_1d(observable_section_name, 'obs_func_med_c', np.squeeze(obs_func_c))
-            block.put_double_array_1d(observable_section_name, 'obs_func_med_s', np.squeeze(obs_func_s))
+            block.put_double_array_1d(observable_section_name, f'obs_val{suffix_obs}', np.squeeze(obs_range))
+            block.put_double_array_1d(observable_section_name, f'obs_func{suffix_obs}', np.squeeze(obs_func))
+            block.put_double_array_1d(observable_section_name, f'obs_func_c{suffix_obs}', np.squeeze(obs_func_c))
+            block.put_double_array_1d(observable_section_name, f'obs_func_s{suffix_obs}', np.squeeze(obs_func_s))
         else:
-            suffix_obs = f'_{nb+1}'
             block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func{suffix_obs}', obs_func[nb])
             block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_c{suffix_obs}', obs_func_c[nb])
             block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb])
@@ -444,8 +443,10 @@ def execute(block, config):
         'mdef_model': config_hmf['mdef_model'],
         'hmf_model': config_hmf['hmf_model'],
         'bias_model': config_hmf['bias_model'],
-        'halo_profile_model': config_hmf['profile'],
-        'halo_concentration_model': config_hmf['cm_model'],
+        'halo_profile_model_dm': config_hmf['profile'],
+        'halo_concentration_model_dm': config_hmf['cm_model'],
+        'halo_profile_model_sat': config_hmf['profile'], # Pass this parameter separetely for satellites
+        'halo_concentration_model_sat': config_hmf['cm_model'], # Pass this parameters separately for satellites
         'transfer_model': 'FromArray',
         'transfer_params': {'k': transfer_k, 'T': transfer_func},
         'growth_model': 'FromArray',

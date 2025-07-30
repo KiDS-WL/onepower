@@ -11,3 +11,4 @@ API Summary
    onepower.bnl
    onepower.hod
    onepower.hmi
+   onepower.add

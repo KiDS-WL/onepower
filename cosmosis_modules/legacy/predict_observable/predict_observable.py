@@ -8,11 +8,13 @@ for the difference in input data cosmology to the predicted output cosmology
 by multiplication of ratio of volumes according to More et al. 2013 and More et al. 2015
 """
 
-from cosmosis.datablock import option_section
+import ast
+from cosmosis.datablock import option_section, names
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.integrate import simpson
-from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
+from astropy.cosmology import Flatw0waCDM
+import astropy.cosmology as cosmology_classes
 
 def load_and_interpolate_obs(block, obs_section, suffix_in, extrapolate_option=0.0):
     """
@@ -73,7 +75,7 @@ def setup(options):
     else:
         config['nbins'] = 1
         config['sample'] = None
-        config['suffixes'] = ['med']
+        config['suffixes'] = ['_1']
 
     obs_dist_file = options.get_string(option_section, 'obs_dist_file', default='')
     config['weighted_binning'] = options.get_bool(option_section, 'weighted_binning', default=False)
@@ -127,7 +129,7 @@ def setup(options):
         cosmo_class = options.get_string(
             option_section, 'astropy_cosmology_class', default='LambdaCDM'
         )
-        cosmo_class_init = getattr(astropy.cosmology, cosmo_class)
+        cosmo_class_init = getattr(cosmology_classes, cosmo_class)
         cosmo_model_data = cosmo_class_init(**cosmo_kwargs)
     
         config['cosmo_model_data'] = cosmo_model_data
@@ -153,14 +155,14 @@ def execute(block, config):
             raise ValueError('Error: zmin, zmax need to be of the same length as the number of bins provided.')
 
         # Adopting the same cosmology object as in halo_model_ingredients module
-        tcmb = block.get_double(cosmo_params, 'TCMB', default=2.7255)
+        tcmb = block.get_double(names.cosmological_parameters, 'TCMB', default=2.7255)
         cosmo_model_run = Flatw0waCDM(
-            H0=block[cosmo_params, 'hubble'],
-            Ob0=block[cosmo_params, 'omega_b'],
-            Om0=block[cosmo_params, 'omega_m'],
-            m_nu=[0, 0, block[cosmo_params, 'mnu']],
-            Tcmb0=tcmb, w0=block[cosmo_params, 'w'],
-            wa=block[cosmo_params, 'wa']
+            H0=block[names.cosmological_parameters, 'hubble'],
+            Ob0=block[names.cosmological_parameters, 'omega_b'],
+            Om0=block[names.cosmological_parameters, 'omega_m'],
+            m_nu=[0, 0, block[names.cosmological_parameters, 'mnu']],
+            Tcmb0=tcmb, w0=block[names.cosmological_parameters, 'w'],
+            wa=block[names.cosmological_parameters, 'wa']
         )
         h_run = cosmo_model_run.h
 
