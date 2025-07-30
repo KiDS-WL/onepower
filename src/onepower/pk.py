@@ -570,9 +570,14 @@ class Spectra(HaloModelIngredients):
         object
             The selected HOD model.
         """
-        if val is None:
+        if isinstance(val, str):
+            # Use getattr to retrieve the class from the module
+            return getattr(hod_class, val)
+        elif isinstance(val, type):
+            # The variable is already a class
             return val
-        return getattr(hod_class, val)
+        else:
+            raise ValueError("The variable is neither a class nor a string representing a class name.")
         
     @cached_quantity
     def calc_bnl(self):
@@ -649,8 +654,8 @@ class Spectra(HaloModelIngredients):
         object
             The HOD model for matter-matter power spectrum.
         """
-        if self.mead_correction == 'fit' and self.hod_model == 'Cacciato':
-            hod = self.select_hod_model(self.hod_model)
+        hod = self.select_hod_model(self.hod_model)
+        if self.mead_correction == 'fit' and hod.__name__ == 'Cacciato':
             return hod(
                 mass=self.mass,
                 dndlnm=self.dndlnm,
@@ -672,7 +677,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             The stellar fraction.
         """
-        if self.mead_correction == 'fit' and self.hod_model == 'Cacciato':
+        if self.hod_mm is not None:
             fstar = self.hod_mm.stellar_fraction
             # Possibly move this to HOD!
             if self.hod_settings_mm['observable_h_unit'] == valid_units[1]:
@@ -1636,8 +1641,8 @@ class Spectra(HaloModelIngredients):
         object
             The observable function.
         """
-        if self.hod_model == 'Cacciato' and self.compute_observable:
-            hod = self.select_hod_model(self.hod_model)
+        hod = self.select_hod_model(self.hod_model)
+        if hod.__name__ == 'Cacciato' and self.compute_observable:
             return hod(
                 mass=self.mass,
                 dndlnm=self.dndlnm,
