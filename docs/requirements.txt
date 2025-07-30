@@ -5,8 +5,8 @@ pandoc
 sphinx_rtd_theme
 #hmf
 #halomod
-git+https://github.com/andrejdvornik/halomod.git
-git+https://github.com/andrejdvornik/hmf.git
+git+https://github.com/andrejdvornik/halomod.git # replace with upstream when PR approved
+git+https://github.com/andrejdvornik/hmf.git # replace with upstream when PR approved
 dark_emulator
 sphinx>=6.1.3
 docutils>=0.19

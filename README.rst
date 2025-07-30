@@ -42,7 +42,7 @@ OnePower is ideal for:
 
 📦 `View on GitHub <https://github.com/KiDS-WL/onepower>`_
 
-📄 `Read the Docs <https://kids-wl.github.io/onepower/index.html>`_
+📄 `Documentation <https://kids-wl.github.io/onepower/index.html>`_
 
 💾 Install via PyPI (link to be added)
 
