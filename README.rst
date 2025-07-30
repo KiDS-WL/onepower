@@ -49,6 +49,8 @@ OnePower is ideal for:
 Example usage
 -------------
 
+As onepower has defaults for all of its parameters, a reasonable resulting power spectra can be calculated by passing no parameters:
+
 .. code-block:: python
 
     from onepower import Spectra
