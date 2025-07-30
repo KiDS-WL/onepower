@@ -1,6 +1,6 @@
 from cosmosis.datablock import names, option_section
 import numpy as np
-from scipy.interpolate import interp1d, InterpolatedUnivariateSpline
+from scipy.interpolate import interp1d
 import numbers
 from onepower.pk import Spectra
 from onepower.bnl import NonLinearBias
