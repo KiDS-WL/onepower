@@ -41,6 +41,7 @@ import numpy as np
 import numexpr as ne
 from scipy.integrate import simpson, trapezoid
 from scipy.ndimage import gaussian_filter1d
+from scipy.interpolate import interp1d
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework
 
@@ -509,11 +510,11 @@ class Spectra(HaloModelIngredients):
         """
         # P(k) can be returned by hmf, together with the specified k_vec!
         if self.matter_power_lin is None:
-            val = self.power
-            self.k_vec = self.kh
+            val_interp = interp1d(self.kh, self.power, fill_value='extrapolate', bounds_error=False, axis=1)
+            val = val_interp(self.k_vec)
         else:
             val = self.matter_power_lin
-        
+
         if self.mead_correction in ['feedback', 'nofeedback'] or self.dewiggle:
             val = self.dewiggle_plin(val)
         if val.shape != (self.z_vec.size, self.k_vec.size):
@@ -533,7 +534,8 @@ class Spectra(HaloModelIngredients):
         val = self.matter_power_nl
         if self.fortuna:
             if self.matter_power_nl is None:
-                val = self.nonlinear_power
+                val_interp = interp1d(self.kh, self.nonlinear_power, fill_value='extrapolate', bounds_error=False, axis=1)
+                val = val_interp(self.k_vec)
         if val.shape != (self.z_vec.size, self.k_vec.size):
             raise ValueError("Shape of input power spectra is not equal to redshift and k-vec dimensions!")
         return val
@@ -1522,6 +1524,20 @@ class Spectra(HaloModelIngredients):
     
         return np.ones_like(mass)
     
+    @cached_quantity
+    def power_spectrum_lin(
+            self,
+        ):
+        """
+        Return the linear power spectrum.
+
+        Returns:
+        --------
+        tuple
+            The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
+        """
+        return PowerSpectrumResult(pk_tot=self._pk_lin)
+
     @cached_quantity
     def power_spectrum_mm(
             self,
