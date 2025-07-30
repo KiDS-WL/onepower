@@ -1,6 +1,6 @@
 from cosmosis.datablock import names, option_section
 import numpy as np
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, InterpolatedUnivariateSpline
 import numbers
 from onepower.pk import Spectra
 from onepower.bnl import NonLinearBias
@@ -127,8 +127,8 @@ def setup_hmf_config(options):
         'cm_model': options.get_string(option_section, 'cm_model', default='Duffy08'),
         'delta_c': options.get_double(option_section, 'delta_c', default=1.686),
         'bias_model': options.get_string(option_section, 'bias_model', default='Tinker10'),
-        'lnk_min': np.log(1e-8),#-18.0
-        'lnk_max': np.log(2e4),#18.0
+        'lnk_min': np.log(1e-8),
+        'lnk_max': np.log(1e8),
         'dlnk': 0.05,#0.001
     }
     return config_hmf
