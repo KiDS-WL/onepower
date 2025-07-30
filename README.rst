@@ -72,40 +72,40 @@ Please cite the above papers if you find this code useful in your research:
 .. code-block:: bibtex
 
     @ARTICLE{Fortuna2021,
-       author = {{Fortuna}, Maria Cristina and {Hoekstra}, Henk and {Joachimi}, Benjamin and {Johnston}, Harry and {Chisari}, Nora Elisa and {Georgiou}, Christos and {Mahony}, Constance},
-        title = "{The halo model as a versatile tool to predict intrinsic alignments}",
+      author = {{Fortuna}, Maria Cristina and {Hoekstra}, Henk and {Joachimi}, Benjamin and {Johnston}, Harry and {Chisari}, Nora Elisa and {Georgiou}, Christos and {Mahony}, Constance},
+      title = "{The halo model as a versatile tool to predict intrinsic alignments}",
       journal = {\mnras},
-     keywords = {gravitational lensing: weak, galaxies: haloes, galaxies: statistics, cosmology: theory, Astrophysics - Cosmology and Nongalactic Astrophysics, Astrophysics - Astrophysics of Galaxies},
-         year = 2021,
-        month = feb,
-       volume = {501},
-       number = {2},
-        pages = {2983-3002},
-          doi = {10.1093/mnras/staa3802},
-archivePrefix = {arXiv},
-       eprint = {2003.02700},
- primaryClass = {astro-ph.CO},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2021MNRAS.501.2983F},
+      keywords = {gravitational lensing: weak, galaxies: haloes, galaxies: statistics, cosmology: theory, Astrophysics - Cosmology and Nongalactic Astrophysics, Astrophysics - Astrophysics of Galaxies},
+      year = 2021,
+      month = feb,
+      volume = {501},
+      number = {2},
+      pages = {2983-3002},
+      doi = {10.1093/mnras/staa3802},
+      archivePrefix = {arXiv},
+      eprint = {2003.02700},
+      primaryClass = {astro-ph.CO},
+      adsurl = {https://ui.adsabs.harvard.edu/abs/2021MNRAS.501.2983F},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-}
+    }
 
     @ARTICLE{Dvornik2023,
-       author = {{Dvornik}, Andrej and {Heymans}, Catherine and {Asgari}, Marika and {Mahony}, Constance and {Joachimi}, Benjamin and {Bilicki}, Maciej and {Chisari}, Elisa and {Hildebrandt}, Hendrik and {Hoekstra}, Henk and {Johnston}, Harry and {Kuijken}, Konrad and {Mead}, Alexander and {Miyatake}, Hironao and {Nishimichi}, Takahiro and {Reischke}, Robert and {Unruh}, Sandra and {Wright}, Angus H.},
-        title = "{KiDS-1000: Combined halo-model cosmology constraints from galaxy abundance, galaxy clustering, and galaxy-galaxy lensing}",
+      author = {{Dvornik}, Andrej and {Heymans}, Catherine and {Asgari}, Marika and {Mahony}, Constance and {Joachimi}, Benjamin and {Bilicki}, Maciej and {Chisari}, Elisa and {Hildebrandt}, Hendrik and {Hoekstra}, Henk and {Johnston}, Harry and {Kuijken}, Konrad and {Mead}, Alexander and {Miyatake}, Hironao and {Nishimichi}, Takahiro and {Reischke}, Robert and {Unruh}, Sandra and {Wright}, Angus H.},
+      title = "{KiDS-1000: Combined halo-model cosmology constraints from galaxy abundance, galaxy clustering, and galaxy-galaxy lensing}",
       journal = {\aap},
-     keywords = {gravitational lensing: weak, methods: statistical, cosmological parameters, galaxies: halos, dark matter, large-scale structure of Universe, Astrophysics - Cosmology and Nongalactic Astrophysics},
-         year = 2023,
-        month = jul,
-       volume = {675},
-          eid = {A189},
-        pages = {A189},
-          doi = {10.1051/0004-6361/202245158},
-archivePrefix = {arXiv},
-       eprint = {2210.03110},
- primaryClass = {astro-ph.CO},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2023A&A...675A.189D},
+      keywords = {gravitational lensing: weak, methods: statistical, cosmological parameters, galaxies: halos, dark matter, large-scale structure of Universe, Astrophysics - Cosmology and Nongalactic Astrophysics},
+      year = 2023,
+      month = jul,
+      volume = {675},
+      eid = {A189},
+      pages = {A189},
+      doi = {10.1051/0004-6361/202245158},
+      archivePrefix = {arXiv},
+      eprint = {2210.03110},
+      primaryClass = {astro-ph.CO},
+      adsurl = {https://ui.adsabs.harvard.edu/abs/2023A&A...675A.189D},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-
+    }
 Disclaimer
 ----------
 
