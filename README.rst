@@ -66,7 +66,7 @@ If you want to calculate the covariance matrix for the power spectra calculated 
 Attribution
 -----------
 
-This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in `Fortuna et al. 2021 <https://doi.org/10.1093/mnras/staa3802>`_, and the halo model code used in `Dvornik et al. 2023 <	https://doi.org/10.1051/0004-6361/202245158>`_ and earlier papers. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
+This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in `Fortuna et al. 2021 <https://doi.org/10.1093/mnras/staa3802>`_, and the halo model code used in `Dvornik et al. 2023 <https://doi.org/10.1051/0004-6361/202245158>`_ and earlier papers. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
 Please cite the above papers if you find this code useful in your research:
 
 .. code-block:: bibtex
