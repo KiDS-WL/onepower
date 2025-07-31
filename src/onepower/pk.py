@@ -1514,6 +1514,8 @@ class Spectra(HaloModelIngredients):
         ndarray
             The Poisson parameter.
         """
+        # TO-DO: Combine all the common used functions (power law, double power law, ...) in a separate class / classes that can be called by user.
+        # Do the similar thing for function in IA lum dependence.
         poisson_type = kwargs.get('poisson_type', 'scalar')
         if poisson_type == 'scalar':
             poisson = kwargs.get('poisson', 1.0)
