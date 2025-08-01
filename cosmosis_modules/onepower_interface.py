@@ -352,7 +352,7 @@ def save_obs_results(block, power, observable_section_name, obs_settings):
             block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_c{suffix_obs}', obs_func_c[nb])
             block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb])
     
-def save_pk_to_grid(block, z_vec, k_vec, base_name, suffix, pk_1h, pk_2h, pk_tot, response, pk_mm=None, pk_mm_in=None):
+def save_pk_to_grid(block, z_vec, k_vec, base_name, suffix, pk_1h, pk_2h, pk_tot):
     """Save P(k) to the block."""
     section_name = f"{base_name}{suffix}"
     block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
