@@ -352,17 +352,12 @@ def save_obs_results(block, power, observable_section_name, obs_settings):
             block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_c{suffix_obs}', obs_func_c[nb])
             block.put_grid(observable_section_name, f'z_bin{suffix_obs}', obs_z[nb], f'obs_val{suffix_obs}', obs_range[nb, 0, :], f'obs_func_s{suffix_obs}', obs_func_s[nb])
     
-def save_pk_to_grid(block, z_vec, k_vec, base_name, suffix, pk_1h, pk_2h, pk_tot, response, pk_mm=None, pk_mm_in=None):
+def save_pk_to_grid(block, z_vec, k_vec, base_name, suffix, pk_1h, pk_2h, pk_tot):
     """Save P(k) to the block."""
     section_name = f"{base_name}{suffix}"
-    if response and pk_mm is not None and pk_mm_in is not None:
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h / pk_mm[0] * pk_mm_in)
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h / pk_mm[0] * pk_mm_in)
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot / pk_mm[0] * pk_mm_in)
-    else:
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h)
-        block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
+    block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_1h', pk_1h)
+    block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k_2h', pk_2h)
+    block.put_grid(section_name, 'z', z_vec, 'k_h', k_vec, 'p_k', pk_tot)
 
 def setup(options):
 
@@ -509,7 +504,8 @@ def execute(block, config):
     if response or fortuna:
         k_nl, p_nl = get_nonlinear_power_spectrum(block, z_vec)
         pk_mm_in = log_linear_interpolation_k(p_nl, k_nl, k_vec)
-        power_kwargs.update({'matter_power_nl': pk_mm_in})
+        power_kwargs.update({'matter_power_nl': pk_mm_in, 
+                             'response': response})
     else:
         pk_mm_in = None
         
@@ -672,7 +668,7 @@ def execute(block, config):
         bg_linear = power.power_spectrum_gg.galaxy_linear_bias
         for nb in range(hod_bins):
             suffix = f'_{nb+1}' if hod_bins != 1 else f''
-            save_pk_to_grid(block, z_out, k_out, 'galaxy_power', suffix, pk_gg_1h[nb], pk_gg_2h[nb], pk_gg[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
+            save_pk_to_grid(block, z_out, k_out, 'galaxy_power', suffix, pk_gg_1h[nb], pk_gg_2h[nb], pk_gg[nb])
             block.put_grid(f'galaxy_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bg_linear', bg_linear[nb])
 
     if p_gm:
@@ -683,7 +679,7 @@ def execute(block, config):
         bgm_linear = power.power_spectrum_gm.galaxy_linear_bias
         for nb in range(hod_bins):
             suffix = f'_{nb+1}' if hod_bins != 1 else f''
-            save_pk_to_grid(block, z_out, k_out, 'matter_galaxy_power', suffix, pk_gm_1h[nb], pk_gm_2h[nb], pk_gm[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
+            save_pk_to_grid(block, z_out, k_out, 'matter_galaxy_power', suffix, pk_gm_1h[nb], pk_gm_2h[nb], pk_gm[nb])
             block.put_grid(f'galaxy_matter_linear_bias{suffix}', 'z', z_vec, 'k_h', k_vec, 'bgm_linear', bgm_linear[nb])
             
     if alignment:
@@ -709,7 +705,7 @@ def execute(block, config):
             pk_II = results.power_spectrum_ii.pk_tot
             for nb in range(hod_bins):
                 suffix = f'_{nb+1}' if hod_bins != 1 else f''
-                save_pk_to_grid(block, z_out, k_out, 'intrinsic_power', suffix, pk_II_1h[nb], pk_II_2h[nb], pk_II[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
+                save_pk_to_grid(block, z_out, k_out, 'intrinsic_power', suffix, pk_II_1h[nb], pk_II_2h[nb], pk_II[nb])
     
         if p_gI:
             results.results(['gi'], ['1h', '2h', 'tot'])
@@ -718,7 +714,7 @@ def execute(block, config):
             pk_gI = results.power_spectrum_gi.pk_tot
             for nb in range(hod_bins):
                 suffix = f'_{nb+1}' if hod_bins != 1 else f''
-                save_pk_to_grid(block, z_out, k_out, 'galaxy_intrinsic_power', suffix, pk_gI_1h[nb], pk_gI_2h[nb], pk_gI[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
+                save_pk_to_grid(block, z_out, k_out, 'galaxy_intrinsic_power', suffix, pk_gI_1h[nb], pk_gI_2h[nb], pk_gI[nb])
     
         if p_mI:
             results.results(['mi'], ['1h', '2h', 'tot'])
@@ -727,7 +723,7 @@ def execute(block, config):
             pk_mI = results.power_spectrum_mi.pk_tot
             for nb in range(hod_bins):
                 suffix = f'_{nb+1}' if hod_bins != 1 else f''
-                save_pk_to_grid(block, z_out, k_out, 'matter_intrinsic_power', suffix, pk_mI_1h[nb], pk_mI_2h[nb], pk_mI[nb], response, pk_mm=pk_mm, pk_mm_in=pk_mm_in)
+                save_pk_to_grid(block, z_out, k_out, 'matter_intrinsic_power', suffix, pk_mI_1h[nb], pk_mI_2h[nb], pk_mI[nb])
             
     config_hmf['power'] = power
     return 0

@@ -173,6 +173,10 @@ class Spectra(HaloModelIngredients):
     -----------
     matter_power_lin : array_like, optional
         Linear matter power spectrum.
+    matter_power_nl : array_like, optional
+        Non-linear matter power spectrum.
+    response : bool, optional
+        Whether to calculate the resulting power spectra in response formalism.
     mb : float, optional
         Gas distribution mass pivot parameter.
     dewiggle : bool, optional
@@ -203,8 +207,6 @@ class Spectra(HaloModelIngredients):
         Parameters for the Poisson distribution.
     t_eff : float, optional
         Effective parameter for the Fortuna model.
-    matter_power_nl : array_like, optional
-        Non-linear matter power spectrum.
     fortuna : bool, optional
         Whether to use the Fortuna model.
     one_halo_ktrunc_ia : float, optional
@@ -238,6 +240,8 @@ class Spectra(HaloModelIngredients):
     """
     def __init__(self,
             matter_power_lin=None,
+            matter_power_nl=None,
+            response=False,
             mb=13.87,
             dewiggle=False,
             bnl=False,
@@ -253,7 +257,6 @@ class Spectra(HaloModelIngredients):
             hod_settings_mm: dict = {},
             obs_settings: dict = {},
             t_eff: float = None,
-            matter_power_nl=None,
             fortuna=False,
             one_halo_ktrunc_ia=4.0,
             two_halo_ktrunc_ia=6.0,
@@ -269,6 +272,8 @@ class Spectra(HaloModelIngredients):
         self.beta_nl = beta_nl
         self.dewiggle = dewiggle
         self.matter_power_lin = matter_power_lin
+        self.matter_power_nl = matter_power_nl
+        self.response = response
         
         self.one_halo_ktrunc = one_halo_ktrunc
         self.two_halo_ktrunc = two_halo_ktrunc
@@ -290,7 +295,6 @@ class Spectra(HaloModelIngredients):
         self.one_halo_ktrunc_ia = one_halo_ktrunc_ia
         self.two_halo_ktrunc_ia = two_halo_ktrunc_ia
         self.align_params = align_params
-        self.matter_power_nl = matter_power_nl
     
     @parameter("param")
     def mb(self, val):
@@ -334,6 +338,24 @@ class Spectra(HaloModelIngredients):
         Linear matter power spectrum.
 
         :type: ndarray
+        """
+        return val
+    
+    @parameter("param")
+    def matter_power_nl(self, val):
+        """
+        Non-linear matter power spectrum
+
+        :type: ndarray
+        """
+        return val
+    
+    @parameter("switch")
+    def response(self, val):
+        """
+        Whether to calculate the resulting power spectra in response formalism.
+
+        :type: bool
         """
         return val
         
@@ -444,16 +466,7 @@ class Spectra(HaloModelIngredients):
         :type: float
         """
         return val
-        
-    @parameter("param")
-    def matter_power_nl(self, val):
-        """
-        Non-linear matter power spectrum
-
-        :type: ndarray
-        """
-        return val
-        
+            
     @parameter("param")
     def one_halo_ktrunc_ia(self, val):
         """
@@ -522,7 +535,7 @@ class Spectra(HaloModelIngredients):
         return val
 
     @cached_quantity
-    def _pk_nl(self, val):
+    def _pk_nl(self):
         """
         Returns the pre-calculated non-linear power spectrum or uses one from hmf.
 
@@ -532,12 +545,12 @@ class Spectra(HaloModelIngredients):
             non-linear power spectrum
         """
         val = self.matter_power_nl
-        if self.fortuna:
+        if self.fortuna or self.response:
             if self.matter_power_nl is None:
                 val_interp = interp1d(self.kh, self.nonlinear_power, fill_value='extrapolate', bounds_error=False, axis=1)
                 val = val_interp(self.k_vec)
-        if val.shape != (self.z_vec.size, self.k_vec.size):
-            raise ValueError("Shape of input power spectra is not equal to redshift and k-vec dimensions!")
+            if val.shape != (self.z_vec.size, self.k_vec.size):
+                raise ValueError("Shape of input power spectra is not equal to redshift and k-vec dimensions!")
         return val
 
     @cached_quantity
@@ -1840,6 +1853,11 @@ class Spectra(HaloModelIngredients):
 
         pk_tot = pk_1h + pk_2h
         galaxy_linear_bias = np.sqrt(self.Ic_term * self.Ic_term + self.Is_term * self.Is_term + 2.0 * self.Ic_term * self.Is_term)
+
+        if self.response:
+            pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=galaxy_linear_bias)
     
@@ -1877,6 +1895,11 @@ class Spectra(HaloModelIngredients):
 
         pk_tot = pk_1h + pk_2h
         galaxy_linear_bias = np.sqrt(self.Ic_term * self.Im_term + self.Is_term * self.Im_term)
+
+        if self.response:
+            pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
     
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=galaxy_linear_bias)
         
@@ -2166,6 +2189,11 @@ class Spectra(HaloModelIngredients):
             pk_1h = pk_sm_1h
             pk_2h = pk_cm_2h + pk_sm_2h
             pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
+
+        if self.response:
+            pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
                 
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
     
@@ -2205,6 +2233,11 @@ class Spectra(HaloModelIngredients):
             pk_1h = pk_ss_1h
             pk_2h = pk_cc_2h + pk_ss_2h + pk_cs_2h
             pk_tot = pk_ss_1h + pk_cc_2h + pk_ss_2h + pk_cs_2h
+
+        if self.response:
+            pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
                 
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
     
@@ -2239,5 +2272,10 @@ class Spectra(HaloModelIngredients):
             pk_1h = pk_cs_1h
             pk_2h = pk_cs_2h + pk_cc_2h
             pk_tot = pk_cs_1h + pk_cs_2h + pk_cc_2h
+
+        if self.response:
+            pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
     
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
