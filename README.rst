@@ -40,14 +40,16 @@ OnePower is ideal for:
 - Cosmological parameter inference
 - Understanding the galaxy-halo connection in nonlinear regimes
 
-📦 `View on GitHub <https://github.com/KiDS-WL/halomodel_for_cosmosis>`_
+📦 `View on GitHub <https://github.com/KiDS-WL/onepower>`_
 
-📄 `Read the Docs <https://kids-wl.github.io/halomodel_for_cosmosis/index.html>`_
+📄 `Documentation <https://kids-wl.github.io/onepower/index.html>`_
 
-💾 Install via PyPI
+💾 Install via PyPI (link to be added)
 
 Example usage
 -------------
+
+As OnePower has defaults for all of its parameters, a reasonable resulting power spectra can be calculated by passing no parameters:
 
 .. code-block:: python
 
@@ -66,19 +68,46 @@ If you want to calculate the covariance matrix for the power spectra calculated 
 Attribution
 -----------
 
-This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in Fortuna et al. 2021, and the halo model code used in Dvornik et al. 2023 and earlier papers. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
-Please also cite the papers below if you find this code useful in your research:
+This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in `Fortuna et al. 2021 <https://doi.org/10.1093/mnras/staa3802>`_, and the halo model code used in `Dvornik et al. 2023 <https://doi.org/10.1051/0004-6361/202245158>`_ and earlier papers. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
+Please cite the above papers if you find this code useful in your research:
 
 .. code-block:: bibtex
 
-    @misc{OnePower,
-      author       = {Your Name and Collaborators},
-      title        = {OnePower: A Python package for calculating power spectra using the halo model approach.},
-      year         = {2025},
-      howpublished = {\url{https://github.com/yourusername/onepower}},
-      note         = {Version 1.0},
+    @ARTICLE{Fortuna2021,
+      author = {{Fortuna}, Maria Cristina and {Hoekstra}, Henk and {Joachimi}, Benjamin and {Johnston}, Harry and {Chisari}, Nora Elisa and {Georgiou}, Christos and {Mahony}, Constance},
+      title = "{The halo model as a versatile tool to predict intrinsic alignments}",
+      journal = {\mnras},
+      keywords = {gravitational lensing: weak, galaxies: haloes, galaxies: statistics, cosmology: theory, Astrophysics - Cosmology and Nongalactic Astrophysics, Astrophysics - Astrophysics of Galaxies},
+      year = 2021,
+      month = feb,
+      volume = {501},
+      number = {2},
+      pages = {2983-3002},
+      doi = {10.1093/mnras/staa3802},
+      archivePrefix = {arXiv},
+      eprint = {2003.02700},
+      primaryClass = {astro-ph.CO},
+      adsurl = {https://ui.adsabs.harvard.edu/abs/2021MNRAS.501.2983F},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
 
+    @ARTICLE{Dvornik2023,
+      author = {{Dvornik}, Andrej and {Heymans}, Catherine and {Asgari}, Marika and {Mahony}, Constance and {Joachimi}, Benjamin and {Bilicki}, Maciej and {Chisari}, Elisa and {Hildebrandt}, Hendrik and {Hoekstra}, Henk and {Johnston}, Harry and {Kuijken}, Konrad and {Mead}, Alexander and {Miyatake}, Hironao and {Nishimichi}, Takahiro and {Reischke}, Robert and {Unruh}, Sandra and {Wright}, Angus H.},
+      title = "{KiDS-1000: Combined halo-model cosmology constraints from galaxy abundance, galaxy clustering, and galaxy-galaxy lensing}",
+      journal = {\aap},
+      keywords = {gravitational lensing: weak, methods: statistical, cosmological parameters, galaxies: halos, dark matter, large-scale structure of Universe, Astrophysics - Cosmology and Nongalactic Astrophysics},
+      year = 2023,
+      month = jul,
+      volume = {675},
+      eid = {A189},
+      pages = {A189},
+      doi = {10.1051/0004-6361/202245158},
+      archivePrefix = {arXiv},
+      eprint = {2210.03110},
+      primaryClass = {astro-ph.CO},
+      adsurl = {https://ui.adsabs.harvard.edu/abs/2023A&A...675A.189D},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+    }
 Disclaimer
 ----------
 

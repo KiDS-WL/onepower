@@ -237,8 +237,13 @@ params:
           meaning: "Number of redshift bins."
           type: integer
           default: 
-      profile:
-          meaning: "type of profile, choose from: NFW, CoredNFW, Einasto, ... see full list:
+      profile_cen:
+          meaning: "type of dark matter / central galaxy profile, choose from: NFW, CoredNFW, Einasto, ... see full list:
+          https://halomod.readthedocs.io/en/latest/_autosummary/halomod.profiles.html"
+          type: str
+          default: NFW
+      profile_sat:
+          meaning: "type of satellite galaxy profile, choose from: NFW, CoredNFW, Einasto, ... see full list:
           https://halomod.readthedocs.io/en/latest/_autosummary/halomod.profiles.html"
           type: str
           default: NFW
@@ -262,8 +267,12 @@ params:
           meaning: Over density threshold, only used if mdef_model!=SOVirial
           type: float 
           default: 
-      cm_model:
-          meaning: "Desired c(M) relation, choose from option availalbe in hmf"
+      cm_model_cen:
+          meaning: "Desired c(M) relation for dark matter / central galaxies, choose from option availalbe in hmf"
+          type: str
+          default: 
+      cm_model_sat:
+          meaning: "Desired c(M) relation for satellite galaxies, choose from option availalbe in hmf"
           type: str
           default: 
       bias_model:
