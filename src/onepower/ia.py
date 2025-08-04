@@ -482,15 +482,16 @@ class SatelliteAlignment(AlignmentAmplitudes):
         self.nmass = nmass
         self.ell_max = ell_max
         self.truncate = truncate
-        # These are for now hardcoded choices
-        self.theta_k = np.pi / 2.0
-        self.phi_k = 0.0
         self.nk = nk
         self.n_hankel = n_hankel
         self.mass_in = mass_in
         self.c_in = c_in
         self.r_s_in = r_s_in
         self.rvir_in = rvir_in
+
+        # These are for now hardcoded choices
+        self.theta_k = np.pi / 2.0
+        self.phi_k = 0.0
     
     @parameter("param")
     def mass_in(self, val):

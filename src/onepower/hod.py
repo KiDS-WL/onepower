@@ -11,6 +11,7 @@ from scipy.special import erf
 from scipy.interpolate import interp1d
 from hmf._internals._framework import Component, pluggable
 
+valid_units = ['1/h', '1/h^2']
 hod_settings_defaults = {
     'observables_file': None,
     'obs_min': np.atleast_1d(8.0),
@@ -50,6 +51,8 @@ class HOD(Component):
 
     Parameters:
     -----------
+    cosmo : object
+        Astropy model object.
     mass : array_like
         Array of halo masses.
     dndlnm : array_like
@@ -69,6 +72,7 @@ class HOD(Component):
 
     def __init__(
             self,
+            cosmo=None,
             mass=None,
             dndlnm=None,
             halo_bias=None,
@@ -76,6 +80,7 @@ class HOD(Component):
             hod_settings: dict = hod_settings_defaults,
             **model_parameters
         ):
+        self.cosmo = cosmo
         self.mass = mass[np.newaxis, np.newaxis, :]
         self.z_vec = z_vec
         self.hod_settings = hod_settings
@@ -575,7 +580,10 @@ class HOD(Component):
         if self._compute_stellar_fraction_cen is None:
             return np.zeros((self.nbins, self.z_vec.size, self.mass.shape[-1]))
         else:
-            return self._interpolate(self._compute_stellar_fraction_cen, axis=0)
+            fstar = self._interpolate(self._compute_stellar_fraction_cen, axis=0)
+            if self.hod_settings['observable_h_unit'] == valid_units[1]:
+                fstar = fstar * self.cosmo.h
+            return fstar
 
     @property
     def stellar_fraction_sat(self):
@@ -590,7 +598,10 @@ class HOD(Component):
         if self._compute_stellar_fraction_sat is None:
             return np.zeros((self.nbins, self.z_vec.size, self.mass.shape[-1]))
         else:
-            return self._interpolate(self._compute_stellar_fraction_sat, axis=0)
+            fstar = self._interpolate(self._compute_stellar_fraction_sat, axis=0)
+            if self.hod_settings['observable_h_unit'] == valid_units[1]:
+                fstar = fstar * self.cosmo.h
+            return fstar
 
     @property
     def stellar_fraction(self):
@@ -605,7 +616,10 @@ class HOD(Component):
         if self._compute_stellar_fraction is None:
             return np.zeros((self.nbins, self.z_vec.size, self.mass.shape[-1]))
         else:
-            return self._interpolate(self._compute_stellar_fraction, axis=0)
+            fstar = self._interpolate(self._compute_stellar_fraction, axis=0)
+            if self.hod_settings['observable_h_unit'] == valid_units[1]:
+                fstar = fstar * self.cosmo.h
+            return fstar
 
     @property
     def _compute_hod_cen(self):

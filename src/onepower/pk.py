@@ -51,9 +51,7 @@ from .hmi import HaloModelIngredients
 from . import hod
 from .utils import poisson
 
-valid_units = ['1/h', '1/h^2']
-
-# Helper functions borrowed from Alex Mead
+# Helper functions borrowed from Alex Mead, no need to reinvent the wheel.
 def Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB=2.7255):
     """
     No-wiggle transfer function from Eisenstein & Hu (1998).
@@ -573,6 +571,7 @@ class Spectra(HaloModelIngredients):
         """
         val = self.matter_power_nl
         if self.fortuna or self.response:
+            # P(k) can be returned by hmf!
             if self.matter_power_nl is None:
                 val_interp = interp1d(self.kh, self.nonlinear_power, fill_value='extrapolate', bounds_error=False, axis=1)
                 val = val_interp(self.k_vec)
@@ -674,6 +673,7 @@ class Spectra(HaloModelIngredients):
         hod = self.hod_model
         if self.mead_correction == 'fit' and hod.__name__ == 'Cacciato':
             return hod(
+                cosmo=self.cosmo_model,
                 mass=self.mass,
                 dndlnm=self.dndlnm,
                 halo_bias=self.halo_bias,
@@ -695,11 +695,7 @@ class Spectra(HaloModelIngredients):
             The stellar fraction.
         """
         if self.hod_mm is not None:
-            fstar = self.hod_mm.stellar_fraction
-            # Possibly move this to HOD!
-            if self.hod_settings_mm['observable_h_unit'] == valid_units[1]:
-                fstar = fstar * self.h0
-            return fstar
+            return self.hod_mm.stellar_fraction
         else:
             return np.zeros((1, self.z_vec.size, self.mass.size))
         
@@ -1599,6 +1595,7 @@ class Spectra(HaloModelIngredients):
             The HOD model.
         """
         return self.hod_model(
+            cosmo=self.cosmo_model,
             mass=self.mass,
             dndlnm=self.dndlnm,
             halo_bias=self.halo_bias,
@@ -1617,11 +1614,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             The stellar fraction.
         """
-        # Possibly move this to HOD!
-        fstar = self.hod.stellar_fraction
-        if self.hod_settings['observable_h_unit'] == valid_units[1]:
-            fstar = fstar * self.h0
-        return fstar
+        return self.hod.stellar_fraction
         
     @cached_quantity
     def mass_avg(self):
@@ -1633,7 +1626,6 @@ class Spectra(HaloModelIngredients):
         ndarray
             The average mass.
         """
-        # Possibly move this to HOD!
         return self.hod.avg_halo_mass_cen / self.hod.number_density
             
     @cached_quantity
@@ -1649,6 +1641,7 @@ class Spectra(HaloModelIngredients):
         hod = self.hod_model
         if hod.__name__ == 'Cacciato' and self.compute_observable:
             return hod(
+                cosmo=self.cosmo_model,
                 mass=self.mass,
                 dndlnm=self.dndlnm,
                 halo_bias=self.halo_bias,

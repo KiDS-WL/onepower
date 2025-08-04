@@ -505,7 +505,6 @@ class HaloModelIngredients(CosmologyBase):
         Correction model from Mead et al.
     
     """
-    #TO-DO: set defaults to sensible values!
     def __init__(self,
             k_vec=np.logspace(-4, 4, 100),
             z_vec=np.linspace(0.0, 3.0, 15),
@@ -1436,7 +1435,6 @@ class HaloModelIngredients(CosmologyBase):
         array_like
             growth factor at z
         """
-        # TO-DO: Check against interpolated one from CAMB!
         return self._hmf_cen[0]._growth_factor_fn(self.z_vec)
     
     # Maybe implement at some point?
