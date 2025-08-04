@@ -9,10 +9,9 @@ import numpy as np
 from scipy.integrate import simpson
 from scipy.special import erf
 from scipy.interpolate import interp1d
-from hmf._internals._cache import cached_quantity, parameter
-from hmf._internals._framework import Framework
+from hmf._internals._framework import Component, pluggable
 
-_defaults = {
+hod_settings_defaults = {
     'observables_file': None,
     'obs_min': np.array([8.0]),
     'obs_max': np.array([12.0]),
@@ -43,7 +42,8 @@ def load_data(file_name):
     return z_data, obs_min, obs_max
 
 
-class HOD(Framework):
+@pluggable
+class HOD(Component):
     """
     Base class for Halo Occupation Distribution (HOD) models.
     This class provides the framework for computing various properties of galaxies within dark matter halos.
@@ -60,74 +60,31 @@ class HOD(Framework):
         Array of redshifts.
     hod_settings : dict
         Dictionary of HOD settings.
+    \*\*model_parameters :
+        These parameters are model-specific. For any model, list the available
+        parameters (and their defaults) using ``<model>._defaults``
     """
+
+    _defaults = {}
+
     def __init__(
             self,
             mass=None,
             dndlnm=None,
             halo_bias=None,
             z_vec=None,
-            hod_settings: dict =_defaults
+            hod_settings: dict = hod_settings_defaults,
+            **model_parameters
         ):
-        self.mass = mass
+        self.mass = mass[np.newaxis, np.newaxis, :]
         self.z_vec = z_vec
         self.hod_settings = hod_settings
         self.dndlnm = dndlnm
         self.halo_bias = halo_bias
+
+        super().__init__(**model_parameters)
         
-    @parameter("param")
-    def z_vec(self, val):
-        """
-        Array of redshifts.
-
-        :type: array_like
-        """
-        return val
-
-    @parameter("param")
-    def mass(self, val):
-        """
-        Array of halo masses.
-
-        :type: array_like
-        """
-        if val is None:
-            raise ValueError("Mass needs to be specified!")
-        # With newaxis we make sure the HOD shape is (nb, nz, nmass)
-        return val[np.newaxis, np.newaxis, :]
-
-    @parameter("param")
-    def dndlnm(self, val):
-        """
-        Halo mass function.
-
-        :type: array_like
-        """
-        if val is None:
-            raise ValueError("Halo mass function needs to be specified!")
-        return val
-
-    @parameter("param")
-    def halo_bias(self, val):
-        """
-        Halo bias.
-
-        :type: array_like
-        """
-        if val is None:
-            raise ValueError("Halo bias function needs to be specified!")
-        return val
-        
-    @parameter("param")
-    def hod_settings(self, val):
-        """
-        Dictionary of HOD settings.
-
-        :type: dict
-        """
-        return val
-        
-    @cached_quantity
+    @cached_property
     def obs(self):
         """
         Returns the array of observables at which to calculate the CSMF/CLF and integrate over to get the HOD
@@ -141,7 +98,7 @@ class HOD(Framework):
         # With newaxis we make sure the COF shape is (nb, nz, nmass, nobs)
         return obs[:, :, np.newaxis, :]
         
-    @cached_quantity
+    @cached_property
     def dndlnm_int(self):
         """
         Returns the interpolated halo mass function at HOD specific redshifts.
@@ -157,7 +114,7 @@ class HOD(Framework):
         )
         return dndlnm_fnc(self.z)
 
-    @cached_quantity
+    @cached_property
     def halo_bias_int(self):
         """
         Returns the interpolated halo bias function at HOD specific redshifts.
@@ -173,7 +130,7 @@ class HOD(Framework):
         )
         return halo_bias_fnc(self.z)
         
-    @cached_quantity
+    @cached_property
     def data(self):
         """
         Returns the z_bins, obs_min and obs_max quantities from tabulated observables file.
@@ -188,7 +145,7 @@ class HOD(Framework):
         else:
             return None
 
-    @cached_quantity
+    @cached_property
     def nobs(self):
         """
         Sets the number of observables in the observable array.
@@ -200,7 +157,7 @@ class HOD(Framework):
         """
         return self.hod_settings['nobs']
 
-    @cached_quantity
+    @cached_property
     def nbins(self):
         """
         Returns the number of HOD bins.
@@ -215,7 +172,7 @@ class HOD(Framework):
         else:
             return len(self.hod_settings['obs_min'])
 
-    @cached_quantity
+    @cached_property
     def nz(self):
         """
         Sets the number of redshift bins.
@@ -230,7 +187,7 @@ class HOD(Framework):
         else:
             return self.hod_settings['nz']
         
-    @cached_quantity
+    @cached_property
     def z(self):
         """
         Sets the HOD specific redshift array.
@@ -247,7 +204,7 @@ class HOD(Framework):
             zmax = self.hod_settings['zmax']
             return np.array([np.linspace(zmin_i, zmax_i, self.nz) for zmin_i, zmax_i in zip(zmin, zmax)])
         
-    @cached_quantity
+    @cached_property
     def log_obs_min(self):
         """
         Sets the min observable limits.
@@ -263,7 +220,7 @@ class HOD(Framework):
             obs_min = self.hod_settings['obs_min']
             return np.array([np.repeat(obs_min_i, self.nz) for obs_min_i in obs_min])
 
-    @cached_quantity
+    @cached_property
     def log_obs_max(self):
         """
         Sets the max observable limits.
@@ -351,7 +308,7 @@ class HOD(Framework):
         n_int = [interp1d(self.z[i], data[i], fill_value=fill_value, bounds_error=False, axis=axis) for i in range(self.z.shape[0])]
         return np.array([f(self.z_vec) for f in n_int])
 
-    @cached_quantity
+    @cached_property
     def _ncen(self):
         r"""
         Total number density of central galaxies with the given HOD.
@@ -361,7 +318,7 @@ class HOD(Framework):
         """
         return self._mass_integral(self._compute_hod_cen)
 
-    @cached_quantity
+    @cached_property
     def _nsat(self):
         r"""
         Total number density of satellite galaxies with the given HOD.
@@ -371,7 +328,7 @@ class HOD(Framework):
         """
         return self._mass_integral(self._compute_hod_sat)
 
-    @cached_quantity
+    @cached_property
     def _ntot(self):
         r"""
         Total number density of galaxies with the given HOD.
@@ -381,7 +338,7 @@ class HOD(Framework):
         """
         return self._mass_integral(self._compute_hod)
 
-    @cached_quantity
+    @cached_property
     def _mass_avg_cen(self):
         r"""
         The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies.
@@ -390,7 +347,7 @@ class HOD(Framework):
         """
         return self._mean_mass_integral(self._compute_hod_cen)
 
-    @cached_quantity
+    @cached_property
     def _mass_avg_sat(self):
         r"""
         The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies.
@@ -399,7 +356,7 @@ class HOD(Framework):
         """
         return self._mean_mass_integral(self._compute_hod_sat)
 
-    @cached_quantity
+    @cached_property
     def _mass_avg_tot(self):
         r"""
         The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies.
@@ -408,7 +365,7 @@ class HOD(Framework):
         """
         return self._mean_mass_integral(self._compute_hod)
 
-    @cached_quantity
+    @cached_property
     def _bg_cen(self):
         r"""
         Mean linear halo bias for the given population of galaxies.
@@ -417,7 +374,7 @@ class HOD(Framework):
         """
         return self._bias_integral(self._compute_hod_cen)
 
-    @cached_quantity
+    @cached_property
     def _bg_sat(self):
         r"""
         Mean linear halo bias for the given population of galaxies.
@@ -426,7 +383,7 @@ class HOD(Framework):
         """
         return self._bias_integral(self._compute_hod_sat)
 
-    @cached_quantity
+    @cached_property
     def _bg_tot(self):
         r"""
         Mean linear halo bias for the given population of galaxies.
@@ -435,7 +392,7 @@ class HOD(Framework):
         """
         return self._bias_integral(self._compute_hod)
 
-    @cached_quantity
+    @cached_property
     def number_density_cen(self):
         """
         Compute the number density of central galaxies.
@@ -447,7 +404,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._ncen)
 
-    @cached_quantity
+    @cached_property
     def number_density_sat(self):
         """
         Compute the number density of satellite galaxies.
@@ -459,7 +416,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._nsat)
 
-    @cached_quantity
+    @cached_property
     def number_density(self):
         """
         Compute the number density of galaxies.
@@ -471,7 +428,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._ntot)
 
-    @cached_quantity
+    @cached_property
     def f_c(self):
         """
         Fraction of central galaxies.
@@ -484,7 +441,7 @@ class HOD(Framework):
         f_c = self._ncen / self._ntot
         return self._interpolate(f_c, fill_value=0.0)
 
-    @cached_quantity
+    @cached_property
     def f_s(self):
         """
         Fraction of satellite galaxies.
@@ -497,7 +454,7 @@ class HOD(Framework):
         f_s = self._nsat / self._ntot
         return self._interpolate(f_s, fill_value=0.0)
 
-    @cached_quantity
+    @cached_property
     def avg_halo_mass_cen(self):
         """
         Compute the average halo mass for central galaxies.
@@ -509,7 +466,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._mass_avg_cen, fill_value=0.0)
 
-    @cached_quantity
+    @cached_property
     def avg_halo_mass_sat(self):
         """
         Compute the average halo mass for satellite galaxies.
@@ -521,7 +478,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._mass_avg_sat, fill_value=0.0)
 
-    @cached_quantity
+    @cached_property
     def avg_halo_mass(self):
         """
         Compute the average halo mass for galaxies.
@@ -533,7 +490,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._mass_avg_tot, fill_value=0.0)
 
-    @cached_quantity
+    @cached_property
     def galaxy_linear_bias_cen(self):
         """
         Compute the galaxy linear bias for central galaxies.
@@ -545,7 +502,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._bg_cen)
 
-    @cached_quantity
+    @cached_property
     def galaxy_linear_bias_sat(self):
         """
         Compute the galaxy linear bias for satellite galaxies.
@@ -557,7 +514,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._bg_sat)
 
-    @cached_quantity
+    @cached_property
     def galaxy_linear_bias(self):
         """
         Compute the galaxy linear bias for galaxies.
@@ -569,7 +526,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._bg_tot)
 
-    @cached_quantity
+    @cached_property
     def hod_cen(self):
         """
         Compute the HOD for central galaxies.
@@ -581,7 +538,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._compute_hod_cen, axis=0)
 
-    @cached_quantity
+    @cached_property
     def hod_sat(self):
         """
         Compute the HOD for satellite galaxies.
@@ -593,7 +550,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._compute_hod_sat, axis=0)
 
-    @cached_quantity
+    @cached_property
     def hod(self):
         """
         Compute the HOD for galaxies.
@@ -605,7 +562,7 @@ class HOD(Framework):
         """
         return self._interpolate(self._compute_hod, axis=0)
 
-    @cached_quantity
+    @cached_property
     def stellar_fraction_cen(self):
         """
         Compute the stellar fraction for central galaxies.
@@ -620,7 +577,7 @@ class HOD(Framework):
         else:
             return self._interpolate(self._compute_stellar_fraction_cen, axis=0)
 
-    @cached_quantity
+    @cached_property
     def stellar_fraction_sat(self):
         """
         Compute the stellar fraction for satellite galaxies.
@@ -635,7 +592,7 @@ class HOD(Framework):
         else:
             return self._interpolate(self._compute_stellar_fraction_sat, axis=0)
 
-    @cached_quantity
+    @cached_property
     def stellar_fraction(self):
         """
         Compute the stellar fraction for galaxies.
@@ -732,184 +689,32 @@ class Cacciato(HOD):
         Decorated HOD assembly bias parameter for central galaxies.
     A_sat : float, optional
         Decorated HOD assembly bias parameter for satellite galaxies.
-    hod_kwargs : dict
-        Additional keyword arguments for the HOD class.
 
     References
     ----------
     .. [1]  Cacciato, M. et al., "Cosmological constraints from a combination of galaxy clustering and lensing - III. Application to SDSS data",
             https://academic.oup.com/mnras/article/430/2/767/2891826.
     """
-    def __init__(
-            self,
-            log10_obs_norm_c=9.95,
-            log10_m_ch=11.24,
-            g1=3.18,
-            g2=0.245,
-            sigma_log10_O_c=0.157,
-            norm_s=0.562,
-            pivot=12.0,
-            alpha_s=-1.18,
-            beta_s=2,
-            b0=-1.17,
-            b1=1.53,
-            b2=-0.217,
-            A_cen=None,
-            A_sat=None,
-            **hod_kwargs
-        ):
 
-        # Call super init MUST BE DONE FIRST.
-        super().__init__(**hod_kwargs)
-        # Set all given parameters.
-
-        # centrals
-        # all observable masses in units of log10(M_sun h^-2)
-        self.log10_m_ch = log10_m_ch  # log10_m_ch
-        self.g1 = g1  # gamma_1
-        self.g2 = g2  # gamma_2
-        self.log10_obs_norm_c = log10_obs_norm_c  # O_0, O_norm_c
-        self.sigma_log10_O_c = sigma_log10_O_c  # sigma_log10_O_c
-        # satellites
-        self.norm_s = norm_s  # extra normalisation factor for satellites
-        self.pivot = pivot  # pivot mass for the normalisation of the stellar mass function: ϕ∗s
-        self.alpha_s = alpha_s  # goes into the conditional stellar mass function COF_sat(M*|M)
-        self.beta_s = beta_s  # goes into the conditional stellar mass function COF_sat(M*|M)
-        # log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
-        self.b0 = b0
-        self.b1 = b1
-        self.b2 = b2
-        # Decorated HOD assembly bias parameters
-        self.A_cen = A_cen
-        self.A_sat = A_sat
-
-    @parameter("param")
-    def log10_m_ch(self, val):
-        """
-        Log10 of the characteristic mass.
-
-        :type: float
-        """
-        return val
+    # all observable masses in units of log10(M_sun h^-2)
+    _defaults ={
+        "log10_obs_norm_c": 9.95, # O_0, O_norm_c
+        "log10_m_ch": 11.24,  # log10_m_ch
+        "g1": 3.18, # gamma_1
+        "g2": 0.245, # gamma_2
+        "sigma_log10_O_c": 0.157, # sigma_log10_O_c
+        "norm_s": 0.562,  # extra normalisation factor for satellites
+        "pivot": 12.0,  # pivot mass for the normalisation of the stellar mass function: ϕ∗s
+        "alpha_s": -1.18, # goes into the conditional stellar mass function COF_sat(M*|M)
+        "beta_s": 2,   # goes into the conditional stellar mass function COF_sat(M*|M)
+        "b0": -1.17, # log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+        "b1": 1.53, # log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+        "b2": -0.217, # log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot
+        "A_cen": None, # Decorated HOD assembly bias parameters
+        "A_sat": None # Decorated HOD assembly bias parameters
+    }
         
-    @parameter("param")
-    def g1(self, val):
-        """
-        Low mass slope parameter for central galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def g2(self, val):
-        """
-        High mass slope parameter for central galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def log10_obs_norm_c(self, val):
-        """
-        Log10 of the normalization for central galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def sigma_log10_O_c(self, val):
-        """
-        Scatter in log10 of the observable for central galaxies.
-
-        :type: float
-        """
-        return val
-    
-    @parameter("param")
-    def norm_s(self, val):
-        """
-        Normalization for satellite galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def pivot(self, val):
-        """
-        Pivot mass for the normalization of the stellar mass function.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def alpha_s(self, val):
-        """
-        Slope parameter for satellite galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def beta_s(self, val):
-        """
-        Exponent parameter for satellite galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def b0(self, val):
-        """
-        Parameter for the conditional stellar mass function.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def b1(self, val):
-        """
-        Parameter for the conditional stellar mass function.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def b2(self, val):
-        """
-        Parameter for the conditional stellar mass function.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def A_cen(self, val):
-        """
-        Decorated HOD assembly bias parameter for central galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def A_sat(self, val):
-        """
-        Decorated HOD assembly bias parameter for satellite galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @cached_quantity
+    @cached_property
     def M_char(self):
         """
         Return the 10.**log10_m_ch
@@ -919,9 +724,9 @@ class Cacciato(HOD):
         array_like
             10.**log10_m_ch
         """
-        return 10.0**self.log10_m_ch
+        return 10.0**self.params['log10_m_ch']
 
-    @cached_quantity
+    @cached_property
     def Obs_norm_c(self):
         """
         Return the 10.**log10_obs_norm_c
@@ -931,9 +736,9 @@ class Cacciato(HOD):
         array_like
             10.**log10_obs_norm_c
         """
-        return 10.0**self.log10_obs_norm_c
+        return 10.0**self.params['log10_obs_norm_c']
 
-    @cached_quantity
+    @cached_property
     def COF_cen(self):
         r"""
         COF for Central galaxies (eq 17 of D23: 2210.03110):
@@ -948,11 +753,11 @@ class Cacciato(HOD):
             COF of central galaxies
         """
         mean_obs_c = self.cal_mean_obs_c[:, :, :, np.newaxis]  # O∗c
-        COF_c = (1.0 / (np.sqrt(2.0 * np.pi) * np.log(10.0) * self.sigma_log10_O_c * self.obs) *
-                 np.exp(-(np.log10(self.obs / mean_obs_c))**2 / (2.0 * self.sigma_log10_O_c**2)))
+        COF_c = (1.0 / (np.sqrt(2.0 * np.pi) * np.log(10.0) * self.params['sigma_log10_O_c'] * self.obs) *
+                 np.exp(-(np.log10(self.obs / mean_obs_c))**2 / (2.0 * self.params['sigma_log10_O_c']**2)))
         return COF_c
 
-    @cached_quantity
+    @cached_property
     def COF_sat(self):
         r"""
         COF for satellite galaxies (eq 18 of D23: 2210.03110):
@@ -967,13 +772,13 @@ class Cacciato(HOD):
         array_like
             COF of satellite galaxies
         """
-        obs_s_star = self.norm_s * self.cal_mean_obs_c[:, :, :, np.newaxis]
+        obs_s_star = self.params['norm_s'] * self.cal_mean_obs_c[:, :, :, np.newaxis]
         obs_tilde = self.obs / obs_s_star
         phi_star_val = self.phi_star_s[:, :, :, np.newaxis]
-        COF_s = (phi_star_val / obs_s_star) * (obs_tilde**self.alpha_s) * np.exp(-obs_tilde**self.beta_s)
+        COF_s = (phi_star_val / obs_s_star) * (obs_tilde**self.params['alpha_s']) * np.exp(-obs_tilde**self.params['beta_s'])
         return COF_s
 
-    @cached_quantity
+    @cached_property
     def COF(self):
         """
         Total COF, sum of central and satellite COFs.
@@ -985,7 +790,7 @@ class Cacciato(HOD):
         """
         return self.COF_cen + self.COF_sat
 
-    @cached_quantity
+    @cached_property
     def obs_func_cen(self):
         r"""
         The observable function (SMF/LF) for central galaxies.
@@ -1011,7 +816,7 @@ class Cacciato(HOD):
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
-    @cached_quantity
+    @cached_property
     def obs_func_sat(self):
         r"""
         The observable function (SMF/LF) for satellite galaxies.
@@ -1037,7 +842,7 @@ class Cacciato(HOD):
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
-    @cached_quantity
+    @cached_property
     def obs_func(self):
         r"""
         The observable function (SMF/LF).
@@ -1063,7 +868,7 @@ class Cacciato(HOD):
         obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
-    @cached_quantity
+    @cached_property
     def cal_mean_obs_c(self):
         r"""
         Stellar to halo mass relation (observable to halo mass relation).
@@ -1085,11 +890,11 @@ class Cacciato(HOD):
         array_like
             observable given halo mass - SMHM relation
         """
-        mean_obs_c = (self.Obs_norm_c * (self.mass / self.M_char)**self.g1 /
-                      (1.0 + (self.mass / self.M_char))**(self.g1 - self.g2))
+        mean_obs_c = (self.Obs_norm_c * (self.mass / self.M_char)**self.params['g1'] /
+                      (1.0 + (self.mass / self.M_char))**(self.params['g1'] - self.params['g2']))
         return mean_obs_c
 
-    @cached_quantity
+    @cached_property
     def phi_star_s(self):
         r"""
         Normalisation of satellite COF function.
@@ -1102,8 +907,8 @@ class Cacciato(HOD):
         array_like
             normalisation of satellite COF function
         """
-        logM_pivot = np.log10(self.mass) - self.pivot
-        log_phi_s = self.b0 + self.b1 * logM_pivot + self.b2 * (logM_pivot**2.0)
+        logM_pivot = np.log10(self.mass) - self.params['pivot']
+        log_phi_s = self.params['b0'] + self.params['b1'] * logM_pivot + self.params['b2'] * (logM_pivot**2.0)
         return 10.0**log_phi_s
 
     @property
@@ -1114,8 +919,8 @@ class Cacciato(HOD):
         :math:`\langle N_{\rm x}|M \rangle = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) {\rm d}O`
         """
         N_cen = simpson(self.COF_cen, self.obs)
-        if self.A_cen is not None:
-            delta_pop_c = self.A_cen * np.fmin(N_cen, 1.0 - N_cen)
+        if self.params['A_cen'] is not None:
+            delta_pop_c = self.params['A_cen'] * np.fmin(N_cen, 1.0 - N_cen)
             N_cen = N_cen + delta_pop_c
         return N_cen
 
@@ -1127,12 +932,12 @@ class Cacciato(HOD):
         :math:`\langle N_{\rm x}|M \rangle = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) {\rm d}O`
         """
         N_sat = simpson(self.COF_sat, self.obs)
-        if self.A_sat is not None:
-            delta_pop_s = self.A_sat * N_sat
+        if self.params['A_sat'] is not None:
+            delta_pop_s = self.params['A_sat'] * N_sat
             N_sat = N_sat + delta_pop_s
         return N_sat
 
-    @cached_quantity
+    @cached_property
     def _compute_stellar_fraction_cen(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
@@ -1142,7 +947,7 @@ class Cacciato(HOD):
         """
         return simpson(self.COF_cen * self.obs, self.obs) / self.mass
 
-    @cached_quantity
+    @cached_property
     def _compute_stellar_fraction_sat(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
@@ -1152,7 +957,7 @@ class Cacciato(HOD):
         """
         return simpson(self.COF_sat * self.obs, self.obs) / self.mass
 
-    @cached_quantity
+    @cached_property
     def _compute_stellar_fraction(self):
         """
         The mean value of the observable for the given galaxy population for a given halo mass.
@@ -1178,79 +983,53 @@ class Simple(HOD):
         Decorated HOD assembly bias parameter for central galaxies.
     A_sat : float, optional
         Decorated HOD assembly bias parameter for satellite galaxies.
-    hod_kwargs : dict
-        Additional keyword arguments for the HOD class.
     """
-    def __init__(
-            self,
-            log10_Mmin=12.0,
-            log10_Msat=13.0,
-            alpha=1.0,
-            A_cen=None,
-            A_sat=None,
-            **hod_kwargs
-        ):
-        # Call super init MUST BE DONE FIRST.
-        super().__init__(**hod_kwargs)
-        self.log10_Mmin = log10_Mmin
-        self.log10_Msat = log10_Msat
-        self.alpha = alpha
-        # Decorated HOD assembly bias parameters
-        self.A_cen = A_cen
-        self.A_sat = A_sat
+
+    _defaults = {
+        "log10_Mmin": 12.0,
+        "log10_Msat": 13.0,
+        "alpha": 1.0,
+        "A_cen": None,
+        "A_sat": None
+    }
         
-    @parameter("param")
-    def log10_Mmin(self, val):
+    @cached_property
+    def log10_Mmin(self):
         """
         Log10 of the minimum mass for central galaxies.
 
         :type: array_like
         """
+        val = self.params['log10_Mmin']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
-    @parameter("param")
-    def log10_Msat(self, val):
+    @cached_property
+    def log10_Msat(self):
         """
         Log10 of the minimum mass for satellite galaxies.
 
         :type: array_like
         """
+        val = self.params['log10_Msat']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
-    @parameter("param")
-    def alpha(self, val):
+    @cached_property
+    def alpha(self):
         """
         Slope parameter for satellite galaxies.
 
         :type: array_like
         """
+        val = self.params['alpha']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
-    @parameter("param")
-    def A_cen(self, val):
-        """
-        Decorated HOD assembly bias parameter for central galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def A_sat(self, val):
-        """
-        Decorated HOD assembly bias parameter for satellite galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @cached_quantity
+    @cached_property
     def Mmin(self):
         """
         Return the Mmin parameter in the correct shape and units.
@@ -1262,7 +1041,7 @@ class Simple(HOD):
         """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
-    @cached_quantity
+    @cached_property
     def Msat(self):
         """
         Return the Msat parameter in the correct shape and units.
@@ -1274,25 +1053,25 @@ class Simple(HOD):
         """
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
 
-    @cached_quantity
+    @cached_property
     def _compute_hod_cen(self):
         """
         Compute the HOD for central galaxies.
         """
         N_cen = np.heaviside(self.mass - self.Mmin, 1.0)
-        if self.A_cen is not None:
-            delta_pop_c = self.A_cen * np.fmin(N_cen, 1.0 - N_cen)
+        if self.params['A_cen'] is not None:
+            delta_pop_c = self.params['A_cen'] * np.fmin(N_cen, 1.0 - N_cen)
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @cached_quantity
+    @cached_property
     def _compute_hod_sat(self):
         """
         Compute the HOD for satellite galaxies.
         """
         N_sat = self.compute_hod_cen * (self.mass / self.Msat)**self.alpha
-        if self.A_sat is not None:
-            delta_pop_s = self.A_sat * N_sat
+        if self.params['A_sat'] is not None:
+            delta_pop_s = self.params['A_sat'] * N_sat
             N_sat = N_sat + delta_pop_s
         return np.tile(N_sat, (self.nz, 1))
         
@@ -1316,84 +1095,58 @@ class Zehavi(HOD):
         Decorated HOD assembly bias parameter for central galaxies.
     A_sat : float, optional
         Decorated HOD assembly bias parameter for satellite galaxies.
-    hod_kwargs : dict
-        Additional keyword arguments for the HOD class.
 
     References
     ----------
     .. [1]  Zheng, Z. et al., "Galaxy Evolution from Halo Occupation Distribution Modeling of DEEP2 and SDSS Galaxy Clustering",
             https://iopscience.iop.org/article/10.1086/521074.
     """
-    def __init__(
-            self,
-            log10_Mmin=12.0,
-            log10_Msat=13.0,
-            alpha=1.0,
-            A_cen=None,
-            A_sat=None,
-            **hod_kwargs
-        ):
-        # Call super init MUST BE DONE FIRST.
-        super().__init__(**hod_kwargs)
-        self.log10_Mmin = log10_Mmin
-        self.log10_Msat = log10_Msat
-        self.alpha = alpha
-        # Decorated HOD assembly bias parameters
-        self.A_cen = A_cen
-        self.A_sat = A_sat
+
+    _defaults = {
+        "log10_Mmin": 12.0,
+        "log10_Msat": 13.0,
+        "alpha": 1.0,
+        "A_cen": None,
+        "A_sat": None
+    }
         
-    @parameter("param")
-    def log10_Mmin(self, val):
+    @cached_property
+    def log10_Mmin(self):
         """
         Log10 of the minimum mass for central galaxies.
 
         :type: array_like
         """
+        val = self.params['log10_Mmin']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
-    @parameter("param")
-    def log10_Msat(self, val):
+    @cached_property
+    def log10_Msat(self):
         """
         Log10 of the minimum mass for satellite galaxies.
 
         :type: array_like
         """
+        val = self.params['log10_Msat']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
-    @parameter("param")
-    def alpha(self, val):
+    @cached_property
+    def alpha(self):
         """
         Slope parameter for satellite galaxies.
 
         :type: array_like
         """
+        val = self.params['alpha']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
-    @parameter("param")
-    def A_cen(self, val):
-        """
-        Decorated HOD assembly bias parameter for central galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def A_sat(self, val):
-        """
-        Decorated HOD assembly bias parameter for satellite galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @cached_quantity
+    @cached_property
     def Mmin(self):
         """
         Return the Mmin parameter in the correct shape and units.
@@ -1405,7 +1158,7 @@ class Zehavi(HOD):
         """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
-    @cached_quantity
+    @cached_property
     def Msat(self):
         """
         Return the Msat parameter in the correct shape and units.
@@ -1417,25 +1170,25 @@ class Zehavi(HOD):
         """
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
 
-    @cached_quantity
+    @cached_property
     def _compute_hod_cen(self):
         """
         Compute the HOD for central galaxies.
         """
         N_cen = np.heaviside(self.mass - self.Mmin, 1.0)
-        if self.A_cen is not None:
-            delta_pop_c = self.A_cen * np.fmin(N_cen, 1.0 - N_cen)
+        if self.params['A_cen'] is not None:
+            delta_pop_c = self.params['A_cen'] * np.fmin(N_cen, 1.0 - N_cen)
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @cached_quantity
+    @cached_property
     def _compute_hod_sat(self):
         """
         Compute the HOD for satellite galaxies.
         """
         N_sat = (self.mass / self.Msat)**self.alpha
-        if self.A_sat is not None:
-            delta_pop_s = self.A_sat * N_sat
+        if self.params['A_sat'] is not None:
+            delta_pop_s =self.params['A_sat'] * N_sat
             N_sat = N_sat + delta_pop_s
         return np.tile(N_sat, (self.nz, 1))
 
@@ -1460,110 +1213,84 @@ class Zheng(HOD):
         Decorated HOD assembly bias parameter for central galaxies.
     A_sat : float, optional
         Decorated HOD assembly bias parameter for satellite galaxies.
-    hod_kwargs : dict
-        Additional keyword arguments for the HOD class.
 
     References
     ----------
     .. [1]  Zheng, Z. et al., "Theoretical Models of the Halo Occupation Distribution: Separating Central and Satellite Galaxies",
             https://iopscience.iop.org/article/10.1086/466510.
     """
-    def __init__(
-            self,
-            log10_Mmin=12.0,
-            log10_M0=12.0,
-            log10_M1=13.0,
-            sigma=0.15,
-            alpha=1.0,
-            A_cen=None,
-            A_sat=None,
-            **hod_kwargs
-        ):
-        # Call super init MUST BE DONE FIRST.
-        super().__init__(**hod_kwargs)
-        self.log10_Mmin = log10_Mmin
-        self.log10_M0 = log10_M0
-        self.log10_M1 = log10_M1
-        self.sigma = sigma
-        self.alpha = alpha
-        # Decorated HOD assembly bias parameters
-        self.A_cen = A_cen
-        self.A_sat = A_sat
 
-    @parameter("param")
-    def log10_Mmin(self, val):
+    _defaults = {
+        "log10_Mmin": 12.0,
+        "log10_M0": 12.0,
+        "log10_M1": 13.0,
+        "sigma": 0.15,
+        "alpha": 1.0,
+        "A_cen": None,
+        "A_sat": None
+    }
+
+    @cached_property
+    def log10_Mmin(self):
         """
         Log10 of the minimum mass for central galaxies.
 
         :type: array_like
         """
+        val = self.params['log10_Mmin']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
-    @parameter("param")
-    def log10_M0(self, val):
+    @cached_property
+    def log10_M0(self):
         """
         Log10 of the cutoff mass for satellite galaxies.
 
         :type: array_like
         """
+        val = self.params['log10_M0']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
     
-    @parameter("param")
-    def log10_M1(self, val):
+    @cached_property
+    def log10_M1(self):
         """
         Log10 of the normalization mass for satellite galaxies.
 
         :type: array_like
         """
+        val = self.params['log10_M1']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
-    @parameter("param")
-    def alpha(self, val):
+    @cached_property
+    def alpha(self):
         """
         Slope parameter for satellite galaxies.
 
         :type: array_like
         """
+        val = self.params['alpha']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
-    @parameter("param")
-    def sigma(self, val):
+    @cached_property
+    def sigma(self):
         """
         Scatter in the central galaxy occupation.
 
         :type: array_like
         """
+        val = self.params['sigma']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
-    @parameter("param")
-    def A_cen(self, val):
-        """
-        Decorated HOD assembly bias parameter for central galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def A_sat(self, val):
-        """
-        Decorated HOD assembly bias parameter for satellite galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @cached_quantity
+    @cached_property
     def Mmin(self):
         """
         Return the Mmin parameter in the correct shape and units.
@@ -1575,7 +1302,7 @@ class Zheng(HOD):
         """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
-    @cached_quantity
+    @cached_property
     def M0(self):
         """
         Return the M0 parameter in the correct shape and units.
@@ -1587,7 +1314,7 @@ class Zheng(HOD):
         """
         return 10.0**self.log10_M0[:, np.newaxis, np.newaxis]
         
-    @cached_quantity
+    @cached_property
     def M1(self):
         """
         Return the M1 parameter in the correct shape and units.ž
@@ -1599,25 +1326,25 @@ class Zheng(HOD):
         """
         return 10.0**self.log10_M1[:, np.newaxis, np.newaxis]
 
-    @cached_quantity
+    @cached_property
     def _compute_hod_cen(self):
         """
         Compute the HOD for central galaxies.
         """
         N_cen = np.where(self.sigma == 0.0, np.heaviside(self.mass - self.Mmin, 1.0), 0.5 * (1.0 + erf(np.log10(self.mass / self.Mmin) / self.sigma)))
-        if self.A_cen is not None:
-            delta_pop_c = self.A_cen * np.fmin(N_cen, 1.0 - N_cen)
+        if self.params['A_cen'] is not None:
+            delta_pop_c = self.params['A_cen'] * np.fmin(N_cen, 1.0 - N_cen)
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @cached_quantity
+    @cached_property
     def _compute_hod_sat(self):
         """
         Compute the HOD for satellite galaxies.
         """
         N_sat = (np.heaviside(self.mass - self.M0, 1.0) * (self.mass - self.M0) / self.M1)**self.alpha
-        if self.A_sat is not None:
-            delta_pop_s = self.A_sat * N_sat
+        if self.params['A_sat'] is not None:
+            delta_pop_s = self.params['A_sat'] * N_sat
             N_sat = N_sat + delta_pop_s
         return np.tile(N_sat, (self.nz, 1))
 
@@ -1642,110 +1369,84 @@ class Zhai(HOD):
         Decorated HOD assembly bias parameter for central galaxies.
     A_sat : float, optional
         Decorated HOD assembly bias parameter for satellite galaxies.
-    hod_kwargs : dict
-        Additional keyword arguments for the HOD model.
 
     References
     ----------
     .. [1]  Zhai, Z. et al., "The clustering of luminous red galaxies at z ~ 0.7 from eBOSS and BOSS data",
             https://iopscience.iop.org/article/10.3847/1538-4357aa8eee.
     """
-    def __init__(
-            self,
-            log10_Mmin=13.68,
-            log10_Msat=14.87,
-            log10_Mcut=12.32,
-            sigma=0.82,
-            alpha=0.41,
-            A_cen=None,
-            A_sat=None,
-            **hod_kwargs
-        ):
-        # Call super init MUST BE DONE FIRST.
-        super().__init__(**hod_kwargs)
-        self.log10_Mmin = log10_Mmin
-        self.log10_Msat = log10_Msat
-        self.log10_Mcut = log10_Mcut
-        self.sigma = sigma
-        self.alpha = alpha
-        # Decorated HOD assembly bias parameters
-        self.A_cen = A_cen
-        self.A_sat = A_sat
+
+    _defaults = {
+        "log10_Mmin": 13.68,
+        "log10_Msat": 14.87,
+        "log10_Mcut": 12.32,
+        "sigma": 0.82,
+        "alpha": 0.41,
+        "A_cen": None,
+        "A_sat": None
+    }
         
-    @parameter("param")
-    def log10_Mmin(self, val):
+    @cached_property
+    def log10_Mmin(self):
         """
         Log10 of the minimum mass for central galaxies.
 
         :type: array_like
         """
+        val = self.params['log10_Mmin']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
-    @parameter("param")
-    def log10_Msat(self, val):
+    @cached_property
+    def log10_Msat(self):
         """
         Log10 of the minimum mass for satellite galaxies.
 
         :type: array_like
         """
+        val = self.params['log10_Msat']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
     
-    @parameter("param")
-    def log10_Mcut(self, val):
+    @cached_property
+    def log10_Mcut(self):
         """
         Log10 of the cutoff mass for satellite galaxies.
 
         :type: array_like
         """
+        val = self.params['log10_Mcut']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)
         
-    @parameter("param")
-    def alpha(self, val):
+    @cached_property
+    def alpha(self):
         """
         Slope parameter for satellite galaxies.
 
         :type: array_like
         """
+        val = self.params['alpha']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
-    @parameter("param")
-    def sigma(self, val):
+    @cached_property
+    def sigma(self):
         """
         Scatter in the central galaxy occupation.
 
         :type: array_like
         """
+        val = self.params['sigma']
         if not hasattr(val, "__len__"):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
         
-    @parameter("param")
-    def A_cen(self, val):
-        """
-        Decorated HOD assembly bias parameter for central galaxies.
-
-        :type: float
-        """
-        return val
-        
-    @parameter("param")
-    def A_sat(self, val):
-        """
-        Decorated HOD assembly bias parameter for satellite galaxies.
-        
-        :type: float
-        """
-        return val
-        
-    @cached_quantity
+    @cached_property
     def Mmin(self):
         """
         Return the Mmin parameter in the correct shape and units.
@@ -1757,7 +1458,7 @@ class Zhai(HOD):
         """
         return 10.0**self.log10_Mmin[:, np.newaxis, np.newaxis]
         
-    @cached_quantity
+    @cached_property
     def Msat(self):
         """
         Return the Msat parameter in the correct shape and units.
@@ -1769,7 +1470,7 @@ class Zhai(HOD):
         """
         return 10.0**self.log10_Msat[:, np.newaxis, np.newaxis]
         
-    @cached_quantity
+    @cached_property
     def Mcut(self):
         """
         Return the Mcut parameter in the correct shape and units.
@@ -1781,25 +1482,25 @@ class Zhai(HOD):
         """
         return 10.0**self.log10_Mcut[:, np.newaxis, np.newaxis]
 
-    @cached_quantity
+    @cached_property
     def _compute_hod_cen(self):
         """
         Compute the HOD for central galaxies.
         """
         N_cen = np.where(self.sigma == 0.0, np.heaviside(self.mass - self.Mmin, 1.0), 0.5 * (1.0 + erf(np.log10(self.mass / self.Mmin) / self.sigma)))
-        if self.A_cen is not None:
-            delta_pop_c = self.A_cen * np.fmin(N_cen, 1.0 - N_cen)
+        if self.params['A_cen'] is not None:
+            delta_pop_c = self.params['A_cen'] * np.fmin(N_cen, 1.0 - N_cen)
             N_cen = N_cen + delta_pop_c
         return np.tile(N_cen, (self.nz, 1))
 
-    @cached_quantity
+    @cached_property
     def _compute_hod_sat(self):
         """
         Compute the HOD for satellite galaxies.
         """
         # Paper has a Nc(M) multiplication, but I think the central condition covers this
         N_sat = ((self.mass / self.Msat)**self.alpha) * np.exp(-self.Mcut / self.mass)
-        if self.A_sat is not None:
-            delta_pop_s = self.A_sat * N_sat
+        if self.params['A_sat'] is not None:
+            delta_pop_s = self.params['A_sat'] * N_sat
             N_sat = N_sat + delta_pop_s
         return np.tile(N_sat, (self.nz, 1))

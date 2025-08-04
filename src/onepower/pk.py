@@ -43,12 +43,12 @@ from scipy.integrate import simpson, trapezoid
 from scipy.ndimage import gaussian_filter1d
 from scipy.interpolate import interp1d
 from hmf._internals._cache import cached_quantity, parameter
-from hmf._internals._framework import Framework
+from hmf._internals._framework import Framework, get_mdl
 
 from .ia import SatelliteAlignment
 from .bnl import NonLinearBias
 from .hmi import HaloModelIngredients
-from . import hod as hod_class
+from . import hod
 
 valid_units = ['1/h', '1/h^2']
 
@@ -251,7 +251,7 @@ class Spectra(HaloModelIngredients):
             pointmass=False,
             compute_observable=False,
             poisson_par: dict = {},
-            hod_model='Cacciato',
+            hod_model=hod.Cacciato,
             hod_params: dict  = {},
             hod_settings: dict = {},
             hod_settings_mm: dict = {},
@@ -494,6 +494,17 @@ class Spectra(HaloModelIngredients):
         """
         return val
     
+    @parameter("model")
+    def hod_model(self, val):
+        r"""
+        An HOD model to use
+
+        :type: str or `hod.HOD` subclass
+        """
+        if val is None:
+            return val
+        return get_mdl(val, "HOD")
+    
     @cached_quantity
     def _beta_nl_array(self):
         """
@@ -568,29 +579,6 @@ class Spectra(HaloModelIngredients):
         if self.fortuna:
             return (1.0 - self.t_eff) * self._pk_nl + self.t_eff * self._pk_lin
         return None    
-        
-    def select_hod_model(self, val):
-        """
-        Select a HOD model to use.
-
-        Parameters:
-        -----------
-        val : str
-            The HOD model to select.
-
-        Returns:
-        --------
-        object
-            The selected HOD model.
-        """
-        if isinstance(val, str):
-            # Use getattr to retrieve the class from the module
-            return getattr(hod_class, val)
-        elif isinstance(val, type):
-            # The variable is already a class
-            return val
-        else:
-            raise ValueError("The variable is neither a class nor a string representing a class name.")
         
     @cached_quantity
     def calc_bnl(self):
@@ -667,7 +655,7 @@ class Spectra(HaloModelIngredients):
         object
             The HOD model for matter-matter power spectrum.
         """
-        hod = self.select_hod_model(self.hod_model)
+        hod = self.hod_model
         if self.mead_correction == 'fit' and hod.__name__ == 'Cacciato':
             return hod(
                 mass=self.mass,
@@ -1607,7 +1595,7 @@ class Spectra(HaloModelIngredients):
         object
             The HOD model.
         """
-        hod = self.select_hod_model(self.hod_model)
+        hod = self.hod_model
         return hod(
             mass=self.mass,
             dndlnm=self.dndlnm,
@@ -1656,7 +1644,7 @@ class Spectra(HaloModelIngredients):
         object
             The observable function.
         """
-        hod = self.select_hod_model(self.hod_model)
+        hod = self.hod_model
         if hod.__name__ == 'Cacciato' and self.compute_observable:
             return hod(
                 mass=self.mass,
