@@ -51,107 +51,6 @@ from .hmi import HaloModelIngredients
 from . import hod
 from .utils import poisson
 
-# Helper functions borrowed from Alex Mead, no need to reinvent the wheel.
-def Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB=2.7255):
-    """
-    No-wiggle transfer function from Eisenstein & Hu (1998).
-
-    Parameters:
-    -----------
-    k : array_like
-        Wavenumber.
-    h : float
-        Hubble parameter.
-    ombh2 : float
-        Baryon density parameter times h^2.
-    ommh2 : float
-        Matter density parameter times h^2.
-    T_CMB : float, optional
-        Temperature of the CMB.
-
-    Returns:
-    --------
-    ndarray
-        The no-wiggle transfer function.
-    """
-    rb = ombh2 / ommh2 # Baryon ratio
-    s = 44.5 * np.log(9.83 / ommh2) / np.sqrt(1.0 + 10.0 * ombh2**0.75) # Equation (26)
-    alpha = 1.0 - 0.328 * np.log(431.0 * ommh2) * rb + 0.38 * np.log(22.3 * ommh2) * rb**2.0 # Equation (31)
-
-    Gamma = (ommh2 / h) * (alpha + (1. - alpha) / (1. + (0.43 * k * s * h)**4)) # Equation (30)
-    q = k * (T_CMB / 2.7)**2.0 / Gamma # Equation (28)
-    L = np.log(2.0 * np.e + 1.8 * q) # Equation (29)
-    C = 14.2 + 731. / (1. + 62.5 * q) # Equation (29)
-    Tk_nw = L / (L + C * q**2.0) # Equation (29)
-    return Tk_nw
-
-def sigmaV(k, power):
-    """
-    Calculate the dispersion from the power spectrum.
-
-    Parameters:
-    -----------
-    k : array_like
-        Wavenumber array.
-    power : array_like
-        Power spectrum.
-
-    Returns:
-    --------
-    ndarray
-        The dispersion.
-    """
-    # In the limit where r -> 0
-    dlnk = np.log(k[1] / k[0])
-    # we multiply by k because our steps are in logk.
-    integ = power * k
-    sigma = (0.5 / np.pi**2.0) * simpson(integ, dx=dlnk, axis=-1)
-    return np.sqrt(sigma / 3.0)
-
-def get_Pk_wiggle(k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25):
-    """
-    Extract the wiggle from the linear power spectrum.
-
-    TODO: Should get to work for uneven log(k) spacing
-    NOTE: https://stackoverflow.com/questions/24143320/gaussian-sum-filter-for-irregular-spaced-points
-    
-    Parameters:
-    -----------
-    k : array_like
-        Wavenumber array.
-    Pk_lin : array_like
-        Linear power spectrum.
-    h : float
-        Hubble parameter.
-    ombh2 : float
-        Baryon density parameter times h^2.
-    ommh2 : float
-        Matter density parameter times h^2.
-    ns : float
-        Spectral index.
-    T_CMB : float, optional
-        Temperature of the CMB.
-    sigma_dlnk : float, optional
-        Smoothing scale in log(k).
-
-    Returns:
-    --------
-    ndarray
-        The wiggle component of the power spectrum.
-    """
-    if not np.isclose(np.all(np.diff(k) - np.diff(k)[0]), 0.):
-        raise ValueError('Dewiggle only works with linearly-spaced k array')
-
-    dlnk = np.log(k[1] / k[0])
-    sigma = sigma_dlnk / dlnk
-
-    Pk_nowiggle = (k**ns) * Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB)**2
-    Pk_ratio = Pk_lin / Pk_nowiggle
-    Pk_ratio = gaussian_filter1d(Pk_ratio, sigma)
-    Pk_smooth = Pk_ratio * Pk_nowiggle
-    Pk_wiggle = Pk_lin - Pk_smooth
-    return Pk_wiggle
-
 
 class PowerSpectrumResult:
     """
@@ -713,10 +612,10 @@ class Spectra(HaloModelIngredients):
         ndarray
             The dewiggled power spectrum.
         """
-        sigma = sigmaV(self.k_vec, plin)
+        sigma = self.sigmaV(self.k_vec, plin)
         ombh2 = self.omega_b * self.h0**2.0
         ommh2 = self.omega_m * self.h0**2.0
-        pk_wig = get_Pk_wiggle(self.k_vec, plin, self.h0, ombh2, ommh2, self.n_s, self.tcmb)
+        pk_wig = self.get_Pk_wiggle(self.k_vec, plin, self.h0, ombh2, ommh2, self.n_s, self.tcmb)
         plin_dw = plin - (1.0 - np.exp(-(self.k_vec[np.newaxis, :] * sigma[:, np.newaxis])**2.0)) * pk_wig
         return plin_dw
 
@@ -2261,3 +2160,105 @@ class Spectra(HaloModelIngredients):
             pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
     
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
+
+
+    # Helper functions borrowed from Alex Mead, no need to reinvent the wheel.
+    def Tk_EH_nowiggle(self, k, h, ombh2, ommh2, T_CMB=2.7255):
+        """
+        No-wiggle transfer function from Eisenstein & Hu (1998).
+
+        Parameters:
+        -----------
+        k : array_like
+            Wavenumber.
+        h : float
+            Hubble parameter.
+        ombh2 : float
+            Baryon density parameter times h^2.
+        ommh2 : float
+            Matter density parameter times h^2.
+        T_CMB : float, optional
+            Temperature of the CMB.
+
+        Returns:
+        --------
+        ndarray
+            The no-wiggle transfer function.
+        """
+        rb = ombh2 / ommh2 # Baryon ratio
+        s = 44.5 * np.log(9.83 / ommh2) / np.sqrt(1.0 + 10.0 * ombh2**0.75) # Equation (26)
+        alpha = 1.0 - 0.328 * np.log(431.0 * ommh2) * rb + 0.38 * np.log(22.3 * ommh2) * rb**2.0 # Equation (31)
+
+        Gamma = (ommh2 / h) * (alpha + (1. - alpha) / (1. + (0.43 * k * s * h)**4)) # Equation (30)
+        q = k * (T_CMB / 2.7)**2.0 / Gamma # Equation (28)
+        L = np.log(2.0 * np.e + 1.8 * q) # Equation (29)
+        C = 14.2 + 731. / (1. + 62.5 * q) # Equation (29)
+        Tk_nw = L / (L + C * q**2.0) # Equation (29)
+        return Tk_nw
+
+    def sigmaV(self, k, power):
+        """
+        Calculate the dispersion from the power spectrum.
+
+        Parameters:
+        -----------
+        k : array_like
+            Wavenumber array.
+        power : array_like
+            Power spectrum.
+
+        Returns:
+        --------
+        ndarray
+            The dispersion.
+        """
+        # In the limit where r -> 0
+        dlnk = np.log(k[1] / k[0])
+        # we multiply by k because our steps are in logk.
+        integ = power * k
+        sigma = (0.5 / np.pi**2.0) * simpson(integ, dx=dlnk, axis=-1)
+        return np.sqrt(sigma / 3.0)
+
+    def get_Pk_wiggle(self, k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25):
+        """
+        Extract the wiggle from the linear power spectrum.
+
+        TODO: Should get to work for uneven log(k) spacing
+        NOTE: https://stackoverflow.com/questions/24143320/gaussian-sum-filter-for-irregular-spaced-points
+
+        Parameters:
+        -----------
+        k : array_like
+            Wavenumber array.
+        Pk_lin : array_like
+            Linear power spectrum.
+        h : float
+            Hubble parameter.
+        ombh2 : float
+            Baryon density parameter times h^2.
+        ommh2 : float
+            Matter density parameter times h^2.
+        ns : float
+            Spectral index.
+        T_CMB : float, optional
+            Temperature of the CMB.
+        sigma_dlnk : float, optional
+            Smoothing scale in log(k).
+
+        Returns:
+        --------
+        ndarray
+            The wiggle component of the power spectrum.
+        """
+        if not np.isclose(np.all(np.diff(k) - np.diff(k)[0]), 0.):
+            raise ValueError('Dewiggle only works with linearly-spaced k array')
+
+        dlnk = np.log(k[1] / k[0])
+        sigma = sigma_dlnk / dlnk
+
+        Pk_nowiggle = (k**ns) * self.Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB)**2
+        Pk_ratio = Pk_lin / Pk_nowiggle
+        Pk_ratio = gaussian_filter1d(Pk_ratio, sigma)
+        Pk_smooth = Pk_ratio * Pk_nowiggle
+        Pk_wiggle = Pk_lin - Pk_smooth
+        return Pk_wiggle
