@@ -17,6 +17,11 @@ parameters_models = {
     ]
 }
 
+poisson_parameters = {
+    'constant': ['poisson'],
+    'power_law': ['poisson', 'pivot', 'slope']
+}
+
 # Mapping of use_mead values to mead_correction values
 mead_correction_map = {
     'mead2020': 'nofeedback',
@@ -510,12 +515,11 @@ def execute(block, config):
         pk_mm_in = None
         
     if galaxy or alignment:
-        poisson_par = {
-            'poisson_type': poisson_type,
-            'poisson': get_string_or_none(block, 'pk_parameters', 'poisson', default=None),
-            'M_0': get_string_or_none(block, 'pk_parameters', 'M_0', default=None),
-            'slope': get_string_or_none(block, 'pk_parameters', 'slope', default=None)
-        }
+        poisson_params = {}
+        for param in poisson_parameters[poisson_type]:
+            if not block.has_value('pk_parameters', param):
+                raise Exception(f'Error: parameter {param} is needed for the requested poisson model: {poisson_type}')
+            poisson_params[param] = get_string_or_none(block, 'pk_parameters', param, default=None)
         
         hod_params['A_cen'] = block[hod_values_name, 'A_cen'] if block.has_value(hod_values_name, 'A_cen') else None
         hod_params['A_sat'] = block[hod_values_name, 'A_sat'] if block.has_value(hod_values_name, 'A_sat') else None
@@ -538,7 +542,8 @@ def execute(block, config):
                 hod_params[param] = np.array(param_list)
                 
         power_kwargs.update({
-            'poisson_par': poisson_par,
+            'poisson_model': poisson_type,
+            'poisson_params': poisson_params,
             'pointmass': point_mass,
             'hod_model': hod_model,
             'hod_params': hod_params,

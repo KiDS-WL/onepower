@@ -49,6 +49,7 @@ from .ia import SatelliteAlignment
 from .bnl import NonLinearBias
 from .hmi import HaloModelIngredients
 from . import hod
+from .utils import poisson
 
 valid_units = ['1/h', '1/h^2']
 
@@ -203,7 +204,9 @@ class Spectra(HaloModelIngredients):
         Whether to use point mass approximation.
     compute_observable : bool, optional
         Whether to compute observable.
-    poisson_par : dict, optional
+    poisson_model : str, optional
+        Poisson model to use.
+    poisson_params : dict, optional
         Parameters for the Poisson distribution.
     t_eff : float, optional
         Effective parameter for the Fortuna model.
@@ -250,7 +253,8 @@ class Spectra(HaloModelIngredients):
             two_halo_ktrunc=2.0,
             pointmass=False,
             compute_observable=False,
-            poisson_par: dict = {},
+            poisson_model=poisson.constant,
+            poisson_params: dict = {},
             hod_model=hod.Cacciato,
             hod_params: dict  = {},
             hod_settings: dict = {},
@@ -281,7 +285,8 @@ class Spectra(HaloModelIngredients):
         # Galaxy spectra specific kwargs:
         self.pointmass = pointmass
         self.compute_observable = compute_observable
-        self.poisson_par = poisson_par
+        self.poisson_model = poisson_model
+        self.poisson_params = poisson_params
         self.hod_settings = hod_settings
         self.hod_params = hod_params
         self.hod_model = hod_model
@@ -405,7 +410,7 @@ class Spectra(HaloModelIngredients):
         return val
         
     @parameter("param")
-    def poisson_par(self, val):
+    def poisson_params(self, val):
         """
         Parameters for the Poisson distribution.    
 
@@ -504,6 +509,17 @@ class Spectra(HaloModelIngredients):
         if val is None:
             return val
         return get_mdl(val, "HOD")
+    
+    @parameter("model")
+    def poisson_model(self, val):
+        r"""
+        A Poisson parameter model to use
+
+        :type: str or `poisson.Poisson` subclass
+        """
+        if val is None:
+            return val
+        return get_mdl(val, "Poisson")
     
     @cached_quantity
     def _beta_nl_array(self):
@@ -1496,7 +1512,8 @@ class Spectra(HaloModelIngredients):
         fstar_z = 0.409 + 0.0224 * theta_agn
         return fstar_0 * np.power(10.0, z_vec * fstar_z)
 
-    def poisson_func(self, mass, **kwargs):
+    @cached_quantity
+    def poisson_func(self):
         """
         Calculates the Poisson parameter for use in Pgg integrals.
         
@@ -1507,7 +1524,7 @@ class Spectra(HaloModelIngredients):
         -----------
         mass : array_like
             Halo mass array.
-        kwargs : dict
+        model_parameters : dict
             Keyword arguments for different options.
 
         Returns:
@@ -1515,22 +1532,8 @@ class Spectra(HaloModelIngredients):
         ndarray
             The Poisson parameter.
         """
-        # TO-DO: Combine all the common used functions (power law, double power law, ...) in a separate class / classes that can be called by user.
-        # Do the similar thing for function in IA lum dependence.
-        poisson_type = kwargs.get('poisson_type', 'scalar')
-        if poisson_type == 'scalar':
-            poisson = kwargs.get('poisson', 1.0)
-            return poisson * np.ones_like(mass)
-    
-        if poisson_type == 'power_law':
-            poisson = kwargs.get('poisson', 1.0)
-            M_0 = kwargs.get('M_0', None)
-            slope = kwargs.get('slope', None)
-            if M_0 is None or slope is None:
-                raise ValueError("M_0 and slope must be provided for 'power_law' poisson_type.")
-            return poisson * (mass / (10.0**M_0))**slope
-    
-        return np.ones_like(mass)
+        func = self.poisson_model(self.mass, **self.poisson_params)
+        return func.poisson_func
     
     @cached_quantity
     def power_spectrum_lin(
@@ -1595,8 +1598,7 @@ class Spectra(HaloModelIngredients):
         object
             The HOD model.
         """
-        hod = self.hod_model
-        return hod(
+        return self.hod_model(
             mass=self.mass,
             dndlnm=self.dndlnm,
             halo_bias=self.halo_bias,
@@ -1820,7 +1822,6 @@ class Spectra(HaloModelIngredients):
         tuple
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
         """
-        poisson = self.poisson_func(self.mass, **self.poisson_par)
         if self.bnl:
             I_NL = self.I_NL(self.central_galaxy_profile + self.satellite_galaxy_profile, self.central_galaxy_profile + self.satellite_galaxy_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm,self.A_term,self.mean_density0, self._beta_nl_array, self.I12, self.I21, self.I22)
             pk_cc_2h = self._pk_lin * self.Ic_term * self.Ic_term
@@ -1832,7 +1833,7 @@ class Spectra(HaloModelIngredients):
             pk_cs_2h = self._pk_lin * self.Ic_term * self.Is_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
 
         pk_cs_1h = self.compute_1h_term(self.central_galaxy_profile, self.satellite_galaxy_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
-        pk_ss_1h = self.compute_1h_term(self.satellite_galaxy_profile * poisson, self.satellite_galaxy_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
+        pk_ss_1h = self.compute_1h_term(self.satellite_galaxy_profile * self.poisson_func, self.satellite_galaxy_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
 
         pk_1h = 2.0 * pk_cs_1h + pk_ss_1h
         pk_2h = pk_cc_2h + pk_ss_2h + 2.0 * pk_cs_2h
