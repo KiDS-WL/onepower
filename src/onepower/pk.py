@@ -1439,10 +1439,11 @@ class Spectra(HaloModelIngredients):
 
         Returns:
         --------
-        tuple
-            The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
+        PowerSpectrumResult object
+            The total power spectrums.
+            Each element of PowerSpectrumResult is a 3D array with shape (1, n_z, n_k).
         """
-        return PowerSpectrumResult(pk_tot=self._pk_lin)
+        return PowerSpectrumResult(pk_tot=self._pk_lin[np.newaxis, :, :])
 
     @cached_quantity
     def power_spectrum_mm(
@@ -1453,8 +1454,9 @@ class Spectra(HaloModelIngredients):
 
         Returns:
         --------
-        tuple
+        PowerSpectrumResult object
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
+            Each element of PowerSpectrumResult is a 3D array with shape (1, n_z, n_k).
         """
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
@@ -1711,8 +1713,9 @@ class Spectra(HaloModelIngredients):
 
         Returns:
         --------
-        tuple
+        PowerSpectrumResult object
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
+            Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
         if self.bnl:
             I_NL = self.I_NL(self.central_galaxy_profile + self.satellite_galaxy_profile, self.central_galaxy_profile + self.satellite_galaxy_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm,self.A_term,self.mean_density0, self._beta_nl_array, self.I12, self.I21, self.I22)
@@ -1749,8 +1752,9 @@ class Spectra(HaloModelIngredients):
 
         Returns:
         --------
-        tuple
+        PowerSpectrumResult object
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
+            Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
@@ -2035,8 +2039,9 @@ class Spectra(HaloModelIngredients):
 
         Returns:
         --------
-        tuple
+        PowerSpectrumResult object
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
+            Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
@@ -2085,8 +2090,9 @@ class Spectra(HaloModelIngredients):
 
         Returns:
         --------
-        tuple
+        PowerSpectrumResult object
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
+            Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
         # Needs Poisson parameter as well!
         if self.bnl:
@@ -2129,8 +2135,9 @@ class Spectra(HaloModelIngredients):
 
         Returns:
         --------
-        tuple
+        PowerSpectrumResult object
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
+            Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
         if self.bnl:
             I_NL_cc = self.I_NL(self.central_alignment_profile, self.central_galaxy_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12, self.I21, self.I22)
