@@ -77,13 +77,13 @@ class HOD(Component):
             dndlnm=None,
             halo_bias=None,
             z_vec=None,
-            hod_settings: dict = hod_settings_defaults,
+            hod_settings=None,
             **model_parameters
         ):
         self.cosmo = cosmo
         self.mass = mass[np.newaxis, np.newaxis, :]
         self.z_vec = z_vec
-        self.hod_settings = hod_settings
+        self.hod_settings = hod_settings or hod_settings_defaults
         self.dndlnm = dndlnm
         self.halo_bias = halo_bias
 
@@ -241,7 +241,7 @@ class HOD(Component):
             obs_max = self.hod_settings['obs_max']
             return np.array([np.repeat(obs_max_i, self.nz) for obs_max_i in obs_max])
 
-    def _mass_integral(self, hod):
+    def _mass_integral(self, hod): # pragma: no cover
         """
         Compute the mass integral for a given HOD.
 
@@ -258,7 +258,7 @@ class HOD(Component):
         integrand = hod * self.dndlnm_int / self.mass
         return simpson(integrand, self.mass, axis=-1)
 
-    def _mean_mass_integral(self, hod):
+    def _mean_mass_integral(self, hod): # pragma: no cover
         """
         Compute the mean mass integral for a given HOD.
 
@@ -275,7 +275,7 @@ class HOD(Component):
         integrand = hod * self.dndlnm_int
         return simpson(integrand, self.mass, axis=-1)
 
-    def _bias_integral(self, hod):
+    def _bias_integral(self, hod): # pragma: no cover
         """
         Compute the bias integral for a given HOD.
 

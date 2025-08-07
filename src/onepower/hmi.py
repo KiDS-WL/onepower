@@ -61,6 +61,8 @@ class CosmologyBase(Framework):
 
     Parameters:
     -----------
+    z_vec : array_like, optional
+        Array of redshifts.
     h0 : float, optional
         Hubble parameter (small h).
     omega_c : float, optional
@@ -85,6 +87,7 @@ class CosmologyBase(Framework):
         Log10 of AGN temperature.
     """
     def __init__(self,
+            z_vec=np.linspace(0.0, 3.0, 15),
             h0=0.7,
             omega_c=0.25,
             omega_b=0.05,
@@ -97,6 +100,7 @@ class CosmologyBase(Framework):
             sigma_8=0.8,
             log10T_AGN=7.8,
         ):
+        self.z_vec = z_vec
         self.h0 = h0
         self.omega_c = omega_c
         self.omega_b = omega_b
@@ -108,6 +112,15 @@ class CosmologyBase(Framework):
         self.m_nu = m_nu
         self.sigma_8 = sigma_8
         self.log10T_AGN = log10T_AGN
+
+    @parameter("param")
+    def z_vec(self, val):
+        """
+        Array of redshifts.
+
+        :type: array_like
+        """
+        return val
 
     @parameter("param")
     def h0(self, val):
@@ -227,6 +240,18 @@ class CosmologyBase(Framework):
             w0=self.w0,
             wa=self.wa
         )
+    
+    @cached_quantity
+    def scale_factor(self):
+        """
+        Return the scale factor.
+
+        Returns:
+        --------
+        array_like
+            scale factor array
+        """
+        return self.cosmo_model.scale_factor(self.z_vec)
 
     def _Omega_m(self, a, Om, Ode, Ok):
         """
@@ -453,8 +478,6 @@ class HaloModelIngredients(CosmologyBase):
     -----------
     k_vec : array_like, optional
         Array of wavenumbers.
-    z_vec : array_like, optional
-        Array of redshifts.
     lnk_min : float, optional
         Minimum natural log of wavenumber (for hmf).
     lnk_max : float, optional
@@ -507,7 +530,6 @@ class HaloModelIngredients(CosmologyBase):
     """
     def __init__(self,
             k_vec=np.logspace(-4, 4, 100),
-            z_vec=np.linspace(0.0, 3.0, 15),
             lnk_min=np.log(10**(-4.0)),
             lnk_max=np.log(10**(4.0)),
             dlnk=(np.log(10**(4.0)) - np.log(10**(-4.0))) / 100,
@@ -522,9 +544,9 @@ class HaloModelIngredients(CosmologyBase):
             halo_profile_model_sat='NFW',
             halo_concentration_model_sat='Duffy08',
             transfer_model='CAMB',
-            transfer_params: dict | None = {},
+            transfer_params: dict | None = None,
             growth_model='CambGrowth',
-            growth_params: dict | None = {},
+            growth_params: dict | None = None,
             norm_cen=1.0,
             norm_sat=1.0,
             eta_cen=0.0,
@@ -539,7 +561,6 @@ class HaloModelIngredients(CosmologyBase):
         self.mead_correction = mead_correction
 
         self.k_vec = k_vec
-        self.z_vec = z_vec
         self.lnk_min = lnk_min
         self.lnk_max = lnk_max
         self.dlnk = dlnk
@@ -553,9 +574,9 @@ class HaloModelIngredients(CosmologyBase):
         self.halo_concentration_model_sat = halo_concentration_model_sat
         self.halo_profile_model_dm = halo_profile_model_dm
         self.halo_profile_model_sat = halo_profile_model_sat
-        self.transfer_model = transfer_model
+        self.transfer_model = transfer_model or {}
         self.transfer_params = transfer_params
-        self.growth_model = growth_model
+        self.growth_model = growth_model or {}
         self.growth_params = growth_params
 
         self.norm_cen = norm_cen
@@ -580,15 +601,6 @@ class HaloModelIngredients(CosmologyBase):
     def k_vec(self, val):
         """
         Array of wavenumbers.
-
-        :type: array_like
-        """
-        return val
-        
-    @parameter("param")
-    def z_vec(self, val):
-        """
-        Array of redshifts.
 
         :type: array_like
         """
@@ -976,18 +988,6 @@ class HaloModelIngredients(CosmologyBase):
             astropy cosmology object for hmf package
         """
         return {'cosmo': self.cosmo_model}
-    
-    @cached_quantity
-    def scale_factor(self):
-        """
-        Return the scale factor.
-
-        Returns:
-        --------
-        array_like
-            scale factor array
-        """
-        return self.cosmo_model.scale_factor(self.z_vec)
 
     @cached_quantity
     def disable_mass_conversion(self):

@@ -151,17 +151,17 @@ class Spectra(HaloModelIngredients):
             pointmass=False,
             compute_observable=False,
             poisson_model=poisson.constant,
-            poisson_params: dict = {},
+            poisson_params: dict | None = None,
             hod_model=hod.Cacciato,
-            hod_params: dict  = {},
-            hod_settings: dict = {},
-            hod_settings_mm: dict = {},
-            obs_settings: dict = {},
+            hod_params: dict | None = None,
+            hod_settings: dict | None = None,
+            hod_settings_mm: dict | None = None,
+            obs_settings: dict | None = None,
             t_eff: float = None,
             fortuna=False,
             one_halo_ktrunc_ia=4.0,
             two_halo_ktrunc_ia=6.0,
-            align_params: dict = {},
+            align_params: dict | None = None,
             **hmf_kwargs
         ):
         
@@ -183,20 +183,20 @@ class Spectra(HaloModelIngredients):
         self.pointmass = pointmass
         self.compute_observable = compute_observable
         self.poisson_model = poisson_model
-        self.poisson_params = poisson_params
-        self.hod_settings = hod_settings
-        self.hod_params = hod_params
+        self.poisson_params = poisson_params or {}
+        self.hod_settings = hod_settings or {}
+        self.hod_params = hod_params or {}
         self.hod_model = hod_model
-        self.obs_settings = obs_settings
+        self.obs_settings = obs_settings or {}
 
-        self.hod_settings_mm = hod_settings_mm
+        self.hod_settings_mm = hod_settings_mm or {}
         
         # Alignment spectra specific kwargs:
         self.t_eff = t_eff
         self.fortuna = fortuna
         self.one_halo_ktrunc_ia = one_halo_ktrunc_ia
         self.two_halo_ktrunc_ia = two_halo_ktrunc_ia
-        self.align_params = align_params
+        self.align_params = align_params or {}
     
     @parameter("param")
     def mb(self, val):

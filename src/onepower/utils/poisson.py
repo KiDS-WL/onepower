@@ -1,8 +1,3 @@
-r"""
-A module for 
-
-"""
-
 from functools import cached_property
 import numpy as np
 from hmf._internals._framework import Component, pluggable

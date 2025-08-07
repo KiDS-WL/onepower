@@ -38,8 +38,8 @@ class UpsampledSpectra(Framework):
             fraction_z=None,
             fraction=None,
             model=None,
-            model_1_params={},
-            model_2_params=None,
+            model_1_params: dict | None = None,
+            model_2_params: dict | None = None,
             extrapolate_option='extrapolate',
         ):
         super().__init__()
@@ -48,7 +48,7 @@ class UpsampledSpectra(Framework):
         self.fraction_z = fraction_z
         self.fraction = fraction
         self.model = model
-        self._model_1_params = model_1_params
+        self._model_1_params = model_1_params or {}
         self._model_2_params = model_2_params
         self.extrapolate_option = extrapolate_option
 

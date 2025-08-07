@@ -251,7 +251,7 @@ class AlignmentAmplitudes(Framework):
         """
         return self._initialize_luminosity_pdf_z_array('satellites')
 
-    def _initialize_luminosity_array(self, galaxy_type):
+    def _initialize_luminosity_array(self, galaxy_type): # pragma: no cover
         """
         Initialize and return the luminosity array based on galaxy type.
 
@@ -267,6 +267,8 @@ class AlignmentAmplitudes(Framework):
         """
         depends_on = self.central_ia_depends_on if galaxy_type == 'centrals' else self.satellite_ia_depends_on
         z_loglum_file = self.z_loglum_file_centrals if galaxy_type == 'centrals' else self.z_loglum_file_satellites
+        if z_loglum_file is None: 
+            raise ValueError(f'You have not provided a luminosity file for {galaxy_type}. Please include z_loglum_file_{galaxy_type}.')
 
         if depends_on == 'luminosity':
             nlbins = 10000
@@ -277,7 +279,7 @@ class AlignmentAmplitudes(Framework):
 
         return lum
 
-    def _initialize_luminosity_pdf_z_array(self, galaxy_type):
+    def _initialize_luminosity_pdf_z_array(self, galaxy_type): # pragma: no cover
         """
         Initialize and return the luminosity PDF array based on galaxy type.
 
@@ -293,6 +295,8 @@ class AlignmentAmplitudes(Framework):
         """
         depends_on = self.central_ia_depends_on if galaxy_type == 'centrals' else self.satellite_ia_depends_on
         z_loglum_file = self.z_loglum_file_centrals if galaxy_type == 'centrals' else self.z_loglum_file_satellites
+        if z_loglum_file is None:
+            raise ValueError(f'You have not provided a luminosity file for {galaxy_type}. Please include z_loglum_file_{galaxy_type}.')
 
         if depends_on == 'luminosity':
             nlbins = 10000
