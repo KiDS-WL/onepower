@@ -18,7 +18,7 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     permissions:
-      contents: read # Only read access for test jobs
+      contents: write # Needed to commit badge
 
     steps:
       - uses: actions/checkout@v4
@@ -50,44 +50,19 @@ jobs:
         run: |
           python -m pytest --durations=25
 
-      # Upload coverage data so badge job can use it
-      - name: Upload coverage data
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-data
-          path: .coverage
-
-  update-badge:
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'push' # Skip badge update on PRs
-
-    permissions:
-      contents: write # Needed to commit badge
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download coverage data
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-data
-          path: .
-
       - name: Generate coverage badge
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && success() && github.event_name == 'push'
         uses: tj-actions/coverage-badge-py@v2
-        with:
-          file: .coverage
 
       - name: Verify Changed files
+        if : matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && success() && github.event_name == 'push'
         id: verify
         uses: tj-actions/verify-changed-files@v16
         with:
           files: coverage.svg
 
       - name: Commit and push badge
-        if: steps.verify.outputs.files_changed == 'true'
+        if: steps.verify.outputs.files_changed == 'true' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && success() && github.event_name == 'push'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
