@@ -1,3 +1,9 @@
+.. image:: https://github.com/KiDS-WL/onepower/actions/workflows/tests.yml/badge.svg
+   :target: https://github.com/KiDS-WL/onepower/
+
+.. image:: ./coverage.svg
+  :target: https://github.com/KiDS-WL/onepower/
+
 OnePower
 ========
 
