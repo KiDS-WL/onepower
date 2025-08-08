@@ -1,13 +1,10 @@
-from builtins import range
-from builtins import object
-import scipy.interpolate
-import pyfftlog
-import numpy as np
-from cosmosis.datablock import option_section
-from scipy.integrate import simpson
-from hankel import HankelTransform
-
 import matplotlib.pyplot as pl
+import numpy as np
+import pyfftlog
+import scipy.interpolate
+from cosmosis.datablock import option_section
+from hankel import HankelTransform
+from scipy.integrate import simpson
 
 # These are the ones the user can use
 TRANSFORM_WP = "wp"
@@ -42,7 +39,7 @@ _TRANSFORM_PARAMETERS = {
 
 class projected_corr():
     def __init__(self, transform_type, n, k_min, k_max, rp_min, rp_max):
-    
+
         self.k_min = k_min
         self.k_max = k_max
         k = np.logspace(np.log10(k_min), np.log10(k_max), n)
@@ -75,19 +72,19 @@ class projected_corr():
         self.rp = np.exp((x - nc) * dlogr) * r_mid
         #self.rp = np.degrees(self.rp_rad) * 60.0
         self.range = (self.rp > self.rp_min) & (self.rp < self.rp_max)
-    
-        
+
+
     def evaluate(self, k_in, pk_in):
         # Finally calculates the Hankel transform
         pk_iter = scipy.interpolate.interp1d(k_in, pk_in, kind="linear", fill_value='extrapolate', bounds_error=False)
-        
+
         result = np.zeros(self.rp.shape)
         h = self.h_transform
         for i in range(result.size):
             integ = lambda x: pk_iter(x/self.rp[i]) * x
             result[i] = h.transform(integ)[0]
         xi = result / (2.0 * np.pi * self.rp**2)
-        
+
         return self.rp[self.range], xi[self.range]
 
 
@@ -108,7 +105,7 @@ class projection():
 
         self.output_section = options.get_string(
             option_section, "output_section_name", default_output)
-            
+
         if options.has_value(option_section, "suffixes"):
             self.suffixes = np.asarray([options[option_section, "suffixes"]]).flatten()
             self.nbins = len(self.suffixes)
@@ -139,19 +136,19 @@ class projection():
         self.output_name = OUTPUT_NAMES[corr_type]
         self.project = projected_corr(corr_type, self.n, k_min, k_max, rp_min, rp_max)
 
-        
+
     def transform(self, block):
 
         # Choose the bin values to go up to.  Different modules might specify this in different ways.
         # They might have one nbin value (for cosmic shear and clustering) or two (for GGL)
-        
+
         if self.nbins is None:
             nbins = block[self.sample, "nbin"]
         else:
             nbins = self.nbins
         # Loop through bin pairs and see if P(k) exists for all of them
         for i in range(nbins):
-           
+
             b1 = i + 1
 
             # The key name for each bin
@@ -167,23 +164,23 @@ class projection():
 
             # Read input P(k) from data block.
             pk = block[input_section, "p_k"]
-            
+
             # Compute the transform.  Calls the earlier __call__ method above.
             xi = np.zeros((z.size, len(self.project.rp[self.project.range])))
-        
+
             for j in range(len(z)):
                 rp, xi[j,:] = self.project.evaluate(k, pk[j,:])
             # Integrate over n(z)
             nz = self.load_kernel(block, self.sample, b1, z, 0.0)
             xi = simpson(nz[:,np.newaxis]*xi, z, axis=0)
             #pl.plot(rp, xi)
-            
+
             # Save results back to cosmosis
             block[self.output_section, output_name] = xi
         #pl.xscale('log')
         #pl.yscale('log')
         #pl.show()
-            
+
         block[self.output_section, "nbin"] = nbins
         block[self.output_section, "sample"] = self.sample
         block[self.output_section, "rp"] = rp
@@ -196,7 +193,7 @@ class projection():
         obs_in = block[kernel_section, f"bin_{bin}"]
         inter_func = scipy.interpolate.interp1d(z_obs, obs_in, kind="linear", fill_value=extrapolate_option, bounds_error=False)
         kernel_ext = inter_func(z_ext)
-    
+
         return kernel_ext
 
 

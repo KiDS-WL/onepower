@@ -1,12 +1,14 @@
 # Library of the power spectrum module
-import numpy as np
 import numexpr as ne
-from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
-from scipy.integrate import simpson, quad, trapezoid
+import numpy as np
+import warnings
+from scipy.integrate import quad, simpson, trapezoid
+from scipy.interpolate import RegularGridInterpolator, UnivariateSpline, interp1d
+from scipy.ndimage import gaussian_filter1d
+
 # from scipy.special import erf
 from scipy.optimize import curve_fit
-from scipy.ndimage import gaussian_filter1d
-import warnings
+
 
 def low_k_truncation(k_vec, k_trunc):
     """
@@ -18,7 +20,7 @@ def high_k_truncation(k_vec, k_trunc):
     """
     Beta_nl high-k truncation
     """
-    return 1.0 / (1.0 + np.exp((10.0 * (np.log10(k_vec) - np.log10(k_trunc)))))
+    return 1.0 / (1.0 + np.exp(10.0 * (np.log10(k_vec) - np.log10(k_trunc))))
 
 def minimum_halo_mass(emu):
     """
@@ -98,30 +100,30 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
                 # Linear halo bias
                 b1 = b01[iM1]
                 b2 = b01[iM2]
-                    
+
                 # Halo-halo power spectrum
                 Pk_hh = emulator.get_phh_mass(k, M01, M02, z)
-                
+
                 #rmax = max(rvir(emulator, M01), rvir(emulator, M02))
                 #kmax = 2.0*np.pi/rmax
-                    
+
                 # Create beta_NL
                 shot_noise = lambda x, a: a
                 popt, popc = curve_fit(shot_noise, k[(k > 100) & (k < 200)], Pk_hh[(k > 100) & (k < 200)])
                 Pk_hh = Pk_hh - np.ones_like(k) * shot_noise(k, *popt)
-            
+
                 beta_func[iM1, iM2, :] = Pk_hh / (b1 * b2 * Pk_lin) - 1.0
-                
+
                 Pk_hh0 = emulator.get_phh_mass(klin, M01, M02, z)
                 Pk_hh0 = Pk_hh0 - np.ones_like(klin)*shot_noise(klin, *popt)
                 db = Pk_hh0 / (b1 * b2 * Pk_klin) - 1.0
-                
+
                 lmin, lmax = hl_envelopes_idx(np.abs(beta_func[iM1, iM2, :]+1.0))
                 beta_func_interp = interp1d(k[lmax], np.abs(beta_func[iM1, iM2, lmax]+1.0), kind='quadratic', bounds_error=False, fill_value='extrapolate')
                 beta_func[iM1, iM2, :] = (beta_func_interp(k) - 1.0)# * low_k_truncation(k, klin)
                 db = (beta_func_interp(klin) - 1.0)
-                
-        
+
+
                 #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 30.0)/(db + 1.0) - 1.0) * low_k_truncation(k, klin)
                 #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) #* low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#/(1.0+z))
                 beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * low_k_truncation(k, klin) * high_k_truncation(k, 3.0*kmax)
@@ -134,7 +136,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     zc = z.copy()
 
     Mmin, kmax = minimum_halo_mass(emulator)
-    M_up = np.log10((10.0**14.0))
+    M_up = np.log10(10.0**14.0)
     #M_lo = np.log10((10.0**12.0))
     M_lo = np.log10(Mmin)
 
@@ -151,4 +153,3 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
                                                       beta_func, fill_value=None, bounds_error=False, method='nearest')
     """
     return beta_nl_interp_i
-

@@ -1,12 +1,12 @@
 import numpy as np
-
-from cosmosis.datablock import option_section, names
+from cosmosis.datablock import names, option_section
 from cosmosis.datablock.cosmosis_py import errors
+
 
 def setup(options):
     like_name = options.get_string(option_section, "like_name")
     input_section_name = options.get_string(option_section, "input_section_name", default="likelihood")
-        
+
     return like_name, input_section_name
 
 def execute(block, config):
@@ -15,7 +15,7 @@ def execute(block, config):
     d = block[input_section_name, "data"]
     mu = block[input_section_name, "theory"]
     #print('data:',np.round(d,decimals=4))
-    #print('theory:',np.round(mu,decimals=4)) 
+    #print('theory:',np.round(mu,decimals=4))
     # dir(block)
     # for key in block.keys('hod_parameters_bright'):
     #     print(key, '=', block[key])

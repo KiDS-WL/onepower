@@ -1,8 +1,6 @@
-from builtins import range
-from builtins import object
-import scipy.interpolate
-import pyfftlog
 import numpy as np
+import pyfftlog
+import scipy.interpolate
 from cosmosis.datablock import option_section
 from scipy.integrate import simpson
 
@@ -37,10 +35,10 @@ _TRANSFORM_PARAMETERS = {
 }
 
 
-class LogInterp(object):
+class LogInterp:
     """
     This is a helper object that interpolates into f(x) where x>0.
-    If all f>0 then it interpolates log(f) vs log(x).  If they are all f<0 then it 
+    If all f>0 then it interpolates log(f) vs log(x).  If they are all f<0 then it
     interpolate log(-f) vs log(x).  If f is mixed or has some f=0 then it just interpolates
     f vs log(x).
 
@@ -71,7 +69,7 @@ class LogInterp(object):
         return spec
 
 
-class Transformer(object):
+class Transformer:
     """
     Class to build Hankel Transformers that convert from 3D power spectra to correlation functions.
     Several transform types are allowed, depending whether you are using cosmic shear, clustering, or
@@ -140,7 +138,7 @@ class Transformer(object):
         else:
             xi = pyfftlog.fhtq(self.k * pk, self.xsave,
                                tdir=self.direction) * (2 * np.pi) / self.rp
-        
+
         return self.rp[self.range], xi[self.range]
 
     def _interpolate_and_extrapolate_pk(self, k, pk):
@@ -176,7 +174,7 @@ class CosmosisTransformer(Transformer):
 
         self.output_section = options.get_string(
             option_section, "output_section_name", default_output)
-            
+
         if options.has_value(option_section, "suffixes"):
             self.suffixes = np.asarray([options[option_section, "suffixes"]]).flatten()
             self.nbins = len(self.suffixes)
@@ -206,7 +204,7 @@ class CosmosisTransformer(Transformer):
 
         self.output_name = OUTPUT_NAMES[corr_type]
 
-        super(CosmosisTransformer, self).__init__(
+        super().__init__(
             corr_type, self.n, k_min, k_max, rp_min, rp_max)
 
     def __call__(self, block):
@@ -217,14 +215,14 @@ class CosmosisTransformer(Transformer):
             density = block["density", "mean_density0"]/1e12
         else:
             density = 1.0
-        
+
         if self.nbins is None:
             nbins = block[self.sample, "nbin"]
         else:
             nbins = self.nbins
         # Loop through bin pairs and see if P(k) exists for all of them
         for i in range(nbins):
-           
+
             b1 = i + 1
 
             # The key name for each bin
@@ -240,18 +238,18 @@ class CosmosisTransformer(Transformer):
 
             # Read input P(k) from data block.
             pk = block[input_section, "p_k"]
-            
+
             # Compute the transform.  Calls the earlier __call__ method above.
             xi = np.zeros((z.size, len(self.rp[self.range])))
-        
+
             for j in range(len(z)):
-                rp, xi[j,:] = super(CosmosisTransformer, self).__call__(k, pk[j,:])
+                rp, xi[j,:] = super().__call__(k, pk[j,:])
             # Integrate over n(z)
             nz = self.load_kernel(block, self.sample, b1, z, 0.0)
             xi = simpson(nz[:,np.newaxis]*xi*density, z, axis=0)
             # Save results back to cosmosis
             block[self.output_section, output_name] = xi
-            
+
         block[self.output_section, "nbin"] = nbins
         block[self.output_section, "sample"] = self.sample
         block[self.output_section, "rp"] = rp
@@ -264,7 +262,7 @@ class CosmosisTransformer(Transformer):
         obs_in = block[kernel_section, f"bin_{bin}"]
         inter_func = scipy.interpolate.interp1d(z_obs, obs_in, kind="linear", fill_value=extrapolate_option, bounds_error=False)
         kernel_ext = inter_func(z_ext)
-    
+
         return kernel_ext
 
 

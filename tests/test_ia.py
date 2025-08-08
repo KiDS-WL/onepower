@@ -1,6 +1,8 @@
 import pytest
+
 import numpy as np
 from unittest.mock import MagicMock
+
 from onepower import AlignmentAmplitudes, SatelliteAlignment
 
 # Just some base tests for now, no specific scientific calculations tested yet!

@@ -14,7 +14,7 @@ the admin(s)).
 
 Versioning
 ~~~~~~~~~~
-The first thing to mention is that we will try to use strict `semantic versioning <https://semver.org>`_. 
+The first thing to mention is that we will try to use strict `semantic versioning <https://semver.org>`_.
 Thus the versions are ``MAJOR.MINOR.PATCH``, with ``MAJOR`` including
 API-breaking changes, ``MINOR`` including new features, and ``PATCH`` fixing bugs or
 documentation etc. If you depend on onepower, you can set your dependency as

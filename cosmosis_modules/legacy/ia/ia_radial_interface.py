@@ -1,7 +1,8 @@
-from cosmosis.datablock import option_section
 import numpy as np
-from ia_radial_lib import wkm_f_ell, compute_uell_gamma_r_hankel
+from cosmosis.datablock import option_section
 from hankel import HankelTransform
+from ia_radial_lib import compute_uell_gamma_r_hankel, wkm_f_ell
+
 
 def downsample_halo_parameters(nmass_halo, nmass_setup, mass_halo, c_halo,
                                r_s_halo, rvir_halo):

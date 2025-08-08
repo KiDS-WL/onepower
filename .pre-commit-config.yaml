@@ -32,10 +32,10 @@ repos:
 #          - flake8-comprehensions
 #          - flake8-print
 # Using this mirror lets us use mypyc-compiled black, which is about 2x faster
-- repo: https://github.com/psf/black-pre-commit-mirror
-  rev: 25.1.0
-  hooks:
-    - id: black
+#- repo: https://github.com/psf/black-pre-commit-mirror
+#  rev: 25.1.0
+#  hooks:
+#    - id: black
 - repo: https://github.com/pre-commit/pygrep-hooks
   rev: v1.10.0
   hooks:

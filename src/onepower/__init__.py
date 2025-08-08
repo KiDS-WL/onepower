@@ -11,10 +11,10 @@ except PackageNotFoundError:
     # package is not installed
     pass
 
-from .pk import Spectra, PowerSpectrumResult
-from .ia import AlignmentAmplitudes, SatelliteAlignment
-from .bnl import NonLinearBias
-from .hod import HOD, Cacciato, Zheng, Zhai, Zehavi, Simple, load_data
-from .hmi import HaloModelIngredients, CosmologyBase
 from .add import UpsampledSpectra
+from .bnl import NonLinearBias
+from .hmi import CosmologyBase, HaloModelIngredients
+from .hod import HOD, Cacciato, Simple, Zehavi, Zhai, Zheng, load_data
+from .ia import AlignmentAmplitudes, SatelliteAlignment
+from .pk import PowerSpectrumResult, Spectra
 from .utils import poisson

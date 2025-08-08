@@ -4,20 +4,21 @@ This module provides classes and functions to calculate properties of dark matte
 cosmological parameters, and related quantities using different models and corrections.
 """
 
-from functools import cached_property
-import warnings
+import halomod.concentration as concentration_classes
+import halomod.profiles as profile_classes
 import numpy as np
+import warnings
+from astropy.cosmology import Flatw0waCDM, Planck15
+from functools import cached_property
+from halomod.concentration import interp_concentration, make_colossus_cm
+from halomod.halo_model import DMHaloModel, TracerHaloModel
+from scipy.integrate import quad, simpson, solve_ivp
 from scipy.interpolate import interp1d
 from scipy.optimize import root_scalar
-from scipy.integrate import simpson, solve_ivp, quad
-from astropy.cosmology import Flatw0waCDM, Planck15
-from hmf.halos.mass_definitions import SphericalOverdensity
-from halomod.halo_model import DMHaloModel, TracerHaloModel
-from halomod.concentration import make_colossus_cm, interp_concentration
-import halomod.profiles as profile_classes
-import halomod.concentration as concentration_classes
+
 from hmf._internals._cache import cached_quantity, parameter, subframework
 from hmf._internals._framework import Framework
+from hmf.halos.mass_definitions import SphericalOverdensity
 
 # Silencing a warning from hmf for which the nonlinear mass is still correctly calculated
 warnings.filterwarnings('ignore', message='Nonlinear mass outside mass range')
@@ -130,7 +131,7 @@ class CosmologyBase(Framework):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def omega_c(self, val):
         """
@@ -139,7 +140,7 @@ class CosmologyBase(Framework):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def omega_b(self, val):
         """
@@ -148,7 +149,7 @@ class CosmologyBase(Framework):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def omega_m(self, val):
         """
@@ -166,7 +167,7 @@ class CosmologyBase(Framework):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def wa(self, val):
         """
@@ -175,7 +176,7 @@ class CosmologyBase(Framework):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def n_s(self, val):
         """
@@ -184,7 +185,7 @@ class CosmologyBase(Framework):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def tcmb(self, val):
         """
@@ -193,7 +194,7 @@ class CosmologyBase(Framework):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def m_nu(self, val):
         """
@@ -202,7 +203,7 @@ class CosmologyBase(Framework):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def sigma_8(self, val):
         """
@@ -211,7 +212,7 @@ class CosmologyBase(Framework):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def log10T_AGN(self, val):
         """
@@ -240,7 +241,7 @@ class CosmologyBase(Framework):
             w0=self.w0,
             wa=self.wa
         )
-    
+
     @cached_quantity
     def scale_factor(self):
         """
@@ -363,7 +364,7 @@ class CosmologyBase(Framework):
     def get_mead_growth(self):
         """
         Return the Mead growth factor at the scale factors.
-        
+
         Returns:
         --------
         array_like
@@ -413,7 +414,7 @@ class CosmologyBase(Framework):
     @cached_quantity
     def dc_Mead(self):
         r"""
-        The critical overdensity for collapse :math:`\delta_c` 
+        The critical overdensity for collapse :math:`\delta_c`
         fitting function from Mead et al. 2021 (2009.01858).
         All input parameters should be evaluated as functions of a/z.
 
@@ -448,7 +449,7 @@ class CosmologyBase(Framework):
         Returns:
         --------
         array_like
-            Overdensities at given redshifs    
+            Overdensities at given redshifs
         """
         a = self.scale_factor
         Om = self.cosmo_model.Om(self.z_vec) + self.cosmo_model.Onu(self.z_vec)
@@ -526,7 +527,7 @@ class HaloModelIngredients(CosmologyBase):
         Critical density threshold for collapse.
     mead_correction : str, optional
         Correction model from Mead et al.
-    
+
     """
     def __init__(self,
             k_vec=np.logspace(-4, 4, 100),
@@ -557,7 +558,7 @@ class HaloModelIngredients(CosmologyBase):
             **cosmology_kwargs
         ):
         super().__init__(**cosmology_kwargs)
-    
+
         self.mead_correction = mead_correction
 
         self.k_vec = k_vec
@@ -596,7 +597,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: str
         """
         return val
-            
+
     @parameter("param")
     def k_vec(self, val):
         """
@@ -605,7 +606,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: array_like
         """
         return val
-        
+
     @parameter("param")
     def lnk_min(self, val):
         """
@@ -614,7 +615,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def lnk_max(self, val):
         """
@@ -623,7 +624,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def dlnk(self, val):
         """
@@ -632,7 +633,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def Mmin(self, val):
         """
@@ -641,7 +642,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def Mmax(self, val):
         """
@@ -650,7 +651,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def dlog10m(self, val):
         """
@@ -659,16 +660,16 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return val
-    
+
     @parameter("param")
-    def mdef_model(self, val):  
+    def mdef_model(self, val):
         """
         Mass definition model (for hmf).
 
         :type: str
         """
         return val
-    
+
     @parameter("param")
     def hmf_model(self, val):
         """
@@ -677,7 +678,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: str
         """
         return val
-        
+
     @parameter("param")
     def bias_model(self, val):
         """
@@ -686,7 +687,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: str
         """
         return val
-    
+
     @parameter("param")
     def halo_concentration_model_dm(self, val):
         """
@@ -695,7 +696,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: str
         """
         return val
-    
+
     @parameter("param")
     def halo_concentration_model_sat(self, val):
         """
@@ -704,7 +705,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: str
         """
         return val
-        
+
     @parameter("param")
     def halo_profile_model_dm(self, val):
         """
@@ -713,7 +714,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: str
         """
         return val
-    
+
     @parameter("param")
     def halo_profile_model_sat(self, val):
         """
@@ -731,7 +732,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: str
         """
         return val
-        
+
     @parameter("param")
     def transfer_params(self, val):
         """
@@ -740,7 +741,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: dict
         """
         return val
-        
+
     @parameter("param")
     def growth_model(self, val):
         """
@@ -749,7 +750,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: str
         """
         return val
-        
+
     @parameter("param")
     def growth_params(self, val):
         """
@@ -758,7 +759,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: dict
         """
         return val
-        
+
     @parameter("param")
     def norm_cen(self, val):
         """
@@ -767,7 +768,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return np.atleast_1d(val)
-        
+
     @parameter("param")
     def norm_sat(self, val):
         """
@@ -776,7 +777,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return np.atleast_1d(val)
-        
+
     @parameter("param")
     def eta_cen(self, val):
         """
@@ -785,7 +786,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return np.atleast_1d(val)
-        
+
     @parameter("param")
     def eta_sat(self, val):
         """
@@ -793,7 +794,7 @@ class HaloModelIngredients(CosmologyBase):
             Bloating parameter for satellite galaxies.
         """
         return np.atleast_1d(val)
-        
+
     @parameter("param")
     def delta_c(self, val):
         r"""
@@ -802,7 +803,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def overdensity(self, val):
         """
@@ -811,7 +812,7 @@ class HaloModelIngredients(CosmologyBase):
         :type: float
         """
         return val
-    
+
     @cached_quantity
     def _norm_c(self):
         """
@@ -823,7 +824,7 @@ class HaloModelIngredients(CosmologyBase):
             norm_cen array
         """
         return self.norm_cen * np.ones_like(self.z_vec)
-    
+
     @cached_quantity
     def _norm_s(self):
         """
@@ -845,7 +846,7 @@ class HaloModelIngredients(CosmologyBase):
         --------
         array_like
             eta_cen array
-        
+
         """
         return self.eta_cen * np.ones_like(self.z_vec)
 
@@ -890,9 +891,9 @@ class HaloModelIngredients(CosmologyBase):
             SOVirial_Mead mass definition class if mead_correction is True, otherwise the input mass definition class
         """
         if self.mead_correction in ['feedback', 'nofeedback']:
-           return SOVirial_Mead    
+           return SOVirial_Mead
         return self.mdef_model
-    
+
     @cached_quantity
     def _hmf_mod(self):
         """
@@ -907,7 +908,7 @@ class HaloModelIngredients(CosmologyBase):
         if self.mead_correction in ['feedback', 'nofeedback']:
             return 'ST'
         return self.hmf_model
-        
+
     @cached_quantity
     def _bias_mod(self):
         """
@@ -922,7 +923,7 @@ class HaloModelIngredients(CosmologyBase):
         if self.mead_correction in ['feedback', 'nofeedback']:
             return 'ST99'
         return self.bias_model
-    
+
     @cached_quantity
     def _halo_concentration_mod_dm(self):
         """
@@ -942,7 +943,7 @@ class HaloModelIngredients(CosmologyBase):
             except:
                 val = interp_concentration(make_colossus_cm(self.halo_concentration_model_dm))
         return val
-    
+
     @cached_quantity
     def _halo_concentration_mod_sat(self):
         """
@@ -975,7 +976,7 @@ class HaloModelIngredients(CosmologyBase):
         else:
             val = [{} if self.mdef_model == 'SOVirial' else {'overdensity': self.overdensity} for _ in self.z_vec]
         return val
-        
+
     @cached_quantity
     def halo_profile_params(self):
         """
@@ -984,7 +985,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        dict 
+        dict
             astropy cosmology object for hmf package
         """
         return {'cosmo': self.cosmo_model}
@@ -1002,7 +1003,7 @@ class HaloModelIngredients(CosmologyBase):
             return True
         else:
             return False
-        
+
     @cached_quantity
     def K(self):
         """
@@ -1062,7 +1063,7 @@ class HaloModelIngredients(CosmologyBase):
             )
         y = x.clone()
         x_out, y_out = [], []
-        
+
         if self.mead_correction in ['feedback', 'nofeedback']:
             # For centrals
             for z, mdef_par, dc, norm_cen, k in zip(self.z_vec, self.mdef_params, self._delta_c_mod, self._norm_c, self.K):
@@ -1078,7 +1079,7 @@ class HaloModelIngredients(CosmologyBase):
                 )
                 #yield x.clone()
                 x_out.append(x.clone())
-            
+
             # For satellites
             for z, mdef_par, dc, norm_sat, k in zip(self.z_vec, self.mdef_params, self._delta_c_mod, self._norm_s, self.K):
                 y.update(
@@ -1107,7 +1108,7 @@ class HaloModelIngredients(CosmologyBase):
                 )
                 #yield x.clone()
                 x_out.append(x.clone())
-            
+
             # For satellites
             for z, mdef_par, dc, eta_sat, norm_sat in zip(self.z_vec, self.mdef_params, self._delta_c_mod, self._eta_s, self._norm_s):
                 y.update(
@@ -1160,7 +1161,7 @@ class HaloModelIngredients(CosmologyBase):
             linear power spectrum at z
         """
         return np.array([x.power for x in self._hmf_cen])
-        
+
     @cached_quantity
     def nonlinear_power(self):
         """
@@ -1172,7 +1173,7 @@ class HaloModelIngredients(CosmologyBase):
             non-linear power spectrum at z
         """
         return np.array([x.nonlinear_power for x in self._hmf_cen])
-        
+
     @cached_quantity
     def kh(self):
         """
@@ -1189,7 +1190,7 @@ class HaloModelIngredients(CosmologyBase):
     def halo_overdensity_mean(self):
         """
         Return the mean halo overdensity.
-        
+
         Returns:
         --------
         ndarray
@@ -1240,7 +1241,7 @@ class HaloModelIngredients(CosmologyBase):
 
         Returns:
         --------
-        array_like 
+        array_like
             mean density at z
         """
         return np.array([x.mean_density for x in self._hmf_cen])
@@ -1424,7 +1425,7 @@ class HaloModelIngredients(CosmologyBase):
             virial radius for satellite galaxies
         """
         return np.array([x.halo_profile.halo_mass_to_radius(x.m) for x in self._hmf_sat])
-    
+
     @cached_quantity
     def growth_factor(self):
         """
@@ -1436,7 +1437,7 @@ class HaloModelIngredients(CosmologyBase):
             growth factor at z
         """
         return self._hmf_cen[0]._growth_factor_fn(self.z_vec)
-    
+
     # Maybe implement at some point?
     # Rnl = DM_hmf.filter.mass_to_radius(DM_hmf.mass_nonlinear, DM_hmf.mean_density0)
     # neff[jz] = -3.0 - 2.0*DM_hmf.normalised_filter.dlnss_dlnm(Rnl)
@@ -1444,7 +1445,7 @@ class HaloModelIngredients(CosmologyBase):
     # Only used for mead_corrections
     # pk_cold = DM_hmf.power * hmu.Tk_cold_ratio(DM_hmf.k, g, block[cosmo_params, 'ommh2'], block[cosmo_params, 'h0'], this_cosmo_run.Onu0/this_cosmo_run.Om0, this_cosmo_run.Neff, T_CMB=tcmb)**2.0
     # sigma8_z[jz] = hmu.sigmaR_cc(pk_cold, DM_hmf.k, 8.0)
-    
+
     # Currently unused
     def Tk_cold_ratio(self, k, g, ommh2, h, f_nu, N_nu, T_CMB=2.7255):
         """
@@ -1476,7 +1477,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         if f_nu == 0.0:  # Fix to unity if there are no neutrinos
             return 1.0
-    
+
         pcb = (5.0 - np.sqrt(1.0 + 24. * (1.0 - f_nu))) / 4.0  # Growth exponent for unclustered neutrinos completely
         BigT = T_CMB / 2.7  # Big Theta for temperature
         zeq = 2.5e4 * ommh2 * BigT**(-4)  # Matter-radiation equality redshift
@@ -1486,7 +1487,7 @@ class HaloModelIngredients(CosmologyBase):
         Dcb = (1.0 + (D / (1. + yfs))**0.7)**(pcb / 0.7)  # Cold growth function
         Dcbnu = ((1.0 - f_nu)**(0.7 / pcb) + (D / (1.0 + yfs))**0.7)**(pcb / 0.7)  # Cold and neutrino growth function
         return Dcb / Dcbnu  # Finally, the ratio
-    
+
     # Currently unused
     def sigmaR_cc(self, power, k, r):
         """
@@ -1508,7 +1509,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         rk = np.outer(r, k)
         dlnk = np.log(k[1] / k[0])
-    
+
         k_space = (3 / rk**3) * (np.sin(rk) - rk * np.cos(rk))
         # we multiply by k because our steps are in logk.
         rest = power * k**3
@@ -1621,7 +1622,7 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         Critical density threshold for collapse.
     mead_correction : str, optional
         Correction model from Mead et al.
-    
+
     """
     #TO-DO: set defaults to sensible values!
     def __init__(self,
@@ -1652,7 +1653,7 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
             **cosmology_kwargs
         ):
         super().__init__(**cosmology_kwargs)
-    
+
         self.k_vec = k_vec
         self.z_vec = z_vec
         self.lnk_min = lnk_min
@@ -1678,7 +1679,7 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
             self._setup_mead_correction()
         else:
             self._setup_default(hmf_model, bias_model, halo_concentration_model, mdef_model, overdensity, delta_c, eta_cen, eta_sat)
-        
+
     def _setup_mead_correction(self):
         """
         Set up the Mead corrections for the halo model.
@@ -1687,7 +1688,7 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         self.hmf_model = 'ST'
         self.bias_model = 'ST99'
         self.halo_concentration_model = interp_concentration(getattr(concentration_classes, 'Bullock01'))
-        
+
         self.delta_c = self.dc_Mead
         self.mdef_model = SOVirial_Mead
         self.mdef_params = {'overdensity': np.array([overdensity for overdensity in self.Dv_Mead])}
@@ -1735,10 +1736,10 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         self.mdef_model = mdef_model
         self.mdef_params = {} if self.mdef_model == 'SOVirial' else {'overdensity': overdensity}
         self.delta_c = (3.0 / 20.0) * (12.0 * np.pi) ** (2.0 / 3.0) * (1.0 + 0.0123 * np.log10(self.cosmo_model.Om(self.z_vec))) if self.mdef_model == 'SOVirial' else delta_c * np.ones_like(self.z_vec)
-        
+
         self.eta_cen = eta_cen * np.ones_like(self.z_vec)
         self.eta_sat = eta_sat * np.ones_like(self.z_vec)
-        
+
     @cached_property
     def _hmf_generator(self):
         """
@@ -1746,7 +1747,7 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         Setups the hmf and halomod classes at desired cosmology and uses the "update" functionality
         to calculate the models at different redshifts.
         """
-        
+
         x = DMHaloModel(
                 z=self.z_vec,
                 lnk_min=self.lnk_min,
@@ -1772,7 +1773,7 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
                 mdef_params=self.mdef_params,
                 delta_c=self.delta_c
             )
-        
+
         y = x.clone()
         x_out = []
         y_out = []
@@ -1784,7 +1785,7 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
                 halo_concentration_params={'norm': self.norm_cen[:, np.newaxis], 'K': self.K[:, np.newaxis]}
             )
             #yield x
-            
+
             # For satellites
             eta_sat = 0.1281 * y.sigma8_z**(-0.3644)
             y.update(
@@ -1798,7 +1799,7 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
                 halo_concentration_params={'norm': self.norm_cen[:, np.newaxis]}
             )
             #yield x
-            
+
             y.update(
                 halo_profile_params={'eta_bloat': self.eta_sat[:, np.newaxis]},
                 halo_concentration_params={'norm': self.norm_sat[:, np.newaxis]}
@@ -1833,14 +1834,14 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         Return the linear power spectrum at z.
         """
         return self._hmf_cen.power
-        
+
     @property
     def nonlinear_power(self):
         """
         Return the non-linear power spectrum at z (if options passed).
         """
         return self._hmf_cen.nonlinear_power
-        
+
     @property
     def kh(self):
         """
@@ -1987,7 +1988,7 @@ class HaloModelIngredientsNoLoop(CosmologyBase):
         Return the virial radius for satellite galaxies.
         """
         return self._hmf_sat.halo_profile.halo_mass_to_radius(self._hmf_sat.m)
-    
+
     @property
     def growth_factor(self):
         """

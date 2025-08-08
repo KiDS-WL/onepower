@@ -35,20 +35,21 @@ and the integral over beta_nl is
 
 """
 
-from functools import cached_property
-import warnings
-import numpy as np
 import numexpr as ne
+import numpy as np
+import warnings
+from functools import cached_property
 from scipy.integrate import simpson, trapezoid
-from scipy.ndimage import gaussian_filter1d
 from scipy.interpolate import interp1d
+from scipy.ndimage import gaussian_filter1d
+
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework, get_mdl
 
-from .ia import SatelliteAlignment
+from . import hod
 from .bnl import NonLinearBias
 from .hmi import HaloModelIngredients
-from . import hod
+from .ia import SatelliteAlignment
 from .utils import poisson
 
 
@@ -66,7 +67,7 @@ class PowerSpectrumResult:
 class Spectra(HaloModelIngredients):
     """
     Class to compute matter power spectra using the halo model approach.
-    
+
     Parameters:
     -----------
     matter_power_lin : array_like, optional
@@ -164,10 +165,10 @@ class Spectra(HaloModelIngredients):
             align_params: dict | None = None,
             **hmf_kwargs
         ):
-        
+
         # Call super init MUST BE DONE FIRST.
         super().__init__(**hmf_kwargs)
-        
+
         self.mb = mb
         self.bnl = bnl
         self.beta_nl = beta_nl
@@ -175,10 +176,10 @@ class Spectra(HaloModelIngredients):
         self.matter_power_lin = matter_power_lin
         self.matter_power_nl = matter_power_nl
         self.response = response
-        
+
         self.one_halo_ktrunc = one_halo_ktrunc
         self.two_halo_ktrunc = two_halo_ktrunc
-            
+
         # Galaxy spectra specific kwargs:
         self.pointmass = pointmass
         self.compute_observable = compute_observable
@@ -190,14 +191,14 @@ class Spectra(HaloModelIngredients):
         self.obs_settings = obs_settings or {}
 
         self.hod_settings_mm = hod_settings_mm or {}
-        
+
         # Alignment spectra specific kwargs:
         self.t_eff = t_eff
         self.fortuna = fortuna
         self.one_halo_ktrunc_ia = one_halo_ktrunc_ia
         self.two_halo_ktrunc_ia = two_halo_ktrunc_ia
         self.align_params = align_params or {}
-    
+
     @parameter("param")
     def mb(self, val):
         r"""
@@ -215,7 +216,7 @@ class Spectra(HaloModelIngredients):
         :type: bool
         """
         return val
-    
+
     @parameter("param")
     def beta_nl(self, val):
         r"""
@@ -223,8 +224,8 @@ class Spectra(HaloModelIngredients):
 
         :type: array_like
         """
-        return val  
-        
+        return val
+
     @parameter("param")
     def dewiggle(self, val):
         """
@@ -233,7 +234,7 @@ class Spectra(HaloModelIngredients):
         :type: bool
         """
         return val
-        
+
     @parameter("param")
     def matter_power_lin(self, val):
         """
@@ -242,7 +243,7 @@ class Spectra(HaloModelIngredients):
         :type: ndarray
         """
         return val
-    
+
     @parameter("param")
     def matter_power_nl(self, val):
         """
@@ -251,7 +252,7 @@ class Spectra(HaloModelIngredients):
         :type: ndarray
         """
         return val
-    
+
     @parameter("switch")
     def response(self, val):
         """
@@ -260,7 +261,7 @@ class Spectra(HaloModelIngredients):
         :type: bool
         """
         return val
-        
+
     @parameter("param")
     def one_halo_ktrunc(self, val):
         """
@@ -269,7 +270,7 @@ class Spectra(HaloModelIngredients):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def two_halo_ktrunc(self, val):
         """
@@ -278,7 +279,7 @@ class Spectra(HaloModelIngredients):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def hod_settings_mm(self, val):
         """
@@ -287,7 +288,7 @@ class Spectra(HaloModelIngredients):
         :type: dict
         """
         return val
-    
+
     @parameter("param")
     def pointmass(self, val):
         """
@@ -296,7 +297,7 @@ class Spectra(HaloModelIngredients):
         :type: bool
         """
         return val
-        
+
     @parameter("param")
     def compute_observable(self, val):
         """
@@ -305,25 +306,25 @@ class Spectra(HaloModelIngredients):
         :type: bool
         """
         return val
-        
+
     @parameter("param")
     def poisson_params(self, val):
         """
-        Parameters for the Poisson distribution.    
+        Parameters for the Poisson distribution.
 
         :type: dict
         """
         return val
-        
+
     @parameter("param")
     def hod_model(self, val):
         """
         HOD model to use.
-        
+
         :type: str
         """
         return val
-        
+
     @parameter("param")
     def hod_params(self, val):
         """
@@ -332,7 +333,7 @@ class Spectra(HaloModelIngredients):
         :type: dict
         """
         return val
-        
+
     @parameter("param")
     def hod_settings(self, val):
         """
@@ -341,7 +342,7 @@ class Spectra(HaloModelIngredients):
         :type: dict
         """
         return val
-        
+
     @parameter("param")
     def obs_settings(self, val):
         """
@@ -350,7 +351,7 @@ class Spectra(HaloModelIngredients):
         :type: dict
         """
         return val
-    
+
     @parameter("param")
     def fortuna(self, val):
         """
@@ -359,7 +360,7 @@ class Spectra(HaloModelIngredients):
         :type: bool
         """
         return val
-        
+
     @parameter("param")
     def t_eff(self, val):
         """
@@ -368,7 +369,7 @@ class Spectra(HaloModelIngredients):
         :type: float
         """
         return val
-            
+
     @parameter("param")
     def one_halo_ktrunc_ia(self, val):
         """
@@ -377,7 +378,7 @@ class Spectra(HaloModelIngredients):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def two_halo_ktrunc_ia(self, val):
         """
@@ -386,7 +387,7 @@ class Spectra(HaloModelIngredients):
         :type: float
         """
         return val
-        
+
     @parameter("param")
     def align_params(self, val):
         """
@@ -395,7 +396,7 @@ class Spectra(HaloModelIngredients):
         :type: dict
         """
         return val
-    
+
     @parameter("model")
     def hod_model(self, val):
         r"""
@@ -406,7 +407,7 @@ class Spectra(HaloModelIngredients):
         if val is None:
             return val
         return get_mdl(val, "HOD")
-    
+
     @parameter("model")
     def poisson_model(self, val):
         r"""
@@ -417,7 +418,7 @@ class Spectra(HaloModelIngredients):
         if val is None:
             return val
         return get_mdl(val, "Poisson")
-    
+
     @cached_quantity
     def _beta_nl_array(self):
         """
@@ -431,13 +432,13 @@ class Spectra(HaloModelIngredients):
         if self.bnl:
             if self.beta_nl is None:
                 return self.calc_bnl
-        return self.beta_nl  
+        return self.beta_nl
 
     @cached_quantity
     def _pk_lin(self):
         """
         Return the pre-calculated linear power spectrum or uses one from hmf.
-        Additionally it applies the dewiggle method if desired, or if 
+        Additionally it applies the dewiggle method if desired, or if
         HMCode2020 functionality is needed.
 
         Returns:
@@ -492,8 +493,8 @@ class Spectra(HaloModelIngredients):
         """
         if self.fortuna:
             return (1.0 - self.t_eff) * self._pk_nl + self.t_eff * self._pk_lin
-        return None    
-        
+        return None
+
     @cached_quantity
     def calc_bnl(self):
         """
@@ -517,7 +518,7 @@ class Spectra(HaloModelIngredients):
             w0=self.w0
         )
         return bnl.bnl
-    
+
     @cached_quantity
     def I12(self):
         """
@@ -530,7 +531,7 @@ class Spectra(HaloModelIngredients):
             return self.prepare_I12_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self._beta_nl_array)
         else:
             return None
-        
+
     @cached_quantity
     def I21(self):
         """
@@ -543,7 +544,7 @@ class Spectra(HaloModelIngredients):
             return self.prepare_I21_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self._beta_nl_array)
         else:
             return None
-        
+
     @cached_quantity
     def I22(self):
         """
@@ -556,14 +557,14 @@ class Spectra(HaloModelIngredients):
             return self.prepare_I22_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self._beta_nl_array)
         else:
             return None
-        
+
     @cached_quantity
     def hod_mm(self):
         """
         Initialize and return the HOD model for matter-matter power spectrum.
         Used only to link the galaxy-galaxy and galaxy-matter power spectra to
         the baryon feedback model.
-        
+
         Returns:
         --------
         object
@@ -582,7 +583,7 @@ class Spectra(HaloModelIngredients):
             )
         else:
             return None
-        
+
     @cached_quantity
     def fstar_mm(self):
         """
@@ -597,7 +598,7 @@ class Spectra(HaloModelIngredients):
             return self.hod_mm.stellar_fraction
         else:
             return np.zeros((1, self.z_vec.size, self.mass.size))
-        
+
     def dewiggle_plin(self, plin):
         """
         Dewiggle the linear power spectrum.
@@ -628,11 +629,11 @@ class Spectra(HaloModelIngredients):
         We lower the amplitude of :math:`W(M, k, z)` in the one-halo term by the factor :math:`1-f_{\nu}`,
         where :math:`f_{\nu}=\Omega_{\nu}/\Omega_{\mathrm{m}}` is the neutrino mass fraction, to account for the fact that
         we assume that hot neutrinos cannot cluster in haloes and therefore
-        do not contribute power to the one-halo term. 
-        
+        do not contribute power to the one-halo term.
+
         Therefore :math:`W(M, k \rightarrow 0, z)=(1-f_{\nu})M/\bar{\rho}` and has units of volume.
         This is the same as Mead et al. 2021
-        
+
         Parameters:
         -----------
         mass : array_like
@@ -656,7 +657,7 @@ class Spectra(HaloModelIngredients):
     def matter_profile(self):
         """
         Compute the matter profile grid in z, k, and M.
-        
+
         Returns:
         --------
         ndarray
@@ -669,7 +670,7 @@ class Spectra(HaloModelIngredients):
             self.fnu[np.newaxis, :, np.newaxis, np.newaxis]
         )
         return profile
-        
+
     @cached_quantity
     def matter_profile_2h(self):
         """
@@ -695,7 +696,7 @@ class Spectra(HaloModelIngredients):
         Compute the matter profile including feedback as modelled by hmcode2020 (eq 25 of 2009.01858).
 
         :math:`W(M, k) = [\Omega_{\rm c}/\Omega_{\rm m} + f_{\rm g}(M)] W(M, k) + f_{\star} M / \bar{\rho}`
-        
+
         The parameter :math:`0 < f_{\star} < \Omega_{\rm b}/\Omega_{\rm m}` can be thought of as an effective halo stellar mass fraction.
 
         Table 4 and eq 26 of 2009.01858 defines as:
@@ -703,7 +704,7 @@ class Spectra(HaloModelIngredients):
         :math:`f_{\star}(z) = f_{\star, 0} 10^{(z f_{\star, z})}`
 
         This profile does not have :math:`1-f_{\nu}` correction as that is already accounted for in  dm_to_matter_frac
-        
+
         Parameters:
         -----------
         mass : array_like
@@ -735,7 +736,7 @@ class Spectra(HaloModelIngredients):
     def matter_profile_with_feedback(self):
         """
         Compute the matter profile grid with feedback.
-        
+
         Returns:
         --------
         ndarray
@@ -758,7 +759,7 @@ class Spectra(HaloModelIngredients):
         GGL power spectra
 
         This profile does not have :math:`1-f_{\nu}` correction as that is already accounted for in  dm_to_matter_frac
-        
+
         Parameters:
         -----------
         mass : array_like
@@ -791,7 +792,7 @@ class Spectra(HaloModelIngredients):
     def matter_profile_with_feedback_stellar_fraction_from_obs(self, fstar):
         """
         Compute the matter profile grid using stellar fraction from observations.
-        
+
         Parameters:
         -----------
         fstar : array_like
@@ -817,7 +818,7 @@ class Spectra(HaloModelIngredients):
     def one_halo_truncation(self):
         """
         1-halo term truncation at large scales (small k)
-        
+
         Parameters:
         -----------
         k_trunc : float, optional
@@ -923,7 +924,7 @@ class Spectra(HaloModelIngredients):
         As long as nd > 0, the multiplicative term in square brackets is
         unity for k << kd and (1 - f) for k >> kd.
         This damping is used instead of the regular 2-halo term integrals
-        
+
         Parameters:
         -----------
         sigma8_in : array_like
@@ -952,7 +953,7 @@ class Spectra(HaloModelIngredients):
         :math:`\Delta^{2}(k) = k^{3}/(2 \pi^{2}) P(k)`
 
         :math:`\Delta^{2}_{\rm hmcode}(k,z) = \left({[\Delta^{2}_{\rm 2h}(k,z)]^{\alpha} +[\Delta^{2}_{\rm 1h}(k,z)]^{\alpha}} \right)^{1/{\alpha}}`
-        
+
         Parameters:
         -----------
         neff : array_like
@@ -977,31 +978,31 @@ class Spectra(HaloModelIngredients):
     def compute_1h_term(self, profile_u, profile_v, mass, dndlnm):
         r"""
         Compute the 1-halo term for two fields u and v, e.g. matter, galaxy, intrinsic alignment
-        
+
         :math:`P^{\rm 1h}_{uv}(k)= \int W_{u}(k,z,M) W_{v}(k,z,M) n(M) {\rm d}M`
 
         If the fields are the same and they correspond to discrete tracers (e.g. satellite galaxies):
 
         :math:`P^{\rm 1h}_{uv}(k)= 1/n_{x}^2 \int \langle N_{x}(M)[N_{x}(M)-1]\rangle U_{x}(k,z,M)^{2} n(M) {\rm d}M + 1/n_{x}`
-        
+
         :math:`n_{x} = \int N_{x}(M) n(M) {\rm d}M`
-        
+
         The shot noise term is removed as we do our measurements in real space where it only shows up
         at zero lag which is not measured.
         See eq 22 of Asgari, Mead, Heymans 2023 review paper.
-        
+
         But for satellite galaxis we use:
-        
+
         :math:`\langle N_{\rm sat}(N_{\rm sat}-1)\rangle = \mathcal{P} \langle N_{\rm sat}\rangle ^ {2}`:
-        
+
         :math:`P^{\rm 1h}_{\rm ss}(k)= 1/n_{\rm s}^{2} \int \mathcal{P} \langle N_{\rm sat}\rangle ^{2} U_{\rm s}(k,z,M)^{2} n(M) {\rm d}M`
-        
+
         and write :math:`W_u = W_v = \langle N_{\rm sat}\rangle U_{\rm s}(k,z,M) \sqrt{\mathcal{P}}/n_{\rm s}`
-        
+
         for matter halo profile is: :math:`W_{\rm m} = (M/\rho_{\rm m}) U_{\rm m}(z,k,M)`
-        
+
         for galaxies: :math:`W_{\rm g} = (N_{\rm g}(M)/n_{\rm g}) U_{\rm g}(z,k,M)`
-        
+
         Parameters:
         -----------
         profile_u : array_like
@@ -1035,13 +1036,13 @@ class Spectra(HaloModelIngredients):
         This equation arises from
 
         :math:`\int_{0}^{\infty} M b(M) n(M) {\rm d}M = \bar{\rho}`.
-        
+
         and
-        
+
         :math:`\int_{0}^{\infty} M n(M) dM = \bar{\rho}`.
-        
+
         This :math:`\bar{\rho}` is the mean matter density at that redshift.
-        
+
         Parameters:
         -----------
         mass : array_like
@@ -1099,8 +1100,8 @@ class Spectra(HaloModelIngredients):
         r"""
         Compute the integral for the matter term in the 2-halo power spectrum, eq 35 of Asgari, Mead, Heymans 2023.
 
-        2-halo term integral for matter, 
-        
+        2-halo term integral for matter,
+
         :math:`I_{\rm m} = \int_{0}^{infty} {\rm d}M b(M) W_{\rm m}(M,k) n(M) = \int_{0}^{\infty} {\rm d}M b(M) M/{\bar{rho} U_{rm m}(M,k) n(M)`
 
         Returns:
@@ -1169,7 +1170,7 @@ class Spectra(HaloModelIngredients):
         #    * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] \
         #    * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
         #    / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_2[np.newaxis,np.newaxis,:,np.newaxis])
-        
+
         b_1e = b_1[:, :, np.newaxis, np.newaxis]
         b_2e = b_2[:, np.newaxis, :, np.newaxis]
         dndlnm_1e = dndlnm_1[:, :, np.newaxis, np.newaxis]
@@ -1202,10 +1203,10 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I12 term.
         """
-    
+
         #integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
         #    * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
-    
+
         B_NL_k_z_e = B_NL_k_z[:, :, 0, :]
         b_2e = b_2[:, :, np.newaxis]
         dndlnm_2e = dndlnm_2[:, :, np.newaxis]
@@ -1236,10 +1237,10 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I21 term.
         """
-    
+
         #integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
         #    * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
-        
+
         B_NL_k_z_e = B_NL_k_z[:, 0, :, :]
         b_1e = b_1[:, :, np.newaxis]
         dndlnm_1e = dndlnm_1[:, :, np.newaxis]
@@ -1247,8 +1248,8 @@ class Spectra(HaloModelIngredients):
 
         integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dndlnm_1e / mass_1e')
         return integrand_21
-        
-        
+
+
     def I_NL(self, W_1, W_2, b_1, b_2, dndlnm_1, dndlnm_2, A, rho_mean, B_NL_k_z, integrand_12_part, integrand_21_part, integrand_22_part):
         """
         Calculate the integral over beta_nl using equations A.7 to A.10 from Mead and Verde 2021.
@@ -1288,42 +1289,42 @@ class Spectra(HaloModelIngredients):
         # Transpose W_1 and W_2
         W_1 = np.transpose(W_1, [0, 1, 3, 2])
         W_2 = np.transpose(W_2, [0, 1, 3, 2])
-    
+
         # Reshape W_1 and W_2 for broadcasting
         W_1e = W_1[:, :, :, np.newaxis, :]
         W_2e = W_2[:, :, np.newaxis, :, :]
-    
+
         # Calculate integrand_22 using broadcasting
         #integrand_22 = integrand_22_part * W_1e * W_2e
         integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
-    
+
         # Perform trapezoidal integration
         integral_M1 = trapezoid(integrand_22, self.mass, axis=2)
         integral_M2 = trapezoid(integral_M1, self.mass, axis=2)
         I_22 = integral_M2
-    
+
         # Calculate I_11 using broadcasting
         I_11 = B_NL_k_z[:, 0, 0, :] * ((A[:, :, :] * A[:, :, :]) * W_1[:, :, 0, :] * W_2[:, :, 0, :] * (rho_mean[:, np.newaxis] * rho_mean[:, np.newaxis])) / (self.mass[0] * self.mass[0])
-    
+
         # Calculate I_12 using broadcasting
         integrand_12 = integrand_12_part * W_2
         integral_12 = trapezoid(integrand_12, self.mass, axis=2)
         I_12 = A * W_1[:, :, 0, :] * integral_12 * rho_mean[:, np.newaxis] / self.mass[0]
-    
+
         # Calculate I_21 using broadcasting
         integrand_21 = integrand_21_part * W_1
         integral_21 = trapezoid(integrand_21, self.mass, axis=2)
         I_21 = A * W_2[:, :, 0, :] * integral_21 * rho_mean[:, np.newaxis] / self.mass[0]
-    
+
         # Combine all terms
         I_NL = I_11 + I_12 + I_21 + I_22
-    
+
         return I_NL
 
     def fg(self, mass, z_vec, fstar, beta=2):
         r"""
         Compute the gas fraction, eq 24 of Mead et al. 2021.
-        
+
         :math:`f_{\rm g}(M) = [\Omega_{\rm b}/\Omega_{\rm m} - f_{\star}] (M/M_{\rm b})^{\beta}/ (1 + (M/M_{\rm b})^{\beta})`
 
         where :math:`f_{\rm g}` is the halo gas fraction, the pre-factor in parenthesis is the
@@ -1333,7 +1334,7 @@ class Spectra(HaloModelIngredients):
 
         theta_agn = log10_TAGN - 7.8
         table 4 of 2009.01858, units of M_sun/h
-        
+
         Parameters:
         -----------
         mass : array_like
@@ -1358,7 +1359,7 @@ class Spectra(HaloModelIngredients):
     def fg_fit(self, mass, mb, fstar, beta=2):
         r"""
         Compute the gas fraction for a general baryonic feedback model, eq 24 of Mead et al. 2021.
-        
+
         :math:`f_{\rm g}(M) = [\Omega_{\rm b}/\Omega_{\rm m} - f_{\star}] (M/M_{\rm b})^{\beta}/ (1 + (M/M_{\rm b})^{\beta})`
 
         where :math:`f_{\rm g}` is the halo gas fraction, the pre-factor in parenthesis is the
@@ -1389,9 +1390,9 @@ class Spectra(HaloModelIngredients):
     def fs(self, z_vec):
         r"""
         Compute the stellar fraction from table 4 and eq 26 of Mead et al. 2021.
-        
+
         :math:`f_{\star}(z) = f_{\star, 0} 10^{(z f_{\star,z})}`
-        
+
         Parameters:
         -----------
         z_vec : array_like
@@ -1411,10 +1412,10 @@ class Spectra(HaloModelIngredients):
     def poisson_func(self):
         """
         Calculates the Poisson parameter for use in Pgg integrals.
-        
+
         Can be either a scalar (P = poisson) or a power law (P = poisson x (M/M_0)^slope).
         Further models can be added to this function if necessary.
-    
+
         Parameters:
         -----------
         mass : array_like
@@ -1429,7 +1430,7 @@ class Spectra(HaloModelIngredients):
         """
         func = self.poisson_model(self.mass, **self.poisson_params)
         return func.poisson_func
-    
+
     @cached_quantity
     def power_spectrum_lin(
             self,
@@ -1478,13 +1479,13 @@ class Spectra(HaloModelIngredients):
                 pk_2h = self._pk_lin * self.Im_term * self.Im_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
                 pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
                 pk_tot = pk_1h + pk_2h
-    
+
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
 
-    
+
     # --------------------------------  Galaxy spectra specific funtions ------------------------------
-    
-    
+
+
     @cached_quantity
     def hod(self):
         """
@@ -1504,7 +1505,7 @@ class Spectra(HaloModelIngredients):
             hod_settings=self.hod_settings,
             **self.hod_params
         )
-        
+
     @cached_quantity
     def fstar(self):
         """
@@ -1516,7 +1517,7 @@ class Spectra(HaloModelIngredients):
             The stellar fraction.
         """
         return self.hod.stellar_fraction
-        
+
     @cached_quantity
     def mass_avg(self):
         """
@@ -1528,7 +1529,7 @@ class Spectra(HaloModelIngredients):
             The average mass.
         """
         return self.hod.avg_halo_mass_cen / self.hod.number_density
-            
+
     @cached_quantity
     def obs(self):
         """
@@ -1552,7 +1553,7 @@ class Spectra(HaloModelIngredients):
             )
         else:
             return None
-            
+
     @cached_quantity
     def obs_func(self):
         """
@@ -1566,7 +1567,7 @@ class Spectra(HaloModelIngredients):
         if self.obs is None:
             return None
         return np.log(10.0) * np.squeeze(self.obs.obs, axis=2) * self.obs.obs_func
-        
+
     @cached_quantity
     def obs_func_cen(self):
         """
@@ -1608,7 +1609,7 @@ class Spectra(HaloModelIngredients):
         if self.obs is None:
             return None
         return np.squeeze(self.obs.obs, axis=2)
-        
+
     @cached_quantity
     def obs_func_z(self):
         """
@@ -1742,9 +1743,9 @@ class Spectra(HaloModelIngredients):
             pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            
+
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=galaxy_linear_bias)
-    
+
     @cached_quantity
     def power_spectrum_gm(self):
         """
@@ -1762,7 +1763,7 @@ class Spectra(HaloModelIngredients):
             matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar)
         else:
             matter_profile_1h = self.matter_profile
-            
+
         if self.bnl:
             I_NL = self.I_NL(self.central_galaxy_profile + self.satellite_galaxy_profile, self.matter_profile_2h, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12,self.I21,self.I22)
             pk_cm_2h = self._pk_lin * self.Ic_term * self.Im_term
@@ -1785,12 +1786,12 @@ class Spectra(HaloModelIngredients):
             pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-    
+
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=galaxy_linear_bias)
-        
-        
+
+
     # --------------------------------  Alignment spectra specific funtions ------------------------------
-    
+
     @cached_quantity
     def alignment_class(self):
         """
@@ -1812,27 +1813,27 @@ class Spectra(HaloModelIngredients):
         })
         return SatelliteAlignment(**self.align_params)
 
-    @cached_quantity 
+    @cached_quantity
     def beta_cen(self):
         """
         Beta parameter for central galaxies.
         """
         return self.alignment_class.beta_cen
-    
+
     @cached_quantity
     def beta_sat(self):
         """
         Beta parameter for satellite galaxies.
         """
         return self.alignment_class.beta_sat
-    
+
     @cached_quantity
     def mpivot_cen(self):
         """
         Pivot mass for central galaxies.
         """
         return self.alignment_class.mpivot_cen
-    
+
     @cached_quantity
     def mpivot_sat(self):
         """
@@ -1847,20 +1848,20 @@ class Spectra(HaloModelIngredients):
         """
         return self.alignment_class.alignment_gi
 
-    @cached_quantity 
+    @cached_quantity
     def alignment_amplitude_2h(self):
         """
         The alignment amplitude for GI.
         """
         return -1.0 * (self.C1[:, :, 0] * self.mean_density0[:, np.newaxis] / self.growth_factor[:, np.newaxis])
-    
+
     @cached_quantity
     def alignment_amplitude_2h_II(self):
         """
         The alignment amplitude for II.
         """
         return (self.C1[:, :, 0] * self.mean_density0[:, np.newaxis] / self.growth_factor[:, np.newaxis])**2.0
-        
+
     @cached_quantity
     def C1(self):
         """
@@ -1879,7 +1880,7 @@ class Spectra(HaloModelIngredients):
             The radial alignment profile of satellite galaxies.
         """
         return self.alignment_class.upsampled_wkm(self.k_vec, self.mass)
-        
+
     def compute_central_galaxy_alignment_profile(self, growth_factor, f_c, C1, mass, beta=None, mpivot=None, mass_avg=None):
         """
         Compute the central galaxy alignment profile.
@@ -1948,9 +1949,9 @@ class Spectra(HaloModelIngredients):
     def central_alignment_profile(self):
         r"""
         Prepare the grid in z, k and mass for the central alignment
-        
+
         :math:`\frac{f_{\rm cen}}{n_{\rm cen}} N_{\rm cen} \hat{\gamma}(k,M)`
-        
+
         where :math:`\hat{\gamma}(k,M)` is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
         times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
 
@@ -1976,7 +1977,7 @@ class Spectra(HaloModelIngredients):
         Prepare the grid in z, k and mass for the satellite alignment
 
         :math:`\frac{f_{\rm sat}}{n_{\rm sat}} N_{\rm sat} \hat{\gamma}(k,M)`
-        
+
         where :math:`\hat{\gamma}(k,M)` is the Fourier transform of the density weighted shear, i.e. the radial dependent power law
         times the NFW profile, here computed by the module wkm, while gamma_1h is only the luminosity dependence factor.
 
@@ -1995,7 +1996,7 @@ class Spectra(HaloModelIngredients):
             self.mass_avg[:, :, np.newaxis, np.newaxis]
         )
         return profile
-        
+
     @cached_quantity
     def Ic_align_term(self):
         """
@@ -2013,7 +2014,7 @@ class Spectra(HaloModelIngredients):
             self.halo_bias[np.newaxis, :, np.newaxis, :]
         )
         return I_g_align + self.A_term * self.central_alignment_profile[:, :, :, 0] * self.mean_density0[np.newaxis, :, np.newaxis] / self.mass[0]
-        
+
     @cached_quantity
     def Is_align_term(self):
         """
@@ -2049,7 +2050,7 @@ class Spectra(HaloModelIngredients):
             matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar)
         else:
             matter_profile_1h = self.matter_profile
-            
+
         if self.bnl:
             I_NL = self.I_NL(self.central_alignment_profile + self.satellite_alignment_profile, self.matter_profile_2h, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12,self.I21,self.I22)
             pk_sm_2h = (-1.0) * self._pk_lin * self.Is_align_term * self.Im_term
@@ -2080,9 +2081,9 @@ class Spectra(HaloModelIngredients):
             pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-                
+
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
-    
+
     @cached_quantity
     def power_spectrum_ii(self):
         """
@@ -2125,9 +2126,9 @@ class Spectra(HaloModelIngredients):
             pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-                
+
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
-    
+
     @cached_quantity
     def power_spectrum_gi(self):
         """
@@ -2165,7 +2166,7 @@ class Spectra(HaloModelIngredients):
             pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
             pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-    
+
         return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
 
 

@@ -1,11 +1,13 @@
-from functools import cached_property
-import warnings
 import numpy as np
+import warnings
+from functools import cached_property
 from scipy.interpolate import interp1d
+
 from hmf._internals._cache import cached_quantity, parameter, subframework
 from hmf._internals._framework import Framework
 
-from .pk import Spectra, PowerSpectrumResult
+from .pk import PowerSpectrumResult, Spectra
+
 
 class UpsampledSpectra(Framework):
     """
@@ -69,7 +71,7 @@ class UpsampledSpectra(Framework):
         :type: dict
         """
         return val
-    
+
     @parameter("param")
     def _model_2_params(self, val):
         """
@@ -78,25 +80,25 @@ class UpsampledSpectra(Framework):
         :type: dict
         """
         return val
-    
+
     @parameter("param")
     def fraction_z(self, val):
         """
         Redshifts of the red/blue fraction of galaxies in sample.
-        
+
         :type: array_like
         """
         return val
-    
+
     @parameter("param")
     def fraction(self, val):
         """
         Red/blue fraction of galaxies in sample as a function of redshift.
-        
+
         :type: array_like
         """
         return val
-    
+
     @parameter("param")
     def z(self, val):
         """
@@ -105,7 +107,7 @@ class UpsampledSpectra(Framework):
         :type: array_like
         """
         return val
-    
+
     @parameter("param")
     def k(self, val):
         """
@@ -114,7 +116,7 @@ class UpsampledSpectra(Framework):
         :type: array_like
         """
         return val
-    
+
     @parameter("param")
     def extrapolate_option(self, val):
         """
@@ -123,7 +125,7 @@ class UpsampledSpectra(Framework):
         :type: str or float
         """
         return val
-                    
+
     @cached_property
     def frac_1(self):
         """
@@ -141,7 +143,7 @@ class UpsampledSpectra(Framework):
             return np.ones_like(self.z)
         f = interp1d(self.fraction_z, self.fraction, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
         return f(self.z)
-        
+
     @cached_property
     def frac_2(self):
         """
@@ -155,7 +157,7 @@ class UpsampledSpectra(Framework):
         if self.fraction is None:
             return np.zeros_like(self.z)
         return 1.0-self.frac_1
-        
+
     @cached_property
     def power_1(self):
         """
@@ -189,7 +191,7 @@ class UpsampledSpectra(Framework):
             spectra2 = self.power_1.clone()
             spectra2.update(**self._model_2_params)
         return spectra2
-        
+
     def results(self, requested_spectra, requested_components):
         """
         Calculate and store the results for the requested spectra and components.
@@ -208,7 +210,7 @@ class UpsampledSpectra(Framework):
         """
         for mode in requested_spectra:
             collected_spectra = {}
-            for component in requested_components:    
+            for component in requested_components:
                 p1 = getattr(self.power_1, f'power_spectrum_{mode}')
                 p1_component = getattr(p1, f'pk_{component}')
                 extrapolated_p1 = self.extrapolate_spectra(

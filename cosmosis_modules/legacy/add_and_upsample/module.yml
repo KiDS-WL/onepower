@@ -13,11 +13,11 @@ assumptions:
     - ""
 
 explanation: |
-   To speed up the code the halo model power spectra are evaluated at a coarser redshift and wavenumber grid as the linear power spectrum as returned by CAMB. 
-   In order to have the final power spectra, redshift, wavenumbers and distances on the same grids for the projection module, this module upsamples the powerspectra to 
+   To speed up the code the halo model power spectra are evaluated at a coarser redshift and wavenumber grid as the linear power spectrum as returned by CAMB.
+   In order to have the final power spectra, redshift, wavenumbers and distances on the same grids for the projection module, this module upsamples the powerspectra to
    the CAMB values. If there is two different power spectra for red and blue galaxies (or any other split) this module also adds those together with the fractions provided by the user
 
-# List of parameters that can go in the params.ini file in the section for this module    
+# List of parameters that can go in the params.ini file in the section for this module
 params:
       do_p_mm:
           meaning: "Perform summation and upsampling, or only upsampling on P_mm?"
@@ -216,7 +216,7 @@ inputs:
             meaning: Blue galaxy-intrinsic power spectrum at samples in (Mpc/h)^-3.
             type: real 2d
 outputs:
-        matter_power_lin:
+    matter_power_lin:
         z:
             meaning: Redshifts of samples.
             type: real 1d
@@ -286,9 +286,3 @@ outputs:
         p_k:
             meaning: Galaxy-intrinsic power spectrum at samples in (Mpc/h)^-3.
             type: real 2d
-        
-        
-
-
-
-

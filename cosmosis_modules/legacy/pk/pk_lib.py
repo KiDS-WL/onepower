@@ -1,12 +1,13 @@
 # Library of the power spectrum module
-import numpy as np
 import numexpr as ne
-from scipy.interpolate import interp1d, RegularGridInterpolator, UnivariateSpline
-from scipy.integrate import simpson, quad, trapezoid
+import numpy as np
+import warnings
+from scipy.integrate import quad, simpson, trapezoid
+from scipy.interpolate import RegularGridInterpolator, UnivariateSpline, interp1d
+from scipy.ndimage import gaussian_filter1d
+
 # from scipy.special import erf
 from scipy.optimize import curve_fit
-from scipy.ndimage import gaussian_filter1d
-import warnings
 
 # from darkmatter_lib import compute_u_dm, radvir_from_mass
 
@@ -143,7 +144,7 @@ def get_normalised_profile(block, mass, z_vec):
     # For now we assume that centrals are in the centre of the haloes so no need for
     # defnining their profile
     # u_cen    = block['fourier_nfw_profile', 'ukcen']
-    
+
     #u_dm = interpolate_in_z(u_dm_in, z_udm, z_vec)
     #u_sat = interpolate_in_z(u_sat_in, z_udm, z_vec)
     if (mass_udm != mass).any():
@@ -186,7 +187,7 @@ def get_satellite_alignment(block, k_vec, mass, z_vec, suffix):
         lg_wkm_interpolated = lg_w_interp2d((lgkk.T, lgmm.T)).T
         wkm[jz] = 10.0**(lg_wkm_interpolated) * k_vec**2.0
     return wkm
-    
+
 def get_satellite_alignment_new(block, k_vec, mass, z_vec, suffix):
     """
     Loads and interpolates the wkm profiles needed for calculating the IA power spectra
@@ -214,17 +215,17 @@ def load_hods(block, section_name, suffix, z_vec, mass):
 
     if (m_hod != mass).any():
         raise ValueError('The HOD mass values are different to the input mass values.')
-    
+
     #If we're using an unconditional HOD, we need to define the stellar fraction with zeros
     try:
         f_star = block[section_name, f'f_star{suffix}']
     except:
-        f_star = np.zeros((len(z_hod), len(m_hod)))  
-    
+        f_star = np.zeros((len(z_hod), len(m_hod)))
+
     #interp_Ncen  = RegularGridInterpolator((m_hod.T, z_hod.T), Ncen_hod.T, bounds_error=False, fill_value=0.0)
     #interp_Nsat  = RegularGridInterpolator((m_hod.T, z_hod.T), Nsat_hod.T, bounds_error=False, fill_value=0.0)
     #interp_fstar = RegularGridInterpolator((m_hod.T, z_hod.T), f_star.T, bounds_error=False, fill_value=0.0)
-    
+
     interp_Ncen = interp1d(z_hod, Ncen_hod, fill_value='extrapolate', bounds_error=False, axis=0)
     interp_Nsat = interp1d(z_hod, Nsat_hod, fill_value='extrapolate', bounds_error=False, axis=0)
     interp_fstar = interp1d(z_hod, f_star, fill_value='extrapolate', bounds_error=False, axis=0)
@@ -233,7 +234,7 @@ def load_hods(block, section_name, suffix, z_vec, mass):
     interp_f_c = interp1d(z_hod, f_c_hod, fill_value=0.0, bounds_error=False)
     interp_f_s = interp1d(z_hod, f_s_hod, fill_value=0.0, bounds_error=False)
     interp_mass_avg = interp1d(z_hod, mass_avg_hod, fill_value=0.0, bounds_error=False)
-    
+
     #mm, zz = np.meshgrid(mass, z_vec, sparse=True)
     #Ncen  = interp_Ncen((mm.T, zz.T)).T
     #Nsat  = interp_Nsat((mm.T, zz.T)).T
@@ -726,14 +727,14 @@ def I_NL(mass_1, mass_2, W_1, W_2, b_1, b_2, dn_dlnm_z_1, dn_dlnm_z_2, A, rho_me
         W_1 = W_1[:, np.newaxis, :]
     if len(W_2.shape) < 3:
         W_2 = W_2[:,np.newaxis,:]
-    
+
     W_1 = np.transpose(W_1, [0, 2, 1])
     W_2 = np.transpose(W_2, [0, 2, 1])
-    
+
 
     # Takes the integral over mass_1
     # TODO: check that these integrals do the correct thing, keep this TODO
-   
+
     #integrand_22 = integrand_22_part * W_1[:,:,np.newaxis,:] * W_2[:,np.newaxis,:,:]
     W_1e = W_1[:, : ,np.newaxis, :]
     W_2e = W_2[:, np.newaxis, :, :]
@@ -767,7 +768,7 @@ def high_k_truncation(k_vec, k_trunc):
     """
     Beta_nl high-k truncation
     """
-    return 1.0 / (1.0 + np.exp((10.0 * (np.log10(k_vec) - np.log10(k_trunc)))))
+    return 1.0 / (1.0 + np.exp(10.0 * (np.log10(k_vec) - np.log10(k_trunc))))
 
 def minimum_halo_mass(emu):
     """
@@ -847,30 +848,30 @@ def compute_bnl_darkquest(z, log10M1, log10M2, k, emulator, block, kmax):
                 # Linear halo bias
                 b1 = b01[iM1]
                 b2 = b01[iM2]
-                    
+
                 # Halo-halo power spectrum
                 Pk_hh = emulator.get_phh_mass(k, M01, M02, z)
-                
+
                 #rmax = max(rvir(emulator, M01), rvir(emulator, M02))
                 #kmax = 2.0*np.pi/rmax
-                    
+
                 # Create beta_NL
                 shot_noise = lambda x, a: a
                 popt, popc = curve_fit(shot_noise, k[(k > 100) & (k < 200)], Pk_hh[(k > 100) & (k < 200)])
                 Pk_hh = Pk_hh - np.ones_like(k) * shot_noise(k, *popt)
-            
+
                 beta_func[iM1, iM2, :] = Pk_hh / (b1 * b2 * Pk_lin) - 1.0
-                
+
                 Pk_hh0 = emulator.get_phh_mass(klin, M01, M02, z)
                 Pk_hh0 = Pk_hh0 - np.ones_like(klin)*shot_noise(klin, *popt)
                 db = Pk_hh0 / (b1 * b2 * Pk_klin) - 1.0
-                
+
                 lmin, lmax = hl_envelopes_idx(np.abs(beta_func[iM1, iM2, :]+1.0))
                 beta_func_interp = interp1d(k[lmax], np.abs(beta_func[iM1, iM2, lmax]+1.0), kind='quadratic', bounds_error=False, fill_value='extrapolate')
                 beta_func[iM1, iM2, :] = (beta_func_interp(k) - 1.0)# * low_k_truncation(k, klin)
                 db = (beta_func_interp(klin) - 1.0)
-                
-        
+
+
                 #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 30.0)/(db + 1.0) - 1.0) * low_k_truncation(k, klin)
                 #beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) #* low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#/(1.0+z))
                 beta_func[iM1, iM2, :] = (beta_func[iM1, iM2, :] - db) * low_k_truncation(k, klin) * high_k_truncation(k, 3.0*kmax)
@@ -883,7 +884,7 @@ def create_bnl_interpolation_function(emulator, interpolation, z, block):
     zc = z.copy()
 
     Mmin, kmax = minimum_halo_mass(emulator)
-    M_up = np.log10((10.0**14.0))
+    M_up = np.log10(10.0**14.0)
     #M_lo = np.log10((10.0**12.0))
     M_lo = np.log10(Mmin)
 
@@ -1038,7 +1039,7 @@ def compute_p_gg(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profi
     """
     p_tot = p_cs_1h + p_ss_1h + 2p_cs_2h + p_cc_2h
     """
-    
+
     # 2-halo term:
     pk_cc_2h = pk_lin * I_c_term * I_c_term * two_halo_truncation(k_vec, two_halo_ktrunc)[np.newaxis, :]
     pk_ss_2h = pk_lin * I_s_term * I_s_term * two_halo_truncation(k_vec, two_halo_ktrunc)[np.newaxis, :]
@@ -1055,7 +1056,7 @@ def compute_p_gg(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profi
     pk_1h = 2.0 * pk_cs_1h + pk_ss_1h
     pk_2h = pk_cc_2h + pk_ss_2h + 2.0 * pk_cs_2h
     pk_tot = pk_1h + pk_2h
-    
+
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term * I_c_term + I_s_term * I_s_term + 2.0 * I_s_term * I_c_term)
     return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
@@ -1064,7 +1065,7 @@ def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
     """
     p_tot = p_cs_1h + p_ss_1h + p_cs_2h + p_cc_2h
     """
-    
+
     # 2-halo term:
     pk_cs_2h = pk_lin * I_c_term * I_s_term
     pk_cc_2h = pk_lin * I_c_term * I_c_term
@@ -1081,7 +1082,7 @@ def compute_p_gg_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
     pk_1h = 2.0 * pk_cs_1h + pk_ss_1h
     pk_2h = pk_cc_2h + pk_ss_2h + 2.0 * pk_cs_2h + pk_lin * I_NL_gg
     pk_tot = pk_1h + pk_2h
-    
+
     # galaxy linear bias
     galaxy_linear_bias = np.sqrt(I_c_term * I_c_term + I_s_term * I_s_term + 2.0 * I_s_term * I_c_term)
     return pk_1h, pk_2h, pk_tot, galaxy_linear_bias
@@ -1091,7 +1092,7 @@ def compute_p_gm(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profi
     """
     p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
     """
-    
+
     # 2-halo term:
     pk_cm_2h = pk_lin * I_c_term * I_m_term * two_halo_truncation(k_vec, two_halo_ktrunc)[np.newaxis, :]
     pk_sm_2h = pk_lin * I_s_term * I_m_term * two_halo_truncation(k_vec, two_halo_ktrunc)[np.newaxis, :]
@@ -1103,7 +1104,7 @@ def compute_p_gm(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_profi
     pk_1h = pk_cm_1h + pk_sm_1h
     pk_2h = pk_cm_2h + pk_sm_2h
     pk_tot = pk_1h + pk_2h
-    
+
     # galaxy-matter linear bias
     galaxy_matter_linear_bias = np.sqrt(I_c_term * I_m_term + I_s_term * I_m_term)
     return pk_1h, pk_2h, pk_tot, galaxy_matter_linear_bias
@@ -1112,7 +1113,7 @@ def compute_p_gm_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
     """
     p_tot = p_cm_1h + p_sm_1h + p_cm_2h + p_cm_2h
     """
-    
+
     # 2-halo term:
     pk_cm_2h = pk_lin * I_c_term * I_m_term
     pk_sm_2h = pk_lin * I_s_term * I_m_term
@@ -1124,7 +1125,7 @@ def compute_p_gm_bnl(k_vec, pk_lin, mass, dn_dln_m, central_profile, satellite_p
     pk_1h = pk_cm_1h + pk_sm_1h
     pk_2h = pk_cm_2h + pk_sm_2h + pk_lin * I_NL_gm
     pk_tot = pk_1h + pk_2h
-    
+
     # galaxy-matter linear bias
     galaxy_matter_linear_bias = np.sqrt(I_c_term * I_m_term + I_s_term * I_m_term)
     return pk_1h, pk_2h, pk_tot, galaxy_matter_linear_bias
@@ -1144,14 +1145,14 @@ def compute_p_mI_fortuna(k_vec, p_eff, mass, dn_dln_m, matter_profile, s_align_f
     """
     p_tot = p_sm_mI_1h + f_cen*p_cm_mI_2h + O(any other combination)
     """
-    
+
     # 2-halo term:
     # pk_eff = (1.-t_eff)*plin+t_eff*pnl
     pk_cm_2h = compute_p_mI_two_halo(p_eff, f_gal, alignment_amplitude_2h) * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis, :]
-    
+
     # 1-halo term
     pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass[np.newaxis, np.newaxis, :], dn_dln_m[:, np.newaxis, :]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)
-    
+
     pk_tot = pk_sm_1h + pk_cm_2h
 
     return pk_sm_1h, pk_cm_2h, pk_tot
@@ -1165,20 +1166,20 @@ def compute_p_mI(k_vec, p_lin, mass, dn_dln_m, matter_profile, s_align_factor, I
     pk_sm_2h = (-1.0) * p_lin * I_m_term * I_s_align_term * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis, :]
     pk_cm_2h = (-1.0) * p_lin * I_m_term * I_c_align_term * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis, :]
     pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
-    
+
     return pk_sm_1h, pk_cm_2h+pk_sm_2h, pk_tot
 
 def compute_p_mI_bnl(k_vec, p_lin, mass, dn_dln_m, matter_profile, s_align_factor, I_m_term, I_c_align_term, I_s_align_term, I_NL_ia_gm, one_halo_ktrunc):
     """
     p_tot = p_sm_mI_1h + f_cen*p_cm_mI_2h + O(any other combination)
     """
-    
+
     pk_sm_1h = (-1.0) * compute_1h_term(matter_profile, s_align_factor, mass[np.newaxis, np.newaxis, :], dn_dln_m[:, np.newaxis, :]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)
     #pk_cm_1h = (-1.0) * compute_1h_term(matter_profile, c_align_factor, mass[np.newaxis, np.newaxis, :], dn_dln_m[:, np.newaxis, :]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)
     pk_sm_2h = (-1.0) * p_lin * I_m_term * I_s_align_term
     pk_cm_2h = (-1.0) * p_lin * I_m_term * I_c_align_term
     pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h - p_lin * I_NL_ia_gm
-    
+
     return pk_sm_1h, pk_cm_2h + pk_sm_2h, pk_tot
 
 # intrinsic-intrinsic power spectrum
@@ -1186,7 +1187,7 @@ def compute_p_II_fortuna(k_vec, p_eff, mass, dn_dln_m, s_align_factor, alignment
     """
     p_tot = p_ss_II_1h + p_cc_II_2h + O(p_sc_II_1h) + O(p_cs_II_2h)
     """
-    
+
     # 2-halo term: This is simply the Linear Alignment Model weighted by the central galaxy fraction
     pk_cc_2h = compute_p_II_two_halo(p_eff, f_gal, alignment_amplitude_2h_II) * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis, :]
     # 1-halo term
@@ -1200,23 +1201,23 @@ def compute_p_II(k_vec, p_lin, mass, dn_dln_m, s_align_factor, I_c_align_term, I
     """
     p_tot = p_ss_II_1h + p_cc_II_2h + O(p_sc_II_1h) + O(p_cs_II_2h)
     """
-    
+
     pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor, mass[np.newaxis, np.newaxis, :], dn_dln_m[:, np.newaxis, :]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)
     #pk_cs_1h = compute_1h_term(c_align_factor, s_align_factor, mass[np.newaxis, np.newaxis, :], dn_dln_m[:, np.newaxis, :]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)
     pk_ss_2h = p_lin * I_s_align_term * I_s_align_term * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis, :]
     pk_cc_2h = p_lin * I_c_align_term * I_c_align_term * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis, :]
     pk_cs_2h = p_lin * I_c_align_term * I_s_align_term * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis, :]
     pk_tot = pk_ss_1h + pk_cc_2h + pk_ss_2h + pk_cs_2h
-    
+
     return pk_ss_1h, pk_cc_2h+pk_cs_2h+pk_cs_2h, pk_tot
-    
-    
+
+
 # Needs Poisson parameter as well!
 def compute_p_II_bnl(k_vec, p_lin, mass, dn_dln_m, s_align_factor, I_c_align_term, I_s_align_term, I_NL_ia_cc, I_NL_ia_cs, I_NL_ia_ss, one_halo_ktrunc):
     """
     p_tot = p_ss_II_1h + p_cc_II_2h + O(p_sc_II_1h) + O(p_cs_II_2h)
     """
-    
+
     pk_ss_1h = compute_1h_term(s_align_factor, s_align_factor,mass[np.newaxis, np.newaxis, :], dn_dln_m[:, np.newaxis, :]) \
         * one_halo_truncation_ia(k_vec, one_halo_ktrunc)
     #pk_cs_1h = compute_1h_term(c_align_factor, s_align_factor, mass[np.newaxis, np.newaxis, :], dn_dln_m[:, np.newaxis, :]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)
@@ -1232,13 +1233,13 @@ def compute_p_gI_fortuna(k_vec, p_eff, mass, dn_dln_m, central_profile, s_align_
     """
     p_tot = p_cs_gI_1h + (2?)*p_cc_gI_2h + O(p_ss_gI_1h) + O(p_cs_gI_2h)
     """
-    
+
     # 2-halo term:
     #IT Removed new_axis from alignment_amplitude_2h[:,np.newaxis] in the following line
     pk_cc_2h = -1.0 * p_eff * I_c_term * alignment_amplitude_2h[:,] * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis, :]
     # 1-halo term
     pk_cs_1h = compute_1h_term(central_profile, s_align_factor, mass[np.newaxis, np.newaxis, :], dn_dln_m[:, np.newaxis, :]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)
-    
+
     pk_tot = pk_cs_1h + pk_cc_2h
 
     return pk_cs_1h, pk_cc_2h, pk_tot
@@ -1247,26 +1248,26 @@ def compute_p_gI(k_vec, p_lin, mass, dn_dln_m, central_profile, s_align_factor, 
     """
     p_tot = p_cs_gI_1h + (2?)*p_cc_gI_2h + O(p_ss_gI_1h) + O(p_cs_gI_2h)
     """
-    
+
     pk_cs_1h = compute_1h_term(central_profile, s_align_factor, mass[np.newaxis, np.newaxis, :], dn_dln_m[:, np.newaxis, :]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)
     pk_cc_2h = p_lin * I_c_term * I_c_align_term * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis, :]
     pk_cs_2h = p_lin * I_c_term * I_s_align_term * two_halo_truncation_ia(k_vec, two_halo_ktrunc)[np.newaxis, :]
 
     pk_tot = pk_cs_1h + pk_cs_2h + pk_cc_2h
-    
+
     return pk_cs_1h, pk_cc_2h+pk_cs_2h, pk_tot
 
 def compute_p_gI_bnl(k_vec, p_lin, mass, dn_dln_m, central_profile, s_align_factor, I_c_term, I_c_align_term, I_s_align_term, I_NL_ia_gc, I_NL_ia_gs, one_halo_ktrunc):
     """
     p_tot = p_cs_gI_1h + (2?)*p_cc_gI_2h + O(p_ss_gI_1h) + O(p_cs_gI_2h)
     """
-    
+
     pk_cs_1h = compute_1h_term(central_profile, s_align_factor, mass[np.newaxis, np.newaxis, :], dn_dln_m[:, np.newaxis, :]) * one_halo_truncation_ia(k_vec, one_halo_ktrunc)
     pk_cc_2h = p_lin * I_c_term * I_c_align_term + p_lin*I_NL_ia_gc
     pk_cs_2h = p_lin * I_c_term * I_s_align_term + p_lin*I_NL_ia_gs
 
     pk_tot = pk_cs_1h + pk_cs_2h + pk_cc_2h
-    
+
     return pk_cs_1h, pk_cc_2h+pk_cs_2h, pk_tot
 
 
@@ -1310,4 +1311,3 @@ def compute_p_gI_two_halo(p_eff, f_gal, alignment_amplitude_2h, bg):
 def compute_p_II_two_halo(p_eff, f_gal, alignment_amplitude_2h_II):
     pk_tot = (f_gal[:, np.newaxis] ** 2.) * p_eff * alignment_amplitude_2h_II
     return pk_tot
-

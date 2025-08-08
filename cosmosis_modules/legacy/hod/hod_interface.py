@@ -4,10 +4,10 @@ Usually M_star is reported in units of M_sun/h^2.
 The observable_h_unit should be set to what the inputs are (from the data and from the values file).
 """
 
-from cosmosis.datablock import names, option_section
-import numpy as np
-from scipy.interpolate import interp1d
 import hod_lib_class as hods
+import numpy as np
+from cosmosis.datablock import names, option_section
+from scipy.interpolate import interp1d
 
 cosmo_params = names.cosmological_parameters
 

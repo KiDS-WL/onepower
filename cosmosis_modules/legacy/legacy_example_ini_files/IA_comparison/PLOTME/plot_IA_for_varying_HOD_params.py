@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import os
-import matplotlib.pyplot as plt
 
 # This script runs the cosmosis test sampler for a range of input HOD parameters and plots the IA models
 
@@ -23,10 +23,10 @@ hod_params={
 
 isample=10
 gamma_hat_params={
-'nmass':np.linspace(5,50,num=2+isample).astype(int), 
+'nmass':np.linspace(5,50,num=2+isample).astype(int),
 'kmin':np.geomspace(0.0001,0.1,num=2+isample),
 'kmax':np.geomspace(10,10000,num=2+isample),
-'nk':np.linspace(10,50,num=2+isample).astype(int) 
+'nk':np.linspace(10,50,num=2+isample).astype(int)
 }
 
 # A plotting module
@@ -70,7 +70,7 @@ def put_exponent_in_top_right_corner(ax):
     exponent_axis = np.floor(np.log10(ax_max)).astype(int)
     ax.text(0.01,0.01,r'$\times$10$^{%i}$'%(exponent_axis),
              ha='left', va='bottom',transform = ax.transAxes,fontsize=12)
-    
+
 def tidy_my_plot(ax,ip):
     # The exponent ends up overlapping with the upper panel plot :(
     # So we're going to use this slightly messy hack to remove it
@@ -79,7 +79,7 @@ def tidy_my_plot(ax,ip):
     #Put the title in the bottom left corner
     ax[ip,0].text(0.01,1.1,param,ha='left', va='top',transform = ax[ip,0].transAxes,fontsize=12)
     ax[0,0].set_xscale('log')
-    ax[ip,0].set_ylabel('$\Delta C(\ell)/C(\ell)$',fontsize=12)
+    ax[ip,0].set_ylabel(r'$\Delta C(\ell)/C(\ell)$',fontsize=12)
 
 
 
@@ -106,7 +106,7 @@ for param, value_range in gamma_hat_params.items():
         command='radial_satellite_alignment_red.'+param+'=%.5e '%(val)
         command+='radial_satellite_alignment_blue.'+param+'=%.5e '%(val) #use -p when changing parameters
         print(command)
-        test_sampler_run='cosmosis ../create_mock_with_HaloModel_IA.ini -p '+command 
+        test_sampler_run='cosmosis ../create_mock_with_HaloModel_IA.ini -p '+command
         test_sample_exit_status=os.system(test_sampler_run)
         plot_tomobins(ip,iv,'shear_cl',axall)
         plot_tomobins(ip,iv,'shear_cl_gi',axGI)

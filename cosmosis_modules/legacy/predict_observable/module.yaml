@@ -14,10 +14,10 @@ assumptions:
 
 explanation: |
   This module combines tomographic / stellar mass bins of the individually calculated observables
-  It produces the theoretical prediction for the observable for the full survey. 
+  It produces the theoretical prediction for the observable for the full survey.
   The number of bins and the mass range can be different to what is calculated in the hod_interface.py module.
 
-# List of parameters that can go in the params.ini file in the section for this module    
+# List of parameters that can go in the params.ini file in the section for this module
 params:
     input_section_name:
         meaning: Input section name to get the observable values from (this is and optional output of the hod section)
@@ -33,20 +33,20 @@ params:
         default: False
     suffixes:
         meaning: (optional) if given read from input. Otherwise set ot median.
-              This determines if the observable_function is a function of redshift or 
+              This determines if the observable_function is a function of redshift or
               only estimated at the median redshift of the sample.
-        type: int 1D or str 
+        type: int 1D or str
         default: med
     sample:
-        meaning: (optional) if suffixes are given, look for the redshift distribution 
+        meaning: (optional) if suffixes are given, look for the redshift distribution
                   of the observables in this section. This is something that was probably read from
                   a data file.
         type: str
-        default: 
+        default:
     log10_obs_min:
         meaning: log10 of the minimum value{s} for the observable. For stellar mass function, these are given in log10 M_sun/h^2.
         type: real
-        default: 
+        default:
     log_10_obs_max:
         meaning: log10 of the maximum value{s} for the observable. For stellar mass function, these are given in log10 M_sun/h^2.
         type: real
@@ -60,19 +60,19 @@ params:
         type: real
         default:
     n_obs:
-        meaning: Number of observables to calculate the obervable function for. 
+        meaning: Number of observables to calculate the obervable function for.
         type: int
-        default: 
+        default:
     edges:
         meaning: If True assumes that the log10_obs_min and log_10_obs_max are the bin edges and there are nbins linear bins
-                between them (log bins between obs_min and obs_max). 
+                between them (log bins between obs_min and obs_max).
                 If suffixes are given nbins = len(suffixes). Otherwise it is nbins=1.
-                Note that if using stellar masses as your observable log10_obs_min and log_10_obs_max 
+                Note that if using stellar masses as your observable log10_obs_min and log_10_obs_max
                 are given in log10 M_sun/h^2.
         type: bool
         default: False
     weighted_binning:
-        meaning: If True does weighted binning on SMF. 
+        meaning: If True does weighted binning on SMF.
                 The weights are either 1 if no file is given (this is equivalent to integrating over the observable bin).
                 If obs_dist_file is given then the weights are taken from that file.
                 If weighted_binning is True then we also need the edges to be True, so that we know the edges of the bins.
@@ -102,19 +102,19 @@ inputs:
                      i can be an integer or med (median). These are rebinned to match the data.
             type: real 1D (no redshift rependence) or 2D if z_bin_{i} exists
         z_bin_{i}:
-            meaning: redshift distribution of the galaxies in the observable-redshift bin {i}. This will be read if it exists. 
+            meaning: redshift distribution of the galaxies in the observable-redshift bin {i}. This will be read if it exists.
                     If the median redshift is used to get the observable function then it is not used. If it exists then the
                     observable function is defined as the weighted average of the observable function over redshift
                     \int dz n(z) x (observable function).
             type: real 1D
     sample:
         z:
-          meaning: Redshift values in the input sample corresponding to the galaxies in the observable-redshift bins. 
-                    This should be read using a read_nz module. 
+          meaning: Redshift values in the input sample corresponding to the galaxies in the observable-redshift bins.
+                    This should be read using a read_nz module.
           type: real 1D
-        bin_{i}: 
-          meaning: Redshift distribution of the galaxies in the observable-redshift bins. The number of bins should be 
-                  This should be read using a read_nz module. 
+        bin_{i}:
+          meaning: Redshift distribution of the galaxies in the observable-redshift bins. The number of bins should be
+                  This should be read using a read_nz module.
           type: real 1D
 outputs:
     output_section_name:
@@ -130,5 +130,3 @@ outputs:
         sample:
           meaning: The sample name for the redshift distribution of the observables, this is only saved if suffixes are given.
           type: str
-        
-

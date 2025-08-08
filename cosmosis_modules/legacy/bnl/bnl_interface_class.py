@@ -2,11 +2,11 @@
 
 # NOTE: no truncation (halo exclusion problem) applied, as it is included in BNL!
 
-from cosmosis.datablock import names, option_section
 import numpy as np
-from scipy.interpolate import interp1d, RegularGridInterpolator
-from dark_emulator import darkemu
 from collections import OrderedDict
+from cosmosis.datablock import names, option_section
+from dark_emulator import darkemu
+from scipy.interpolate import RegularGridInterpolator, interp1d
 
 #import sys
 #sys.path.insert(0, "/net/home/fohlen13/dvornik/halo_model_mc/halomodel_for_cosmosis/package/pk")
@@ -19,7 +19,7 @@ def setup(options):
     # This function is called once per processor per chain.
     # It is a chance to read any fixed options from the configuration file,
     # load any data, or do any calculations that are fixed once.
-    
+
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
     nmass = options[option_section, 'nmass']
@@ -78,7 +78,7 @@ def execute(block, config):
                 w0 = block[cosmo_params, 'w'],
                 z_dep = False
             )
-            
+
             beta_interp = bnl.bnl
             cached_bnl['cached_bnl'] = beta_interp
         else:

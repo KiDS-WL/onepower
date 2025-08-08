@@ -1,5 +1,7 @@
 import pytest
+
 import numpy as np
+
 from onepower.utils.poisson import Poisson, constant, power_law
 
 # Just some base tests for now, no specific scientific calculations tested yet!

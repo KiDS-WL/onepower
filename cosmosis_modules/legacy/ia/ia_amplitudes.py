@@ -17,10 +17,11 @@
 # IMPORTANT: here we assume luminosities to be in units of L_sun/h2
 # -------------------------------------------------------------------------------- #
 
-from cosmosis.datablock import option_section
 import numpy as np
-from scipy.integrate import simpson
 from astropy.io import fits
+from cosmosis.datablock import option_section
+from scipy.integrate import simpson
+
 
 def mean_l_l0_to_beta(xlum, pdf, l0, beta):
     return simpson(pdf * (xlum / l0) ** beta, xlum)

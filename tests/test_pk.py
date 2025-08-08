@@ -1,7 +1,9 @@
 import pytest
+
 import numpy as np
 from unittest.mock import MagicMock
-from onepower import Spectra, PowerSpectrumResult
+
+from onepower import PowerSpectrumResult, Spectra
 
 # Just some base tests for now, no specific scientific calculations tested yet!
 
@@ -20,7 +22,7 @@ def setup_data():
 def spectra(setup_data):
     k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = setup_data
     spectra = Spectra(
-        Mmin = 12, 
+        Mmin = 12,
         Mmax = 15,
         dlog10m = (15 - 12) / 100 ,
         matter_power_lin=matter_power_lin,

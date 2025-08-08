@@ -1,7 +1,9 @@
 import pytest
+
 import numpy as np
 from unittest.mock import MagicMock
-from onepower import UpsampledSpectra, Spectra, PowerSpectrumResult
+
+from onepower import PowerSpectrumResult, Spectra, UpsampledSpectra
 
 # Just some base tests for now, no specific scientific calculations tested yet!
 

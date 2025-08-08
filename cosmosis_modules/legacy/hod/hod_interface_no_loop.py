@@ -4,8 +4,8 @@ Usually M_star is reported in units of M_sun/h^2.
 The observable_h_unit should be set to what the inputs are (from the data and from the values file).
 """
 
-from cosmosis.datablock import names, option_section
 import numpy as np
+from cosmosis.datablock import names, option_section
 from scipy.interpolate import interp1d
 
 import onepower.hod as hods
@@ -133,7 +133,7 @@ def setup(options):
         hod_settings['zmin'] = np.asarray([options[option_section, 'zmin']]).flatten()
         hod_settings['zmax'] = np.asarray([options[option_section, 'zmax']]).flatten()
         hod_settings['nz'] = options[option_section, 'nz']
-    
+
     return {
         'obs_simps': obs_simps,
         'nbins': nbins,
@@ -173,7 +173,7 @@ def execute(block, config):
     valid_units = config['valid_units']
     hod_model = config['hod_model']
     hod_settings = config['hod_settings']
-    
+
     if save_observable:
         block.put(observable_section_name, 'obs_func_definition', 'obs_func * obs * ln(10)')
         block.put(observable_section_name, 'observable_mode', observable_mode)
@@ -189,7 +189,7 @@ def execute(block, config):
 
     hod_kwargs['A_cen'] = block[values_name, 'A_cen'] if block.has_value(values_name, 'A_cen') else None
     hod_kwargs['A_sat'] = block[values_name, 'A_sat'] if block.has_value(values_name, 'A_sat') else None
-        
+
     # Dinamically load required HOD parameters givent the model and number of bins!
     for param in hod_parameters:
         if hod_model == 'Cacciato':
@@ -219,7 +219,7 @@ def execute(block, config):
     N_cen = COF_class._compute_hod_cen
     N_sat = COF_class._compute_hod_sat
     N_tot = COF_class._compute_hod
-    
+
     if (N_sat < 0).any() or (N_cen < 0).any():
         raise ValueError('Some HOD values are negative. Increase nobs for a more stable integral.')
 
@@ -237,8 +237,8 @@ def execute(block, config):
     fraction_cen = numdens_cen / numdens_tot
     fraction_sat = numdens_sat / numdens_tot
     mass_avg = COF_class.mass_avg_cen / numdens_cen
-    
-    
+
+
     for nb in range(nbins):
         suffix = f'_{nb+1}' if nbins != 1 else ''
         block.put_grid(hod_section_name, f'z{suffix}', z_bins[nb], f'mass{suffix}', mass, f'N_sat{suffix}', N_sat[nb])
@@ -255,15 +255,15 @@ def execute(block, config):
         galaxybias_cen = COF_class.bg_cen / numdens_tot
         galaxybias_sat = COF_class.bg_sat / numdens_tot
         galaxybias_tot = COF_class.bg_tot / numdens_tot
-        
+
         for nb in range(nbins):
             suffix = f'_{nb+1}' if nbins != 1 else ''
             block.put_double_array_1d(hod_section_name, f'galaxy_bias_centrals{suffix}', galaxybias_cen[nb])
             block.put_double_array_1d(hod_section_name, f'galaxy_bias_satellites{suffix}', galaxybias_sat[nb])
             block.put_double_array_1d(hod_section_name, f'b{suffix}', galaxybias_tot[nb])
-    
+
     if save_observable and observable_mode == 'obs_z' and hod_model == 'Cacciato':
-    
+
         obs_func = np.log(10.0) * np.squeeze(COF_class.obs, axis=2) * COF_class.obs_func
         obs_func_c = np.log(10.0) * np.squeeze(COF_class.obs, axis=2) * COF_class.obs_func_cen
         obs_func_s = np.log(10.0) * np.squeeze(COF_class.obs, axis=2) * COF_class.obs_func_sat
@@ -289,7 +289,7 @@ def execute(block, config):
         f_star_mm = COF_class_onebin._compute_stellar_fraction
         if observable_h_unit == valid_units[1]:
             f_star_mm = f_star_mm * block['cosmological_parameters', 'h0']
-            
+
         block.put_grid(hod_section_name, 'z_extended', z_bins_one[0], 'mass_extended', mass, 'f_star_extended', f_star_mm[0])
 
         if save_observable and observable_mode == 'obs_onebin':

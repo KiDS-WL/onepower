@@ -1,11 +1,10 @@
 import collections
-import scipy.interpolate
-import numpy as np
-from glob import glob
-from astropy.units import Quantity
-from cosmosis.datablock import option_section, names
-
 import matplotlib.pyplot as pl
+import numpy as np
+import scipy.interpolate
+from astropy.units import Quantity
+from cosmosis.datablock import names, option_section
+from glob import glob
 
 
 def load_covariance_2d(covfile, nobsbins, nrbins, exclude=None):
@@ -35,10 +34,10 @@ def load_covariance_2d(covfile, nobsbins, nrbins, exclude=None):
     cov2d = np.loadtxt(covfile)
     cov2d, nrbins = covariance_excluder(cov2d, nobsbins, nrbins, exclude)
     cov, icov, likenorm, signal_err, cor = covariance_aux_numbers(cov2d, nobsbins, nrbins)
-    
+
     return cov, icov, likenorm, signal_err, cov2d, cor
-    
-    
+
+
 def covariance_aux_numbers(cov2d, nobsbins, nrbins):
     try:
         icov_in = np.linalg.inv(cov2d)
@@ -75,8 +74,8 @@ def covariance_aux_numbers(cov2d, nobsbins, nrbins):
     # likelihood normalization
     likenorm = -(nobsbins**2*np.log(2*np.pi) + np.log(prod_detC)) / 2
     return cov, icov, likenorm, signal_err, cor
-    
-    
+
+
 def covariance_excluder(cov2d, nobsbins, nrbins, exclude):
     if exclude is None:
         return cov2d, nrbins
@@ -92,10 +91,10 @@ def covariance_excluder(cov2d, nobsbins, nrbins, exclude):
         else:
             nrbins[i] = n - nexcl
     return cov2d, nrbins
-    
-    
+
+
 def load_datapoints_2d(datafiles, datacols, exclude=None):
-    
+
     datafiles = sorted(glob(datafiles))
     nobsbins = len(datafiles)
     x = np.empty(nobsbins, dtype=object)
@@ -115,10 +114,10 @@ def load_datapoints_2d(datafiles, datacols, exclude=None):
         y = np.array([np.array([esdi[j] for j in range(len(esdi))
                         if j not in exclude]) for esdi in y], dtype=object)
     return x, y, nobsbins
-    
-    
+
+
 def load_data(data_dict):
-   
+
     # first load without excluding anything to define Nrbins, Nobsbins
     x, y, nobsbins = load_datapoints_2d(data_dict['data'], data_dict['columns'])
     nrbins = np.array([sh.size for sh in y])
@@ -128,10 +127,10 @@ def load_data(data_dict):
     x, y, nobsbins = load_datapoints_2d(
         data_dict['data'], data_dict['columns'], data_dict['exclude'])
     nrbins = np.array([sh.size for sh in y])
-    
+
     return x, y, cov, nobsbins, nrbins
-    
-    
+
+
 def get_theory_point(x, y, mode='interpolate', interpolated_x=None, bin_edges=None, weighting=None):
     intp = scipy.interpolate.interp1d(np.log(x), y, kind='linear')
     if mode == 'interpolate':
@@ -155,13 +154,13 @@ def get_theory_point(x, y, mode='interpolate', interpolated_x=None, bin_edges=No
 
 
 def setup(options):
-    
+
     # TO-DO: - Implement exclude option
     #        - Implement scaling of observables to the cosmology of the data
-    #        - 
-    
+    #        -
+
     input_sections = options.get_string(option_section, 'input_section_names').split()
-    
+
     data_dict = {}
     data_dict['data'] = options[option_section, 'data']
     data_dict['covariance'] = options[option_section, 'covariance']
@@ -169,7 +168,7 @@ def setup(options):
     #data_dict['exclude'] = np.asarray([options[option_section, 'exclude']]).flatten() # Maybe do with classic scale-cuts as well?
     data_dict['exclude'] = None#options.get_bool(option_section, 'exclude', default=None)# Maybe do with classic scale-cuts as well?
     unit = options[option_section, 'unit']
-    
+
     x, data_vectors, cov, nobsbins, nrbins = load_data(data_dict)
     cov, inv_cov, likenorm, err, cov2d, cor = cov
 
@@ -185,7 +184,7 @@ def setup(options):
         edges = 10.0**edges
     else:
         edges = x.copy()
-    
+
     like_name = options.get_string(option_section, 'like_name')
     keep_theory_vector = options.get_bool(option_section, 'keep_theory_vector', False)
     return input_sections, cov, inv_cov, x, data_vectors, nobsbins, nrbins, binning_mode, edges, like_name, keep_theory_vector, unit
@@ -193,13 +192,13 @@ def setup(options):
 
 def execute(block, config):
     input_sections, cov, inv_cov, x, data_vectors, nobsbins, nrbins, binning_mode, edges, like_name, keep_theory_vector, unit = config
-    
+
     nbins = 0
     for input in input_sections:
         nbins += block[input, 'nbin']
     if nbins != nobsbins:
         raise ValueError('Number of bins in data vector is not the same as the total number of theory bins!')
-    
+
     count = 0
     theory_vectors = np.empty(nobsbins, dtype=object)
     for i,input in enumerate(input_sections):
@@ -214,7 +213,7 @@ def execute(block, config):
                 data_x = x[count].astype(float)
                 theory_x_in = block[input, f'obs_{j+1}'] * block['cosmological_parameters', 'h0']
             theory_y_in = block[input, f'bin_{j+1}']
-            
+
             theory_vectors[count] = get_theory_point(theory_x_in, theory_y_in,
                                             mode=binning_mode,
                                             interpolated_x=data_x,
@@ -223,7 +222,7 @@ def execute(block, config):
             #pl.plot(data_x, theory_vectors[count])
             #pl.plot(data_x, data_vectors[count]/theory_vectors[count])
             count += 1
-    
+
         #pl.xscale('log')
         #pl.yscale('log')
         #pl.show()

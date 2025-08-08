@@ -1,7 +1,9 @@
 import pytest
+
 import numpy as np
 from unittest.mock import MagicMock
-from onepower import HOD, Cacciato, Simple, Zehavi, Zheng, Zhai, load_data
+
+from onepower import HOD, Cacciato, Simple, Zehavi, Zhai, Zheng, load_data
 
 # Just some base tests for now, no specific scientific calculations tested yet!
 

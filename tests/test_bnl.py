@@ -1,5 +1,7 @@
 import pytest
+
 import numpy as np
+
 from onepower import NonLinearBias
 
 # Just some base tests for now, no specific scientific calculations tested yet!

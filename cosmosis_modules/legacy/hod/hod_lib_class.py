@@ -2,7 +2,6 @@ import numpy as np
 from scipy.integrate import simpson
 from scipy.special import erf
 
-
 # TO-DO: Add nbins as another dimension to all quantities to remove looping!
 
 class HOD:
@@ -192,7 +191,7 @@ class Cacciato(HOD):
         return self.COF_cen + self.COF_sat
 
     def obs_func_cen(self, axis=-2):
-        """
+        r"""
         The Observable function, this is Φs(O|M), Φc(O|M) integrated over the halo mass weighted
         with the Halo Mass Function (HMF) to give:  Φs(O),Φc(O)
         Φx(O) =int Φx(O|M) n(M) dM,
@@ -207,7 +206,7 @@ class Cacciato(HOD):
         return obs_function
 
     def obs_func_sat(self, axis=-2):
-        """
+        r"""
         The Observable function, this is Φs(O|M), Φc(O|M) integrated over the halo mass weighted
         with the Halo Mass Function (HMF) to give:  Φs(O),Φc(O)
         Φx(O) =int Φx(O|M) n(M) dM,
@@ -222,7 +221,7 @@ class Cacciato(HOD):
         return obs_function
 
     def obs_func(self, axis=-2):
-        """
+        r"""
         The Observable function, this is Φs(O|M), Φc(O|M) integrated over the halo mass weighted
         with the Halo Mass Function (HMF) to give:  Φs(O),Φc(O)
         Φx(O) =int Φx(O|M) n(M) dM,

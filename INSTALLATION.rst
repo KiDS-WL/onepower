@@ -18,7 +18,7 @@ The list of dependencies used by ``onepower`` is:
 4. ...
 
 The optional input fits files as used in Fortuna et al. 2021 are available here: `Luminosity_redshift <https://ruhr-uni-bochum.sciebo.de/s/ZdAE6nTf0OPyV6S>`_.
-Those are required for the IA predictions to agree, as they provide sample properties and fractions of red and blue galaxies. 
+Those are required for the IA predictions to agree, as they provide sample properties and fractions of red and blue galaxies.
 Similar data is required if any IA predictions are to be used.
 
 

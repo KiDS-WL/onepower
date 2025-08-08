@@ -1,11 +1,12 @@
 import numpy as np
+import warnings
+from astropy.cosmology import Planck15
+from scipy.integrate import quad, simpson, solve_ivp
 from scipy.interpolate import interp1d
 from scipy.optimize import root_scalar
-from scipy.integrate import simpson, solve_ivp, quad
-from astropy.cosmology import Planck15
-from hmf.halos.mass_definitions import SphericalOverdensity
+
 from hmf.cosmology.cosmo import astropy_to_colossus
-import warnings
+from hmf.halos.mass_definitions import SphericalOverdensity
 
 warnings.filterwarnings('ignore', category=UserWarning, module='colossus')
 
@@ -256,10 +257,10 @@ class SOVirial_Mead(SphericalOverdensity):
 #         this_cosmo = colossus_cosmology.fromAstropy(astropy_cosmo=cosmo, cosmo_name='custom',
 #                      sigma8=block[cosmo_params, 'sigma_8'], ns=block[cosmo_params, 'n_s'])
 
-                     
+
 #     mdef = getattr(md, mdef)() if mdef in ['SOVirial'] else getattr(md, mdef)(overdensity=overdensity)
-    
-#     # This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift. 
+
+#     # This is the slow part: 0.4-0.5 seconds per call, called separately for each redshift.
 #     # MA: Possible solution: See if we can get away with a smaller numbr of redshifts and interpolate.
 #     #tic = time.perf_counter()
 #     c, ms = colossus_concentration.concentration(M=mass, z=z, mdef=mdef.colossus_name, model=model,

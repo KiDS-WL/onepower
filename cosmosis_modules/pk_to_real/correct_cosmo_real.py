@@ -4,11 +4,11 @@ for the difference in input data cosmology to the predicted output cosmology
 by multiplication of the ratio of volumes according to More et al. 2013 and More et al. 2015.
 """
 
-from cosmosis.datablock import names, option_section
-import numpy as np
 import ast
 import astropy
+import numpy as np
 from astropy.cosmology import FlatLambdaCDM, Flatw0waCDM, LambdaCDM
+from cosmosis.datablock import names, option_section
 
 cosmo_params = names.cosmological_parameters
 
