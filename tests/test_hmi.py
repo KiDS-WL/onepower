@@ -90,9 +90,9 @@ def test_halo_model_ingredients_initialization(setup_data):
     assert ingredients.halo_profile_model_sat == 'NFW'
     assert ingredients.halo_concentration_model_sat == 'Duffy08'
     assert ingredients.transfer_model == 'CAMB'
-    assert ingredients.transfer_params is None
+    assert ingredients.transfer_params == {}
     assert ingredients.growth_model == 'CambGrowth'
-    assert ingredients.growth_params is None
+    assert ingredients.growth_params == {}
     assert ingredients.norm_cen == 1.0
     assert ingredients.norm_sat == 1.0
     assert ingredients.eta_cen == 0.0
