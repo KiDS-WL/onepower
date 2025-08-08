@@ -54,23 +54,25 @@ class AlignmentAmplitudes(Framework):
     z_loglum_file_satellites : str, optional
         File path for satellite galaxy luminosity data.
     """
-    def __init__(self,
-            z_vec=None,
-            central_ia_depends_on='halo_mass',
-            satellite_ia_depends_on='halo_mass',
-            gamma_2h_amplitude=5.33,
-            beta_cen=0.44,
-            beta_two=None,
-            gamma_1h_amplitude=0.0015,
-            gamma_1h_slope=-2.0,
-            beta_sat=0.44,
-            mpivot_cen=13.5,
-            mpivot_sat=13.5,
-            lpivot_cen=None,
-            lpivot_sat=None,
-            z_loglum_file_centrals=None,
-            z_loglum_file_satellites=None,
-        ):
+
+    def __init__(
+        self,
+        z_vec=None,
+        central_ia_depends_on='halo_mass',
+        satellite_ia_depends_on='halo_mass',
+        gamma_2h_amplitude=5.33,
+        beta_cen=0.44,
+        beta_two=None,
+        gamma_1h_amplitude=0.0015,
+        gamma_1h_slope=-2.0,
+        beta_sat=0.44,
+        mpivot_cen=13.5,
+        mpivot_sat=13.5,
+        lpivot_cen=None,
+        lpivot_sat=None,
+        z_loglum_file_centrals=None,
+        z_loglum_file_satellites=None,
+    ):
         self.z_vec = z_vec
         self.central_ia_depends_on = central_ia_depends_on
         self.satellite_ia_depends_on = satellite_ia_depends_on
@@ -110,7 +112,9 @@ class AlignmentAmplitudes(Framework):
         """
         valid_options = ['constant', 'luminosity', 'halo_mass']
         if val not in valid_options:
-            raise ValueError(f'Choose one of the following options for central_IA_depends_on: {valid_options}')
+            raise ValueError(
+                f'Choose one of the following options for central_IA_depends_on: {valid_options}'
+            )
         return val
 
     @parameter("param")
@@ -124,7 +128,9 @@ class AlignmentAmplitudes(Framework):
         """
         valid_options = ['constant', 'luminosity', 'halo_mass']
         if val not in valid_options:
-            raise ValueError(f'Choose one of the following options for satellite_IA_depends_on: {valid_options}')
+            raise ValueError(
+                f'Choose one of the following options for satellite_IA_depends_on: {valid_options}'
+            )
         return val
 
     @parameter("param")
@@ -178,7 +184,7 @@ class AlignmentAmplitudes(Framework):
 
         :type: float
         """
-        return 10.0 ** val if val is not None else None
+        return 10.0**val if val is not None else None
 
     @parameter("param")
     def mpivot_sat(self, val):
@@ -187,7 +193,7 @@ class AlignmentAmplitudes(Framework):
 
         :type: float
         """
-        return 10.0 ** val if val is not None else None
+        return 10.0**val if val is not None else None
 
     @parameter("param")
     def lpivot_cen(self, val):
@@ -196,7 +202,7 @@ class AlignmentAmplitudes(Framework):
 
         :type: float
         """
-        return 10.0 ** val if val is not None else None
+        return 10.0**val if val is not None else None
 
     @parameter("param")
     def lpivot_sat(self, val):
@@ -205,7 +211,7 @@ class AlignmentAmplitudes(Framework):
 
         :type: float
         """
-        return 10.0 ** val if val is not None else None
+        return 10.0**val if val is not None else None
 
     @parameter("param")
     def z_loglum_file_centrals(self, val):
@@ -253,7 +259,7 @@ class AlignmentAmplitudes(Framework):
         """
         return self._initialize_luminosity_pdf_z_array('satellites')
 
-    def _initialize_luminosity_array(self, galaxy_type): # pragma: no cover
+    def _initialize_luminosity_array(self, galaxy_type):  # pragma: no cover
         """
         Initialize and return the luminosity array based on galaxy type.
 
@@ -267,10 +273,20 @@ class AlignmentAmplitudes(Framework):
         numpy.ndarray : lum
             Luminosity array.
         """
-        depends_on = self.central_ia_depends_on if galaxy_type == 'centrals' else self.satellite_ia_depends_on
-        z_loglum_file = self.z_loglum_file_centrals if galaxy_type == 'centrals' else self.z_loglum_file_satellites
+        depends_on = (
+            self.central_ia_depends_on
+            if galaxy_type == 'centrals'
+            else self.satellite_ia_depends_on
+        )
+        z_loglum_file = (
+            self.z_loglum_file_centrals
+            if galaxy_type == 'centrals'
+            else self.z_loglum_file_satellites
+        )
         if z_loglum_file is None:
-            raise ValueError(f'You have not provided a luminosity file for {galaxy_type}. Please include z_loglum_file_{galaxy_type}.')
+            raise ValueError(
+                f'You have not provided a luminosity file for {galaxy_type}. Please include z_loglum_file_{galaxy_type}.'
+            )
 
         if depends_on == 'luminosity':
             nlbins = 10000
@@ -281,7 +297,7 @@ class AlignmentAmplitudes(Framework):
 
         return lum
 
-    def _initialize_luminosity_pdf_z_array(self, galaxy_type): # pragma: no cover
+    def _initialize_luminosity_pdf_z_array(self, galaxy_type):  # pragma: no cover
         """
         Initialize and return the luminosity PDF array based on galaxy type.
 
@@ -295,10 +311,20 @@ class AlignmentAmplitudes(Framework):
         numpy.ndarray : lum_pdf_z
             Luminosity PDF array.
         """
-        depends_on = self.central_ia_depends_on if galaxy_type == 'centrals' else self.satellite_ia_depends_on
-        z_loglum_file = self.z_loglum_file_centrals if galaxy_type == 'centrals' else self.z_loglum_file_satellites
+        depends_on = (
+            self.central_ia_depends_on
+            if galaxy_type == 'centrals'
+            else self.satellite_ia_depends_on
+        )
+        z_loglum_file = (
+            self.z_loglum_file_centrals
+            if galaxy_type == 'centrals'
+            else self.z_loglum_file_satellites
+        )
         if z_loglum_file is None:
-            raise ValueError(f'You have not provided a luminosity file for {galaxy_type}. Please include z_loglum_file_{galaxy_type}.')
+            raise ValueError(
+                f'You have not provided a luminosity file for {galaxy_type}. Please include z_loglum_file_{galaxy_type}.'
+            )
 
         if depends_on == 'luminosity':
             nlbins = 10000
@@ -328,7 +354,7 @@ class AlignmentAmplitudes(Framework):
         --------
         float : Mean luminosity scaling.
         """
-        return simpson(pdf * (xlum / l0)**beta, xlum)
+        return simpson(pdf * (xlum / l0) ** beta, xlum)
 
     def broken_powerlaw(xlum, pdf, gamma_2h_lum, l0, beta, beta_low):
         """
@@ -353,7 +379,11 @@ class AlignmentAmplitudes(Framework):
         --------
         float : Integral of the broken power law.
         """
-        alignment_ampl = np.where(xlum > l0, gamma_2h_lum * (xlum / l0)**beta, gamma_2h_lum * (xlum / l0)**beta_low)
+        alignment_ampl = np.where(
+            xlum > l0,
+            gamma_2h_lum * (xlum / l0) ** beta,
+            gamma_2h_lum * (xlum / l0) ** beta_low,
+        )
         return simpson(pdf * alignment_ampl, xlum)
 
     def compute_luminosity_pdf(self, z_loglum_file, nlbins):
@@ -404,17 +434,40 @@ class AlignmentAmplitudes(Framework):
             return self.gamma_2h_amplitude * np.ones_like(self.z_vec)
         elif self.central_ia_depends_on == 'luminosity':
             if self.lpivot_cen is None:
-                raise ValueError('You have chosen central luminosity scaling without providing a pivot luminosity parameter. Include lpivot_cen.')
+                raise ValueError(
+                    'You have chosen central luminosity scaling without providing a pivot luminosity parameter. Include lpivot_cen.'
+                )
             if self.beta_two is not None:
-                mean_lscaling = np.array([self.broken_powerlaw(self.lum_centrals[i], self.lum_pdf_z_centrals[i], self.gamma_2h_amp, self.lpivot_cen, self.beta_cen, self.beta_two) for i in range(self.z_vec.size)])
+                mean_lscaling = np.array(
+                    [
+                        self.broken_powerlaw(
+                            self.lum_centrals[i],
+                            self.lum_pdf_z_centrals[i],
+                            self.gamma_2h_amp,
+                            self.lpivot_cen,
+                            self.beta_cen,
+                            self.beta_two,
+                        )
+                        for i in range(self.z_vec.size)
+                    ]
+                )
             else:
-                mean_lscaling = self.gamma_2h_amplitude * self.mean_l_l0_to_beta(self.lum_centrals, self.lum_pdf_z_centrals, self.lpivot_cen, self.beta_cen)
+                mean_lscaling = self.gamma_2h_amplitude * self.mean_l_l0_to_beta(
+                    self.lum_centrals,
+                    self.lum_pdf_z_centrals,
+                    self.lpivot_cen,
+                    self.beta_cen,
+                )
             return mean_lscaling
         elif self.central_ia_depends_on == 'halo_mass':
             if self.mpivot_cen is None:
-                raise ValueError('You have chosen central halo-mass scaling without providing a pivot mass parameter. Include mpivot_cen.')
+                raise ValueError(
+                    'You have chosen central halo-mass scaling without providing a pivot mass parameter. Include mpivot_cen.'
+                )
             if self.beta_two is not None:
-                raise ValueError('A double power law model for the halo mass dependence of centrals has not been implemented.')
+                raise ValueError(
+                    'A double power law model for the halo mass dependence of centrals has not been implemented.'
+                )
             return self.gamma_2h_amplitude * np.ones_like(self.z_vec)
         else:
             raise ValueError('Invalid central_ia_depends_on value provided.')
@@ -428,12 +481,21 @@ class AlignmentAmplitudes(Framework):
             return self.gamma_1h_amplitude * np.ones_like(self.z_vec)
         elif self.satellite_ia_depends_on == 'luminosity':
             if self.lpivot_sat is None:
-                raise ValueError('You have chosen satellite luminosity scaling without providing a pivot luminosity parameter. Include lpivot_sat.')
-            mean_lscaling = self.mean_l_l0_to_beta(self.lum_satellites, self.lum_pdf_z_satellites, self.lpivot_sat, self.beta_sat)
+                raise ValueError(
+                    'You have chosen satellite luminosity scaling without providing a pivot luminosity parameter. Include lpivot_sat.'
+                )
+            mean_lscaling = self.mean_l_l0_to_beta(
+                self.lum_satellites,
+                self.lum_pdf_z_satellites,
+                self.lpivot_sat,
+                self.beta_sat,
+            )
             return self.gamma_1h_amplitude * mean_lscaling
         elif self.satellite_ia_depends_on == 'halo_mass':
             if self.mpivot_sat is None:
-                raise ValueError('You have chosen satellite halo-mass scaling without providing a pivot mass parameter. Include mpivot_sat.')
+                raise ValueError(
+                    'You have chosen satellite halo-mass scaling without providing a pivot mass parameter. Include mpivot_sat.'
+                )
             return self.gamma_1h_amplitude * np.ones_like(self.z_vec)
 
 
@@ -467,20 +529,21 @@ class SatelliteAlignment(AlignmentAmplitudes):
     amplitude_kwargs : dict
         Extra parameters passed to the AlignmentAmplitudes class.
     """
+
     def __init__(
-            self,
-            mass_in=None,
-            c_in=None,
-            r_s_in=None,
-            rvir_in=None,
-            n_hankel=350,
-            nmass=5,
-            nk=10,
-            ell_max=6,
-            truncate=False,
-            method='fftlog',
-            **amplitude_kwargs
-        ):
+        self,
+        mass_in=None,
+        c_in=None,
+        r_s_in=None,
+        rvir_in=None,
+        n_hankel=350,
+        nmass=5,
+        nk=10,
+        ell_max=6,
+        truncate=False,
+        method='fftlog',
+        **amplitude_kwargs,
+    ):
         # Call super init MUST BE DONE FIRST.
         super().__init__(**amplitude_kwargs)
 
@@ -570,7 +633,9 @@ class SatelliteAlignment(AlignmentAmplitudes):
         :type: int
         """
         if val > 11:
-            raise ValueError("Please reduce ell_max < 11 or update ia_radial_interface.py")
+            raise ValueError(
+                "Please reduce ell_max < 11 or update ia_radial_interface.py"
+            )
         return val
 
     @parameter("param")
@@ -662,8 +727,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
             downsampled_quantity = quantity[:, ::downsample_factor]
             if np.all(downsampled_quantity[:, -1] != quantity[:, -1]):
                 downsampled_quantity = np.concatenate(
-                    (downsampled_quantity, np.atleast_2d(quantity[:, -1]).T),
-                    axis=1
+                    (downsampled_quantity, np.atleast_2d(quantity[:, -1]).T), axis=1
                 )
         return downsampled_quantity
 
@@ -732,7 +796,10 @@ class SatelliteAlignment(AlignmentAmplitudes):
             A list of HankelTransform objects for each multipole moment.
         """
         if self.method == 'hankel':
-            return [HankelTransform(ell + 0.5, self.n_hankel, np.pi / self.n_hankel) for ell in self.ell_values]
+            return [
+                HankelTransform(ell + 0.5, self.n_hankel, np.pi / self.n_hankel)
+                for ell in self.ell_values
+            ]
         else:
             return None
 
@@ -752,9 +819,14 @@ class SatelliteAlignment(AlignmentAmplitudes):
         float
             The value of the integral.
         """
-        return (1.0 + (-1.0)**b) * gamma(a/2.0 + 1.0)*gamma((b + 1.0) / 2.0) / (2.0 * gamma(a/2.0 + b/2.0 + 3.0/2.0))
+        return (
+            (1.0 + (-1.0) ** b)
+            * gamma(a / 2.0 + 1.0)
+            * gamma((b + 1.0) / 2.0)
+            / (2.0 * gamma(a / 2.0 + b / 2.0 + 3.0 / 2.0))
+        )
 
-    def calculate_f_ell(self, l, gamma_b):
+    def calculate_f_ell(self, ell, gamma_b):
         """
         Computes the angular part of the satellite intrinsic shear field.
 
@@ -762,7 +834,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
 
         Parameters:
         -----------
-        l : int
+        ell : int
             Multipole moment.
         gamma_b : float
             Slope parameter.
@@ -778,24 +850,78 @@ class SatelliteAlignment(AlignmentAmplitudes):
         # (in CCL gain is ~1.3sec - gain here depends on how many times this is called).
         if self.theta_k == np.pi / 2.0 and gamma_b in [0, -2]:
             pre_calc_f_ell = {
-                0: np.array([0, 0, 2.77582637, 0, -0.19276603, 0, 0.04743899, 0, -0.01779024, 0, 0.00832446, 0, -0.00447308, 0]),
-                -2: np.array([0, 0, 4.71238898, 0, -2.61799389, 0, 2.06167032, 0, -1.76714666, 0, 1.57488973, 0, -1.43581368, 0])
+                0: np.array(
+                    [
+                        0,
+                        0,
+                        2.77582637,
+                        0,
+                        -0.19276603,
+                        0,
+                        0.04743899,
+                        0,
+                        -0.01779024,
+                        0,
+                        0.00832446,
+                        0,
+                        -0.00447308,
+                        0,
+                    ]
+                ),
+                -2: np.array(
+                    [
+                        0,
+                        0,
+                        4.71238898,
+                        0,
+                        -2.61799389,
+                        0,
+                        2.06167032,
+                        0,
+                        -1.76714666,
+                        0,
+                        1.57488973,
+                        0,
+                        -1.43581368,
+                        0,
+                    ]
+                ),
             }
-            return pre_calc_f_ell.get(gamma_b)[l] * phase
+            return pre_calc_f_ell.get(gamma_b)[ell] * phase
 
         else:
             # If either of the above expressions are met the return statement is executed and the function ends.
             # Otherwise, the function continues to calculate the general case.
-            gj = np.array([0, 0, np.pi / 2, 0, np.pi / 2, 0, 15 * np.pi / 32, 0, 7 * np.pi / 16, 0, 105 * np.pi / 256, 0])
+            gj = np.array(
+                [
+                    0,
+                    0,
+                    np.pi / 2,
+                    0,
+                    np.pi / 2,
+                    0,
+                    15 * np.pi / 32,
+                    0,
+                    7 * np.pi / 16,
+                    0,
+                    105 * np.pi / 256,
+                    0,
+                ]
+            )
             sum1 = sum(
-                    binom(l, m) * binom(0.5 * (l + m - 1.0), l) *
-                    sum(
-                        binom(m, j) * gj[j] * np.sin(self.theta_k)**j * np.cos(self.theta_k)**(m - j) * self.I_x(j + gamma_b, m - j)
-                        for j in range(m + 1)
-                    )
-                    for m in range(l + 1)
+                binom(ell, m)
+                * binom(0.5 * (ell + m - 1.0), ell)
+                * sum(
+                    binom(m, j)
+                    * gj[j]
+                    * np.sin(self.theta_k) ** j
+                    * np.cos(self.theta_k) ** (m - j)
+                    * self.I_x(j + gamma_b, m - j)
+                    for j in range(m + 1)
                 )
-            return 2.0**l * sum1 * phase
+                for m in range(ell + 1)
+            )
+            return 2.0**ell * sum1 * phase
 
     @cached_quantity
     def wkm_f_ell(self):
@@ -816,7 +942,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
 
         for ell in self.ell_values:
             angular = self.calculate_f_ell(ell, self.gamma_1h_slope)
-            radial = (1j)**ell * (2.0 * ell + 1.0) * uell[ell // 2, :, :, :]
+            radial = (1j) ** ell * (2.0 * ell + 1.0) * uell[ell // 2, :, :, :]
             sum_ell += radial * angular
 
         return np.abs(sum_ell)
@@ -847,11 +973,11 @@ class SatelliteAlignment(AlignmentAmplitudes):
         float
             The value of the radial profile.
         """
-        gamma = a * (r / rvir)**b
-        gamma = np.where(r < rcore, a * (rcore / rvir)**b, gamma)
+        gamma = a * (r / rvir) ** b
+        gamma = np.where(r < rcore, a * (rcore / rvir) ** b, gamma)
         gamma = np.clip(gamma, None, 0.3)
 
-        nfw = 1.0 / ((r / rs) * (1.0 + (r / rs))**2.0)
+        nfw = 1.0 / ((r / rs) * (1.0 + (r / rs)) ** 2.0)
         if truncate:
             nfw = np.where(r >= rvir, 0.0, nfw)
         return gamma * nfw
@@ -877,31 +1003,66 @@ class SatelliteAlignment(AlignmentAmplitudes):
         ndarray
             A 4D array of u_ell values.
         """
-        mnfw = 4.0 * np.pi * self.r_s**3.0 * (np.log(1.0 + self.c) - self.c / (1.0 + self.c))
-        uk_l = np.zeros([self.ell_values.size, self.z_vec.size, self.mass.size, self.k_vec.size])
+        mnfw = (
+            4.0
+            * np.pi
+            * self.r_s**3.0
+            * (np.log(1.0 + self.c) - self.c / (1.0 + self.c))
+        )
+        uk_l = np.zeros(
+            [self.ell_values.size, self.z_vec.size, self.mass.size, self.k_vec.size]
+        )
 
-        if self.method == 'hankel':
-            for i, ell in enumerate(self.ell_values):
+        for i, ell in enumerate(self.ell_values):
+            if self.method == 'hankel':
                 for jz in range(self.z_vec.size):
                     for im in range(self.mass.size):
-                        nfw_f = lambda x: self.gamma_r_nfw_profile(x, self.r_s[jz, im], self.rvir[im], self.gamma_1h_amp[jz], self.gamma_1h_slope, truncate=self.truncate) * np.sqrt((x * np.pi) / 2.0)
-                        uk_l[i, jz, im, :] = self.hankel[i].transform(nfw_f, self.k_vec)[0] / (self.k_vec**0.5 * mnfw[jz, im])
+                        nfw_f = lambda x: self.gamma_r_nfw_profile(
+                            x,
+                            self.r_s[jz, im],
+                            self.rvir[im],
+                            self.gamma_1h_amp[jz],
+                            self.gamma_1h_slope,
+                            truncate=self.truncate,
+                        ) * np.sqrt((x * np.pi) / 2.0)
+                        uk_l[i, jz, im, :] = self.hankel[i].transform(
+                            nfw_f, self.k_vec
+                        )[0] / (self.k_vec**0.5 * mnfw[jz, im])
 
-        if self.method == 'fftlog':
-            for i, ell in enumerate(self.ell_values):
+            if self.method == 'fftlog':
                 mu = ell + 0.5
                 # Precision settings that seem to be working fine
-                bias = -0.5*(i+2.0)
+                bias = -0.5 * (i + 2.0)
                 low_r = -8
                 high_r = 8
                 r = np.logspace(low_r, high_r, 512)
-                dlnr = np.log(r[1]/r[0])
-                offset = fhtoffset(dlnr, mu=mu, initial=-2*np.log(10.0), bias=bias)
-                k = np.exp(offset)/r[::-1]
+                dlnr = np.log(r[1] / r[0])
+                offset = fhtoffset(dlnr, mu=mu, initial=-2 * np.log(10.0), bias=bias)
+                k = np.exp(offset) / r[::-1]
 
-                nfw_f = self.gamma_r_nfw_profile(r[np.newaxis, np.newaxis, :], self.r_s[:, :, np.newaxis], self.rvir[np.newaxis, :, np.newaxis], self.gamma_1h_amp[:, np.newaxis, np.newaxis], self.gamma_1h_slope, truncate=self.truncate) * r**1.5 * np.sqrt(np.pi / 2.0)
-                ft = fht(nfw_f, dlnr, mu=mu, offset=offset, bias=bias) / (k**1.5 * mnfw[:, :, np.newaxis])
-                uk_l[i, :, :, :] = interp1d(k, ft, axis=-1, kind='linear', fill_value='extrapolate', bounds_error=False)(self.k_vec)
+                nfw_f = (
+                    self.gamma_r_nfw_profile(
+                        r[np.newaxis, np.newaxis, :],
+                        self.r_s[:, :, np.newaxis],
+                        self.rvir[np.newaxis, :, np.newaxis],
+                        self.gamma_1h_amp[:, np.newaxis, np.newaxis],
+                        self.gamma_1h_slope,
+                        truncate=self.truncate,
+                    )
+                    * r**1.5
+                    * np.sqrt(np.pi / 2.0)
+                )
+                ft = fht(nfw_f, dlnr, mu=mu, offset=offset, bias=bias) / (
+                    k**1.5 * mnfw[:, :, np.newaxis]
+                )
+                uk_l[i, :, :, :] = interp1d(
+                    k,
+                    ft,
+                    axis=-1,
+                    kind='linear',
+                    fill_value='extrapolate',
+                    bounds_error=False,
+                )(self.k_vec)
 
         return uk_l
 
@@ -942,19 +1103,28 @@ class SatelliteAlignment(AlignmentAmplitudes):
                     (np.log10(self.k_vec).T, np.log10(self.mass).T),
                     np.log10(wkm_in[jz, :, :] / self.k_vec**2).T,
                     bounds_error=False,
-                    fill_value=None
+                    fill_value=None,
                 )
 
                 # Prepare the grid for interpolation
-                lgkk, lgmm = np.meshgrid(np.log10(k_vec_out), np.log10(mass_out), sparse=True)
+                lgkk, lgmm = np.meshgrid(
+                    np.log10(k_vec_out), np.log10(mass_out), sparse=True
+                )
 
                 # Interpolate the values
                 lg_wkm_interpolated = lg_w_interp2d((lgkk.T, lgmm.T)).T
 
                 # Convert back to original scale
-                wkm_out[jz, :, :] = 10.0**(lg_wkm_interpolated) * k_vec_out**2.0
+                wkm_out[jz, :, :] = 10.0 ** (lg_wkm_interpolated) * k_vec_out**2.0
             return wkm_out
 
         if self.method == 'fftlog':
             # Need to only upsample the k vector!
-            return interp1d(self.k_vec, wkm_in, axis=-1, kind='linear', fill_value='extrapolate', bounds_error=False)(k_vec_out)
+            return interp1d(
+                self.k_vec,
+                wkm_in,
+                axis=-1,
+                kind='linear',
+                fill_value='extrapolate',
+                bounds_error=False,
+            )(k_vec_out)

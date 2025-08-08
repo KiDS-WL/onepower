@@ -33,17 +33,18 @@ class UpsampledSpectra(Framework):
     model : object
         Instance of Spectra(), pre-initialised for saving computing resources.
     """
+
     def __init__(
-            self,
-            z=0.0,
-            k=0.0,
-            fraction_z=None,
-            fraction=None,
-            model=None,
-            model_1_params: dict | None = None,
-            model_2_params: dict | None = None,
-            extrapolate_option='extrapolate',
-        ):
+        self,
+        z=0.0,
+        k=0.0,
+        fraction_z=None,
+        fraction=None,
+        model=None,
+        model_1_params: dict | None = None,
+        model_2_params: dict | None = None,
+        extrapolate_option='extrapolate',
+    ):
         super().__init__()
         self.z = z
         self.k = k
@@ -141,7 +142,14 @@ class UpsampledSpectra(Framework):
         """
         if self.fraction is None:
             return np.ones_like(self.z)
-        f = interp1d(self.fraction_z, self.fraction, kind='linear', fill_value='extrapolate', bounds_error=False, axis=0)
+        f = interp1d(
+            self.fraction_z,
+            self.fraction,
+            kind='linear',
+            fill_value='extrapolate',
+            bounds_error=False,
+            axis=0,
+        )
         return f(self.z)
 
     @cached_property
@@ -156,7 +164,7 @@ class UpsampledSpectra(Framework):
         """
         if self.fraction is None:
             return np.zeros_like(self.z)
-        return 1.0-self.frac_1
+        return 1.0 - self.frac_1
 
     @cached_property
     def power_1(self):
@@ -214,13 +222,23 @@ class UpsampledSpectra(Framework):
                 p1 = getattr(self.power_1, f'power_spectrum_{mode}')
                 p1_component = getattr(p1, f'pk_{component}')
                 extrapolated_p1 = self.extrapolate_spectra(
-                    self.z, self.k, self.power_1.z_vec, self.power_1.k_vec, p1_component, extrapolate_option=self.extrapolate_option
+                    self.z,
+                    self.k,
+                    self.power_1.z_vec,
+                    self.power_1.k_vec,
+                    p1_component,
+                    extrapolate_option=self.extrapolate_option,
                 )
                 if self.power_2 is not None:
                     p2 = getattr(self.power_2, f'power_spectrum_{mode}')
                     p2_component = getattr(p2, f'pk_{component}')
                     extrapolated_p2 = self.extrapolate_spectra(
-                        self.z, self.k, self.power_2.z_vec, self.power_2.k_vec, p2_component, extrapolate_option=self.extrapolate_option
+                        self.z,
+                        self.k,
+                        self.power_2.z_vec,
+                        self.power_2.k_vec,
+                        p2_component,
+                        extrapolate_option=self.extrapolate_option,
                     )
                 else:
                     extrapolated_p2 = np.zeros_like(extrapolated_p1)
@@ -254,10 +272,24 @@ class UpsampledSpectra(Framework):
         ndarray
             Extrapolated power spectra.
         """
-        inter_func_z = interp1d(z_in, power, kind='linear', fill_value=extrapolate_option, bounds_error=False, axis=1)
+        inter_func_z = interp1d(
+            z_in,
+            power,
+            kind='linear',
+            fill_value=extrapolate_option,
+            bounds_error=False,
+            axis=1,
+        )
         pk_tot_ext_z = inter_func_z(z_ext)
 
-        inter_func_k = interp1d(np.log10(k_in), pk_tot_ext_z, kind='linear', fill_value='extrapolate', bounds_error=False, axis=2)
+        inter_func_k = interp1d(
+            np.log10(k_in),
+            pk_tot_ext_z,
+            kind='linear',
+            fill_value='extrapolate',
+            bounds_error=False,
+            axis=2,
+        )
         pk_tot_ext = inter_func_k(np.log10(k_ext))
         return pk_tot_ext
 
@@ -285,7 +317,13 @@ class UpsampledSpectra(Framework):
         if mode == 'mm':
             return pk_1
         if mode in ['gm', 'mi']:
-            pk_tot = self.frac_1[:, np.newaxis] * pk_1 + (1.0 - self.frac_1[:, np.newaxis]) * pk_2
+            pk_tot = (
+                self.frac_1[:, np.newaxis] * pk_1
+                + (1.0 - self.frac_1[:, np.newaxis]) * pk_2
+            )
         else:
-            pk_tot = self.frac_1[:, np.newaxis]**2.0 * pk_1 + (1.0 - self.frac_1[:, np.newaxis])**2.0 * pk_2
+            pk_tot = (
+                self.frac_1[:, np.newaxis] ** 2.0 * pk_1
+                + (1.0 - self.frac_1[:, np.newaxis]) ** 2.0 * pk_2
+            )
         return pk_tot

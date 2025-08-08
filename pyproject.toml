@@ -3,3 +3,14 @@ requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
+
+[tool.black]
+skip-string-normalization = true
+include = '\.pyi?$'
+force-exclude = '''
+/(
+    | cosmosis_modules
+    | docs
+    | legacy_input_files
+)/
+'''

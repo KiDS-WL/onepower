@@ -46,17 +46,18 @@ from scipy.ndimage import gaussian_filter1d
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework, get_mdl
 
-from . import hod
 from .bnl import NonLinearBias
 from .hmi import HaloModelIngredients
 from .ia import SatelliteAlignment
 from .utils import poisson
+from . import hod
 
 
 class PowerSpectrumResult:
     """
     A helper class to attach the power spectrum outputs as atributes
     """
+
     def __init__(self, pk_1h=None, pk_2h=None, pk_tot=None, galaxy_linear_bias=None):
         self.pk_1h = pk_1h
         self.pk_2h = pk_2h
@@ -139,32 +140,34 @@ class Spectra(HaloModelIngredients):
     >>> ps.power_spectrum_gm.pk_1h
 
     """
-    def __init__(self,
-            matter_power_lin=None,
-            matter_power_nl=None,
-            response=False,
-            mb=13.87,
-            dewiggle=False,
-            bnl=False,
-            beta_nl=None,
-            one_halo_ktrunc=0.1,
-            two_halo_ktrunc=2.0,
-            pointmass=False,
-            compute_observable=False,
-            poisson_model=poisson.constant,
-            poisson_params: dict | None = None,
-            hod_model=hod.Cacciato,
-            hod_params: dict | None = None,
-            hod_settings: dict | None = None,
-            hod_settings_mm: dict | None = None,
-            obs_settings: dict | None = None,
-            t_eff: float = None,
-            fortuna=False,
-            one_halo_ktrunc_ia=4.0,
-            two_halo_ktrunc_ia=6.0,
-            align_params: dict | None = None,
-            **hmf_kwargs
-        ):
+
+    def __init__(
+        self,
+        matter_power_lin=None,
+        matter_power_nl=None,
+        response=False,
+        mb=13.87,
+        dewiggle=False,
+        bnl=False,
+        beta_nl=None,
+        one_halo_ktrunc=0.1,
+        two_halo_ktrunc=2.0,
+        pointmass=False,
+        compute_observable=False,
+        poisson_model=poisson.constant,
+        poisson_params=None,
+        hod_model=hod.Cacciato,
+        hod_params=None,
+        hod_settings=None,
+        hod_settings_mm=None,
+        obs_settings=None,
+        t_eff=0.0,
+        fortuna=False,
+        one_halo_ktrunc_ia=4.0,
+        two_halo_ktrunc_ia=6.0,
+        align_params=None,
+        **hmf_kwargs
+    ):
 
         # Call super init MUST BE DONE FIRST.
         super().__init__(**hmf_kwargs)
@@ -317,15 +320,6 @@ class Spectra(HaloModelIngredients):
         return val
 
     @parameter("param")
-    def hod_model(self, val):
-        """
-        HOD model to use.
-
-        :type: str
-        """
-        return val
-
-    @parameter("param")
     def hod_params(self, val):
         """
         Parameters for the HOD model.
@@ -448,7 +442,13 @@ class Spectra(HaloModelIngredients):
         """
         # P(k) can be returned by hmf, together with the specified k_vec!
         if self.matter_power_lin is None:
-            val_interp = interp1d(self.kh, self.power, fill_value='extrapolate', bounds_error=False, axis=1)
+            val_interp = interp1d(
+                self.kh,
+                self.power,
+                fill_value='extrapolate',
+                bounds_error=False,
+                axis=1,
+            )
             val = val_interp(self.k_vec)
         else:
             val = self.matter_power_lin
@@ -456,7 +456,9 @@ class Spectra(HaloModelIngredients):
         if self.mead_correction in ['feedback', 'nofeedback'] or self.dewiggle:
             val = self.dewiggle_plin(val)
         if val.shape != (self.z_vec.size, self.k_vec.size):
-            raise ValueError("Shape of input power spectra is not equal to redshift and k-vec dimensions!")
+            raise ValueError(
+                "Shape of input power spectra is not equal to redshift and k-vec dimensions!"
+            )
         return val
 
     @cached_quantity
@@ -473,10 +475,18 @@ class Spectra(HaloModelIngredients):
         if self.fortuna or self.response:
             # P(k) can be returned by hmf!
             if self.matter_power_nl is None:
-                val_interp = interp1d(self.kh, self.nonlinear_power, fill_value='extrapolate', bounds_error=False, axis=1)
+                val_interp = interp1d(
+                    self.kh,
+                    self.nonlinear_power,
+                    fill_value='extrapolate',
+                    bounds_error=False,
+                    axis=1,
+                )
                 val = val_interp(self.k_vec)
             if val.shape != (self.z_vec.size, self.k_vec.size):
-                raise ValueError("Shape of input power spectra is not equal to redshift and k-vec dimensions!")
+                raise ValueError(
+                    "Shape of input power spectra is not equal to redshift and k-vec dimensions!"
+                )
         return val
 
     @cached_quantity
@@ -515,7 +525,7 @@ class Spectra(HaloModelIngredients):
             omega_c=self.omega_c,
             omega_lambda=1.0 - self.omega_m,
             n_s=self.n_s,
-            w0=self.w0
+            w0=self.w0,
         )
         return bnl.bnl
 
@@ -528,7 +538,13 @@ class Spectra(HaloModelIngredients):
             I12 integrand
         """
         if self.bnl:
-            return self.prepare_I12_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self._beta_nl_array)
+            return self.prepare_I12_integrand(
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self._beta_nl_array,
+            )
         else:
             return None
 
@@ -541,7 +557,13 @@ class Spectra(HaloModelIngredients):
             I21 integrand
         """
         if self.bnl:
-            return self.prepare_I21_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self._beta_nl_array)
+            return self.prepare_I21_integrand(
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self._beta_nl_array,
+            )
         else:
             return None
 
@@ -554,7 +576,13 @@ class Spectra(HaloModelIngredients):
             I22 integrand
         """
         if self.bnl:
-            return self.prepare_I22_integrand(self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self._beta_nl_array)
+            return self.prepare_I22_integrand(
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self._beta_nl_array,
+            )
         else:
             return None
 
@@ -616,8 +644,17 @@ class Spectra(HaloModelIngredients):
         sigma = self.sigmaV(self.k_vec, plin)
         ombh2 = self.omega_b * self.h0**2.0
         ommh2 = self.omega_m * self.h0**2.0
-        pk_wig = self.get_Pk_wiggle(self.k_vec, plin, self.h0, ombh2, ommh2, self.n_s, self.tcmb)
-        plin_dw = plin - (1.0 - np.exp(-(self.k_vec[np.newaxis, :] * sigma[:, np.newaxis])**2.0)) * pk_wig
+        pk_wig = self.get_Pk_wiggle(
+            self.k_vec, plin, self.h0, ombh2, ommh2, self.n_s, self.tcmb
+        )
+        plin_dw = (
+            plin
+            - (
+                1.0
+                - np.exp(-((self.k_vec[np.newaxis, :] * sigma[:, np.newaxis]) ** 2.0))
+            )
+            * pk_wig
+        )
         return plin_dw
 
     def compute_matter_profile(self, mass, mean_density0, u_dm, fnu):
@@ -667,7 +704,7 @@ class Spectra(HaloModelIngredients):
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
             self.u_dm[np.newaxis, :, :, :],
-            self.fnu[np.newaxis, :, np.newaxis, np.newaxis]
+            self.fnu[np.newaxis, :, np.newaxis, np.newaxis],
         )
         return profile
 
@@ -687,7 +724,7 @@ class Spectra(HaloModelIngredients):
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
             self.u_dm[np.newaxis, :, :, :],
-            0.0
+            0.0,
         )
         return profile
 
@@ -729,7 +766,7 @@ class Spectra(HaloModelIngredients):
 
         Wm_0 = mass / mean_density0
         Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
-        #Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
+        # Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
         return Wm
 
     @cached_quantity
@@ -747,11 +784,13 @@ class Spectra(HaloModelIngredients):
             self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
             self.u_dm[np.newaxis, :, :, :],
             self.z_vec[np.newaxis, :, np.newaxis, np.newaxis],
-            self.fnu[np.newaxis, :, np.newaxis, np.newaxis]
+            self.fnu[np.newaxis, :, np.newaxis, np.newaxis],
         )
         return profile
 
-    def compute_matter_profile_with_feedback_stellar_fraction_from_obs(self, mass, mean_density0, u_dm, z, fnu, mb, fstar):
+    def compute_matter_profile_with_feedback_stellar_fraction_from_obs(
+        self, mass, mean_density0, u_dm, z, fnu, mb, fstar
+    ):
         r"""
         Compute the matter profile using stellar fraction from observations.
 
@@ -810,7 +849,7 @@ class Spectra(HaloModelIngredients):
             self.z_vec[np.newaxis, :, np.newaxis, np.newaxis],
             self.fnu[np.newaxis, :, np.newaxis, np.newaxis],
             self.mb,
-            fstar[:, :, np.newaxis, :]
+            fstar[:, :, np.newaxis, :],
         )
         return profile
 
@@ -849,15 +888,15 @@ class Spectra(HaloModelIngredients):
         ndarray
             The truncation factor.
         """
-        #k_frac = k_vec/k_trunc
-        #return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
+        # k_frac = k_vec/k_trunc
+        # return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
         if self.two_halo_ktrunc is None:
             return np.ones_like(self.k_vec)
-        k_d = 0.05699#0.07
+        k_d = 0.05699  # 0.07
         nd = 2.853
         k_frac = self.k_vec / k_d
-        return 1.0 - 0.05 * (k_frac**nd)/(1.0 + k_frac**nd)
-        #return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
+        return 1.0 - 0.05 * (k_frac**nd) / (1.0 + k_frac**nd)
+        # return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
     @cached_quantity
     def one_halo_truncation_ia(self):
@@ -876,7 +915,7 @@ class Spectra(HaloModelIngredients):
         """
         if self.one_halo_ktrunc_ia is None:
             return np.ones_like(self.k_vec)
-        return 1.0 - np.exp(-(self.k_vec / self.one_halo_ktrunc_ia)**2.0)
+        return 1.0 - np.exp(-((self.k_vec / self.one_halo_ktrunc_ia) ** 2.0))
 
     @cached_quantity
     def two_halo_truncation_ia(self):
@@ -895,7 +934,7 @@ class Spectra(HaloModelIngredients):
         """
         if self.two_halo_ktrunc_ia is None:
             return np.ones_like(self.k_vec)
-        return np.exp(-(self.k_vec / self.two_halo_ktrunc_ia)**2.0)
+        return np.exp(-((self.k_vec / self.two_halo_ktrunc_ia) ** 2.0))
 
     def one_halo_truncation_mead(self, sigma8_in):
         """
@@ -913,7 +952,7 @@ class Spectra(HaloModelIngredients):
         """
         sigma8_z = sigma8_in[np.newaxis, :, np.newaxis]
         # One-halo term damping wavenumber
-        k_star = 0.05618 * sigma8_z**(-1.013) # h/Mpc
+        k_star = 0.05618 * sigma8_z ** (-1.013)  # h/Mpc
         k_frac = self.k_vec[np.newaxis, np.newaxis, :] / k_star
         return (k_frac**4.0) / (1.0 + k_frac**4.0)
 
@@ -936,8 +975,8 @@ class Spectra(HaloModelIngredients):
             The truncation factor.
         """
         sigma8_z = sigma8_in[np.newaxis, :, np.newaxis]
-        f = 0.2696 * sigma8_z**(0.9403)
-        k_d = 0.05699 * sigma8_z**(-1.089)
+        f = 0.2696 * sigma8_z ** (0.9403)
+        k_d = 0.05699 * sigma8_z ** (-1.089)
         nd = 2.853
         k_frac = self.k_vec[np.newaxis, np.newaxis, :] / k_d
         return 1.0 - f * (k_frac**nd) / (1.0 + k_frac**nd)
@@ -968,11 +1007,13 @@ class Spectra(HaloModelIngredients):
         ndarray
             The smoothed power spectrum.
         """
-        delta_prefac = (self.k_vec[np.newaxis, np.newaxis, :]**3.0) / (2.0 * np.pi**2.0)
-        alpha = (1.875 * (1.603**neff[np.newaxis, :, np.newaxis]))
+        delta_prefac = (self.k_vec[np.newaxis, np.newaxis, :] ** 3.0) / (
+            2.0 * np.pi**2.0
+        )
+        alpha = 1.875 * (1.603 ** neff[np.newaxis, :, np.newaxis])
         Delta_1h = delta_prefac * p_1h
         Delta_2h = delta_prefac * p_2h
-        Delta_hmcode = (Delta_1h**alpha + Delta_2h**alpha)**(1.0 / alpha)
+        Delta_hmcode = (Delta_1h**alpha + Delta_2h**alpha) ** (1.0 / alpha)
         return Delta_hmcode / delta_prefac
 
     def compute_1h_term(self, profile_u, profile_v, mass, dndlnm):
@@ -1062,7 +1103,9 @@ class Spectra(HaloModelIngredients):
         integrand_m1 = b_dm * dndlnm * (1.0 / mean_density0)
         A = 1.0 - simpson(integrand_m1, mass)
         if (A < 0.0).any():
-            warnings.warn('Warning: Mass function/bias correction is negative!', RuntimeWarning)
+            warnings.warn(
+                'Warning: Mass function/bias correction is negative!', RuntimeWarning
+            )
         return A
 
     @cached_quantity
@@ -1079,7 +1122,7 @@ class Spectra(HaloModelIngredients):
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.halo_bias[np.newaxis, :, np.newaxis, :],
             self.dndlnm[np.newaxis, :, np.newaxis, :],
-            self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis]
+            self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
         )
         return missing_mass
 
@@ -1114,7 +1157,7 @@ class Spectra(HaloModelIngredients):
             self.u_dm[np.newaxis, :, :, :],
             self.halo_bias[np.newaxis, :, np.newaxis, :],
             self.dndlnm[np.newaxis, :, np.newaxis, :],
-            self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis]
+            self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
         )
         return I_m_term + self.A_term
 
@@ -1140,7 +1183,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             The integral for the matter term.
         """
-        integrand_m = b_dm * dndlnm * u_dm * (1. / mean_density0)
+        integrand_m = b_dm * dndlnm * u_dm * (1.0 / mean_density0)
         return simpson(integrand_m, mass)
 
     def prepare_I22_integrand(self, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
@@ -1166,7 +1209,7 @@ class Spectra(HaloModelIngredients):
             Integrand for the I22 term.
         """
 
-        #integrand_22 = B_NL_k_z * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
+        # integrand_22 = B_NL_k_z * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
         #    * dn_dlnm_z_1[:,:,np.newaxis,np.newaxis] \
         #    * dn_dlnm_z_2[:,np.newaxis,:,np.newaxis] \
         #    / (mass_1[np.newaxis,:,np.newaxis,np.newaxis] * mass_2[np.newaxis,np.newaxis,:,np.newaxis])
@@ -1178,7 +1221,9 @@ class Spectra(HaloModelIngredients):
         mass_1e = self.mass[np.newaxis, :, np.newaxis, np.newaxis]
         mass_2e = self.mass[np.newaxis, np.newaxis, :, np.newaxis]
 
-        integrand_22 = ne.evaluate('B_NL_k_z * b_1e * b_2e * dndlnm_1e * dndlnm_2e / (mass_1e * mass_2e)')
+        integrand_22 = ne.evaluate(
+            'B_NL_k_z * b_1e * b_2e * dndlnm_1e * dndlnm_2e / (mass_1e * mass_2e)'
+        )
         return integrand_22
 
     def prepare_I12_integrand(self, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
@@ -1204,7 +1249,7 @@ class Spectra(HaloModelIngredients):
             Integrand for the I12 term.
         """
 
-        #integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
+        # integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
         #    * dn_dlnm_z_2[:,:,np.newaxis] / mass_2[np.newaxis,:,np.newaxis]
 
         B_NL_k_z_e = B_NL_k_z[:, :, 0, :]
@@ -1238,7 +1283,7 @@ class Spectra(HaloModelIngredients):
             Integrand for the I21 term.
         """
 
-        #integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
+        # integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
         #    * dn_dlnm_z_1[:,:,np.newaxis] / mass_1[np.newaxis,:,np.newaxis]
 
         B_NL_k_z_e = B_NL_k_z[:, 0, :, :]
@@ -1249,8 +1294,21 @@ class Spectra(HaloModelIngredients):
         integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dndlnm_1e / mass_1e')
         return integrand_21
 
-
-    def I_NL(self, W_1, W_2, b_1, b_2, dndlnm_1, dndlnm_2, A, rho_mean, B_NL_k_z, integrand_12_part, integrand_21_part, integrand_22_part):
+    def I_NL(
+        self,
+        W_1,
+        W_2,
+        b_1,
+        b_2,
+        dndlnm_1,
+        dndlnm_2,
+        A,
+        rho_mean,
+        B_NL_k_z,
+        integrand_12_part,
+        integrand_21_part,
+        integrand_22_part,
+    ):
         """
         Calculate the integral over beta_nl using equations A.7 to A.10 from Mead and Verde 2021.
 
@@ -1295,7 +1353,7 @@ class Spectra(HaloModelIngredients):
         W_2e = W_2[:, :, np.newaxis, :, :]
 
         # Calculate integrand_22 using broadcasting
-        #integrand_22 = integrand_22_part * W_1e * W_2e
+        # integrand_22 = integrand_22_part * W_1e * W_2e
         integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
 
         # Perform trapezoidal integration
@@ -1304,17 +1362,30 @@ class Spectra(HaloModelIngredients):
         I_22 = integral_M2
 
         # Calculate I_11 using broadcasting
-        I_11 = B_NL_k_z[:, 0, 0, :] * ((A[:, :, :] * A[:, :, :]) * W_1[:, :, 0, :] * W_2[:, :, 0, :] * (rho_mean[:, np.newaxis] * rho_mean[:, np.newaxis])) / (self.mass[0] * self.mass[0])
+        I_11 = (
+            B_NL_k_z[:, 0, 0, :]
+            * (
+                (A[:, :, :] * A[:, :, :])
+                * W_1[:, :, 0, :]
+                * W_2[:, :, 0, :]
+                * (rho_mean[:, np.newaxis] * rho_mean[:, np.newaxis])
+            )
+            / (self.mass[0] * self.mass[0])
+        )
 
         # Calculate I_12 using broadcasting
         integrand_12 = integrand_12_part * W_2
         integral_12 = trapezoid(integrand_12, self.mass, axis=2)
-        I_12 = A * W_1[:, :, 0, :] * integral_12 * rho_mean[:, np.newaxis] / self.mass[0]
+        I_12 = (
+            A * W_1[:, :, 0, :] * integral_12 * rho_mean[:, np.newaxis] / self.mass[0]
+        )
 
         # Calculate I_21 using broadcasting
         integrand_21 = integrand_21_part * W_1
         integral_21 = trapezoid(integrand_21, self.mass, axis=2)
-        I_21 = A * W_2[:, :, 0, :] * integral_21 * rho_mean[:, np.newaxis] / self.mass[0]
+        I_21 = (
+            A * W_2[:, :, 0, :] * integral_21 * rho_mean[:, np.newaxis] / self.mass[0]
+        )
 
         # Combine all terms
         I_NL = I_11 + I_12 + I_21 + I_22
@@ -1352,9 +1423,15 @@ class Spectra(HaloModelIngredients):
             The gas fraction.
         """
         theta_agn = self.log10T_AGN - 7.8
-        mb = np.power(10.0, 13.87 + 1.81 * theta_agn) * np.power(10.0, z_vec * (0.195 * theta_agn - 0.108))
+        mb = np.power(10.0, 13.87 + 1.81 * theta_agn) * np.power(
+            10.0, z_vec * (0.195 * theta_agn - 0.108)
+        )
         baryon_to_matter_fraction = self.omega_b / self.omega_m
-        return (baryon_to_matter_fraction - fstar) * (mass / mb)**beta / (1.0 + (mass / mb)**beta)
+        return (
+            (baryon_to_matter_fraction - fstar)
+            * (mass / mb) ** beta
+            / (1.0 + (mass / mb) ** beta)
+        )
 
     def fg_fit(self, mass, mb, fstar, beta=2):
         r"""
@@ -1385,7 +1462,11 @@ class Spectra(HaloModelIngredients):
             The gas fraction.
         """
         baryon_to_matter_fraction = self.omega_b / self.omega_m
-        return (baryon_to_matter_fraction - fstar) * (mass / mb)**beta / (1.0 + (mass / mb)**beta)
+        return (
+            (baryon_to_matter_fraction - fstar)
+            * (mass / mb) ** beta
+            / (1.0 + (mass / mb) ** beta)
+        )
 
     def fs(self, z_vec):
         r"""
@@ -1433,8 +1514,8 @@ class Spectra(HaloModelIngredients):
 
     @cached_quantity
     def power_spectrum_lin(
-            self,
-        ):
+        self,
+    ):
         """
         Return the linear power spectrum.
 
@@ -1448,8 +1529,8 @@ class Spectra(HaloModelIngredients):
 
     @cached_quantity
     def power_spectrum_mm(
-            self,
-        ):
+        self,
+    ):
         """
         Compute the matter-matter power spectrum.
 
@@ -1462,29 +1543,76 @@ class Spectra(HaloModelIngredients):
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
         elif self.mead_correction == 'fit':
-            matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar_mm)
+            matter_profile_1h = (
+                self.matter_profile_with_feedback_stellar_fraction_from_obs(
+                    self.fstar_mm
+                )
+            )
         else:
             matter_profile_1h = self.matter_profile
         if self.bnl:
-            I_NL = self.I_NL(self.matter_profile_2h, self.matter_profile_2h, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12, self.I21, self.I22)
-            pk_2h = (self._pk_lin * self.Im_term * self.Im_term + self._pk_lin * I_NL) #* self.two_halo_truncation[np.newaxis, np.newaxis, :]
-            pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
+            I_NL = self.I_NL(
+                self.matter_profile_2h,
+                self.matter_profile_2h,
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self.A_term,
+                self.mean_density0,
+                self._beta_nl_array,
+                self.I12,
+                self.I21,
+                self.I22,
+            )
+            pk_2h = (
+                self._pk_lin * self.Im_term * self.Im_term + self._pk_lin * I_NL
+            )  # * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            pk_1h = (
+                self.compute_1h_term(
+                    matter_profile_1h,
+                    matter_profile_1h,
+                    self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                    self.dndlnm[np.newaxis, :, np.newaxis, :],
+                )
+                * self.one_halo_truncation
+            )
             pk_tot = pk_1h + pk_2h
         else:
             if self.mead_correction in ['feedback', 'no_feedback']:
-                pk_2h = self._pk_lin[np.newaxis, :, :] * self.two_halo_truncation_mead(self.sigma8_z)
-                pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_mead(self.sigma8_z)
+                pk_2h = self._pk_lin[np.newaxis, :, :] * self.two_halo_truncation_mead(
+                    self.sigma8_z
+                )
+                pk_1h = self.compute_1h_term(
+                    matter_profile_1h,
+                    matter_profile_1h,
+                    self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                    self.dndlnm[np.newaxis, :, np.newaxis, :],
+                ) * self.one_halo_truncation_mead(self.sigma8_z)
                 pk_tot = self.transition_smoothing(self.neff, pk_1h, pk_2h)
-            else :
-                pk_2h = self._pk_lin * self.Im_term * self.Im_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
-                pk_1h = self.compute_1h_term(matter_profile_1h, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
+            else:
+                pk_2h = (
+                    self._pk_lin
+                    * self.Im_term
+                    * self.Im_term
+                    * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+                )
+                pk_1h = (
+                    self.compute_1h_term(
+                        matter_profile_1h,
+                        matter_profile_1h,
+                        self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                        self.dndlnm[np.newaxis, :, np.newaxis, :],
+                    )
+                    * self.one_halo_truncation
+                )
                 pk_tot = pk_1h + pk_2h
 
-        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
-
+        return PowerSpectrumResult(
+            pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None
+        )
 
     # --------------------------------  Galaxy spectra specific funtions ------------------------------
-
 
     @cached_quantity
     def hod(self):
@@ -1634,7 +1762,12 @@ class Spectra(HaloModelIngredients):
         ndarray
             The galaxy profile for central galaxies.
         """
-        return self.hod.f_c[:, :, np.newaxis, np.newaxis] * self.hod.hod_cen[:, :, np.newaxis, :] * np.ones_like(self.u_sat[np.newaxis, :, :, :]) / self.hod.number_density_cen[:, :, np.newaxis, np.newaxis]
+        return (
+            self.hod.f_c[:, :, np.newaxis, np.newaxis]
+            * self.hod.hod_cen[:, :, np.newaxis, :]
+            * np.ones_like(self.u_sat[np.newaxis, :, :, :])
+            / self.hod.number_density_cen[:, :, np.newaxis, np.newaxis]
+        )
 
     @cached_quantity
     def satellite_galaxy_profile(self):
@@ -1646,7 +1779,12 @@ class Spectra(HaloModelIngredients):
         ndarray
             The galaxy profile for satellite galaxies.
         """
-        return self.hod.f_s[:, :, np.newaxis, np.newaxis] * self.hod.hod_sat[:, :, np.newaxis, :] * self.u_sat[np.newaxis, :, :, :] / self.hod.number_density_sat[:, :, np.newaxis, np.newaxis]
+        return (
+            self.hod.f_s[:, :, np.newaxis, np.newaxis]
+            * self.hod.hod_sat[:, :, np.newaxis, :]
+            * self.u_sat[np.newaxis, :, :, :]
+            / self.hod.number_density_sat[:, :, np.newaxis, np.newaxis]
+        )
 
     def compute_Ig_term(self, profile, mass, dndlnm, b_m):
         """
@@ -1685,7 +1823,7 @@ class Spectra(HaloModelIngredients):
             self.central_galaxy_profile,
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.dndlnm[np.newaxis, :, np.newaxis, :],
-            self.halo_bias[np.newaxis, :, np.newaxis, :]
+            self.halo_bias[np.newaxis, :, np.newaxis, :],
         )
         return term
 
@@ -1703,7 +1841,7 @@ class Spectra(HaloModelIngredients):
             self.satellite_galaxy_profile,
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.dndlnm[np.newaxis, :, np.newaxis, :],
-            self.halo_bias[np.newaxis, :, np.newaxis, :]
+            self.halo_bias[np.newaxis, :, np.newaxis, :],
         )
         return term
 
@@ -1719,17 +1857,61 @@ class Spectra(HaloModelIngredients):
             Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
         if self.bnl:
-            I_NL = self.I_NL(self.central_galaxy_profile + self.satellite_galaxy_profile, self.central_galaxy_profile + self.satellite_galaxy_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm,self.A_term,self.mean_density0, self._beta_nl_array, self.I12, self.I21, self.I22)
+            I_NL = self.I_NL(
+                self.central_galaxy_profile + self.satellite_galaxy_profile,
+                self.central_galaxy_profile + self.satellite_galaxy_profile,
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self.A_term,
+                self.mean_density0,
+                self._beta_nl_array,
+                self.I12,
+                self.I21,
+                self.I22,
+            )
             pk_cc_2h = self._pk_lin * self.Ic_term * self.Ic_term
             pk_ss_2h = self._pk_lin * self.Is_term * self.Is_term
             pk_cs_2h = self._pk_lin * self.Ic_term * self.Is_term
         else:
-            pk_cc_2h = self._pk_lin * self.Ic_term * self.Ic_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
-            pk_ss_2h = self._pk_lin * self.Is_term * self.Is_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
-            pk_cs_2h = self._pk_lin * self.Ic_term * self.Is_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            pk_cc_2h = (
+                self._pk_lin
+                * self.Ic_term
+                * self.Ic_term
+                * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            )
+            pk_ss_2h = (
+                self._pk_lin
+                * self.Is_term
+                * self.Is_term
+                * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            )
+            pk_cs_2h = (
+                self._pk_lin
+                * self.Ic_term
+                * self.Is_term
+                * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            )
 
-        pk_cs_1h = self.compute_1h_term(self.central_galaxy_profile, self.satellite_galaxy_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
-        pk_ss_1h = self.compute_1h_term(self.satellite_galaxy_profile * self.poisson_func, self.satellite_galaxy_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
+        pk_cs_1h = (
+            self.compute_1h_term(
+                self.central_galaxy_profile,
+                self.satellite_galaxy_profile,
+                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                self.dndlnm[np.newaxis, :, np.newaxis, :],
+            )
+            * self.one_halo_truncation
+        )
+        pk_ss_1h = (
+            self.compute_1h_term(
+                self.satellite_galaxy_profile * self.poisson_func,
+                self.satellite_galaxy_profile,
+                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                self.dndlnm[np.newaxis, :, np.newaxis, :],
+            )
+            * self.one_halo_truncation
+        )
 
         pk_1h = 2.0 * pk_cs_1h + pk_ss_1h
         pk_2h = pk_cc_2h + pk_ss_2h + 2.0 * pk_cs_2h
@@ -1737,14 +1919,23 @@ class Spectra(HaloModelIngredients):
             pk_2h += self._pk_lin * I_NL
 
         pk_tot = pk_1h + pk_2h
-        galaxy_linear_bias = np.sqrt(self.Ic_term * self.Ic_term + self.Is_term * self.Is_term + 2.0 * self.Ic_term * self.Is_term)
+        galaxy_linear_bias = np.sqrt(
+            self.Ic_term * self.Ic_term
+            + self.Is_term * self.Is_term
+            + 2.0 * self.Ic_term * self.Is_term
+        )
 
         if self.response:
-            pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_1h *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_2h *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_tot *= self._pk_nl / self.power_spectrum_mm.pk_tot
 
-        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=galaxy_linear_bias)
+        return PowerSpectrumResult(
+            pk_1h=pk_1h,
+            pk_2h=pk_2h,
+            pk_tot=pk_tot,
+            galaxy_linear_bias=galaxy_linear_bias,
+        )
 
     @cached_quantity
     def power_spectrum_gm(self):
@@ -1760,19 +1951,60 @@ class Spectra(HaloModelIngredients):
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
         elif self.mead_correction == 'fit' or self.pointmass:
-            matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar)
+            matter_profile_1h = (
+                self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar)
+            )
         else:
             matter_profile_1h = self.matter_profile
 
         if self.bnl:
-            I_NL = self.I_NL(self.central_galaxy_profile + self.satellite_galaxy_profile, self.matter_profile_2h, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12,self.I21,self.I22)
+            I_NL = self.I_NL(
+                self.central_galaxy_profile + self.satellite_galaxy_profile,
+                self.matter_profile_2h,
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self.A_term,
+                self.mean_density0,
+                self._beta_nl_array,
+                self.I12,
+                self.I21,
+                self.I22,
+            )
             pk_cm_2h = self._pk_lin * self.Ic_term * self.Im_term
             pk_sm_2h = self._pk_lin * self.Is_term * self.Im_term
         else:
-            pk_cm_2h = self._pk_lin * self.Ic_term * self.Im_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
-            pk_sm_2h = self._pk_lin * self.Is_term * self.Im_term * self.two_halo_truncation[np.newaxis, np.newaxis, :]
-        pk_cm_1h = self.compute_1h_term(self.central_galaxy_profile, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
-        pk_sm_1h = self.compute_1h_term(self.satellite_galaxy_profile, matter_profile_1h, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation
+            pk_cm_2h = (
+                self._pk_lin
+                * self.Ic_term
+                * self.Im_term
+                * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            )
+            pk_sm_2h = (
+                self._pk_lin
+                * self.Is_term
+                * self.Im_term
+                * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            )
+        pk_cm_1h = (
+            self.compute_1h_term(
+                self.central_galaxy_profile,
+                matter_profile_1h,
+                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                self.dndlnm[np.newaxis, :, np.newaxis, :],
+            )
+            * self.one_halo_truncation
+        )
+        pk_sm_1h = (
+            self.compute_1h_term(
+                self.satellite_galaxy_profile,
+                matter_profile_1h,
+                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                self.dndlnm[np.newaxis, :, np.newaxis, :],
+            )
+            * self.one_halo_truncation
+        )
 
         pk_1h = pk_cm_1h + pk_sm_1h
         pk_2h = pk_cm_2h + pk_sm_2h
@@ -1780,15 +2012,21 @@ class Spectra(HaloModelIngredients):
             pk_2h += self._pk_lin * I_NL
 
         pk_tot = pk_1h + pk_2h
-        galaxy_linear_bias = np.sqrt(self.Ic_term * self.Im_term + self.Is_term * self.Im_term)
+        galaxy_linear_bias = np.sqrt(
+            self.Ic_term * self.Im_term + self.Is_term * self.Im_term
+        )
 
         if self.response:
-            pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_1h *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_2h *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_tot *= self._pk_nl / self.power_spectrum_mm.pk_tot
 
-        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=galaxy_linear_bias)
-
+        return PowerSpectrumResult(
+            pk_1h=pk_1h,
+            pk_2h=pk_2h,
+            pk_tot=pk_tot,
+            galaxy_linear_bias=galaxy_linear_bias,
+        )
 
     # --------------------------------  Alignment spectra specific funtions ------------------------------
 
@@ -1802,15 +2040,16 @@ class Spectra(HaloModelIngredients):
         object
             The SatelliteAligment class
         """
-        self.align_params.update({
-            'z_vec': self.z_vec,
-            'mass_in': self.mass,
-            'z_vec': self.z_vec,
-            'c_in': self.conc_cen,
-            'r_s_in': self.r_s_cen,
-            'rvir_in': self.rvir_cen[0],
-            'method': 'fftlog'
-        })
+        self.align_params.update(
+            {
+                'z_vec': self.z_vec,
+                'mass_in': self.mass,
+                'c_in': self.conc_cen,
+                'r_s_in': self.r_s_cen,
+                'rvir_in': self.rvir_cen[0],
+                'method': 'fftlog',
+            }
+        )
         return SatelliteAlignment(**self.align_params)
 
     @cached_quantity
@@ -1853,14 +2092,22 @@ class Spectra(HaloModelIngredients):
         """
         The alignment amplitude for GI.
         """
-        return -1.0 * (self.C1[:, :, 0] * self.mean_density0[:, np.newaxis] / self.growth_factor[:, np.newaxis])
+        return -1.0 * (
+            self.C1[:, :, 0]
+            * self.mean_density0[:, np.newaxis]
+            / self.growth_factor[:, np.newaxis]
+        )
 
     @cached_quantity
     def alignment_amplitude_2h_II(self):
         """
         The alignment amplitude for II.
         """
-        return (self.C1[:, :, 0] * self.mean_density0[:, np.newaxis] / self.growth_factor[:, np.newaxis])**2.0
+        return (
+            self.C1[:, :, 0]
+            * self.mean_density0[:, np.newaxis]
+            / self.growth_factor[:, np.newaxis]
+        ) ** 2.0
 
     @cached_quantity
     def C1(self):
@@ -1881,7 +2128,9 @@ class Spectra(HaloModelIngredients):
         """
         return self.alignment_class.upsampled_wkm(self.k_vec, self.mass)
 
-    def compute_central_galaxy_alignment_profile(self, growth_factor, f_c, C1, mass, beta=None, mpivot=None, mass_avg=None):
+    def compute_central_galaxy_alignment_profile(
+        self, growth_factor, f_c, C1, mass, beta=None, mpivot=None, mass_avg=None
+    ):
         """
         Compute the central galaxy alignment profile.
 
@@ -1911,9 +2160,13 @@ class Spectra(HaloModelIngredients):
             additional_term = (mass_avg / mpivot) ** beta
         else:
             additional_term = 1.0
-        return f_c * (C1 / growth_factor) * mass * additional_term# * scale_factor**2.0
+        return (
+            f_c * (C1 / growth_factor) * mass * additional_term
+        )  # * scale_factor**2.0
 
-    def compute_satellite_galaxy_alignment_profile(self, Nsat, numdenssat, f_s, wkm_sat, beta=None, mpivot=None, mass_avg=None):
+    def compute_satellite_galaxy_alignment_profile(
+        self, Nsat, numdenssat, f_s, wkm_sat, beta=None, mpivot=None, mass_avg=None
+    ):
         """
         Compute the satellite galaxy alignment profile.
 
@@ -1967,7 +2220,7 @@ class Spectra(HaloModelIngredients):
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.beta_cen,
             self.mpivot_cen,
-            self.mass_avg[:, :, np.newaxis, np.newaxis]
+            self.mass_avg[:, :, np.newaxis, np.newaxis],
         )
         return profile
 
@@ -1993,7 +2246,7 @@ class Spectra(HaloModelIngredients):
             self.wkm_sat.transpose(0, 2, 1)[np.newaxis, :, :, :],
             self.beta_sat,
             self.mpivot_sat,
-            self.mass_avg[:, :, np.newaxis, np.newaxis]
+            self.mass_avg[:, :, np.newaxis, np.newaxis],
         )
         return profile
 
@@ -2011,9 +2264,15 @@ class Spectra(HaloModelIngredients):
             self.central_alignment_profile,
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.dndlnm[np.newaxis, :, np.newaxis, :],
-            self.halo_bias[np.newaxis, :, np.newaxis, :]
+            self.halo_bias[np.newaxis, :, np.newaxis, :],
         )
-        return I_g_align + self.A_term * self.central_alignment_profile[:, :, :, 0] * self.mean_density0[np.newaxis, :, np.newaxis] / self.mass[0]
+        return (
+            I_g_align
+            + self.A_term
+            * self.central_alignment_profile[:, :, :, 0]
+            * self.mean_density0[np.newaxis, :, np.newaxis]
+            / self.mass[0]
+        )
 
     @cached_quantity
     def Is_align_term(self):
@@ -2029,9 +2288,15 @@ class Spectra(HaloModelIngredients):
             self.satellite_alignment_profile,
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.dndlnm[np.newaxis, :, np.newaxis, :],
-            self.halo_bias[np.newaxis, :, np.newaxis, :]
+            self.halo_bias[np.newaxis, :, np.newaxis, :],
         )
-        return I_g_align + self.A_term * self.satellite_alignment_profile[:, :, :, 0] * self.mean_density0[np.newaxis, :, np.newaxis] / self.mass[0]
+        return (
+            I_g_align
+            + self.A_term
+            * self.satellite_alignment_profile[:, :, :, 0]
+            * self.mean_density0[np.newaxis, :, np.newaxis]
+            / self.mass[0]
+        )
 
     @cached_quantity
     def power_spectrum_mi(self):
@@ -2047,22 +2312,63 @@ class Spectra(HaloModelIngredients):
         if self.mead_correction == 'feedback':
             matter_profile_1h = self.matter_profile_with_feedback
         elif self.mead_correction == 'fit' or self.pointmass:
-            matter_profile_1h = self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar)
+            matter_profile_1h = (
+                self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar)
+            )
         else:
             matter_profile_1h = self.matter_profile
 
         if self.bnl:
-            I_NL = self.I_NL(self.central_alignment_profile + self.satellite_alignment_profile, self.matter_profile_2h, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12,self.I21,self.I22)
+            I_NL = self.I_NL(
+                self.central_alignment_profile + self.satellite_alignment_profile,
+                self.matter_profile_2h,
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self.A_term,
+                self.mean_density0,
+                self._beta_nl_array,
+                self.I12,
+                self.I21,
+                self.I22,
+            )
             pk_sm_2h = (-1.0) * self._pk_lin * self.Is_align_term * self.Im_term
             pk_cm_2h = (-1.0) * self._pk_lin * self.Ic_align_term * self.Im_term
         elif self.fortuna:
-            pk_cm_2h = self.hod.f_c[:, :, np.newaxis] * self.peff * self.alignment_amplitude_2h * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            pk_cm_2h = (
+                self.hod.f_c[:, :, np.newaxis]
+                * self.peff
+                * self.alignment_amplitude_2h
+                * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            )
         else:
-            pk_sm_2h = (-1.0) * self._pk_lin * self.Is_align_term * self.Im_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
-            pk_cm_2h = (-1.0) * self._pk_lin * self.Ic_align_term * self.Im_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            pk_sm_2h = (
+                (-1.0)
+                * self._pk_lin
+                * self.Is_align_term
+                * self.Im_term
+                * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            )
+            pk_cm_2h = (
+                (-1.0)
+                * self._pk_lin
+                * self.Ic_align_term
+                * self.Im_term
+                * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            )
 
-        pk_sm_1h = (-1.0) * self.compute_1h_term(matter_profile_1h, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
-        #pk_cm_1h = (-1.0) * self.compute_1h_term(matter_profile_1h, self.central_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
+        pk_sm_1h = (
+            (-1.0)
+            * self.compute_1h_term(
+                matter_profile_1h,
+                self.satellite_alignment_profile,
+                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                self.dndlnm[np.newaxis, :, np.newaxis, :],
+            )
+            * self.one_halo_truncation_ia
+        )
+        # pk_cm_1h = (-1.0) * self.compute_1h_term(matter_profile_1h, self.central_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
 
         if self.bnl:
             pk_1h = pk_sm_1h
@@ -2078,11 +2384,13 @@ class Spectra(HaloModelIngredients):
             pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
 
         if self.response:
-            pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_1h *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_2h *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_tot *= self._pk_nl / self.power_spectrum_mm.pk_tot
 
-        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
+        return PowerSpectrumResult(
+            pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None
+        )
 
     @cached_quantity
     def power_spectrum_ii(self):
@@ -2097,21 +2405,97 @@ class Spectra(HaloModelIngredients):
         """
         # Needs Poisson parameter as well!
         if self.bnl:
-            I_NL_ss = self.I_NL(self.satellite_alignment_profile, self.satellite_alignment_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12, self.I21, self.I22)
-            I_NL_cc = self.I_NL(self.central_alignment_profile, self.central_alignment_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12, self.I21, self.I22)
-            I_NL_cs = self.I_NL(self.central_alignment_profile, self.satellite_alignment_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12, self.I21, self.I22)
-            pk_ss_2h = self._pk_lin * self.Is_align_term * self.Is_align_term + self._pk_lin * I_NL_ss
-            pk_cc_2h = self._pk_lin * self.Ic_align_term * self.Ic_align_term + self._pk_lin * I_NL_cc
-            pk_cs_2h = self._pk_lin * self.Ic_align_term * self.Is_align_term + self._pk_lin * I_NL_cs
+            I_NL_ss = self.I_NL(
+                self.satellite_alignment_profile,
+                self.satellite_alignment_profile,
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self.A_term,
+                self.mean_density0,
+                self._beta_nl_array,
+                self.I12,
+                self.I21,
+                self.I22,
+            )
+            I_NL_cc = self.I_NL(
+                self.central_alignment_profile,
+                self.central_alignment_profile,
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self.A_term,
+                self.mean_density0,
+                self._beta_nl_array,
+                self.I12,
+                self.I21,
+                self.I22,
+            )
+            I_NL_cs = self.I_NL(
+                self.central_alignment_profile,
+                self.satellite_alignment_profile,
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self.A_term,
+                self.mean_density0,
+                self._beta_nl_array,
+                self.I12,
+                self.I21,
+                self.I22,
+            )
+            pk_ss_2h = (
+                self._pk_lin * self.Is_align_term * self.Is_align_term
+                + self._pk_lin * I_NL_ss
+            )
+            pk_cc_2h = (
+                self._pk_lin * self.Ic_align_term * self.Ic_align_term
+                + self._pk_lin * I_NL_cc
+            )
+            pk_cs_2h = (
+                self._pk_lin * self.Ic_align_term * self.Is_align_term
+                + self._pk_lin * I_NL_cs
+            )
         elif self.fortuna:
-            pk_cc_2h = self.hod.f_c[:, :, np.newaxis]**2.0 * self.peff * self.alignment_amplitude_2h_II * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            pk_cc_2h = (
+                self.hod.f_c[:, :, np.newaxis] ** 2.0
+                * self.peff
+                * self.alignment_amplitude_2h_II
+                * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            )
         else:
-            pk_ss_2h = self._pk_lin * self.Is_align_term * self.Is_align_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
-            pk_cc_2h = self._pk_lin * self.Ic_align_term * self.Ic_align_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
-            pk_cs_2h = self._pk_lin * self.Ic_align_term * self.Is_align_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            pk_ss_2h = (
+                self._pk_lin
+                * self.Is_align_term
+                * self.Is_align_term
+                * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            )
+            pk_cc_2h = (
+                self._pk_lin
+                * self.Ic_align_term
+                * self.Ic_align_term
+                * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            )
+            pk_cs_2h = (
+                self._pk_lin
+                * self.Ic_align_term
+                * self.Is_align_term
+                * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            )
 
-        pk_ss_1h = self.compute_1h_term(self.satellite_alignment_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
-        #pk_cs_1h = self.compute_1h_term(self.central_alignment_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
+        pk_ss_1h = (
+            self.compute_1h_term(
+                self.satellite_alignment_profile,
+                self.satellite_alignment_profile,
+                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                self.dndlnm[np.newaxis, :, np.newaxis, :],
+            )
+            * self.one_halo_truncation_ia
+        )
+        # pk_cs_1h = self.compute_1h_term(self.central_alignment_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
 
         if self.fortuna:
             pk_1h = pk_ss_1h
@@ -2123,11 +2507,13 @@ class Spectra(HaloModelIngredients):
             pk_tot = pk_ss_1h + pk_cc_2h + pk_ss_2h + pk_cs_2h
 
         if self.response:
-            pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_1h *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_2h *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_tot *= self._pk_nl / self.power_spectrum_mm.pk_tot
 
-        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
+        return PowerSpectrumResult(
+            pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None
+        )
 
     @cached_quantity
     def power_spectrum_gi(self):
@@ -2141,17 +2527,73 @@ class Spectra(HaloModelIngredients):
             Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
         if self.bnl:
-            I_NL_cc = self.I_NL(self.central_alignment_profile, self.central_galaxy_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12, self.I21, self.I22)
-            I_NL_cs = self.I_NL(self.satellite_alignment_profile, self.central_galaxy_profile, self.halo_bias, self.halo_bias, self.dndlnm, self.dndlnm, self.A_term, self.mean_density0, self._beta_nl_array, self.I12, self.I21, self.I22)
-            pk_cc_2h = self._pk_lin * self.Ic_term * self.Ic_align_term + self._pk_lin * I_NL_cc
-            pk_cs_2h = self._pk_lin * self.Ic_term * self.Is_align_term + self._pk_lin * I_NL_cs
+            I_NL_cc = self.I_NL(
+                self.central_alignment_profile,
+                self.central_galaxy_profile,
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self.A_term,
+                self.mean_density0,
+                self._beta_nl_array,
+                self.I12,
+                self.I21,
+                self.I22,
+            )
+            I_NL_cs = self.I_NL(
+                self.satellite_alignment_profile,
+                self.central_galaxy_profile,
+                self.halo_bias,
+                self.halo_bias,
+                self.dndlnm,
+                self.dndlnm,
+                self.A_term,
+                self.mean_density0,
+                self._beta_nl_array,
+                self.I12,
+                self.I21,
+                self.I22,
+            )
+            pk_cc_2h = (
+                self._pk_lin * self.Ic_term * self.Ic_align_term
+                + self._pk_lin * I_NL_cc
+            )
+            pk_cs_2h = (
+                self._pk_lin * self.Ic_term * self.Is_align_term
+                + self._pk_lin * I_NL_cs
+            )
         elif self.fortuna:
-            pk_cc_2h = -1.0 * self.peff * self.Ic_term * self.alignment_amplitude_2h[:,] * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            pk_cc_2h = (
+                -1.0
+                * self.peff
+                * self.Ic_term
+                * self.alignment_amplitude_2h[:,]
+                * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            )
         else:
-            pk_cc_2h = self._pk_lin * self.Ic_term * self.Ic_align_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
-            pk_cs_2h = self._pk_lin * self.Ic_term * self.Is_align_term * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            pk_cc_2h = (
+                self._pk_lin
+                * self.Ic_term
+                * self.Ic_align_term
+                * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            )
+            pk_cs_2h = (
+                self._pk_lin
+                * self.Ic_term
+                * self.Is_align_term
+                * self.two_halo_truncation_ia[np.newaxis, np.newaxis, :]
+            )
 
-        pk_cs_1h = self.compute_1h_term(self.central_galaxy_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
+        pk_cs_1h = (
+            self.compute_1h_term(
+                self.central_galaxy_profile,
+                self.satellite_alignment_profile,
+                self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                self.dndlnm[np.newaxis, :, np.newaxis, :],
+            )
+            * self.one_halo_truncation_ia
+        )
 
         if self.fortuna:
             pk_1h = pk_cs_1h
@@ -2163,12 +2605,13 @@ class Spectra(HaloModelIngredients):
             pk_tot = pk_cs_1h + pk_cs_2h + pk_cc_2h
 
         if self.response:
-            pk_1h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            pk_2h *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
-            pk_tot *= (self._pk_nl / self.power_spectrum_mm.pk_tot)
+            pk_1h *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_2h *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_tot *= self._pk_nl / self.power_spectrum_mm.pk_tot
 
-        return PowerSpectrumResult(pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None)
-
+        return PowerSpectrumResult(
+            pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None
+        )
 
     # Helper functions borrowed from Alex Mead, no need to reinvent the wheel.
     def Tk_EH_nowiggle(self, k, h, ombh2, ommh2, T_CMB=2.7255):
@@ -2193,15 +2636,23 @@ class Spectra(HaloModelIngredients):
         ndarray
             The no-wiggle transfer function.
         """
-        rb = ombh2 / ommh2 # Baryon ratio
-        s = 44.5 * np.log(9.83 / ommh2) / np.sqrt(1.0 + 10.0 * ombh2**0.75) # Equation (26)
-        alpha = 1.0 - 0.328 * np.log(431.0 * ommh2) * rb + 0.38 * np.log(22.3 * ommh2) * rb**2.0 # Equation (31)
+        rb = ombh2 / ommh2  # Baryon ratio
+        s = (
+            44.5 * np.log(9.83 / ommh2) / np.sqrt(1.0 + 10.0 * ombh2**0.75)
+        )  # Equation (26)
+        alpha = (
+            1.0
+            - 0.328 * np.log(431.0 * ommh2) * rb
+            + 0.38 * np.log(22.3 * ommh2) * rb**2.0
+        )  # Equation (31)
 
-        Gamma = (ommh2 / h) * (alpha + (1. - alpha) / (1. + (0.43 * k * s * h)**4)) # Equation (30)
-        q = k * (T_CMB / 2.7)**2.0 / Gamma # Equation (28)
-        L = np.log(2.0 * np.e + 1.8 * q) # Equation (29)
-        C = 14.2 + 731. / (1. + 62.5 * q) # Equation (29)
-        Tk_nw = L / (L + C * q**2.0) # Equation (29)
+        Gamma = (ommh2 / h) * (
+            alpha + (1.0 - alpha) / (1.0 + (0.43 * k * s * h) ** 4)
+        )  # Equation (30)
+        q = k * (T_CMB / 2.7) ** 2.0 / Gamma  # Equation (28)
+        L = np.log(2.0 * np.e + 1.8 * q)  # Equation (29)
+        C = 14.2 + 731.0 / (1.0 + 62.5 * q)  # Equation (29)
+        Tk_nw = L / (L + C * q**2.0)  # Equation (29)
         return Tk_nw
 
     def sigmaV(self, k, power):
@@ -2227,7 +2678,9 @@ class Spectra(HaloModelIngredients):
         sigma = (0.5 / np.pi**2.0) * simpson(integ, dx=dlnk, axis=-1)
         return np.sqrt(sigma / 3.0)
 
-    def get_Pk_wiggle(self, k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25):
+    def get_Pk_wiggle(
+        self, k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25
+    ):
         """
         Extract the wiggle from the linear power spectrum.
 
@@ -2258,13 +2711,13 @@ class Spectra(HaloModelIngredients):
         ndarray
             The wiggle component of the power spectrum.
         """
-        if not np.isclose(np.all(np.diff(k) - np.diff(k)[0]), 0.):
+        if not np.isclose(np.all(np.diff(k) - np.diff(k)[0]), 0.0):
             raise ValueError('Dewiggle only works with linearly-spaced k array')
 
         dlnk = np.log(k[1] / k[0])
         sigma = sigma_dlnk / dlnk
 
-        Pk_nowiggle = (k**ns) * self.Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB)**2
+        Pk_nowiggle = (k**ns) * self.Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB) ** 2
         Pk_ratio = Pk_lin / Pk_nowiggle
         Pk_ratio = gaussian_filter1d(Pk_ratio, sigma)
         Pk_smooth = Pk_ratio * Pk_nowiggle
