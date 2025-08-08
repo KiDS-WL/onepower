@@ -41,7 +41,7 @@ jobs:
             --cov=onepower \
             --cov-config=.coveragerc \
             --cov-report=term \
-            --cov-report=coverage:.coverage \
+            --cov-report=.coverage \
             --durations=25
 
       # Other matrix combos run without coverage
