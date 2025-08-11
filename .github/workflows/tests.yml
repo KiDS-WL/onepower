@@ -2,10 +2,13 @@ name: Tests
 
 on:
   push:
+    branches: [main]
+    paths-ignore:
+      - coverage.svg # Prevent infinite loops when badge changes
   pull_request:
     branches: [main]
-  paths-ignore:
-    - coverage.svg  # Prevent infinite loops when badge changes
+    paths-ignore:
+      - coverage.svg # Prevent infinite loops when badge changes
 
 jobs:
   test:
