@@ -975,7 +975,7 @@ class HaloModelIngredients(CosmologyBase):
                 val = interp_concentration(
                     getattr(concentration_classes, self.halo_concentration_model_dm)
                 )
-            except ValueError:
+            except AttributeError:
                 val = interp_concentration(
                     make_colossus_cm(self.halo_concentration_model_dm)
                 )
@@ -991,14 +991,17 @@ class HaloModelIngredients(CosmologyBase):
         object
             halo_concentration class
         """
-        try:
-            val = interp_concentration(
-                getattr(concentration_classes, self.halo_concentration_model_sat)
-            )
-        except ValueError:
-            val = interp_concentration(
-                make_colossus_cm(self.halo_concentration_model_sat)
-            )
+        if self.mead_correction in ['feedback', 'nofeedback']:
+            val = interp_concentration(getattr(concentration_classes, 'Bullock01'))
+        else:
+            try:
+                val = interp_concentration(
+                    getattr(concentration_classes, self.halo_concentration_model_sat)
+                )
+            except AttributeError:
+                val = interp_concentration(
+                    make_colossus_cm(self.halo_concentration_model_sat)
+                )
         return val
 
     @cached_quantity
@@ -1522,7 +1525,9 @@ class HaloModelIngredients(CosmologyBase):
     # sigma8_z[jz] = hmu.sigmaR_cc(pk_cold, DM_hmf.k, 8.0)
 
     # Currently unused
-    def Tk_cold_ratio(self, k, g, ommh2, h, f_nu, N_nu, T_CMB=2.7255):
+    def Tk_cold_ratio(
+        self, k, g, ommh2, h, f_nu, N_nu, T_CMB=2.7255
+    ):  # pragma: no cover
         """
         Ratio of cold to matter transfer function from Eisenstein & Hu (1999).
         This can be used to get the cold-matter spectrum approximately from the matter spectrum.
@@ -1574,7 +1579,7 @@ class HaloModelIngredients(CosmologyBase):
         return Dcb / Dcbnu  # Finally, the ratio
 
     # Currently unused
-    def sigmaR_cc(self, power, k, r):
+    def sigmaR_cc(self, power, k, r):  # pragma: no cover
         """
         Calculate the variance of the cold matter density field smoothed on scale R.
 
@@ -1604,7 +1609,7 @@ class HaloModelIngredients(CosmologyBase):
 
     # Currently unused, we use the halomod calculation directly
     # as it returns the same results, but being much faster
-    def get_halo_collapse_redshifts(self, M, z, dc, g, cosmo, mf):
+    def get_halo_collapse_redshifts(self, M, z, dc, g, cosmo, mf):  # pragma: no cover
         """
         Calculate halo collapse redshifts according to the Bullock et al. (2001) prescription.
 

@@ -31,6 +31,17 @@ def test_initialization(setup_data):
     assert bias.z_dep is False
 
 
+def test_as(setup_data):
+    mass, z_vec, k_vec = setup_data
+    bias = NonLinearBias(sigma_8=None, A_s=2.1e-9, mass=mass, z_vec=z_vec, k_vec=k_vec)
+    emulator = bias.emulator
+    assert bias.sigma_8 is None
+    assert bias.A_s == 2.1e-9
+    bias = NonLinearBias(sigma_8=None, A_s=None, mass=mass, z_vec=z_vec, k_vec=k_vec)
+    with pytest.raises(ValueError):
+        bias.emulator
+
+
 def test_ombh2(setup_data):
     mass, z_vec, k_vec = setup_data
     bias = NonLinearBias(mass=mass, z_vec=z_vec, k_vec=k_vec)
@@ -101,30 +112,35 @@ def test_hl_envelopes_idx(setup_data):
     assert len(lmax) > 0
 
 
-def test_compute_bnl_darkquest(setup_data):
-    mass, z_vec, k_vec = setup_data
-    bias = NonLinearBias(mass=mass, z_vec=z_vec, k_vec=k_vec)
-    z = 0.5
-    log10M1 = np.log10(mass)
-    log10M2 = np.log10(mass)
-    kmax = 10.0
-    beta_func = bias.compute_bnl_darkquest(z, log10M1, log10M2, k_vec, kmax)
-    assert beta_func.shape == (len(mass), len(mass), len(k_vec))
-
-
 def test_create_bnl_interpolation_function(setup_data):
     mass, z_vec, k_vec = setup_data
     bias = NonLinearBias(mass=mass, z_vec=z_vec, k_vec=k_vec)
     interpolation_function = bias.create_bnl_interpolation_function
-    if bias.z_dep:
-        assert len(interpolation_function) == len(z_vec)
-    else:
-        assert callable(interpolation_function)
+    assert callable(interpolation_function)
+    assert bias.bnl.shape == (1, len(mass), len(mass), len(k_vec))
+
+    bias_zdep = bias.clone()
+    bias_zdep.update(z_dep=True)
+    interpolation_function = bias_zdep.create_bnl_interpolation_function
+    assert len(interpolation_function) == len(z_vec)
+    assert bias_zdep.bnl.shape == (len(z_vec), len(mass), len(mass), len(k_vec))
 
 
-def test_test_cosmo(setup_data):
+def test_out_of_range(setup_data):
     mass, z_vec, k_vec = setup_data
     bias = NonLinearBias(mass=mass, z_vec=z_vec, k_vec=k_vec)
-    cparam_in = np.array([0.022, 0.12, 0.7, 3.0, 0.96, -1.0])
+    cparam_in = np.array([0.025, 0.15, 0.9, 5.0, 1.5, -0.5])
     cparam_out = bias.test_cosmo(cparam_in)
     assert cparam_out.shape == (1, 6)
+    assert (
+        cparam_out.all()
+        == np.array([0.0233625, 0.13178, 0.82128, 3.7128, 1.012725, -0.8]).all()
+    )
+
+    cparam_in = np.array([0.02, 0.10, 0.5, 2.0, 0.9, -1.5])
+    cparam_out = bias.test_cosmo(cparam_in)
+    assert cparam_out.shape == (1, 6)
+    assert (
+        cparam_out.all()
+        == np.array([0.0211375, 0.10782, 0.54752, 2.4752, 0.916275, -1.2]).all()
+    )

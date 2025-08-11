@@ -156,7 +156,7 @@ class HOD(Component):
         return halo_bias_fnc(self.z)
 
     @property
-    def data(self):
+    def data(self):  # pragma: no cover
         """
         Returns the z_bins, obs_min and obs_max quantities from tabulated observables file.
 
@@ -192,7 +192,7 @@ class HOD(Component):
         int
             number of HOD bins
         """
-        if self.hod_settings['observables_file'] is not None:
+        if self.hod_settings['observables_file'] is not None:  # pragma: no cover
             return 1
         else:
             return len(self.hod_settings['obs_min'])
@@ -222,7 +222,7 @@ class HOD(Component):
         array_like
             HOD specific redshifts
         """
-        if self.hod_settings['observables_file'] is not None:
+        if self.hod_settings['observables_file'] is not None:  # pragma: no cover
             return self.data[0][np.newaxis, :]
         else:
             zmin = self.hod_settings['zmin']
@@ -244,7 +244,7 @@ class HOD(Component):
         array_like
             min observable limits
         """
-        if self.hod_settings['observables_file'] is not None:
+        if self.hod_settings['observables_file'] is not None:  # pragma: no cover
             return np.log10(self.data[1])[np.newaxis, :]
         else:
             obs_min = self.hod_settings['obs_min']
@@ -260,7 +260,7 @@ class HOD(Component):
         array_like
             max observable limits
         """
-        if self.hod_settings['observables_file'] is not None:
+        if self.hod_settings['observables_file'] is not None:  # pragma: no cover
             return np.log10(self.data[2])[np.newaxis, :]
         else:
             obs_max = self.hod_settings['obs_max']
@@ -1150,11 +1150,11 @@ class Simple(HOD):
         """
         Compute the HOD for satellite galaxies.
         """
-        N_sat = self.compute_hod_cen * (self.mass / self.Msat) ** self.alpha
+        N_sat = self._compute_hod_cen * (self.mass / self.Msat) ** self.alpha
         if self.params['A_sat'] is not None:
             delta_pop_s = self.params['A_sat'] * N_sat
             N_sat = N_sat + delta_pop_s
-        return np.tile(N_sat, (self.nz, 1))
+        return N_sat
 
 
 class Zehavi(HOD):

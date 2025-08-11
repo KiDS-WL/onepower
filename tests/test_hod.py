@@ -233,8 +233,15 @@ def test_simple_initialization(setup_data):
         halo_bias=halo_bias,
         z_vec=z_vec,
         hod_settings=hod_settings,
+        A_cen=0.0,
+        A_sat=0.0,
     )
     assert isinstance(simple, Simple)
+    assert simple.log10_Mmin == 12.0
+    assert simple.log10_Msat == 13.0
+    assert simple.alpha == 1.0
+    assert simple._compute_hod_cen.shape == (1, z_vec.size, mass.size)
+    assert simple._compute_hod_sat.shape == (1, z_vec.size, mass.size)
 
 
 def test_zehavi_initialization(setup_data):
@@ -246,8 +253,15 @@ def test_zehavi_initialization(setup_data):
         halo_bias=halo_bias,
         z_vec=z_vec,
         hod_settings=hod_settings,
+        A_cen=0.0,
+        A_sat=0.0,
     )
     assert isinstance(zehavi, Zehavi)
+    assert zehavi.log10_Mmin == 12.0
+    assert zehavi.log10_Msat == 13.0
+    assert zehavi.alpha == 1.0
+    assert zehavi._compute_hod_cen.shape == (1, z_vec.size, mass.size)
+    assert zehavi._compute_hod_sat.shape == (1, z_vec.size, mass.size)
 
 
 def test_zheng_initialization(setup_data):
@@ -259,8 +273,17 @@ def test_zheng_initialization(setup_data):
         halo_bias=halo_bias,
         z_vec=z_vec,
         hod_settings=hod_settings,
+        A_cen=0.0,
+        A_sat=0.0,
     )
     assert isinstance(zheng, Zheng)
+    assert zheng.log10_Mmin == 12.0
+    assert zheng.log10_M0 == 12.0
+    assert zheng.log10_M1 == 13.0
+    assert zheng.alpha == 1.0
+    assert zheng.sigma == 0.15
+    assert zheng._compute_hod_cen.shape == (1, z_vec.size, mass.size)
+    assert zheng._compute_hod_sat.shape == (1, z_vec.size, mass.size)
 
 
 def test_zhai_initialization(setup_data):
@@ -272,5 +295,14 @@ def test_zhai_initialization(setup_data):
         halo_bias=halo_bias,
         z_vec=z_vec,
         hod_settings=hod_settings,
+        A_cen=0.0,
+        A_sat=0.0,
     )
     assert isinstance(zhai, Zhai)
+    assert zhai.log10_Mmin == 13.68
+    assert zhai.log10_Msat == 14.87
+    assert zhai.log10_Mcut == 12.32
+    assert zhai.alpha == 0.41
+    assert zhai.sigma == 0.82
+    assert zhai._compute_hod_cen.shape == (1, z_vec.size, mass.size)
+    assert zhai._compute_hod_sat.shape == (1, z_vec.size, mass.size)
