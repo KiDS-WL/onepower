@@ -2,7 +2,7 @@ name: "Tests"
 
 on:
   push:
-    branches: [main]
+    branches: [main, andrej_dev]
     paths-ignore:
       - coverage.svg # Prevent infinite loops when badge changes
   pull_request:

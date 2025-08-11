@@ -255,7 +255,7 @@ class CosmologyBase(Framework):
         array_like
             scale factor array
         """
-        return self.cosmo_model.scale_factor(self.z_vec)
+        return 1.0 / (1.0 + self.z_vec)
 
     def _Omega_m(self, a, Om, Ode, Ok):
         """
@@ -1090,6 +1090,7 @@ class HaloModelIngredients(CosmologyBase):
         tuple
             tuple of lists of DMHaloModel objects for centrals and satellite galaxies at different redshifts
         """
+        self.scale_factor
         x = DMHaloModel(
             z=0.0,
             lnk_min=self.lnk_min,

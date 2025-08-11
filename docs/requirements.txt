@@ -1,4 +1,5 @@
-dark_emulator
+astropy>6.0.0
+dark_emulator==1.1.2
 docutils>=0.19
 #hmf
 #halomod
