@@ -12,12 +12,12 @@ r, theta or phi). We reconstruct the full density weighted shear via the multipl
 HOD term in the pk_interface.py module. -> This might be changed in the future to have a
 full density weighted shear output.
 
-\hat{\gamma}^I_s (k,M) = F(\gamma^I(r,M) u(r,M))                                       (1)
+\\hat{\\gamma}^I_s (k,M) = F(\\gamma^I(r,M) u(r,M))                                       (1)
 
 where u(r,M) is the normalised NFW profile, rho_NFW(r,M)/M with M the mass of the halo, and
-\gamma^I(r,M) is the projected (2D) radial dependent satellite alignment, here modelled as
+\\gamma^I(r,M) is the projected (2D) radial dependent satellite alignment, here modelled as
 
-\gamma^I(r, theta, M) = \bar{gamma}^I(r,M,z) sin(theta) =
+\\gamma^I(r, theta, M) = \bar{gamma}^I(r,M,z) sin(theta) =
                       = a_1h (L/L0)^zeta (r sin(theta) /r_vir)^b.                        (2)
 
 In practice, we work with gamma_1h_amplitude(z) = a_1h (L(z)/L0)^zeta, which can potentially
@@ -42,8 +42,8 @@ while the sin(theta)^b is treated in the wkm angular part module.
 
 The Fourier transform of the projected satellite shear thus reads
 
-F(\gamma^I(r,M) u(r,M)) = \int_0^{2pi} dphi \int_0^{pi} dtheta sin^(2+b)(theta)
-                            \int_0^{\infty} dr r^2 \gamma^I(r,M) (\rho_NFW(r,M) / M) e^{i kr}
+F(\\gamma^I(r,M) u(r,M)) = \\int_0^{2pi} dphi \\int_0^{pi} dtheta sin^(2+b)(theta)
+                            \\int_0^{\\infty} dr r^2 \\gamma^I(r,M) (\rho_NFW(r,M) / M) e^{i kr}
 
 where r and k are both 3D vectors and the product kr has to be read as a scalar product of
 the components. The square in the sin(theta) comes from the fact that we are considering
@@ -54,7 +54,7 @@ expansion to separate the angular and radial part of the integrals. The radial p
 
 ---------------------------------- radial component: ------------------------------------
 
-u_ell(z,M,k) = \int dr r^2 gamma_1h_amplitude (r/rvir)**b \rho_NFW(r,M) j_l(kr) / M_NFW
+u_ell(z,M,k) = \\int dr r^2 gamma_1h_amplitude (r/rvir)**b \rho_NFW(r,M) j_l(kr) / M_NFW
 
 -----------------------------------------------------------------------------------------
 
@@ -71,14 +71,14 @@ on rho_s.
 
 The integral over j_l(kr) is a Hankel transform that we implement using the hankel.py module.
 
-We use the relationship between spherical to normal bessel functions: j_nu(kr) = \sqrt(\pi/(2kr)) J_(nu + 0.5) (kr)
+We use the relationship between spherical to normal bessel functions: j_nu(kr) = \\sqrt(\\pi/(2kr)) J_(nu + 0.5) (kr)
 
 The Hankel transform is implemented in the hankel.py module
 ht = [HankelTransform(ell+0.5,N,h)  (where N and h are sensitivity settings)
 
 F = ht.transform(f,k) calculates int f(r) J_(ell+0.5)(kr) r dr
 
-f(r) = \sqrt(r \pi / 2k) gamma_1h_amplitude (r/rvir)**b \rho_NFW(r,M) / M_NFW
+f(r) = \\sqrt(r \\pi / 2k) gamma_1h_amplitude (r/rvir)**b \rho_NFW(r,M) / M_NFW
 
 ---
 
@@ -91,8 +91,7 @@ satellite.
 
 import numpy as np
 from scipy.integrate import simpson
-from scipy.special import legendre, binom
-
+from scipy.special import binom, legendre
 
 # Angular parts
 

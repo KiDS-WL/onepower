@@ -21,9 +21,9 @@ hod_settings = {
     'obs_min': np.array([8.0, 8.0]),
     'obs_max': np.array([12.0, 12.0]),
     'zmin': np.array([0.0, 0.2]),
-    'zmax': np.array([0.2, 0.5]), 
+    'zmax': np.array([0.2, 0.5]),
     'nz': 15,
-    'nobs': 300, 
+    'nobs': 300,
     'observable_h_unit': '1/h^2',
 }
 hod_settings_mm = {
@@ -36,9 +36,9 @@ obs_settings = {
     'obs_min': np.array([8.0]),
     'obs_max': np.array([12.0]),
     'zmin': np.array([0.1]),
-    'zmax': np.array([0.1]), 
+    'zmax': np.array([0.1]),
     'nz': 1,
-    'nobs': 300, 
+    'nobs': 300,
     'observable_h_unit': '1/h^2',
 }
 kwargs = {
@@ -73,7 +73,7 @@ kwargs = {
         'matter_power_nl': None,
         'bnl': True,
         'beta_nl': None,
-     
+
         'omega_c': 0.25,
         'omega_m': 0.3,
         'omega_b': 0.05,
@@ -86,16 +86,16 @@ kwargs = {
         'tcmb': 2.7255,
         'log10T_AGN': 7.8,
         'mb': 10.0**13.0,
-    
+
         'poisson_par': {
                 'poisson_type': 'scalar',
                 'poisson': 1.0,
                 'M_0': None,
                 'slope': None
             },
-        
+
         'pointmass': True,
-        
+
         'hod_model': 'Cacciato',
         'hod_params': hod_params,
         'hod_settings': hod_settings,
@@ -105,12 +105,12 @@ kwargs = {
         'hod_model_mm': 'Cacciato',
         'hod_params_mm': hod_params,
         'hod_settings_mm': hod_settings_mm,
-    
+
         'one_halo_ktrunc_ia': 4.0,
         'two_halo_ktrunc_ia': 6.0,
         'fortuna': False,
         't_eff': 0.0,
-        
+
         'align_params': {
             'central_ia_depends_on' : 'halo_mass',
             'satellite_ia_depends_on': 'halo_mass',
@@ -122,11 +122,10 @@ kwargs = {
             'beta_sat': 0.44,
             'mpivot_cen': 13.5,
             'mpivot_sat': 13.5,
-        
+
             'nmass': 5,
             'n_hankel': 350,
             'nk': 10,
             'ell_max': 6,
             }
 }
-        

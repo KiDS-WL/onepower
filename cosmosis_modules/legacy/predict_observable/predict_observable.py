@@ -9,12 +9,13 @@ by multiplication of ratio of volumes according to More et al. 2013 and More et 
 """
 
 import ast
-from cosmosis.datablock import option_section, names
-import numpy as np
-from scipy.interpolate import interp1d
-from scipy.integrate import simpson
-from astropy.cosmology import Flatw0waCDM
 import astropy.cosmology as cosmology_classes
+import numpy as np
+from astropy.cosmology import Flatw0waCDM
+from cosmosis.datablock import names, option_section
+from scipy.integrate import simpson
+from scipy.interpolate import interp1d
+
 
 def load_and_interpolate_obs(block, obs_section, suffix_in, extrapolate_option=0.0):
     """
@@ -111,12 +112,12 @@ def setup(options):
                 config['obs_arr_fine'] = np.linspace(config['log10_obs_min'].min(), config['log10_obs_max'].max(), 10000, endpoint=True)
         else:
             raise ValueError('Please provide edge values for observables to do weighted binning.')
-    
+
     if config['correct_cosmo']:
         # Maybe we should do this also for the model cosmology and in halo_model_ingredients?
         # At least to specify the exact cosmology model, even though it should be as close as general
         # as in CAMB, for which we can safely assume Flatw0waCDM does the job...
-    
+
         # cosmo_kwargs is to be a string containing a dictionary with all the arguments the
         # requested cosmology accepts (see default)!
         cosmo_kwargs = ast.literal_eval(
@@ -124,17 +125,17 @@ def setup(options):
                 option_section, 'cosmo_kwargs', default="{'H0':70.0, 'Om0':0.3, 'Ode0':0.7}"
             )
         )
-    
+
         # Requested cosmology class from astropy:
         cosmo_class = options.get_string(
             option_section, 'astropy_cosmology_class', default='LambdaCDM'
         )
         cosmo_class_init = getattr(cosmology_classes, cosmo_class)
         cosmo_model_data = cosmo_class_init(**cosmo_kwargs)
-    
+
         config['cosmo_model_data'] = cosmo_model_data
         config['h_data'] = cosmo_model_data.h
-            
+
     return config
 
 def execute(block, config):
@@ -143,7 +144,7 @@ def execute(block, config):
     obs_arr = config['obs_arr']
     suffixes = config['suffixes']
     nbins = config['nbins']
-    
+
     if config['correct_cosmo']:
         zmin = config['zmin']
         zmax = config['zmax']
@@ -213,7 +214,7 @@ def execute(block, config):
 
             ratio_obs = comoving_volume_model / comoving_volume_data
             obs_func = obs_func_in * ratio_obs
-            
+
         block.put_double_array_1d(output_section_name, f'bin_{i + 1}', obs_func)
         block.put_double_array_1d(output_section_name, f'obs_{i + 1}', obs_arr[i])
         block.put_double_array_1d(output_section_name, f'mass_{i + 1}', obs_arr[i])

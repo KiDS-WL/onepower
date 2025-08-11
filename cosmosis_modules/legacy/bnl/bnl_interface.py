@@ -2,13 +2,12 @@
 
 # NOTE: no truncation (halo exclusion problem) applied, as it is included in BNL!
 
-from cosmosis.datablock import names, option_section
-import numpy as np
-from scipy.interpolate import interp1d, RegularGridInterpolator
-from dark_emulator import darkemu
-from collections import OrderedDict
-
 import bnl_util
+import numpy as np
+from collections import OrderedDict
+from cosmosis.datablock import names, option_section
+from dark_emulator import darkemu
+from scipy.interpolate import RegularGridInterpolator, interp1d
 
 cosmo = names.cosmological_parameters
 
@@ -38,7 +37,7 @@ def setup(options):
     # This function is called once per processor per chain.
     # It is a chance to read any fixed options from the configuration file,
     # load any data, or do any calculations that are fixed once.
-    
+
     log_mass_min = options[option_section, 'log_mass_min']
     log_mass_max = options[option_section, 'log_mass_max']
     nmass = options[option_section, 'nmass']
@@ -106,7 +105,7 @@ def execute(block, config):
             values = np.vstack(np.meshgrid(np.log10(mass), np.log10(mass), np.log10(k_vec), copy=False)).reshape(3, -1).T
             # for i,zi in enumerate(z_vec):
             #    beta_interp[i,indices[:,0], indices[:,1], indices[:,2]] = beta_interp_tmp[i](values)
-            
+
             beta_interp2 = np.zeros((mass.size, mass.size, k_vec.size))
             beta_interp2[indices[:, 0], indices[:, 1], indices[:, 2]] = beta_interp_tmp(values)
 

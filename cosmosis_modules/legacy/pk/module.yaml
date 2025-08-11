@@ -15,7 +15,7 @@ assumptions:
 explanation: |
   This module has two modes: response and direct
   If in direct mode it will directly calculate the power spectra
-  If in response mode it will calcualte the reponse of the hm to different power spectra with respect to P_mm 
+  If in response mode it will calcualte the reponse of the hm to different power spectra with respect to P_mm
   and multiply that to an input P_mm to estimate the desired power, for example:
   res_gg = P^hm_gg/P^hm_mm
   res_gm = P^hm_gm/P^hm_mm
@@ -24,30 +24,30 @@ explanation: |
   P_gm = res_gm P_mm
 
   The following exaplains how P^hm_xy are calculated.
-  Calculates 3D power spectra using the halo model approach: 
+  Calculates 3D power spectra using the halo model approach:
   See section 2 of https://arxiv.org/pdf/2303.08752.pdf for details
 
   P_uv = P^2h_uv + P^1h_uv  (1)
   P^1h_uv (k) = int_0^infty dM Wu(M, k) Wv(M, k) n(M)  (2)
   P^2h_uv (k) = int_0^infty int_0^infty dM1 dM2 Phh(M1, M2, k) Wu(M1, k) Wv(M2, k) n(M1) n(M2)  (3)
 
-  Wx are the profile of the fields, u and v, showing how they fit into haloes. 
+  Wx are the profile of the fields, u and v, showing how they fit into haloes.
   n(M) is the halo mass function, quantifying the number of haloes of each mass, M.
-  Integrals are taken over halo mass. 
+  Integrals are taken over halo mass.
 
   The halo-halo power spectrum can be written as,
   Phh(M1,M2,k) = b(M1) b(M2) P^lin_mm(k) (1 + beta_nl(M1,M2,k)) (4)
 
   In the vanilla halo model the 2-halo term is usually simplified by assuming that haloes are linearly biased with respect to matter.
-  This sets beta_nl to zero and effectively decouples the integrals in (3). Here we allow for both options to be calculated. 
-  If you want the option with beta_nl the beta_nl modules has to be run before this module. 
+  This sets beta_nl to zero and effectively decouples the integrals in (3). Here we allow for both options to be calculated.
+  If you want the option with beta_nl the beta_nl modules has to be run before this module.
 
   We truncate the 1-halo term so that it doesn't dominate at large scales.
 
-  Linear matter power spectrum needs to be provided as well. The halo_model_ingredients and hod modules (for everything but mm) 
-  need to be run before this. 
+  Linear matter power spectrum needs to be provided as well. The halo_model_ingredients and hod modules (for everything but mm)
+  need to be run before this.
 
-  Current power spectra that we predict are 
+  Current power spectra that we predict are
   mm: matter-matter
   gg: galaxy-galaxy
   gm: galaxy-matter
@@ -85,7 +85,7 @@ params:
       response:
           meaning: "if True uses the response method to calculate power spectra, if False calculates power spectra directly. See the explanation section for details."
           type: bool
-          default: False 
+          default: False
       fortuna:
           meaning: "if True any p_*I calculated will use the Fortuna et al. 2021 methodology."
           type: bool
@@ -125,7 +125,7 @@ params:
       hod_section_name:
           meaning: "Section name for hod parameters. This should match the section name for an hod module that is run before this module."
           type: str
-          default: 
+          default:
       output_suffix:
           meaning: "Suffix to append on the resulting power spectra section name"
           type: str
@@ -146,14 +146,14 @@ inputs:
           meaning: redshift
           type: real 1D
         sigma8_z:
-          meaning: 
+          meaning:
           type: real 1D
         neff:
-          meaning: 
+          meaning:
           type: real 1D
     halobias:
         b_hb:
-          meaning: 
+          meaning:
           type: real 1D
         m_h:
           meaning: Halo masses in M_sun h^-1
@@ -208,7 +208,7 @@ inputs:
           default:
     bnl:
         beta_interp:
-          meaning: 
+          meaning:
           type: real ND
     density:
         mean_density0:
@@ -216,23 +216,23 @@ inputs:
           type: real
     cosmological_parameters:
         fnu:
-          meaning: 
+          meaning:
           type: real
         omega_c:
-          meaning: 
+          meaning:
           type: real
         omega_m:
-          meaning: 
+          meaning:
           type: real
         omega_b:
-          meaning: 
+          meaning:
           type: real
     halo_model_parameters:
         logT_AGN:
-          meaning: 
+          meaning:
           type: real
         m_b:
-          meaning: 
+          meaning:
           type: real
     hod_section_name:
         nbins:
@@ -279,47 +279,47 @@ inputs:
           type: real 1D
     ia_large_scale_alignment{_suffix}:
         alignment_gi:
-          meaning: 
-          type: 
+          meaning:
+          type:
     wkm:
         w_km_{jz}{_suffix_i}:
           meaning:
-          type: 
+          type:
         k_h_{jz}{_suffix_i}:
           meaning:
-          type: 
+          type:
         mass_{jz}{_suffix_i}:
           meaning:
-          type: 
+          type:
     ia_small_scale_alignment{_suffix}:
         instance:
-          meaning: 
+          meaning:
           type: str
         beta_sat:
-          meaning: 
-          type: 
+          meaning:
+          type:
         M_pivot:
-          meaning: 
-          type: 
+          meaning:
+          type:
     ia_large_scale_alignment{_suffix}:
         instance:
-          meaning: 
+          meaning:
           type: str
         beta_sat:
-          meaning: 
-          type: 
+          meaning:
+          type:
         M_pivot:
-          meaning: 
-          type: 
+          meaning:
+          type:
     pk_parameters:
         poisson:
-          meaning: 
+          meaning:
           type: real
         M_0:
-          meaning: 
+          meaning:
           type: real
         slope:
-          meaning: 
+          meaning:
           type: real
         linear_fraction_fortuna:
           meaning: if linear_fraction_fortuna is t_eff then pk_eff = (1.-t_eff)*pnl + t_eff*plin
@@ -327,128 +327,117 @@ inputs:
 outputs:
     matter_power_nl:
         p_k_1h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k_2h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k:
-          meaning: 
+          meaning:
           type: real 2D
         k_h:
-          meaning: 
+          meaning:
           type: real 1D
         z:
-          meaning: 
+          meaning:
           type: real 1D
     galaxy_power{_suffix_i}:
         p_k_1h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k_2h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k:
-          meaning: 
+          meaning:
           type: real 2D
         k_h:
-          meaning: 
+          meaning:
           type: real 1D
         z:
-          meaning: 
+          meaning:
           type: real 1D
     matter_galaxy_power{_suffix_i}:
         p_k_1h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k_2h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k:
-          meaning: 
+          meaning:
           type: real 2D
         k_h:
-          meaning: 
+          meaning:
           type: real 1D
         z:
-          meaning: 
+          meaning:
           type: real 1D
     galaxy_linear_bias{_suffix_i}:
         bg_linear:
-          meaning: 
-          type: 
+          meaning:
+          type:
         k_h:
-          meaning: 
+          meaning:
           type: real 1D
         z:
-          meaning: 
+          meaning:
           type: real 1D
     galaxy_matter_linear_bias{_suffix_i}:
         bgm_linear:
-          meaning: 
-          type: 
+          meaning:
+          type:
         k_h:
-          meaning: 
+          meaning:
           type: real 1D
         z:
-          meaning: 
+          meaning:
           type: real 1D
     intrinsic_power{_suffix_i}:
         p_k_1h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k_2h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k:
-          meaning: 
+          meaning:
           type: real 2D
         k_h:
-          meaning: 
+          meaning:
           type: real 1D
         z:
-          meaning: 
+          meaning:
           type: real 1D
     galaxy_intrinsic_power{_suffix_i}:
         p_k_1h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k_2h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k:
-          meaning: 
+          meaning:
           type: real 2D
         k_h:
-          meaning: 
+          meaning:
           type: real 1D
         z:
-          meaning: 
+          meaning:
           type: real 1D
     matter_intrinsic_power{_suffix_i}:
         p_k_1h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k_2h:
-          meaning: 
+          meaning:
           type: real 2D
         p_k:
-          meaning: 
+          meaning:
           type: real 2D
         k_h:
-          meaning: 
+          meaning:
           type: real 1D
         z:
-          meaning: 
+          meaning:
           type: real 1D
-        
-
-
-    
-
-        
-
-
-
-
-

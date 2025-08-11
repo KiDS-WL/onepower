@@ -1,14 +1,15 @@
-from cosmosis.datablock import names, option_section
-import warnings
-import numpy as np
-from astropy.cosmology import Flatw0waCDM
 import halo_model_utility as hmu
-import hmf
-from halomod.halo_model import DMHaloModel
-from halomod.concentration import make_colossus_cm, interp_concentration
-import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
+import halomod.profiles as profile_classes
+import numpy as np
 import time
+import warnings
+from astropy.cosmology import Flatw0waCDM
+from cosmosis.datablock import names, option_section
+from halomod.concentration import interp_concentration, make_colossus_cm
+from halomod.halo_model import DMHaloModel
+
+import hmf
 
 # Silencing a warning from hmf for which the nonlinear mass is still correctly calculated
 warnings.filterwarnings("ignore", message="Nonlinear mass outside mass range")

@@ -53,10 +53,10 @@ mI: matter-intrinsic alignment
 
 # NOTE: no truncation (halo exclusion problem) applied!
 
-from cosmosis.datablock import names, option_section
-import numpy as np
 import numbers
+import numpy as np
 import pk_lib
+from cosmosis.datablock import names, option_section
 
 cosmo_params = names.cosmological_parameters
 

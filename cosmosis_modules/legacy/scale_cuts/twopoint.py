@@ -1,12 +1,11 @@
-from astropy.io import fits
 import astropy.units
-from astropy.table import Table
-from enum import Enum
-import numpy as np
 import copy
+import numpy as np
 import os
 import warnings
-
+from astropy.io import fits
+from astropy.table import Table
+from enum import Enum
 
 # FITS header keyword indicating 2-point data
 TWOPOINT_SENTINEL = "2PTDATA"
@@ -84,7 +83,7 @@ class Types(Enum):
     cmb_kappa_real = "CKR"
     cmb_kappa_fourier = "CKF"
     onepoint = "O"
-    
+
     @classmethod
     def lookup(cls, value):
         for T in cls:
@@ -96,7 +95,7 @@ def dummy_kernel(name):
     return NumberDensity(name, np.zeros(10), np.zeros(10), np.zeros(10), [np.zeros(10)])
 
 
-class OnePointMeasurement(object):
+class OnePointMeasurement:
     """
     This class contains 1-pt information for a collection of numbered observable bins.
     It is expected to be used for a single 1-pt type (e.g. stellar mass function) split into
@@ -116,12 +115,12 @@ class OnePointMeasurement(object):
         for i in range(self.nbin):
             self.nsample.append(len(nobs[i]))
         self.nobs = nobs
-        
+
     def __str__(self):
-        return "<One Point: {}>".format(self.name)
+        return f"<One Point: {self.name}>"
 
     def __repr__(self):
-        return "<One Point: {}>".format(self.name)
+        return f"<One Point: {self.name}>"
 
     @classmethod
     def from_fits(cls, extension):
@@ -130,31 +129,31 @@ class OnePointMeasurement(object):
         header = extension.header
 
         i = 1
-        name = 'VALUE{}'.format(i)
-        name_x = 'ANG{}'.format(i)
-        name_low = 'ANGLEMIN{}'.format(i)
-        name_high = 'ANGGLEMAX{}'.format(i)
+        name = f'VALUE{i}'
+        name_x = f'ANG{i}'
+        name_low = f'ANGLEMIN{i}'
+        name_high = f'ANGGLEMAX{i}'
         nobs = []
         obs = []
         obs_low = []
         obs_high = []
-        
+
         while name in data.names:
             obs_in = data[name]
             nobs.append(obs_in)
-            obs.append(data['ANG{}'.format(i)])
-            if 'ANGLEMIN{}'.format(i) in data.names:
-                obs_low.append(data['ANGLEMIN{}'.format(i)])
-            if 'ANGLEMAX{}'.format(i) in data.names:
-                obs_high.append(data['ANGLEMAX{}'.format(i)])
+            obs.append(data[f'ANG{i}'])
+            if f'ANGLEMIN{i}' in data.names:
+                obs_low.append(data[f'ANGLEMIN{i}'])
+            if f'ANGLEMAX{i}' in data.names:
+                obs_high.append(data[f'ANGLEMAX{i}'])
             i += 1
-            name = 'VALUE{}'.format(i)
-            
+            name = f'VALUE{i}'
+
         if obs_low == []:
             obs_low = None
         if obs_high == []:
             obs_high = None
-            
+
         N = cls(extension.name, obs, nobs, obs_low, obs_high)
 
         return N
@@ -170,14 +169,14 @@ class OnePointMeasurement(object):
         columns = []
 
         for i in range(self.nbin):
-            name = 'VALUE{}'.format(i + 1)
+            name = f'VALUE{i + 1}'
             columns.append(fits.Column(name=name, array=self.nobs[i], format='D'))
-            columns.append(fits.Column(name='ANG{}'.format(i + 1), array=self.obs[i], format='D'))
+            columns.append(fits.Column(name=f'ANG{i + 1}', array=self.obs[i], format='D'))
             if self.obs_low is not None:
-                columns.append(fits.Column(name='ANGLEMIN{}'.format(i + 1), array=self.obs_low[i], format='D'))
+                columns.append(fits.Column(name=f'ANGLEMIN{i + 1}', array=self.obs_low[i], format='D'))
             if self.obs_high is not None:
-                columns.append(fits.Column(name='ANGLEMAX{}'.format(i + 1), array=self.obs_high[i], format='D'))
-            
+                columns.append(fits.Column(name=f'ANGLEMAX{i + 1}', array=self.obs_high[i], format='D'))
+
         extension = fits.BinTableHDU.from_columns(columns, header=header)
         return extension
 
@@ -186,7 +185,7 @@ class OnePointMeasurement(object):
         """Load 1pt from cosmosis datablock"""
         if output_name == None:
             output_name = section_name
-    
+
         nobs = []
         obs = []
         obs_low = []
@@ -197,12 +196,12 @@ class OnePointMeasurement(object):
                 nobs.append(block[section_name, bin_name])
             else:
                 break
-            if block.has_value(section_name, "obs_low_{}".format(i)):
-                obs.append(block[section_name, "obs_{}".format(i)])
-                obs_low.append(block[section_name, "obs_low_{}".format(i)])
-                obs_high.append(block[section_name, "obs_high_{}".format(i)])
+            if block.has_value(section_name, f"obs_low_{i}"):
+                obs.append(block[section_name, f"obs_{i}"])
+                obs_low.append(block[section_name, f"obs_low_{i}"])
+                obs_high.append(block[section_name, f"obs_high_{i}"])
             else:
-                obs_in = block[section_name, "obs_{}".format(i)]
+                obs_in = block[section_name, f"obs_{i}"]
                 obs.append(obs_in)
                 #d_obs = np.log10(obs_in[2]) - np.log10(obs_in[1])
                 #obs_low.append(10.0**(np.log10(obs_in) - 0.5 * d_obs))
@@ -217,7 +216,7 @@ class OnePointMeasurement(object):
 
 
 
-class NumberDensity(object):
+class NumberDensity:
     """
     This class contains n(z) information for a collection of numbered redshift bins.
     It is expected to be used for a single sample type (e.g. galaxy sample) split into
@@ -253,17 +252,17 @@ class NumberDensity(object):
         zlow = data['Z_LOW']
         zhigh = data['Z_HIGH']
         i = 1
-        name = 'BIN{}'.format(i)
+        name = f'BIN{i}'
         nzs = []
         sigma_e = []
         ngal = []
         while name in data.names:
             nz = data[name]
             nzs.append(nz)
-            ngal.append(header.get('NGAL_{}'.format(i)))
-            sigma_e.append(header.get('SIG_E_{}'.format(i)))
+            ngal.append(header.get(f'NGAL_{i}'))
+            sigma_e.append(header.get(f'SIG_E_{i}'))
             i += 1
-            name = 'BIN{}'.format(i)
+            name = f'BIN{i}'
 
         if all(x is None for x in sigma_e):
             sigma_e = None
@@ -296,18 +295,18 @@ class NumberDensity(object):
         ]
 
         for i in range(self.nbin):
-            name = "BIN{}".format(i + 1)
+            name = f"BIN{i + 1}"
             columns.append(fits.Column(
                 name=name, array=self.nzs[i], format='D'))
 
         if self.sigma_e is not None:
             for i in range(self.nbin):
-                name = "SIG_E_{}".format(i + 1)
+                name = f"SIG_E_{i + 1}"
                 header[name] = self.sigma_e[i]
 
         if self.ngal is not None:
             for i in range(self.nbin):
-                name = "NGAL_{}".format(i + 1)
+                name = f"NGAL_{i + 1}"
                 header[name] = self.ngal[i]
 
         extension = fits.BinTableHDU.from_columns(columns, header=header)
@@ -340,7 +339,7 @@ class NumberDensity(object):
         return N
 
 
-class SpectrumMeasurement(object):
+class SpectrumMeasurement:
     def __init__(self, name, bins, types, kernels, windows, angular_bin, value,
                  angle=None, error=None, angle_unit=None, metadata=None, npairs=None,
                  varxi=None, extra_cols=None, angle_min=None, angle_max=None):
@@ -377,10 +376,10 @@ class SpectrumMeasurement(object):
         self.extra_cols = extra_cols
 
     def __str__(self):
-        return "<Spectrum: {}>".format(self.name)
+        return f"<Spectrum: {self.name}>"
 
     def __repr__(self):
-        return "<Spectrum: {}>".format(self.name)
+        return f"<Spectrum: {self.name}>"
 
     def get_bin_pairs(self):
         unique_pairs = []
@@ -441,7 +440,7 @@ class SpectrumMeasurement(object):
         b1, b2 = bin_pair
         mask = (self.bin1 == b1) * (self.bin2 == b2)
         if (mask.sum() == 0) and complain:
-            raise ValueError("""You tried to cut bin pair %d,%d from spectrum named %s 
+            raise ValueError("""You tried to cut bin pair %d,%d from spectrum named %s
                              but it doesn't exist""" % (b1, b2, self.name))
         elif mask.sum() > 0:
             self.apply_mask(~mask)
@@ -495,7 +494,7 @@ class SpectrumMeasurement(object):
         if "ANG" in data.names:
             angle = data['ANG']
             ang_index = data.names.index("ANG")
-            angle_unit = extension.header.get('TUNIT{}'.format(ang_index + 1))
+            angle_unit = extension.header.get(f'TUNIT{ang_index + 1}')
             if angle_unit is not None:
                 angle_unit = angle_unit.strip()
         else:
@@ -603,11 +602,11 @@ class SpectrumMeasurement(object):
         return extension
 
 
-class CovarianceMatrixInfo(object):
+class CovarianceMatrixInfo:
     """Encapsulate a covariance matrix and indices in it"""
 
     def __init__(self, name, names, lengths, covmat):
-        super(CovarianceMatrixInfo, self).__init__()
+        super().__init__()
         self.name = name
         self.names = names
         self.lengths = lengths
@@ -625,12 +624,12 @@ class CovarianceMatrixInfo(object):
 
     def to_fits(self):
         header = fits.Header()
-        
+
         header[COV_SENTINEL] = True
         header['EXTNAME'] = self.name
         for i, (start_index, name) in enumerate(zip(self.starts, self.names)):
-            header['STRT_{}'.format(i)] = start_index
-            header['NAME_{}'.format(i)] = name
+            header[f'STRT_{i}'] = start_index
+            header[f'NAME_{i}'] = name
         extension = fits.ImageHDU(data=self.covmat, header=header)
         return extension
 
@@ -643,11 +642,11 @@ class CovarianceMatrixInfo(object):
         measurement_names = []
         start_indices = []
         while True:
-            name_card = 'NAME_{}'.format(i)
+            name_card = f'NAME_{i}'
             if name_card not in header:
                 break
             measurement_names.append(header[name_card])
-            start_index_card = 'STRT_{}'.format(i)
+            start_index_card = f'STRT_{i}'
             start_indices.append(header[start_index_card])
             i += 1
         lengths = []
@@ -665,7 +664,7 @@ class CovarianceMatrixInfo(object):
     @classmethod
     def from_spec_lists(cls, spec_lists, cov_name, mode='full'):
         """Often the covariance will be computed by measuring the statistic(s) in question
-        on many simulated realisations of the dataset. This function takes a list of such 
+        on many simulated realisations of the dataset. This function takes a list of such
         measurements, *each one a list SpectrumMeasurement objects*, computes the mean and covariance, and
         returns the mean as a list of SpectrumMeasurements, and the covariance as a CovarianceMatrixInfo
         object. mode should be one of full, subsample or jackknife"""
@@ -711,7 +710,7 @@ class CovarianceMatrixInfo(object):
         return cls(cov_name, names, lengths, cov_values), mean_spec
 
 
-class TwoPointFile(object):
+class TwoPointFile:
     def __init__(self, spectra, kernels, nobs, windows, covmat_info):
         if windows is None:
             windows = {}
@@ -755,7 +754,7 @@ class TwoPointFile(object):
                 "Multiple kernel with name %s found in file" % name)
         else:
             return kernels[0]
-            
+
     def get_nobs(self, name):
         nobs = [obs for obs in self.nobs if nobs.name == name]
         n = len(nobs)
@@ -838,7 +837,7 @@ class TwoPointFile(object):
             if s.name == spectrum_name:
                 mask[mask_points] = False
                 s.apply_mask(mask)
-            print("Keeping {} points in {}".format(mask.sum(), s.name))
+            print(f"Keeping {mask.sum()} points in {s.name}")
             masks.append(mask)
         if self.nobs is not None:
             for obs in self.nobs:
@@ -897,7 +896,7 @@ class TwoPointFile(object):
             for obs in self.nobs:
                 mask = np.ones(sum(obs.nsample), dtype=bool)
                 masks.append(mask)
-            
+
         if masks:
             self._mask_covmat(masks)
 
@@ -948,7 +947,7 @@ class TwoPointFile(object):
         for data_set in data_sets:
             if not any(spectrum.name.lower() == data_set for spectrum in self.spectra) and not any(obs.name.lower() == data_set for obs in self.nobs):
                 raise ValueError(
-                    "Data set called {} not found in two-point data file.".format(data_set))
+                    f"Data set called {data_set} not found in two-point data file.")
         self.spectra = [s for (u, s) in zip(use, self.spectra) if u]
         if self.nobs is not None:
             self.nobs = [s for (u, s) in zip(use_obs, self.nobs) if u]
@@ -1020,7 +1019,7 @@ class TwoPointFile(object):
         if self.kernels is not None:
             for kernel in self.kernels:
                 hdus.append(kernel.to_fits())
-                
+
         if self.nobs is not None:
             for nobs in self.nobs:
                 hdus.append(nobs.to_fits())
@@ -1061,7 +1060,7 @@ class TwoPointFile(object):
         for extension in fitsfile:
             if extension.header.get(NZ_SENTINEL):
                 kernels.append(NumberDensity.from_fits(extension))
-                
+
         # We might also have some 1pt functions saved.
         for extension in fitsfile:
             if extension.header.get(ONEPOINT_SENTINEL):
@@ -1085,7 +1084,7 @@ class TwoPointFile(object):
 
     def plots(self, root, colormap='viridis', savepdf=False, latex=True, plot_spectrum=True, plot_kernel=True, plot_1pt=True, plot_cov=True, cov_vmin=None, save_pickle=False, load_pickle=False, remove_pickle=True, label_legend='', blind_yaxis=False, callback=None):
         """
-        Makes plot of each for your spectra, kernels and covariance. Allows you to compare the spectra of different files. 
+        Makes plot of each for your spectra, kernels and covariance. Allows you to compare the spectra of different files.
         Options:
         - root: Name of the output plots.
         - colormap: Colormap used for the plots.
@@ -1098,19 +1097,19 @@ class TwoPointFile(object):
         - load_pickle: if true, it will continue the plot starting from a pickle file.
         - remove_pickle: set to true if you want to keep this file to edit your plot afterwards.
         - label_legend: name that will appear in the legend when comparing different files.
-        - blind_axis: True if you want to remove the y-axis labels. 
+        - blind_axis: True if you want to remove the y-axis labels.
         """
 
         import matplotlib.pyplot as plt
-        from matplotlib import ticker
         import pickle as pl
+        from matplotlib import ticker
 
         if latex:
             plt.rc('text', usetex=True)
             plt.rc('font', family='serif')
 
         def savefig(name):
-            print("Saving {}".format(name))
+            print(f"Saving {name}")
             plt.savefig(name, bbox_inches='tight', dpi=400)
             if savepdf:
                 plt.savefig(name + '.pdf', bbox_inches='tight')
@@ -1138,7 +1137,7 @@ class TwoPointFile(object):
                 corr_type = 'wtheta'
                 label = r"$w(\theta)$"
                 color = plt.get_cmap(colormap)(0.6)
-                
+
             else:
                 corr_type = None
                 label = None
@@ -1164,7 +1163,7 @@ class TwoPointFile(object):
                 if load_pickle:
                     color = plt.get_cmap(colormap)(0.4)
 
-                name = "{}_{}.png".format(root, spectrum.name)
+                name = f"{root}_{spectrum.name}.png"
                 pairs = spectrum.bin_pairs
                 npairs = len(pairs)
                 bins1 = np.transpose(pairs)[0]
@@ -1187,7 +1186,7 @@ class TwoPointFile(object):
 
                 if load_pickle:
                     # If we are continuing a plot to compare different files, load the fig and axes objects
-                    name_pickle = "{}_{}.pickle".format(root, spectrum.name)
+                    name_pickle = f"{root}_{spectrum.name}.pickle"
                     fig = pl.load(open(name_pickle, 'rb'))
                     if remove_pickle:
                         os.system('rm %s' % name_pickle)
@@ -1207,7 +1206,7 @@ class TwoPointFile(object):
                     ax[j-1][i-1].errorbar(theta, abs(xi), yerr=error, fmt=mtype, capsize=1.5,
                                           markersize=3, color=color, mec=color, elinewidth=1., label=label_legend)
 
-                    ax[j-1][i-1].text(0.85, 0.85, "{},{}".format(i, j), horizontalalignment='center',
+                    ax[j-1][i-1].text(0.85, 0.85, f"{i},{j}", horizontalalignment='center',
                                       verticalalignment='center', transform=ax[j-1][i-1].transAxes, fontsize=12)
                     ax[j-1][i-1].set_xscale('log', nonposx='clip')
                     ax[j-1][i-1].set_yscale('log', nonposy='clip')
@@ -1231,7 +1230,7 @@ class TwoPointFile(object):
                     plt.legend(prop={'size': 5})
                     savefig(name)
                 if save_pickle:
-                    name_pickle = "{}_{}.pickle".format(root, spectrum.name)
+                    name_pickle = f"{root}_{spectrum.name}.pickle"
                     pl.dump(fig, file(name_pickle, 'w'))
 
                 plt.close()
@@ -1239,7 +1238,7 @@ class TwoPointFile(object):
 
         if plot_kernel:
             for kernel in self.kernels:
-                name = "{}_{}.png".format(root, kernel.name)
+                name = f"{root}_{kernel.name}.png"
                 plt.figure()
                 fig, ax = plt.subplots(1, 1, figsize=(5, 3))
                 for i, nz in enumerate(kernel.nzs):
@@ -1252,10 +1251,10 @@ class TwoPointFile(object):
                 ax.set_ylim(bottom=0)
                 plt.tight_layout()
                 savefig(name)
-                
+
         if plot_1pt:
             for obs in self.nobs:
-                name = "{}_{}.png".format(root, obs.name)
+                name = f"{root}_{obs.name}.png"
                 plt.figure()
                 fig, ax = plt.subplots(1, 1, figsize=(5, 3))
                 for i, nob in enumerate(obs.nobs):
@@ -1315,9 +1314,9 @@ class TwoPointFile(object):
             savefig(name)
 
 
-class SpectrumCovarianceBuilder(object):
+class SpectrumCovarianceBuilder:
     """
-    This class helps you ensure that the ordering between a set of data points and 
+    This class helps you ensure that the ordering between a set of data points and
     their covariance is consistently maintained.  You add data points to it one by one.,
     in the order that they appear in the covariance.
 
@@ -1380,7 +1379,7 @@ class SpectrumCovarianceBuilder(object):
         spec = kernel1, kernel2, type1, type2
         if spec not in self.types:
             self.types.append(spec)
-            
+
     def add_one_point(self, obs_name, nbin, x, angbin, values):
         self.obs_name.append(obs_name)
         self.nbin.append(nbin)
@@ -1403,7 +1402,7 @@ class SpectrumCovarianceBuilder(object):
         for t in self.types:
             if t not in names:
                 raise ValueError(
-                    "Please provide name for spectrum of type: {}".format(t))
+                    f"Please provide name for spectrum of type: {t}")
         self.names = names
 
     def generate(self, covariance, angle_unit):
@@ -1441,7 +1440,7 @@ class SpectrumCovarianceBuilder(object):
                 name, bins, types, kernels, windows, angular_bin, value,
                 angle=angle, angle_unit=angle_unit)
             spectra.append(spectrum)
-    
+
         for name in np.unique(self.obs_name):
             spectrum_index_vector = []
             for i in range(self.total_length,self.total_length_1pt+self.total_length):

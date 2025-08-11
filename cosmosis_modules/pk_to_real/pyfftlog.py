@@ -1,4 +1,3 @@
-#coding: utf-8
 """
 
 `pyfftlog` -- Python version of FFTLog
@@ -179,12 +178,13 @@ Comments in the subroutines contain further details.
     optional routine called by fhti.
 
 """
-from __future__ import print_function
-from builtins import input
+
 import numpy as np
-from scipy.special import loggamma
+
 # from scipy.fftpack._fftpack import drfft
-from scipy.fftpack import rfft, irfft
+from scipy.fftpack import irfft, rfft
+from scipy.special import loggamma
+
 # from scipy.fftpack.basic import _raw_fft
 
 

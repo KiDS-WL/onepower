@@ -25,8 +25,8 @@ gg -> pk_tot = f_red**2. * pk_red + (1-f_red)**2. * pk_blue
 gm -> pk_tot = f_red * pk_red + (1-f_red) * pk_blue
 """
 
-from cosmosis.datablock import names, option_section
 import numpy as np
+from cosmosis.datablock import names, option_section
 from scipy.interpolate import interp1d
 
 # We have a collection of commonly used pre-defined block section names.
@@ -152,9 +152,9 @@ def extrapolate_power(block, suffix_out, suffix_in, power_section, z_ext, k_ext,
         pk_tot_ext = pk_tot_ext * -1
 
     block.put_grid(f'{power_section}{suffix_out}', 'z', z_ext, 'k_h', k_ext, 'p_k', pk_tot_ext)
- 
- 
-#--------------------------------------------------------------------------------#	
+
+
+#--------------------------------------------------------------------------------#
 
 def setup(options):
     # This function is called once per processor per chain.
@@ -286,5 +286,3 @@ def cleanup(config):
     # Usually python modules do not need to do anything here.
     # We just leave it in out of pedantic completeness.
     pass
-
-

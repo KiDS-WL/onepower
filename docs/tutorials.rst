@@ -8,7 +8,7 @@ with ``onepower``, and use it efficiently.
 
 .. toctree::
     :maxdepth: 2
-    
+
     examples/dvornik23
     examples/showcase
     examples/cosmosis_interface

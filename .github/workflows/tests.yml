@@ -1,0 +1,81 @@
+name: "Tests"
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - coverage.svg # Prevent infinite loops when badge changes
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - coverage.svg # Prevent infinite loops when badge changes
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.10"
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: ubuntu-latest
+            python-version: "3.13"
+          - os: macos-latest
+            python-version: "3.11"
+
+    permissions:
+      contents: write # Needed to commit badge
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements_dev.txt
+          pip install -e .[dev]
+
+      # Coverage only on Ubuntu + Python 3.11
+      - name: Run Tests (with coverage)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        run: |
+          python -m pytest \
+            --cov=onepower \
+            --cov-config=.coveragerc \
+            --cov-report=term \
+            --cov-report= \
+            --durations=25
+
+      # Other matrix combos run without coverage
+      - name: Run Tests (without coverage)
+        if: matrix.os != 'ubuntu-latest' || matrix.python-version != '3.11'
+        run: |
+          python -m pytest --durations=25
+
+      - name: Generate coverage badge
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && success() && github.event_name == 'push'
+        uses: tj-actions/coverage-badge-py@v2
+
+      - name: Verify Changed files
+        if : matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && success() && github.event_name == 'push'
+        id: verify
+        uses: tj-actions/verify-changed-files@v16
+        with:
+          files: coverage.svg
+
+      - name: Commit and push badge
+        if: steps.verify.outputs.files_changed == 'true' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && success() && github.event_name == 'push'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add coverage.svg
+          git commit -m "Updated coverage.svg [skip ci]"
+          git push

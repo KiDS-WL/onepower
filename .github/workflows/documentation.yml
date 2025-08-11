@@ -1,6 +1,6 @@
-name: "Sphinx: Render docs"
+name: "Sphinx: Render"
 
-on: 
+on:
   push:
     branches:
       - main
@@ -21,7 +21,7 @@ jobs:
       run: |
         pip install -r docs/requirements.txt
         pip install -e .
-    - name: Sphinx build
+    - name: Sphinx Docs
       run: |
         sphinx-build -b html docs docs/_build/html --keep-going
     - name: Upload artifacts

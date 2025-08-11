@@ -1,18 +1,16 @@
-from cosmosis.datablock import names, option_section
-import warnings
-import numpy as np
-from astropy.cosmology import Flatw0waCDM
 import halo_model_utility as hmu
-import hmf
-from halomod.halo_model import DMHaloModel
-from halomod.concentration import make_colossus_cm, interp_concentration
-import halomod.profiles as profile_classes
 import halomod.concentration as concentration_classes
+import halomod.profiles as profile_classes
+import numpy as np
 import time
+import warnings
+from astropy.cosmology import Flatw0waCDM
+from cosmosis.datablock import names, option_section
+from halomod.concentration import interp_concentration, make_colossus_cm
+from halomod.halo_model import DMHaloModel
 
-
+import hmf
 from onepower.hmi import HaloModelIngredients
-
 
 # Silencing a warning from hmf for which the nonlinear mass is still correctly calculated
 warnings.filterwarnings("ignore", message="Nonlinear mass outside mass range")
@@ -90,7 +88,7 @@ def execute(block, config):
     growth_func = block['growth_parameters', 'd_z']
 
     z_vec = config['z_vec']
-    
+
     hmf = HaloModelIngredients(
         k_vec = k_vec,
         z_vec = z_vec,
@@ -130,31 +128,31 @@ def execute(block, config):
         delta_c = config['delta_c'],
         mead_correction = config['mead_correction']
     )
-    
+
     mass = hmf.mass
-    
+
     u_dm_cen = hmf.u_dm
     u_dm_sat = hmf.u_sat
     mean_density0 = hmf.mean_density0
     mean_density_z = hmf.mean_density_z
     rho_crit = hmf.mean_density0 / block[cosmo_params, 'omega_m']
     rho_halo = hmf.rho_halo
-    
+
     dndlnm = hmf.dndlnm
     halo_bias = hmf.halo_bias
     nu = hmf.nu
     neff = hmf.neff
     sigma8_z = hmf.sigma8_z
     fnu = hmf.fnu
-    
+
     conc_cen = hmf.conc_cen
     conc_sat = hmf.conc_sat
     r_s_cen = hmf.r_s_cen
     r_s_sat = hmf.r_s_sat
-    
+
     rvir_cen = hmf.rvir_cen
     rvir_sat = hmf.rvir_sat
-    
+
     # TODO: Clean these up. Put more of them into the same folder
     block.put_grid('concentration_m', 'z', z_vec, 'm_h', mass, 'c', conc_cen)
     block.put_grid('concentration_sat', 'z', z_vec, 'm_h', mass, 'c', conc_sat)

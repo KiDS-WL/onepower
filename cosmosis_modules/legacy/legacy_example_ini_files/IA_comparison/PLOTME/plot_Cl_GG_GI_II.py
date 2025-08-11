@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 datadir='../output/HM_IA/'
 def plot_cl(ax,shearcl,iz,jz,colour,linestyle):
@@ -32,9 +32,9 @@ for jz in range (5):
             ax[iz,jz].set_yscale('log')
             ax[iz,jz].set_xscale('log')
             if iz==4:
-                ax[iz,jz].set_xlabel('$\ell$',fontsize=16)
+                ax[iz,jz].set_xlabel(r'$\ell$',fontsize=16)
             if jz==0:
-                ax[iz,jz].set_ylabel('$C(\ell)$',fontsize=16)
+                ax[iz,jz].set_ylabel(r'$C(\ell)$',fontsize=16)
 
 ax[4,4].legend(loc='upper right',bbox_to_anchor=(1.0, 1.7))
 plt.tight_layout()
@@ -55,9 +55,9 @@ for jz in range (5):
             ax[iz,jz].set_xscale('log')
             ax[iz,jz].hlines(y=1.0, xmin=0, xmax=3000, linestyle='dotted', color='grey')
             if iz==4:
-                ax[iz,jz].set_xlabel('$\ell$',fontsize=16)
+                ax[iz,jz].set_xlabel(r'$\ell$',fontsize=16)
             if jz==0:
-                ax[iz,jz].set_ylabel('$C(\ell)/C_{\\rm GG}(\ell)$',fontsize=16)
+                ax[iz,jz].set_ylabel('$C(\\ell)/C_{\\rm GG}(\\ell)$',fontsize=16)
 
 ax[4,4].legend(loc='upper right',bbox_to_anchor=(1.0, 1.7))
 plt.tight_layout()

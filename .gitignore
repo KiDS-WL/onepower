@@ -21,3 +21,10 @@ src/onepower.egg-info
 /tmp_docs
 /docs/_autosummary
 /docs/_build
+.pytest_cache/
+.ipynb_checkpoints
+\.pytest_cache/v/cache/
+\.tox
+\.tox/flake8/
+\.tox/log/
+.coverage

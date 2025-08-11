@@ -1,3 +1,15 @@
+.. image:: https://github.com/KiDS-WL/onepower/actions/workflows/tests.yml/badge.svg
+  :target: https://github.com/KiDS-WL/onepower/
+
+.. image:: https://github.com/KiDS-WL/onepower/actions/workflows/documentation.yml/badge.svg
+  :target: https://github.com/KiDS-WL/onepower/
+
+.. image:: ./coverage.svg
+  :target: https://github.com/KiDS-WL/onepower/
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+  :target: https://github.com/psf/black
+
 OnePower
 ========
 
@@ -108,7 +120,7 @@ Please cite the above papers if you find this code useful in your research:
       adsurl = {https://ui.adsabs.harvard.edu/abs/2023A&A...675A.189D},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
-    
+
 Disclaimer
 ----------
 

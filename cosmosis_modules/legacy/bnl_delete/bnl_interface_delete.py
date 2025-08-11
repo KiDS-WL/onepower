@@ -1,5 +1,5 @@
-from cosmosis.datablock import names, option_section
 import numpy as np
+from cosmosis.datablock import names, option_section
 
 cosmo = names.cosmological_parameters
 
@@ -7,7 +7,7 @@ def setup(options):
     # This function is called once per processor per chain.
     # It is a chance to read any fixed options from the configuration file,
     # load any data, or do any calculations that are fixed once.
-    
+
     sampler_name = options['runtime', 'sampler']
     keep_bnl = options.get_bool(option_section, 'keep_bnl', default=False)
 
