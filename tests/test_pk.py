@@ -415,7 +415,6 @@ def test_spectra_power_spectrum_mi(setup_data, spectra):
         setup_data
     )
     power_spectrum_mi = spectra.power_spectrum_mi
-    power_spectrum_mi = spectra.power_spectrum_mi
     assert isinstance(power_spectrum_mi, PowerSpectrumResult)
 
 
