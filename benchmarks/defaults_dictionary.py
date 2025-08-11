@@ -61,8 +61,6 @@ kwargs = {
         'mdef_model': 'SOMean',
         'hmf_model': 'Tinker10',
         'bias_model': 'Tinker10',
-        'halo_profile_model': 'NFW',
-        'halo_concentration_model': 'Duffy08',
 #        'transfer_model': 'CAMB',
 #        'transfer_params': {},
 #        'growth_model': 'CAMB',
@@ -91,13 +89,6 @@ kwargs = {
         'tcmb': 2.7255,
         'log10T_AGN': 7.8,
         'mb': 10.0**13.0,
-    
-        'poisson_par': {
-                'poisson_type': 'scalar',
-                'poisson': 1.0,
-                'M_0': None,
-                'slope': None
-            },
         
         'pointmass': True,
         
