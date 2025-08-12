@@ -583,7 +583,7 @@ class HaloModelIngredients(CosmologyBase):
         overdensity=200,
         delta_c=1.686,
         mead_correction: str | None = None,
-        **cosmology_kwargs
+        **cosmology_kwargs,
     ):
         super().__init__(**cosmology_kwargs)
 
@@ -616,6 +616,12 @@ class HaloModelIngredients(CosmologyBase):
 
         self.overdensity = overdensity
         self.delta_c = delta_c
+
+    def validate(self):
+        if self.mead_correction not in valid_corrections:
+            raise ValueError(
+                f"Desired Mead correction is not supported. You have provided {self.mead_correction}, valid options are {valid_corrections}!"
+            )
 
     @parameter("param")
     def mead_correction(self, val):

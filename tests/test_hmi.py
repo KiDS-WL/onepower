@@ -162,6 +162,13 @@ def test_halo_model_ingredients_initialization(ingredients, setup_data):
     assert ingredients.delta_c == 1.686
 
 
+def test_wrong_mead_option(ingredients, setup_data):
+    with pytest.raises(ValueError):
+        ingredients.update(mead_correction='something')
+    ingredients.update(mead_correction=None)
+    assert ingredients.mead_correction is None
+
+
 def test_halo_model_ingredients_properties(ingredients, setup_data):
     _, z_vec = setup_data
     k_vec, _ = setup_data
