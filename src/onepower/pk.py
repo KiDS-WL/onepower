@@ -1579,7 +1579,7 @@ class Spectra(HaloModelIngredients):
             )
             pk_tot = pk_1h + pk_2h
         else:
-            if self.mead_correction in ['feedback', 'no_feedback']:
+            if self.mead_correction in ['feedback', 'nofeedback']:
                 pk_2h = self._pk_lin[np.newaxis, :, :] * self.two_halo_truncation_mead(
                     self.sigma8_z
                 )
