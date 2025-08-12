@@ -1061,7 +1061,7 @@ class Spectra(HaloModelIngredients):
             The 1-halo term.
         """
         integrand = profile_u * profile_v * dndlnm / mass
-        return simpson(integrand, mass, axis=-1)
+        return simpson(integrand, x=mass, axis=-1)
 
     def compute_A_term(self, mass, b_dm, dndlnm, mean_density0):
         r"""
@@ -1101,8 +1101,8 @@ class Spectra(HaloModelIngredients):
             The integral over the missing haloes.
         """
         integrand_m1 = b_dm * dndlnm * (1.0 / mean_density0)
-        A = 1.0 - simpson(integrand_m1, mass)
-        if (A < 0.0).any():
+        A = 1.0 - simpson(integrand_m1, x=mass)
+        if (A < 0.0).any():  # pragma: no cover
             warnings.warn(
                 'Warning: Mass function/bias correction is negative!', RuntimeWarning
             )
@@ -1184,7 +1184,7 @@ class Spectra(HaloModelIngredients):
             The integral for the matter term.
         """
         integrand_m = b_dm * dndlnm * u_dm * (1.0 / mean_density0)
-        return simpson(integrand_m, mass)
+        return simpson(integrand_m, x=mass)
 
     def prepare_I22_integrand(self, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
         """
@@ -1807,7 +1807,7 @@ class Spectra(HaloModelIngredients):
             The integral for the galaxy term.
         """
         integrand = profile * b_m * dndlnm / mass
-        return simpson(integrand, mass, axis=-1)
+        return simpson(integrand, x=mass, axis=-1)
 
     @cached_quantity
     def Ic_term(self):

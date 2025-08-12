@@ -34,6 +34,7 @@ warnings.filterwarnings('ignore', message='Nonlinear mass outside mass range')
 warnings.filterwarnings('ignore', category=UserWarning)
 
 DMHaloModel.ERROR_ON_BAD_MDEF = False
+valid_corrections = ['feedback', 'nofeedback', 'fit', None]
 
 
 class SOVirial_Mead(SphericalOverdensity):

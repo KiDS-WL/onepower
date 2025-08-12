@@ -1,11 +1,6 @@
 import pytest
-
 import numpy as np
-from unittest.mock import MagicMock
-
 from onepower import PowerSpectrumResult, Spectra
-
-# Just some base tests for now, no specific scientific calculations tested yet!
 
 
 @pytest.fixture
@@ -25,410 +20,226 @@ def spectra(setup_data):
     k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
         setup_data
     )
-    spectra = Spectra(
+    return Spectra(
         Mmin=12,
         Mmax=15,
         dlog10m=(15 - 12) / 100,
         matter_power_lin=matter_power_lin,
         matter_power_nl=matter_power_nl,
     )
-    return spectra
 
 
-def test_spectra_initialization(setup_data):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
+def test_spectra_initialization_and_params_none(setup_data):
+    _, _, _, _, _, matter_power_lin, matter_power_nl = setup_data
     spectra = Spectra(
         matter_power_lin=matter_power_lin, matter_power_nl=matter_power_nl
     )
     assert spectra.matter_power_lin.shape == matter_power_lin.shape
     assert spectra.matter_power_nl.shape == matter_power_nl.shape
 
+    spectra_none = Spectra(hod_model=None, poisson_model=None)
+    assert spectra_none.hod_model is None
+    assert spectra_none.poisson_model is None
 
-def test_spectra_beta_nl_array(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
+
+def test_spectra_properties_and_zvec_kvec_shape(setup_data, spectra):
+    k_vec, z_vec, mass, _, _, matter_power_lin, matter_power_nl = setup_data
+
+    assert spectra._beta_nl_array is None
+    assert spectra._pk_lin.shape == (len(z_vec), len(k_vec))
+    assert spectra._pk_nl.shape == (len(z_vec), len(k_vec))
+    assert spectra.peff is None
+
+    spectra_zvec_kvec = Spectra(
+        k_vec=k_vec[:-2],
+        z_vec=z_vec[:-2],
+        matter_power_lin=matter_power_lin,
+        matter_power_nl=matter_power_nl,
+        fortuna=True,
+        response=True,
     )
-    beta_nl_array = spectra._beta_nl_array
-    assert beta_nl_array is None
+    with pytest.raises(ValueError):
+        spectra_zvec_kvec._pk_lin
+    with pytest.raises(ValueError):
+        spectra_zvec_kvec._pk_nl
 
 
-def test_spectra_pk_lin(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    pk_lin = spectra._pk_lin
-    assert pk_lin.shape == (len(z_vec), len(k_vec))
+def test_spectra_bnl_related_properties(setup_data, spectra):
+    k_vec, _, mass, _, _, _, _ = setup_data
 
-
-def test_spectra_pk_nl(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    pk_nl = spectra._pk_nl
-    assert pk_nl.shape == (len(z_vec), len(k_vec))
-
-
-def test_spectra_peff(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    peff = spectra.peff
-    assert peff is None
-
-
-def test_spectra_calc_bnl(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
     spectra.update(bnl=True)
-    calc_bnl = spectra.calc_bnl
+    assert spectra.calc_bnl.shape == (1, len(mass), len(mass), len(k_vec))
+    assert spectra.I12 is not None
+    assert spectra.I21 is not None
+    assert spectra.I22 is not None
+    assert isinstance(spectra.power_spectrum_mm, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_gg, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_gm, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_mi, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_ii, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_gi, PowerSpectrumResult)
+
     spectra.update(bnl=False)
-    assert calc_bnl.shape == (1, len(mass), len(mass), len(k_vec))
+    assert spectra.I12 is None
+    assert spectra.I21 is None
+    assert spectra.I22 is None
 
 
-def test_spectra_I12(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
+def test_spectra_hod_and_fstar_matter(setup_data, spectra):
+    _, _, mass, _, _, _, _ = setup_data
+
+    assert spectra.hod_mm is None
+    assert spectra.fstar_mm.shape == (1, len(spectra.z_vec), len(mass))
+
+
+def test_spectra_matter_profiles_and_truncation_properties(setup_data, spectra):
+    _, z_vec, mass, _, _, _, _ = setup_data
+
+    assert spectra.matter_profile.shape == (
+        1,
+        len(z_vec),
+        len(spectra.k_vec),
+        len(mass),
     )
-    spectra.update(bnl=True)
-    I12 = spectra.I12
-    spectra.update(bnl=False)
-    assert I12 is not None
-
-
-def test_spectra_I21(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
+    assert spectra.matter_profile_2h.shape == (
+        1,
+        len(z_vec),
+        len(spectra.k_vec),
+        len(mass),
     )
-    spectra.update(bnl=True)
-    I21 = spectra.I21
-    spectra.update(bnl=False)
-    assert I21 is not None
 
+    k_vec, _, _, _, _, _, _ = setup_data
+    assert spectra.one_halo_truncation.shape == (len(k_vec),)
+    assert spectra.two_halo_truncation.shape == (len(k_vec),)
+    assert spectra.one_halo_truncation_ia.shape == (len(k_vec),)
+    assert spectra.two_halo_truncation_ia.shape == (len(k_vec),)
 
-def test_spectra_I22(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
+    spectra.update(
+        one_halo_ktrunc=None,
+        two_halo_ktrunc=None,
+        one_halo_ktrunc_ia=None,
+        two_halo_ktrunc_ia=None,
     )
-    spectra.update(bnl=True)
-    I22 = spectra.I22
-    spectra.update(bnl=False)
-    assert I22 is not None
+    assert np.allclose(spectra.one_halo_truncation, np.ones_like(k_vec))
+    assert np.allclose(spectra.two_halo_truncation, np.ones_like(k_vec))
+    assert np.allclose(spectra.one_halo_truncation_ia, np.ones_like(k_vec))
+    assert np.allclose(spectra.two_halo_truncation_ia, np.ones_like(k_vec))
 
 
-def test_spectra_hod_mm(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    hod_mm = spectra.hod_mm
-    assert hod_mm is None
+def test_spectra_power_spectrum_properties_and_hod_observable_properties(
+    setup_data, spectra
+):
+    _, z_vec, mass, _, _, _, _ = setup_data
 
+    assert isinstance(spectra.power_spectrum_lin, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_mm, PowerSpectrumResult)
 
-def test_spectra_fstar_mm(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    fstar_mm = spectra.fstar_mm
-    assert fstar_mm.shape == (1, len(z_vec), len(mass))
+    assert spectra.hod is not None
+    assert spectra.fstar.shape == (1, len(z_vec), len(mass))
+    assert spectra.mass_avg.shape == (1, len(z_vec))
 
-
-def test_spectra_matter_profile(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    matter_profile = spectra.matter_profile
-    assert matter_profile.shape == (1, len(z_vec), len(k_vec), len(mass))
-
-
-def test_spectra_matter_profile_2h(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    matter_profile_2h = spectra.matter_profile_2h
-    assert matter_profile_2h.shape == (1, len(z_vec), len(k_vec), len(mass))
-
-
-# def test_spectra_matter_profile_with_feedback(setup_data, spectra):
-#    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = setup_data
-#    spectra.update(mead_correction='feedback')
-#    matter_profile_with_feedback = spectra.matter_profile_with_feedback
-#    spectra.update(mead_correction=None)
-#    assert matter_profile_with_feedback.shape == (1, len(z_vec), len(k_vec), len(mass))
-
-
-def test_spectra_one_halo_truncation(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    one_halo_truncation = spectra.one_halo_truncation
-    assert one_halo_truncation.shape == (len(k_vec),)
-
-
-def test_spectra_two_halo_truncation(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    two_halo_truncation = spectra.two_halo_truncation
-    assert two_halo_truncation.shape == (len(k_vec),)
-
-
-def test_spectra_one_halo_truncation_ia(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    one_halo_truncation_ia = spectra.one_halo_truncation_ia
-    assert one_halo_truncation_ia.shape == (len(k_vec),)
-
-
-def test_spectra_two_halo_truncation_ia(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    two_halo_truncation_ia = spectra.two_halo_truncation_ia
-    assert two_halo_truncation_ia.shape == (len(k_vec),)
-
-
-def test_spectra_power_spectrum_lin(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    power_spectrum_lin = spectra.power_spectrum_lin
-    assert isinstance(power_spectrum_lin, PowerSpectrumResult)
-
-
-def test_spectra_power_spectrum_mm(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    power_spectrum_mm = spectra.power_spectrum_mm
-    assert isinstance(power_spectrum_mm, PowerSpectrumResult)
-
-
-def test_spectra_hod(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    hod = spectra.hod
-    assert hod is not None
-
-
-def test_spectra_fstar(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    fstar = spectra.fstar
-    assert fstar.shape == (1, len(z_vec), len(mass))
-
-
-def test_spectra_mass_avg(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    mass_avg = spectra.mass_avg
-    assert mass_avg.shape == (1, len(z_vec))
-
-
-def test_spectra_obs(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
     spectra.update(compute_observable=True)
-    obs = spectra.obs
+    assert spectra.obs is not None
+    assert spectra.obs_func is not None
     spectra.update(compute_observable=False)
-    assert obs is not None
 
 
-def test_spectra_obs_func(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
+def test_spectra_galaxy_profiles_and_terms_and_power_spectra(setup_data, spectra):
+    _, z_vec, mass, _, _, _, _ = setup_data
+
+    assert spectra.central_galaxy_profile.shape == (
+        1,
+        len(z_vec),
+        len(spectra.k_vec),
+        len(mass),
     )
-    spectra.update(compute_observable=True)
-    obs_func = spectra.obs_func
-    spectra.update(compute_observable=False)
-    assert obs_func is not None
-
-
-def test_spectra_central_galaxy_profile(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
+    assert spectra.satellite_galaxy_profile.shape == (
+        1,
+        len(z_vec),
+        len(spectra.k_vec),
+        len(mass),
     )
-    central_galaxy_profile = spectra.central_galaxy_profile
-    assert central_galaxy_profile.shape == (1, len(z_vec), len(k_vec), len(mass))
+
+    assert spectra.Ic_term.shape == (1, len(z_vec), len(spectra.k_vec))
+    assert spectra.Is_term.shape == (1, len(z_vec), len(spectra.k_vec))
+    assert isinstance(spectra.power_spectrum_gg, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_gm, PowerSpectrumResult)
 
 
-def test_spectra_satellite_galaxy_profile(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
+def test_spectra_alignment_properties_and_profiles_and_terms(setup_data, spectra):
+    _, z_vec, mass, _, _, _, _ = setup_data
+
+    assert spectra.alignment_class is not None
+    assert spectra.beta_cen is not None
+    assert spectra.beta_sat is not None
+    assert spectra.mpivot_cen is not None
+    assert spectra.mpivot_sat is not None
+    assert spectra.alignment_gi is not None
+    assert spectra.alignment_amplitude_2h.shape == (len(z_vec), 1)
+    assert spectra.alignment_amplitude_2h_II.shape == (len(z_vec), 1)
+    assert spectra.C1.shape == (len(z_vec), 1, 1)
+
+    assert spectra.wkm_sat.shape == (len(z_vec), len(mass), len(spectra.k_vec))
+    assert spectra.central_alignment_profile.shape == (1, len(z_vec), 1, len(mass))
+    assert spectra.satellite_alignment_profile.shape == (
+        1,
+        len(z_vec),
+        len(spectra.k_vec),
+        len(mass),
     )
-    satellite_galaxy_profile = spectra.satellite_galaxy_profile
-    assert satellite_galaxy_profile.shape == (1, len(z_vec), len(k_vec), len(mass))
+    assert spectra.Ic_align_term.shape == (1, len(z_vec), 1)
+    assert spectra.Is_align_term.shape == (1, len(z_vec), len(spectra.k_vec))
 
 
-def test_spectra_Ic_term(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
+def test_spectra_alignment_power_spectra_and_mead(setup_data):
+    _, _, mass, _, _, _, _ = setup_data
+
+    spectra_mead = Spectra(mead_correction='nofeedback')
+    assert isinstance(spectra_mead.power_spectrum_mm, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_gg, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_gm, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_mi, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_ii, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_gi, PowerSpectrumResult)
+
+    spectra_mead = Spectra(mead_correction='feedback')
+    assert isinstance(spectra_mead.power_spectrum_mm, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_gg, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_gm, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_mi, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_ii, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_gi, PowerSpectrumResult)
+
+    spectra_mead = Spectra(
+        mead_correction='fit', Mmin=12, Mmax=15, dlog10m=(15 - 12) / 100
     )
-    Ic_term = spectra.Ic_term
-    assert Ic_term.shape == (1, len(z_vec), len(k_vec))
+    assert spectra_mead.hod_mm is not None
+    assert spectra_mead.fstar_mm.shape == (1, len(spectra_mead.z_vec), len(mass))
+    assert isinstance(spectra_mead.power_spectrum_mm, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_gm, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_mi, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_ii, PowerSpectrumResult)
+    assert isinstance(spectra_mead.power_spectrum_gi, PowerSpectrumResult)
 
 
-def test_spectra_Is_term(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
+def test_fortuna_and_response(setup_data):
+    k_vec, z_vec, mass, _, _, matter_power_lin, matter_power_nl = setup_data
+    spectra = Spectra(
+        k_vec=k_vec,
+        z_vec=z_vec,
+        matter_power_lin=matter_power_lin,
+        matter_power_nl=matter_power_nl,
+        fortuna=True,
+        response=True,
     )
-    Is_term = spectra.Is_term
-    assert Is_term.shape == (1, len(z_vec), len(k_vec))
 
-
-def test_spectra_power_spectrum_gg(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    power_spectrum_gg = spectra.power_spectrum_gg
-    assert isinstance(power_spectrum_gg, PowerSpectrumResult)
-
-
-def test_spectra_power_spectrum_gm(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    power_spectrum_gm = spectra.power_spectrum_gm
-    assert isinstance(power_spectrum_gm, PowerSpectrumResult)
-
-
-def test_spectra_alignment_class(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    alignment_class = spectra.alignment_class
-    assert alignment_class is not None
-
-
-def test_spectra_beta_cen(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    beta_cen = spectra.beta_cen
-    assert beta_cen is not None
-
-
-def test_spectra_beta_sat(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    beta_sat = spectra.beta_sat
-    assert beta_sat is not None
-
-
-def test_spectra_mpivot_cen(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    mpivot_cen = spectra.mpivot_cen
-    assert mpivot_cen is not None
-
-
-def test_spectra_mpivot_sat(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    mpivot_sat = spectra.mpivot_sat
-    assert mpivot_sat is not None
-
-
-def test_spectra_alignment_gi(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    alignment_gi = spectra.alignment_gi
-    assert alignment_gi is not None
-
-
-def test_spectra_alignment_amplitude_2h(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    alignment_amplitude_2h = spectra.alignment_amplitude_2h
-    assert alignment_amplitude_2h.shape == (len(z_vec), 1)
-
-
-def test_spectra_alignment_amplitude_2h_II(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    alignment_amplitude_2h_II = spectra.alignment_amplitude_2h_II
-    assert alignment_amplitude_2h_II.shape == (len(z_vec), 1)
-
-
-def test_spectra_C1(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    C1 = spectra.C1
-    assert C1.shape == (len(z_vec), 1, 1)
-
-
-def test_spectra_wkm_sat(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    wkm_sat = spectra.wkm_sat
-    assert wkm_sat.shape == (len(z_vec), len(mass), len(k_vec))
-
-
-def test_spectra_central_alignment_profile(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    central_alignment_profile = spectra.central_alignment_profile
-    assert central_alignment_profile.shape == (1, len(z_vec), 1, len(mass))
-
-
-def test_spectra_satellite_alignment_profile(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    satellite_alignment_profile = spectra.satellite_alignment_profile
-    assert satellite_alignment_profile.shape == (1, len(z_vec), len(k_vec), len(mass))
-
-
-def test_spectra_Ic_align_term(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    Ic_align_term = spectra.Ic_align_term
-    assert Ic_align_term.shape == (1, len(z_vec), 1)
-
-
-def test_spectra_Is_align_term(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    Is_align_term = spectra.Is_align_term
-    assert Is_align_term.shape == (1, len(z_vec), len(k_vec))
-
-
-def test_spectra_power_spectrum_mi(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    power_spectrum_mi = spectra.power_spectrum_mi
-    assert isinstance(power_spectrum_mi, PowerSpectrumResult)
-
-
-def test_spectra_power_spectrum_ii(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    power_spectrum_ii = spectra.power_spectrum_ii
-    assert isinstance(power_spectrum_ii, PowerSpectrumResult)
-
-
-def test_spectra_power_spectrum_gi(setup_data, spectra):
-    k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl = (
-        setup_data
-    )
-    power_spectrum_gi = spectra.power_spectrum_gi
-    assert isinstance(power_spectrum_gi, PowerSpectrumResult)
+    assert spectra._beta_nl_array is None
+    assert spectra._pk_lin.shape == (len(z_vec), len(k_vec))
+    assert spectra._pk_nl.shape == (len(z_vec), len(k_vec))
+    assert spectra.peff is not None
+    assert isinstance(spectra.power_spectrum_mm, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_gg, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_gm, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_mi, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_ii, PowerSpectrumResult)
+    assert isinstance(spectra.power_spectrum_gi, PowerSpectrumResult)
