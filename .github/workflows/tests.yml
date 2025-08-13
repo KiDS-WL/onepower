@@ -31,13 +31,12 @@ jobs:
     permissions:
       contents: write # Needed to commit badge
       pull-requests: read
+      actions: read
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          ref: 'main'
           ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       - uses: actions/setup-python@v5
