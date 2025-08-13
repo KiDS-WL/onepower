@@ -863,8 +863,6 @@ class Cacciato(HOD):
         The differential mass function in terms of natural log of m,
         len=len(m) [units \(h^3 Mpc^{-3}\)]
 
-        dn(m)/ dln m eq1 of 1306.6721
-
         obs_func unit is h^3 Mpc^{-3} dex^-1
 
         Returns:
@@ -892,8 +890,6 @@ class Cacciato(HOD):
         dndlnm is basically n(M) x mass, it is the output of hmf
         The differential mass function in terms of natural log of m,
         len=len(m) [units \(h^3 Mpc^{-3}\)]
-
-        dn(m)/ dln m eq1 of 1306.6721
 
         obs_func unit is h^3 Mpc^{-3} dex^-1
 
@@ -923,8 +919,6 @@ class Cacciato(HOD):
         The differential mass function in terms of natural log of m,
         len=len(m) [units \(h^3 Mpc^{-3}\)]
 
-        dn(m)/ dln m eq1 of 1306.6721
-
         obs_func unit is h^3 Mpc^{-3} dex^-1
 
         Returns:
@@ -944,13 +938,14 @@ class Cacciato(HOD):
     def cal_mean_obs_c(self):
         r"""
         Stellar to halo mass relation (observable to halo mass relation).
+
         Eqs 19 of D23: 2210.03110
 
-        :math:`O_{\star, {\rm c}}(M)` = O_0 (M/M_{1})^{\gamma_{1}} / [1 + (M/M_{1})]^{(\gamma_{1} - \gamma_{2})}`
+        :math:`O_{\star, {\rm c}}(M) = O_0 (M/M_{1})^{\gamma_{1}} / [1 + (M/M_{1})]^{(\gamma_{1} - \gamma_{2})}`
 
         To get the values for the satellite call this * hod_par.norm_s
 
-        :math:`O_{\star, {\rm s}}(M)` = 0.56 O_{\star, {\rm c}}(M)`
+        :math:`O_{\star, {\rm s}}(M) = 0.56 O_{\star, {\rm c}}(M)`
 
         Here  :math:`M_1` is a characteristic mass scale, and :math:`O_0` is the normalization.
 
@@ -974,6 +969,7 @@ class Cacciato(HOD):
     def phi_star_s(self):
         r"""
         Normalisation of satellite COF function.
+
         Eqs 21 and 22 of D23: 2210.03110
 
         :math:`log[\phi_{\star, {\rm s}}(M)] = b_0 + b_1(\log M_{13})` , :math:`M_{13} = M/({\rm pivot})`
