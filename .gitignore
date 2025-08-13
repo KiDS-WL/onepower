@@ -4,6 +4,7 @@
 *.pyc
 ._*
 *DS_Store*
+*__pycache__*
 .ipynb_checkpoints
 /.project
 .spyproject
