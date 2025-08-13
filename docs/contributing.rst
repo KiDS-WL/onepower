@@ -25,7 +25,7 @@ Code Contribution Guidelines
 - **Avoid unrelated changes** - open separate pull requests for unrelated fixes/features.
 
 Getting Started
---------------
+---------------
 1. Fork or branch the repository.
 2. Follow the [Developer Installation](INSTALLATION.rst) guide.
 3. Run ``pre-commit install`` for code quality checks.
