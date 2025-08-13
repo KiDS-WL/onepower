@@ -29,14 +29,10 @@ def test_alignment_amplitudes_initialization_and_properties(setup_data):
     assert alignment_amps.beta_sat == 0.44
 
 
-def test_alignment_amplitudes_luminosity_dependencies(setup_data):
+def test_alignment_amplitudes_luminosity_dependencies(setup_data, datadir):
     z_vec, _, _, _, _ = setup_data
-    filename_centrals = (
-        Path(__file__).parent.parent / "legacy_input_files/redcen_lum.fits"
-    )
-    filename_satellites = (
-        Path(__file__).parent.parent / "legacy_input_files/redsat_lum.fits"
-    )
+    filename_centrals = f"{datadir}/redcen_lum_tests.fits"
+    filename_satellites = f"{datadir}/redsat_lum_tests.fits"
 
     alignment_amps_centrals = AlignmentAmplitudes(
         z_vec=z_vec,
@@ -83,9 +79,9 @@ def test_alignment_amplitudes_wrong_case(setup_data):
         alignment.lum_satellites
 
 
-def test_alignment_amplitudes_alignment_gi(setup_data):
+def test_alignment_amplitudes_alignment_gi(setup_data, datadir):
     z_vec, _, _, _, _ = setup_data
-    filename = Path(__file__).parent.parent / "legacy_input_files/redcen_lum.fits"
+    filename = f"{datadir}/redcen_lum_tests.fits"
 
     alignment_amps = AlignmentAmplitudes(z_vec=z_vec, central_ia_depends_on='constant')
     alignment_gi = alignment_amps.alignment_gi
@@ -135,9 +131,9 @@ def test_alignment_amplitudes_alignment_gi(setup_data):
     assert alignment_gi.shape == z_vec.shape
 
 
-def test_alignment_amplitudes_gamma_1h_amp(setup_data):
+def test_alignment_amplitudes_gamma_1h_amp(setup_data, datadir):
     z_vec, _, _, _, _ = setup_data
-    filename = Path(__file__).parent.parent / "legacy_input_files/redsat_lum.fits"
+    filename = f"{datadir}/redsat_lum_tests.fits"
 
     alignment_amps = AlignmentAmplitudes(
         z_vec=z_vec, satellite_ia_depends_on='constant'

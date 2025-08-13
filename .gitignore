@@ -7,7 +7,7 @@
 .ipynb_checkpoints
 /.project
 .spyproject
-*.fits
+legacy_input_files/*.fits
 /filesfromIsaac
 runs/*/chain/*
 trained_bnl/*
