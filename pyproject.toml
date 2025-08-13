@@ -96,3 +96,20 @@ force-exclude = '''
     | legacy_input_files
 )/
 '''
+
+[tool.coverage.run]
+source = ["onepower"]
+omit = [
+    "tests/*",
+    "*site-packages/*",
+    "*hmf/*",
+    "*halomod/*"
+]
+
+[tool.coverage.report]
+omit = [
+    "tests/*",
+    "*site-packages*",
+    "*hmf/*",
+    "*halomod/*"
+]
