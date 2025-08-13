@@ -30,6 +30,7 @@ jobs:
 
     permissions:
       contents: write # Needed to commit badge
+      pull-requests: read
 
     steps:
       - name: Checkout code
