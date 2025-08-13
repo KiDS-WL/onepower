@@ -109,6 +109,7 @@ Contents
    installation
    tutorials
    api
+   contributing
    license
    changelog
    contributors
