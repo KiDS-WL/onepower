@@ -80,7 +80,7 @@ class HOD(Component):
         halo_bias=None,
         z_vec=None,
         hod_settings=None,
-        **model_parameters
+        **model_parameters,
     ):
         self.cosmo = cosmo
         self.mass = mass[np.newaxis, np.newaxis, :]
@@ -1009,7 +1009,7 @@ class Cacciato(HOD):
         r"""
         Eq 23 of D23: 2210.03110
 
-        :math:`\\langle N_{\rm x}|M \rangle = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) {\rm d}O`
+        :math:`\langle N_{\rm x}|M \rangle = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) {\rm d}O`
         """
         N_sat = simpson(self.COF_sat, x=self.obs)
         if self.params['A_sat'] is not None:
@@ -1021,9 +1021,9 @@ class Cacciato(HOD):
     def _compute_stellar_fraction_cen(self):
         r"""
         The mean value of the observable for the given galaxy population for a given halo mass.
-        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\\Phi_{\rm x}(O|M)`
+        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\Phi_{\rm x}(O|M)`
 
-        :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`
+        :math:`f_{\star} = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) O {\rm d}O`
         """
         return simpson(self.COF_cen * self.obs, x=self.obs) / self.mass
 
@@ -1031,9 +1031,9 @@ class Cacciato(HOD):
     def _compute_stellar_fraction_sat(self):
         r"""
         The mean value of the observable for the given galaxy population for a given halo mass.
-        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\\Phi_{\rm x}(O|M)`
+        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\Phi_{\rm x}(O|M)`
 
-        :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`
+        :math:`f_{\star} = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) O {\rm d}O`
         """
         return simpson(self.COF_sat * self.obs, x=self.obs) / self.mass
 
@@ -1041,9 +1041,9 @@ class Cacciato(HOD):
     def _compute_stellar_fraction(self):
         r"""
         The mean value of the observable for the given galaxy population for a given halo mass.
-        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\\Phi_{\rm x}(O|M)`
+        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\Phi_{\rm x}(O|M)`
 
-        :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`
+        :math:`f_{\star} = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) O {\rm d}O`
         """
         return simpson(self.COF * self.obs, x=self.obs) / self.mass
 
