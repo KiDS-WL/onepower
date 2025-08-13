@@ -9,7 +9,9 @@ name = "onepower"
 description = "A halo model code with modules for CosmoSIS"
 readme = "README.rst"
 authors = [
-    {name="Andrej Dvornik", email="andrej.dvornik@me.com"}
+    {name="Andrej Dvornik", email="andrej.dvornik@me.com"},
+    {name="Maria Cristina Fortuna", email="maricri.fortuna@gmail.com"},
+    {name="Marika Asgari", email="marika.asgari@newcastle.ac.uk"},
 ]
 license = {text="MIT"}
 requires-python = ">=3.10"
