@@ -19,8 +19,7 @@ jobs:
       uses: pandoc/actions/setup@v1
     - name: Install dependencies
       run: |
-        pip install -r docs/requirements.txt
-        pip install -e .
+        pip install -e .[docs]
     - name: Sphinx Docs
       run: |
         sphinx-build -b html docs docs/_build/html --keep-going

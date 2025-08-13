@@ -1,8 +1,89 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
+requires = ["setuptools>=60", "wheel", "setuptools_scm>=8.0", "numpy"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
+
+[project]
+name = "onepower"
+description = "A halo model code with modules for CosmoSIS"
+readme = "README.rst"
+authors = [
+    {name="Andrej Dvornik", email="andrej.dvornik@me.com"}
+]
+license = {text="MIT"}
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 6 - Mature",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Natural Language :: English",
+	"Topic :: Scientific/Engineering :: Physics",
+	"Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = [
+    "hmf @ git+https://github.com/andrejdvornik/hmf.git",
+    "halomod @ git+https://github.com/andrejdvornik/halomod.git",
+    "numpy>=1.24.0",
+    "astropy>=6.0.0",
+    "dark_emulator==1.1.2",
+    "scipy<1.14.0",
+    "camb>=1.4.0",
+    "numexpr>=2.8.7",
+    "colossus>=1.3.5",
+    "hankel>=1.2.2",
+    "click",
+    "toml>=0.10.1",
+    "rich",
+    "pre-commit",
+]
+dynamic = ["version"]
+
+
+[project.optional-dependencies]
+docs = [
+	"sphinx>=6.1.3",
+	"numpydoc>=0.8.0",
+	"nbsphinx",
+    "ipython",
+    "pandoc",
+    "sphinx_rtd_theme",
+    "importlib_metadata",
+    "ipykernel",
+    "docutils>=0.19",
+]
+tests = [
+	"coverage>=4.5.1",
+	"pytest>=3.5.1",
+	"pytest-cov>=2.5.1",
+	"pytest-plt",
+    "pytest-runner",
+    "PyYAML",
+	"pre-commit",
+	"mpmath>=1.0.0",
+	"numba",
+]
+dev = [
+    "onepower[docs,tests]"
+]
+all = [
+    "onepower[dev]"
+]
+
+[tool.pytest.ini_options]
+addopts = "--cov onepower --cov-report term-missing --verbose"
+norecursedirs = [
+	"dist",
+	"build",
+	".tox",
+]
+testpaths = "tests"
 
 [tool.black]
 skip-string-normalization = true

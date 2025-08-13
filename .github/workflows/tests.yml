@@ -43,9 +43,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: Install
         run: |
-          pip install -r requirements_dev.txt
           pip install -e .[dev]
 
       # Coverage only on Ubuntu + Python 3.11
