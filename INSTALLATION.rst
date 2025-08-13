@@ -35,7 +35,7 @@ Alternatively, for the very bleeding edge, install from the master branch of the
 
 .. code-block:: bash
 
-    pip install onepower @ git+git:
+    pip install onepower @ git+git://github.com/KiDS-WL/onepower.git
 
 Developer Install
 -----------------

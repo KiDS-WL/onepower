@@ -9,6 +9,7 @@ Contributors
 * Constance Mahony: `@crcmahony <https://github.com/crcmahony>`_
 * Catherine Heymans: `@cheymans <https://github.com/cheymans>`_
 * Christos Georgiou: `@chrgeorgiou <https://github.com/chrgeorgiou>`_
+* Tassia Ferreira: `@tassia-ferreira <https://github.com/tassia-ferreira>`_
 
 Comments, corrections and suggestions
 -------------------------------------
