@@ -65,7 +65,6 @@ tests = [
 	"pytest-plt",
     "pytest-runner",
     "PyYAML",
-	"pre-commit",
 	"mpmath>=1.0.0",
 	"numba",
 ]
