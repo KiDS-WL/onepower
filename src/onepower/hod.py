@@ -939,8 +939,6 @@ class Cacciato(HOD):
         r"""
         Stellar to halo mass relation (observable to halo mass relation).
 
-        Eqs 19 of D23: 2210.03110
-
         :math:`O_{\star, {\rm c}}(M) = O_0 (M/M_{1})^{\gamma_{1}} / [1 + (M/M_{1})]^{(\gamma_{1} - \gamma_{2})}`
 
         To get the values for the satellite call this * hod_par.norm_s
@@ -951,6 +949,7 @@ class Cacciato(HOD):
 
         (observable can be galaxy luminosity or stellar mass)
         returns the observable given halo mass.
+        Eqs 19 of D23: 2210.03110
 
         Returns:
         --------
@@ -970,9 +969,9 @@ class Cacciato(HOD):
         r"""
         Normalisation of satellite COF function.
 
-        Eqs 21 and 22 of D23: 2210.03110
-
         :math:`log[\phi_{\star, {\rm s}}(M)] = b_0 + b_1(\log M_{13})` , :math:`M_{13} = M/({\rm pivot})`
+
+        Eqs 21 and 22 of D23: 2210.03110
 
         Returns:
         --------
