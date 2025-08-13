@@ -156,7 +156,7 @@ class HOD(Component):
         return halo_bias_fnc(self.z)
 
     @property
-    def data(self):  # pragma: no cover
+    def data(self):
         """
         Returns the z_bins, obs_min and obs_max quantities from tabulated observables file.
 
@@ -192,7 +192,7 @@ class HOD(Component):
         int
             number of HOD bins
         """
-        if self.hod_settings['observables_file'] is not None:  # pragma: no cover
+        if self.hod_settings['observables_file'] is not None:
             return 1
         else:
             return len(self.hod_settings['obs_min'])
@@ -222,7 +222,7 @@ class HOD(Component):
         array_like
             HOD specific redshifts
         """
-        if self.hod_settings['observables_file'] is not None:  # pragma: no cover
+        if self.hod_settings['observables_file'] is not None:
             return self.data[0][np.newaxis, :]
         else:
             zmin = self.hod_settings['zmin']
@@ -244,7 +244,7 @@ class HOD(Component):
         array_like
             min observable limits
         """
-        if self.hod_settings['observables_file'] is not None:  # pragma: no cover
+        if self.hod_settings['observables_file'] is not None:
             return np.log10(self.data[1])[np.newaxis, :]
         else:
             obs_min = self.hod_settings['obs_min']
@@ -260,7 +260,7 @@ class HOD(Component):
         array_like
             max observable limits
         """
-        if self.hod_settings['observables_file'] is not None:  # pragma: no cover
+        if self.hod_settings['observables_file'] is not None:
             return np.log10(self.data[2])[np.newaxis, :]
         else:
             obs_max = self.hod_settings['obs_max']
@@ -281,7 +281,7 @@ class HOD(Component):
             Integral of the HOD weighted by the halo mass function.
         """
         integrand = hod * self.dndlnm_int / self.mass
-        return simpson(integrand, self.mass, axis=-1)
+        return simpson(integrand, x=self.mass, axis=-1)
 
     def _mean_mass_integral(self, hod):  # pragma: no cover
         """
@@ -298,7 +298,7 @@ class HOD(Component):
             Integral of the HOD weighted by the halo mass function and halo mass.
         """
         integrand = hod * self.dndlnm_int
-        return simpson(integrand, self.mass, axis=-1)
+        return simpson(integrand, x=self.mass, axis=-1)
 
     def _bias_integral(self, hod):  # pragma: no cover
         """
@@ -315,7 +315,7 @@ class HOD(Component):
             Integral of the HOD weighted by the halo bias and halo mass function.
         """
         bg_integrand = hod * self.halo_bias_int * self.dndlnm_int / self.mass
-        return simpson(bg_integrand, self.mass, axis=-1) / self.ntot
+        return simpson(bg_integrand, x=self.mass, axis=-1) / self._ntot
 
     def _interpolate(self, data, fill_value='extrapolate', axis=-1):
         """
@@ -877,7 +877,7 @@ class Cacciato(HOD):
             * self.dndlnm_int[:, :, :, np.newaxis]
             / self.mass[:, :, :, np.newaxis]
         )
-        obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
+        obs_function = simpson(integrand, x=self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
     @property
@@ -907,7 +907,7 @@ class Cacciato(HOD):
             * self.dndlnm_int[:, :, :, np.newaxis]
             / self.mass[:, :, :, np.newaxis]
         )
-        obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
+        obs_function = simpson(integrand, x=self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
     @property
@@ -937,7 +937,7 @@ class Cacciato(HOD):
             * self.dndlnm_int[:, :, :, np.newaxis]
             / self.mass[:, :, :, np.newaxis]
         )
-        obs_function = simpson(integrand, self.mass[:, :, :, np.newaxis], axis=-2)
+        obs_function = simpson(integrand, x=self.mass[:, :, :, np.newaxis], axis=-2)
         return obs_function
 
     @property
@@ -998,7 +998,7 @@ class Cacciato(HOD):
 
         :math:`\langle N_{\rm x}|M \rangle = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) {\rm d}O`
         """
-        N_cen = simpson(self.COF_cen, self.obs)
+        N_cen = simpson(self.COF_cen, x=self.obs)
         if self.params['A_cen'] is not None:
             delta_pop_c = self.params['A_cen'] * np.fmin(N_cen, 1.0 - N_cen)
             N_cen = N_cen + delta_pop_c
@@ -1011,7 +1011,7 @@ class Cacciato(HOD):
 
         :math:`\\langle N_{\rm x}|M \rangle = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) {\rm d}O`
         """
-        N_sat = simpson(self.COF_sat, self.obs)
+        N_sat = simpson(self.COF_sat, x=self.obs)
         if self.params['A_sat'] is not None:
             delta_pop_s = self.params['A_sat'] * N_sat
             N_sat = N_sat + delta_pop_s
@@ -1025,7 +1025,7 @@ class Cacciato(HOD):
 
         :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`
         """
-        return simpson(self.COF_cen * self.obs, self.obs) / self.mass
+        return simpson(self.COF_cen * self.obs, x=self.obs) / self.mass
 
     @property
     def _compute_stellar_fraction_sat(self):
@@ -1035,7 +1035,7 @@ class Cacciato(HOD):
 
         :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`
         """
-        return simpson(self.COF_sat * self.obs, self.obs) / self.mass
+        return simpson(self.COF_sat * self.obs, x=self.obs) / self.mass
 
     @property
     def _compute_stellar_fraction(self):
@@ -1045,7 +1045,7 @@ class Cacciato(HOD):
 
         :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`
         """
-        return simpson(self.COF * self.obs, self.obs) / self.mass
+        return simpson(self.COF * self.obs, x=self.obs) / self.mass
 
 
 class Simple(HOD):

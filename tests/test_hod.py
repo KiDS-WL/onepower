@@ -1,11 +1,7 @@
 import pytest
-
 import numpy as np
 from unittest.mock import MagicMock
-
-from onepower import HOD, Cacciato, Simple, Zehavi, Zhai, Zheng, load_data
-
-# Just some base tests for now, no specific scientific calculations tested yet!
+from onepower import HOD, Cacciato, Simple, Zehavi, Zheng, Zhai, load_data
 
 
 @pytest.fixture
@@ -29,8 +25,8 @@ def setup_data():
     return mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings
 
 
-def test_load_data(tmp_path):
-    file_name = tmp_path / "test_data.txt"
+def test_load_data(datadir):
+    file_name = f"{datadir}/test_data.txt"
     data = np.array([[0.1, 8.0, 12.0], [0.2, 8.5, 12.5]])
     np.savetxt(file_name, data)
     z_data, obs_min, obs_max = load_data(file_name)
@@ -39,7 +35,7 @@ def test_load_data(tmp_path):
     assert np.allclose(obs_max, data[:, 2])
 
 
-def test_hod_initialization(setup_data):
+def test_hod_initialization_and_quantities(setup_data):
     mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
     hod = HOD(
         cosmo=cosmo,
@@ -49,169 +45,90 @@ def test_hod_initialization(setup_data):
         z_vec=z_vec,
         hod_settings=hod_settings,
     )
+
     assert hod.cosmo == cosmo
     assert hod.mass.shape == (1, 1, len(mass))
-    assert hod.z_vec.all() == z_vec.all()
+    assert np.allclose(hod.z_vec, z_vec)
     assert hod.dndlnm.shape == dndlnm.shape
     assert hod.halo_bias.shape == halo_bias.shape
 
+    with pytest.raises(NotImplementedError):
+        hod._compute_hod_cen
+    with pytest.raises(NotImplementedError):
+        hod._compute_hod_sat
 
-def test_hod_obs(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
     obs = hod.obs
     assert obs.shape == (hod.nbins, hod.nz, 1, hod.nobs)
 
-
-def test_hod_dndlnm_int(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
     dndlnm_int = hod.dndlnm_int
     assert dndlnm_int.shape == (1, hod.nz, len(mass))
 
-
-def test_hod_halo_bias_int(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
     halo_bias_int = hod.halo_bias_int
     assert halo_bias_int.shape == (1, hod.nz, len(mass))
 
+    assert hod.data is None
+    assert hod.nobs == hod_settings['nobs']
+    assert hod.nbins == len(hod_settings['obs_min'])
+    assert hod.nz == hod_settings['nz']
 
-def test_hod_data(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
-    data = hod.data
-    assert data is None
-
-
-def test_hod_nobs(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
-    nobs = hod.nobs
-    assert nobs == hod_settings['nobs']
-
-
-def test_hod_nbins(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
-    nbins = hod.nbins
-    assert nbins == len(hod_settings['obs_min'])
-
-
-def test_hod_nz(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
-    nz = hod.nz
-    assert nz == hod_settings['nz']
-
-
-def test_hod_z(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
     z = hod.z
     assert z.shape == (hod.nbins, hod.nz)
 
-
-def test_hod_log_obs_min(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
     log_obs_min = hod.log_obs_min
     assert log_obs_min.shape == (hod.nbins, hod.nz)
 
-
-def test_hod_log_obs_max(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
     log_obs_max = hod.log_obs_max
     assert log_obs_max.shape == (hod.nbins, hod.nz)
 
-
-def test_hod_interpolate(setup_data):
-    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
-        cosmo=cosmo,
-        mass=mass,
-        dndlnm=dndlnm,
-        halo_bias=halo_bias,
-        z_vec=z_vec,
-        hod_settings=hod_settings,
-    )
     data = np.random.rand(hod.nbins, hod.nz)
     interpolated_data = hod._interpolate(data)
     assert interpolated_data.shape == (hod.nbins, len(z_vec))
 
 
-def test_cacciato_initialization(setup_data):
+def test_hod_quantities_with_file(setup_data, datadir):
+    mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
+    file_name = f"{datadir}/test_data.txt"
+    data = np.array([[0.1, 8.0, 12.0], [0.2, 8.5, 12.5]])
+    np.savetxt(file_name, data)
+    hod_settings['observables_file'] = file_name
+
+    hod = HOD(
+        cosmo=cosmo,
+        mass=mass,
+        dndlnm=dndlnm,
+        halo_bias=halo_bias,
+        z_vec=z_vec,
+        hod_settings=hod_settings,
+    )
+
+    obs = hod.obs
+    assert obs.shape == (hod.nbins, hod.nz, 1, hod.nobs)
+
+    dndlnm_int = hod.dndlnm_int
+    assert dndlnm_int.shape == (1, hod.nz, len(mass))
+
+    halo_bias_int = hod.halo_bias_int
+    assert halo_bias_int.shape == (1, hod.nz, len(mass))
+
+    assert hod.nobs == hod_settings['nobs']
+    assert hod.nbins == len(hod_settings['obs_min'])
+    assert hod.nz == len(data)
+
+    z = hod.z
+    assert z.shape == (hod.nbins, hod.nz)
+
+    log_obs_min = hod.log_obs_min
+    assert log_obs_min.shape == (hod.nbins, hod.nz)
+
+    log_obs_max = hod.log_obs_max
+    assert log_obs_max.shape == (hod.nbins, hod.nz)
+
+    data = np.random.rand(hod.nbins, hod.nz)
+    interpolated_data = hod._interpolate(data)
+    assert interpolated_data.shape == (hod.nbins, len(z_vec))
+
+
+def test_cacciato_properties(setup_data):
     mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
     cacciato = Cacciato(
         cosmo=cosmo,
@@ -220,11 +137,45 @@ def test_cacciato_initialization(setup_data):
         halo_bias=halo_bias,
         z_vec=z_vec,
         hod_settings=hod_settings,
+        A_cen=0.0,
+        A_sat=0.0,
     )
+
     assert isinstance(cacciato, Cacciato)
+    assert cacciato.Obs_norm_c == 10.0**9.95
+    assert cacciato.M_char == 10.0**11.24
+
+    assert cacciato.number_density.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.number_density_cen.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.number_density_sat.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.avg_halo_mass.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.avg_halo_mass_cen.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.avg_halo_mass_sat.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.galaxy_linear_bias.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.galaxy_linear_bias_cen.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.galaxy_linear_bias_sat.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.f_c.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.f_s.shape == (cacciato.nbins, cacciato.nz)
+    assert cacciato.hod.shape == (cacciato.nbins, cacciato.nz, mass.size)
+    assert cacciato.hod_cen.shape == (cacciato.nbins, cacciato.nz, mass.size)
+    assert cacciato.hod_sat.shape == (cacciato.nbins, cacciato.nz, mass.size)
+    assert cacciato.stellar_fraction.shape == (cacciato.nbins, cacciato.nz, mass.size)
+    assert cacciato.stellar_fraction_cen.shape == (
+        cacciato.nbins,
+        cacciato.nz,
+        mass.size,
+    )
+    assert cacciato.stellar_fraction_sat.shape == (
+        cacciato.nbins,
+        cacciato.nz,
+        mass.size,
+    )
+    assert cacciato.obs_func.shape == (cacciato.nbins, cacciato.nz, cacciato.nobs)
+    assert cacciato.obs_func_cen.shape == (cacciato.nbins, cacciato.nz, cacciato.nobs)
+    assert cacciato.obs_func_sat.shape == (cacciato.nbins, cacciato.nz, cacciato.nobs)
 
 
-def test_simple_initialization(setup_data):
+def test_simple_properties(setup_data):
     mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
     simple = Simple(
         cosmo=cosmo,
@@ -236,15 +187,25 @@ def test_simple_initialization(setup_data):
         A_cen=0.0,
         A_sat=0.0,
     )
+
     assert isinstance(simple, Simple)
     assert simple.log10_Mmin == 12.0
     assert simple.log10_Msat == 13.0
     assert simple.alpha == 1.0
     assert simple._compute_hod_cen.shape == (1, z_vec.size, mass.size)
     assert simple._compute_hod_sat.shape == (1, z_vec.size, mass.size)
+    assert np.allclose(
+        simple.stellar_fraction, np.zeros((simple.nbins, simple.nz, mass.size))
+    )
+    assert np.allclose(
+        simple.stellar_fraction_cen, np.zeros((simple.nbins, simple.nz, mass.size))
+    )
+    assert np.allclose(
+        simple.stellar_fraction_sat, np.zeros((simple.nbins, simple.nz, mass.size))
+    )
 
 
-def test_zehavi_initialization(setup_data):
+def test_zehavi_properties(setup_data):
     mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
     zehavi = Zehavi(
         cosmo=cosmo,
@@ -256,6 +217,7 @@ def test_zehavi_initialization(setup_data):
         A_cen=0.0,
         A_sat=0.0,
     )
+
     assert isinstance(zehavi, Zehavi)
     assert zehavi.log10_Mmin == 12.0
     assert zehavi.log10_Msat == 13.0
@@ -264,7 +226,7 @@ def test_zehavi_initialization(setup_data):
     assert zehavi._compute_hod_sat.shape == (1, z_vec.size, mass.size)
 
 
-def test_zheng_initialization(setup_data):
+def test_zheng_properties(setup_data):
     mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
     zheng = Zheng(
         cosmo=cosmo,
@@ -276,6 +238,7 @@ def test_zheng_initialization(setup_data):
         A_cen=0.0,
         A_sat=0.0,
     )
+
     assert isinstance(zheng, Zheng)
     assert zheng.log10_Mmin == 12.0
     assert zheng.log10_M0 == 12.0
@@ -286,7 +249,7 @@ def test_zheng_initialization(setup_data):
     assert zheng._compute_hod_sat.shape == (1, z_vec.size, mass.size)
 
 
-def test_zhai_initialization(setup_data):
+def test_zhai_properties(setup_data):
     mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
     zhai = Zhai(
         cosmo=cosmo,
@@ -298,6 +261,7 @@ def test_zhai_initialization(setup_data):
         A_cen=0.0,
         A_sat=0.0,
     )
+
     assert isinstance(zhai, Zhai)
     assert zhai.log10_Mmin == 13.68
     assert zhai.log10_Msat == 14.87

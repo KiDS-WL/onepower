@@ -30,7 +30,7 @@ class Poisson(Component, metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def poisson_func(self):
+    def poisson_func(self):  # pragma: no cover
         return
 
 

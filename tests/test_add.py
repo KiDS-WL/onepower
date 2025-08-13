@@ -1,11 +1,6 @@
 import pytest
-
 import numpy as np
-from unittest.mock import MagicMock
-
 from onepower import PowerSpectrumResult, Spectra, UpsampledSpectra
-
-# Just some base tests for now, no specific scientific calculations tested yet!
 
 
 @pytest.fixture
@@ -19,9 +14,10 @@ def setup_data():
     return z, k, fraction_z, fraction, model_1_params, model_2_params
 
 
-def test_initialization(setup_data):
+@pytest.fixture
+def spectra_instance(setup_data):
     z, k, fraction_z, fraction, model_1_params, model_2_params = setup_data
-    spectra = UpsampledSpectra(
+    return UpsampledSpectra(
         z=z,
         k=k,
         fraction_z=fraction_z,
@@ -29,79 +25,73 @@ def test_initialization(setup_data):
         model_1_params=model_1_params,
         model_2_params=model_2_params,
     )
-    assert spectra.z.all() == z.all()
-    assert spectra.k.all() == k.all()
-    assert spectra.fraction_z.all() == fraction_z.all()
-    assert spectra.fraction.all() == fraction.all()
+
+
+def test_initialization(spectra_instance, setup_data):
+    z, k, fraction_z, fraction, model_1_params, model_2_params = setup_data
+    spectra = spectra_instance
+
+    assert np.allclose(spectra.z, z)
+    assert np.allclose(spectra.k, k)
+    assert np.allclose(spectra.fraction_z, fraction_z)
+    assert np.allclose(spectra.fraction, fraction)
     assert spectra._model_1_params == model_1_params
     assert spectra._model_2_params == model_2_params
 
 
-def test_frac_1_and_frac_2(setup_data):
-    z, k, fraction_z, fraction, model_1_params, model_2_params = setup_data
-    spectra = UpsampledSpectra(
+def test_frac_1_and_frac_2(spectra_instance, setup_data):
+    z, k, fraction_z, _, model_1_params, model_2_params = setup_data
+
+    spectra = spectra_instance
+    assert np.allclose(spectra.frac_1, spectra.fraction)
+    assert np.allclose(spectra.frac_2, 1 - spectra.fraction)
+
+    spectra_no_fraction = UpsampledSpectra(
+        z=z,
+        k=k,
+        fraction_z=fraction_z,
+        fraction=None,
+        model_1_params=model_1_params,
+        model_2_params=model_2_params,
+    )
+    assert np.allclose(spectra_no_fraction.frac_1, np.ones_like(z))
+    assert np.allclose(spectra_no_fraction.frac_2, np.zeros_like(z))
+
+
+def test_power_1_and_power_2(spectra_instance, setup_data):
+    z, k, fraction_z, fraction, model_1_params, _ = setup_data
+
+    spectra = spectra_instance
+    assert isinstance(spectra.power_1, Spectra)
+    assert isinstance(spectra.power_2, Spectra)
+
+    spectra_with_existing_spectra = UpsampledSpectra(
         z=z,
         k=k,
         fraction_z=fraction_z,
         fraction=fraction,
+        model=Spectra(),
         model_1_params=model_1_params,
-        model_2_params=model_2_params,
+        model_2_params=None,
     )
-    assert np.allclose(spectra.frac_1, fraction)
-    assert np.allclose(spectra.frac_2, 1 - fraction)
+    assert isinstance(spectra_with_existing_spectra.power_1, Spectra)
+    assert spectra_with_existing_spectra.power_2 is None
 
 
-def test_power_1_and_power_2(setup_data):
-    z, k, fraction_z, fraction, model_1_params, model_2_params = setup_data
-    spectra = UpsampledSpectra(
-        z=z,
-        k=k,
-        fraction_z=fraction_z,
-        fraction=fraction,
-        model_1_params=model_1_params,
-        model_2_params=model_2_params,
-    )
-
-    power_1 = spectra.power_1
-    assert isinstance(power_1, Spectra)
-
-    power_2 = spectra.power_2
-    assert isinstance(power_2, Spectra)
-
-
-def test_results_method(setup_data):
-    z, k, fraction_z, fraction, model_1_params, model_2_params = setup_data
-    spectra = UpsampledSpectra(
-        z=z,
-        k=k,
-        fraction_z=fraction_z,
-        fraction=fraction,
-        model_1_params=model_1_params,
-        model_2_params=model_2_params,
-    )
-
+def test_results_method(spectra_instance):
+    spectra = spectra_instance
     requested_spectra = ['mm']
     requested_components = ['tot']
-
     spectra.results(requested_spectra, requested_components)
-
     assert hasattr(spectra, 'power_spectrum_mm')
     assert isinstance(spectra.power_spectrum_mm, PowerSpectrumResult)
 
 
-def test_add_spectra(setup_data):
-    z, k, fraction_z, fraction, model_1_params, model_2_params = setup_data
-    spectra = UpsampledSpectra(
-        z=z,
-        k=k,
-        fraction_z=fraction_z,
-        fraction=fraction,
-        model_1_params=model_1_params,
-        model_2_params=model_2_params,
-    )
-
-    pk_1 = np.random.rand(len(z), len(k))
-    pk_2 = np.random.rand(len(z), len(k))
+def test_add_spectra(spectra_instance):
+    spectra = spectra_instance
+    len_z, len_k = len(spectra.z), len(spectra.k)
+    pk_1 = np.random.rand(len_z, len_k)
+    pk_2 = np.random.rand(len_z, len_k)
 
     added_power_mm = spectra.add_spectra(pk_1, pk_2, 'mm')
     assert np.allclose(added_power_mm, pk_1)
