@@ -1,4 +1,4 @@
-Contributing to ``onepower``
+Contributing to OnePower
 ========================
 
 ``onepower`` is an open-source project that thrives on community contributions. You can help by writing tutorials, improving documentation, reporting bugs, suggesting features, or contributing code. Following these guidelines ensures a high-quality codebase and faster reviews.
