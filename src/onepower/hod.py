@@ -786,7 +786,7 @@ class Cacciato(HOD):
     @property
     def COF_cen(self):
         r"""
-        COF for Central galaxies (eq 17 of D23: 2210.03110):
+        COF for Central galaxies.
 
         :math:`\Phi_{\rm c}(O|M) = 1/[\sqrt{(2\pi)} \ln(10) \sigma_{\rm c} O] \exp[-\log(O/O_{\star, {\rm c}})^{2}/ (2 \sigma_{\rm c}^{2})]`
 
@@ -816,7 +816,7 @@ class Cacciato(HOD):
     @property
     def COF_sat(self):
         r"""
-        COF for satellite galaxies (eq 18 of D23: 2210.03110):
+        COF for satellite galaxies.
 
         :math:`\Phi_{\rm s}(O|M) = \phi_{\star, {\rm s}}/O_{\star, {\rm s}} (O/O_{\star, {\rm s}})^{\alpha_{\rm s}} \exp [-(O/O_{\star, {\rm s}})^{2}]`,
 
