@@ -1,3 +1,6 @@
+OnePower
+========
+
 .. image:: https://github.com/KiDS-WL/onepower/actions/workflows/tests.yml/badge.svg
   :target: https://github.com/KiDS-WL/onepower/
 
@@ -14,9 +17,6 @@
 .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit
    :target: https://github.com/pre-commit/pre-commit
    :alt: pre-commit
-
-OnePower
-========
 
 .. raw:: html
 
