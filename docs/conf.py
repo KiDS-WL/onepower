@@ -137,7 +137,33 @@ html_theme = 'pydata_sphinx_theme'
 # documentation.
 html_theme_options = {
 "navbar_start": ["navbar-logo"],
+"logo": {
+      "image_light": "https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png",
+      "image_dark": "https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_white.png",
+   },
+"use_edit_page_button": True,
+"icon_links": [
+        {
+            # Label for this link
+            "name": "GitHub",
+            # URL where the link will redirect
+            "url": "https://github.com/KiDS-WL/onepower",  # required
+            # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
+            "icon": "fa-brands fa-square-github",
+            # The type of image to be used (see below for details)
+            "type": "fontawesome",
+        }
+   ]
 }
+
+html_context = {
+    "github_url": "https://github.com",
+    "github_user": "KiDs-WL",
+    "github_repo": "onepower",
+    "github_version": "main",
+    "doc_path": "docs",
+}
+html_show_sourcelink = False
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []

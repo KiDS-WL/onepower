@@ -1,27 +1,17 @@
-OnePower
-========
+
+.. image:: https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_white.png
+    :class: only-dark
+
+.. image:: https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png
+    :class: only-light
 
 .. raw:: html
 
-      <div align="center">
-        <picture>
-          <source
-            srcset="https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png"
-            media="(prefers-color-scheme: light)"
-          />
-          <source
-            srcset="https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_white.png"
-            media="(prefers-color-scheme: dark)"
-          />
-        <img
-          src="https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png"
-          alt="Logo"
-        />
-      </picture>
-    <p align="center">
-     <i>"The One Tool to Predict All Power Spectra."</i>
-    </p>
-    </div>
+  <div align="center">
+  <p align="center">
+  <i>"The One Tool to Predict All Power Spectra."</i>
+  </p>
+  </div>
 
 OnePower is a Python package for computing power spectra and one-point statistics using the halo model framework. It is designed for studying the galaxy-matter connection, cosmological structure formation, and intrinsic alignments, especially in the non-linear regime.
 
