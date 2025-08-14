@@ -5,6 +5,14 @@ OnePower
 
       <div align="center">
         <picture>
+          <source
+            srcset="https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png"
+            media="(prefers-color-scheme: light)"
+          />
+          <source
+            srcset="https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_white.png"
+            media="(prefers-color-scheme: dark)"
+          />
         <img
           src="https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png"
           alt="Logo"
