@@ -65,7 +65,6 @@ jobs:
 
   docs-versions:
     name: Update docs versions JSON
-    needs: check
     runs-on: Ubuntu-latest
     steps:
     - uses: actions/checkout@v4
