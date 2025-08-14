@@ -193,3 +193,25 @@ ignore = [
     "B009",   # Do not call getattr with a constant attribute value
     "B023",   # Function definition does not bind loop variable
 ]
+
+
+# Import organization (Ruff's import sorting is enabled by default)
+[tool.ruff.lint.isort]
+known-first-party = ["onepower"]
+
+# Import sections (Ruff uses a similar section order)
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+    "testing",
+]
+
+# Default section for imports (same as isort's default_section)
+default-section = "first-party"
+
+# Multi-line output style (3 = "Vertical Hanging Indent")
+combine-as-imports = true
+lines-after-imports = 2

@@ -1,7 +1,15 @@
 import pytest
 import numpy as np
 from unittest.mock import MagicMock
-from onepower import HOD, Cacciato, Simple, Zehavi, Zheng, Zhai, load_data
+from onepower import (
+    HaloOccupationDistribution,
+    Cacciato,
+    Simple,
+    Zehavi,
+    Zheng,
+    Zhai,
+    load_data,
+)
 
 
 @pytest.fixture
@@ -38,7 +46,7 @@ def test_load_data(datadir):
 
 def test_hod_initialization_and_quantities(setup_data):
     mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    hod = HOD(
+    hod = HaloOccupationDistribution(
         cosmo=cosmo,
         mass=mass,
         dndlnm=dndlnm,
@@ -94,7 +102,7 @@ def test_hod_quantities_with_file(setup_data, datadir):
     np.savetxt(file_name, data)
     hod_settings['observables_file'] = file_name
 
-    hod = HOD(
+    hod = HaloOccupationDistribution(
         cosmo=cosmo,
         mass=mass,
         dndlnm=dndlnm,

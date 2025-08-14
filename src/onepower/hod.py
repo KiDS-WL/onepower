@@ -46,7 +46,7 @@ def load_data(file_name):
 
 
 @pluggable
-class HOD(Component):
+class HaloOccupationDistribution(Component):
     r"""
     Base class for Halo Occupation Distribution (HOD) models.
     This class provides the framework for computing various properties of galaxies within dark matter halos.
@@ -685,7 +685,7 @@ class HOD(Component):
         return None
 
 
-class Cacciato(HOD):
+class Cacciato(HaloOccupationDistribution):
     r"""
     CSMF/CLF model from Cacciato et al. (2013) [1]_.
 
@@ -1043,7 +1043,7 @@ class Cacciato(HOD):
         return simpson(self.COF * self.obs, x=self.obs) / self.mass
 
 
-class Simple(HOD):
+class Simple(HaloOccupationDistribution):
     """
     Simple HOD model
 
@@ -1152,7 +1152,7 @@ class Simple(HOD):
         return N_sat
 
 
-class Zehavi(HOD):
+class Zehavi(HaloOccupationDistribution):
     """
     HOD model from Zehavi et al. (2004) [1]_.
 
@@ -1269,7 +1269,7 @@ class Zehavi(HOD):
         return np.tile(N_sat, (self.nz, 1))
 
 
-class Zheng(HOD):
+class Zheng(HaloOccupationDistribution):
     """
     HOD model from Zheng et al. (2005) [1]_.
 
@@ -1431,7 +1431,7 @@ class Zheng(HOD):
         return np.tile(N_sat, (self.nz, 1))
 
 
-class Zhai(HOD):
+class Zhai(HaloOccupationDistribution):
     """
     HOD model from Zhai et al. (2017) [1]_.
 

@@ -399,7 +399,7 @@ class Spectra(HaloModelIngredients):
         """
         if val is None:
             return val
-        return get_mdl(val, 'HOD')
+        return get_mdl(val, 'HaloOccupationDistribution')
 
     @parameter('model')
     def poisson_model(self, val):

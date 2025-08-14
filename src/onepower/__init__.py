@@ -13,7 +13,15 @@ with contextlib.suppress(PackageNotFoundError):
 from .add import UpsampledSpectra
 from .bnl import NonLinearBias
 from .hmi import CosmologyBase, HaloModelIngredients
-from .hod import HOD, Cacciato, Simple, Zehavi, Zhai, Zheng, load_data
+from .hod import (
+    HaloOccupationDistribution,
+    Cacciato,
+    Simple,
+    Zehavi,
+    Zhai,
+    Zheng,
+    load_data,
+)
 from .ia import AlignmentAmplitudes, SatelliteAlignment
 from .pk import PowerSpectrumResult, Spectra
 from .utils import poisson
