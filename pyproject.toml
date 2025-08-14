@@ -56,6 +56,7 @@ docs = [
     "ipython",
     "pandoc",
     "sphinx_rtd_theme",
+    "pydata-sphinx-theme",
     "importlib_metadata",
     "ipykernel",
     "docutils>=0.19",
