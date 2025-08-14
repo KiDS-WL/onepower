@@ -18,6 +18,7 @@ OnePower
    :target: https://github.com/pre-commit/pre-commit
    :alt: pre-commit
 
+|
 .. raw:: html
 
       <div align="center">
