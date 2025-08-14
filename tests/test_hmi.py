@@ -30,9 +30,9 @@ def cosmo():
 def test_SOVirial_Mead_properties():
     sov = SOVirial_Mead()
     dens = sov.halo_density(z=0)
-    assert np.isclose(dens, sov.params["overdensity"] * sov.mean_density(0))
-    assert sov.colossus_name == "200c"
-    assert str(sov) == "SOVirial"
+    assert np.isclose(dens, sov.params['overdensity'] * sov.mean_density(0))
+    assert sov.colossus_name == '200c'
+    assert str(sov) == 'SOVirial'
 
 
 def test_cosmology_base_properties(cosmo, setup_data):
@@ -66,7 +66,7 @@ def test_cosmology_model_and_scale_factor(cosmo):
     assert a[-1] < a[0]
 
 
-@pytest.mark.parametrize("a,Om,Ode,Ok", [(0.5, 0.3, 0.7, 0), (1.0, 0.3, 0.7, 0)])
+@pytest.mark.parametrize('a,Om,Ode,Ok', [(0.5, 0.3, 0.7, 0), (1.0, 0.3, 0.7, 0)])
 def test_Hubble_and_Omega_functions(cosmo, a, Om, Ode, Ok):
     H2 = cosmo._Hubble2(a, Om, Ode, Ok)
     Omega_m = cosmo._Omega_m(a, Om, Ode, Ok)
@@ -96,7 +96,7 @@ def test_mead_growth_functions(cosmo):
 
 
 @pytest.mark.parametrize(
-    "x,y,p0,p1,p2,p3,expected",
+    'x,y,p0,p1,p2,p3,expected',
     [
         (0.5, 0.5, 1, 2, 3, 4, 1 + 2 * (1 - 0.5) + 3 * (1 - 0.5) ** 2 + 4 * (1 - 0.5)),
         (

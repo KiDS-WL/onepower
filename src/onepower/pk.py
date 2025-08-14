@@ -166,9 +166,8 @@ class Spectra(HaloModelIngredients):
         one_halo_ktrunc_ia=4.0,
         two_halo_ktrunc_ia=6.0,
         align_params=None,
-        **hmf_kwargs
+        **hmf_kwargs,
     ):
-
         # Call super init MUST BE DONE FIRST.
         super().__init__(**hmf_kwargs)
 
@@ -202,7 +201,7 @@ class Spectra(HaloModelIngredients):
         self.two_halo_ktrunc_ia = two_halo_ktrunc_ia
         self.align_params = align_params or {}
 
-    @parameter("param")
+    @parameter('param')
     def mb(self, val):
         r"""
         Gas distribution mass pivot parameter :math:`M_{\rm b}`.
@@ -211,7 +210,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("switch")
+    @parameter('switch')
     def bnl(self, val):
         """
         Whether to include non-linear bias.
@@ -220,7 +219,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def beta_nl(self, val):
         r"""
         Non-linear bias parameter :math:`\beta_{\rm nl}`.
@@ -229,7 +228,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def dewiggle(self, val):
         """
         Whether to dewiggle the power spectrum.
@@ -238,7 +237,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def matter_power_lin(self, val):
         """
         Linear matter power spectrum.
@@ -247,7 +246,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def matter_power_nl(self, val):
         """
         Non-linear matter power spectrum
@@ -256,7 +255,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("switch")
+    @parameter('switch')
     def response(self, val):
         """
         Whether to calculate the resulting power spectra in response formalism.
@@ -265,7 +264,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def one_halo_ktrunc(self, val):
         """
         Truncation wavenumber for the 1-halo term.
@@ -274,7 +273,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def two_halo_ktrunc(self, val):
         """
         Truncation wavenumber for the 2-halo term.
@@ -283,7 +282,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def hod_settings_mm(self, val):
         """
         Settings for the HOD model.
@@ -292,7 +291,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def pointmass(self, val):
         """
         Whether to use point mass approximation.
@@ -301,7 +300,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def compute_observable(self, val):
         """
         Whether to compute observable.
@@ -310,7 +309,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def poisson_params(self, val):
         """
         Parameters for the Poisson distribution.
@@ -319,7 +318,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def hod_params(self, val):
         """
         Parameters for the HOD model.
@@ -328,7 +327,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def hod_settings(self, val):
         """
         Settings for the HOD model.
@@ -337,7 +336,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def obs_settings(self, val):
         """
         Settings for the observable.
@@ -346,7 +345,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def fortuna(self, val):
         """
         Whether to use the Fortuna model.
@@ -355,7 +354,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def t_eff(self, val):
         """
         Effective parameter for the Fortuna model.
@@ -364,7 +363,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def one_halo_ktrunc_ia(self, val):
         """
         Truncation wavenumber for the 1-halo IA term.
@@ -373,7 +372,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def two_halo_ktrunc_ia(self, val):
         """
         Truncation wavenumber for the 2-halo IA term.
@@ -382,7 +381,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def align_params(self, val):
         """
         Parameters for the alignment model.
@@ -391,7 +390,7 @@ class Spectra(HaloModelIngredients):
         """
         return val
 
-    @parameter("model")
+    @parameter('model')
     def hod_model(self, val):
         r"""
         An HOD model to use
@@ -400,9 +399,9 @@ class Spectra(HaloModelIngredients):
         """
         if val is None:
             return val
-        return get_mdl(val, "HOD")
+        return get_mdl(val, 'HOD')
 
-    @parameter("model")
+    @parameter('model')
     def poisson_model(self, val):
         r"""
         A Poisson parameter model to use
@@ -411,7 +410,7 @@ class Spectra(HaloModelIngredients):
         """
         if val is None:
             return val
-        return get_mdl(val, "Poisson")
+        return get_mdl(val, 'Poisson')
 
     @cached_quantity
     def _beta_nl_array(self):
@@ -423,9 +422,8 @@ class Spectra(HaloModelIngredients):
         ndarray
             beta_nl
         """
-        if self.bnl:
-            if self.beta_nl is None:
-                return self.calc_bnl
+        if self.bnl and self.beta_nl is None:
+            return self.calc_bnl
         return self.beta_nl
 
     @cached_quantity
@@ -457,7 +455,7 @@ class Spectra(HaloModelIngredients):
             val = self.dewiggle_plin(val)
         if val.shape != (self.z_vec.size, self.k_vec.size):
             raise ValueError(
-                "Shape of input power spectra is not equal to redshift and k-vec dimensions!"
+                'Shape of input power spectra is not equal to redshift and k-vec dimensions!'
             )
         return val
 
@@ -485,7 +483,7 @@ class Spectra(HaloModelIngredients):
                 val = val_interp(self.k_vec)
             if val.shape != (self.z_vec.size, self.k_vec.size):
                 raise ValueError(
-                    "Shape of input power spectra is not equal to redshift and k-vec dimensions!"
+                    'Shape of input power spectra is not equal to redshift and k-vec dimensions!'
                 )
         return val
 
@@ -607,7 +605,7 @@ class Spectra(HaloModelIngredients):
                 halo_bias=self.halo_bias,
                 z_vec=self.z_vec,
                 hod_settings=self.hod_settings_mm,
-                **self.hod_params
+                **self.hod_params,
             )
         else:
             return None
@@ -1631,7 +1629,7 @@ class Spectra(HaloModelIngredients):
             halo_bias=self.halo_bias,
             z_vec=self.z_vec,
             hod_settings=self.hod_settings,
-            **self.hod_params
+            **self.hod_params,
         )
 
     @cached_quantity
@@ -1677,7 +1675,7 @@ class Spectra(HaloModelIngredients):
                 halo_bias=self.halo_bias,
                 z_vec=self.z_vec,
                 hod_settings=self.obs_settings,
-                **self.hod_params
+                **self.hod_params,
             )
         else:
             return None

@@ -230,7 +230,7 @@ class HOD(Component):
             return np.array(
                 [
                     np.linspace(zmin_i, zmax_i, self.nz)
-                    for zmin_i, zmax_i in zip(zmin, zmax)
+                    for zmin_i, zmax_i in zip(zmin, zmax, strict=False)
                 ]
             )
 
@@ -1077,7 +1077,7 @@ class Simple(HOD):
         :type: array_like
         """
         val = self.params['log10_Mmin']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1089,7 +1089,7 @@ class Simple(HOD):
         :type: array_like
         """
         val = self.params['log10_Msat']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1101,7 +1101,7 @@ class Simple(HOD):
         :type: array_like
         """
         val = self.params['alpha']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 
@@ -1194,7 +1194,7 @@ class Zehavi(HOD):
         :type: array_like
         """
         val = self.params['log10_Mmin']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1206,7 +1206,7 @@ class Zehavi(HOD):
         :type: array_like
         """
         val = self.params['log10_Msat']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1218,7 +1218,7 @@ class Zehavi(HOD):
         :type: array_like
         """
         val = self.params['alpha']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 
@@ -1314,7 +1314,7 @@ class Zheng(HOD):
         :type: array_like
         """
         val = self.params['log10_Mmin']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1326,7 +1326,7 @@ class Zheng(HOD):
         :type: array_like
         """
         val = self.params['log10_M0']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1338,7 +1338,7 @@ class Zheng(HOD):
         :type: array_like
         """
         val = self.params['log10_M1']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1350,7 +1350,7 @@ class Zheng(HOD):
         :type: array_like
         """
         val = self.params['alpha']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 
@@ -1362,7 +1362,7 @@ class Zheng(HOD):
         :type: array_like
         """
         val = self.params['sigma']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 
@@ -1476,7 +1476,7 @@ class Zhai(HOD):
         :type: array_like
         """
         val = self.params['log10_Mmin']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1488,7 +1488,7 @@ class Zhai(HOD):
         :type: array_like
         """
         val = self.params['log10_Msat']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1500,7 +1500,7 @@ class Zhai(HOD):
         :type: array_like
         """
         val = self.params['log10_Mcut']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1512,7 +1512,7 @@ class Zhai(HOD):
         :type: array_like
         """
         val = self.params['alpha']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 
@@ -1524,7 +1524,7 @@ class Zhai(HOD):
         :type: array_like
         """
         val = self.params['sigma']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 

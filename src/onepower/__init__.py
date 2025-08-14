@@ -1,15 +1,14 @@
 """A package for calculating the halo model."""
 
+import contextlib
+
 try:
     from importlib.metadata import PackageNotFoundError, version
 except ImportError:
     from importlib_metadata import PackageNotFoundError, version
 
-try:
+with contextlib.suppress(PackageNotFoundError):
     __version__ = version(__name__)
-except PackageNotFoundError:
-    # package is not installed
-    pass
 
 from .add import UpsampledSpectra
 from .bnl import NonLinearBias

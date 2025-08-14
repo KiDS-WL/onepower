@@ -92,7 +92,7 @@ class AlignmentAmplitudes(Framework):
         self.z_loglum_file_centrals = z_loglum_file_centrals
         self.z_loglum_file_satellites = z_loglum_file_satellites
 
-    @parameter("param")
+    @parameter('param')
     def z_vec(self, val):
         """
         Redshift vector.
@@ -101,7 +101,7 @@ class AlignmentAmplitudes(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def central_ia_depends_on(self, val):
         """
         Validate the central intrinsic alignment dependencies.
@@ -117,7 +117,7 @@ class AlignmentAmplitudes(Framework):
             )
         return val
 
-    @parameter("param")
+    @parameter('param')
     def satellite_ia_depends_on(self, val):
         """
         Validate the satellite intrinsic alignment dependencies.
@@ -133,7 +133,7 @@ class AlignmentAmplitudes(Framework):
             )
         return val
 
-    @parameter("param")
+    @parameter('param')
     def gamma_2h_amplitude(self, val):
         """
         Amplitude for 2-halo term.
@@ -142,7 +142,7 @@ class AlignmentAmplitudes(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def gamma_1h_slope(self, val):
         """
         Slope for 1-halo term.
@@ -151,7 +151,7 @@ class AlignmentAmplitudes(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def gamma_1h_amplitude(self, val):
         """
         Amplitude for 1-halo term.
@@ -160,7 +160,7 @@ class AlignmentAmplitudes(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def beta_cen(self, val):
         """
         Beta parameter for central galaxies.
@@ -169,7 +169,7 @@ class AlignmentAmplitudes(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def beta_sat(self, val):
         """
         beta_sat : float
@@ -177,7 +177,7 @@ class AlignmentAmplitudes(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def mpivot_cen(self, val):
         """
         Pivot mass for central galaxies.
@@ -186,7 +186,7 @@ class AlignmentAmplitudes(Framework):
         """
         return 10.0**val if val is not None else None
 
-    @parameter("param")
+    @parameter('param')
     def mpivot_sat(self, val):
         """
         Pivot mass for satellite galaxies.
@@ -195,7 +195,7 @@ class AlignmentAmplitudes(Framework):
         """
         return 10.0**val if val is not None else None
 
-    @parameter("param")
+    @parameter('param')
     def lpivot_cen(self, val):
         """
         Pivot luminosity for central galaxies.
@@ -204,7 +204,7 @@ class AlignmentAmplitudes(Framework):
         """
         return 10.0**val if val is not None else None
 
-    @parameter("param")
+    @parameter('param')
     def lpivot_sat(self, val):
         """
         Pivot luminosity for satellite galaxies.
@@ -213,7 +213,7 @@ class AlignmentAmplitudes(Framework):
         """
         return 10.0**val if val is not None else None
 
-    @parameter("param")
+    @parameter('param')
     def z_loglum_file_centrals(self, val):
         """
         File path for central galaxy luminosity data.
@@ -222,7 +222,7 @@ class AlignmentAmplitudes(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def z_loglum_file_satellites(self, val):
         """
         File path for satellite galaxy luminosity data.
@@ -518,7 +518,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         self.theta_k = np.pi / 2.0
         self.phi_k = 0.0
 
-    @parameter("param")
+    @parameter('param')
     def mass_in(self, val):
         """
         Array of halo masses.
@@ -527,7 +527,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def c_in(self, val):
         """
         Concentration parameter.
@@ -536,7 +536,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def r_s_in(self, val):
         """
         Scale radius.
@@ -545,7 +545,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def rvir_in(self, val):
         """
         Virial radius.
@@ -554,7 +554,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def n_hankel(self, val):
         """
         Number of steps in the Hankel transform integration.
@@ -563,7 +563,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def nmass(self, val):
         """
         Number of mass bins.
@@ -572,7 +572,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         return int(val)
 
-    @parameter("param")
+    @parameter('param')
     def nk(self, val):
         """
         Number of k bins.
@@ -581,7 +581,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def ell_max(self, val):
         """
         Maximum multipole moment.
@@ -590,11 +590,11 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         if val > 11:
             raise ValueError(
-                "Please reduce ell_max < 11 or update ia_radial_interface.py"
+                'Please reduce ell_max < 11 or update ia_radial_interface.py'
             )
         return val
 
-    @parameter("param")
+    @parameter('param')
     def truncate(self, val):
         """
         Whether to truncate the NFW profile at the virial radius.
@@ -603,7 +603,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def method(self, val):
         """
         Which method to perform Fourier/Hankel transform to use
@@ -613,7 +613,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         valid_methods = ['hankel', 'fftlog']
         if val not in valid_methods:
             raise ValueError(
-                f"The valid methods to evaluate the fourier tranform of IA shear field are: {valid_methods}. Requested method: {val}!"
+                f'The valid methods to evaluate the fourier tranform of IA shear field are: {valid_methods}. Requested method: {val}!'
             )
         return val
 
@@ -641,10 +641,7 @@ class SatelliteAlignment(AlignmentAmplitudes):
         array_like
             k_vec
         """
-        if self.method == 'fftlog':
-            nk = 100
-        else:
-            nk = self.nk
+        nk = 100 if self.method == 'fftlog' else self.nk
         return np.logspace(np.log10(1e-3), np.log10(1e3), nk)
 
     def _downsample(self, quantity):
@@ -669,8 +666,8 @@ class SatelliteAlignment(AlignmentAmplitudes):
 
         if self.mass_in.size < self.nmass:
             raise ValueError(
-                "The halo mass resolution is too low for the radial IA calculation. "
-                "Please increase nmass when you run halo_model_ingredients.py"
+                'The halo mass resolution is too low for the radial IA calculation. '
+                'Please increase nmass when you run halo_model_ingredients.py'
             )
 
         downsample_factor = self.mass_in.size // self.nmass

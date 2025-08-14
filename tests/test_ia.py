@@ -7,11 +7,12 @@ from onepower import AlignmentAmplitudes, SatelliteAlignment
 
 @pytest.fixture
 def setup_data():
+    rng = np.random.default_rng(seed=42)
     z_vec = np.linspace(0, 3, 15)
     mass_in = np.logspace(12, 15, 100)
-    c_in = np.random.rand(15, 100)
-    r_s_in = np.random.rand(15, 100)
-    rvir_in = np.random.rand(100)
+    c_in = rng.random((15, 100))
+    r_s_in = rng.random((15, 100))
+    rvir_in = rng.random(100)
     return z_vec, mass_in, c_in, r_s_in, rvir_in
 
 
@@ -31,8 +32,8 @@ def test_alignment_amplitudes_initialization_and_properties(setup_data):
 
 def test_alignment_amplitudes_luminosity_dependencies(setup_data, datadir):
     z_vec, _, _, _, _ = setup_data
-    filename_centrals = f"{datadir}/redcen_lum_tests.fits"
-    filename_satellites = f"{datadir}/redsat_lum_tests.fits"
+    filename_centrals = f'{datadir}/redcen_lum_tests.fits'
+    filename_satellites = f'{datadir}/redsat_lum_tests.fits'
 
     alignment_amps_centrals = AlignmentAmplitudes(
         z_vec=z_vec,
@@ -81,7 +82,7 @@ def test_alignment_amplitudes_wrong_case(setup_data):
 
 def test_alignment_amplitudes_alignment_gi(setup_data, datadir):
     z_vec, _, _, _, _ = setup_data
-    filename = f"{datadir}/redcen_lum_tests.fits"
+    filename = f'{datadir}/redcen_lum_tests.fits'
 
     alignment_amps = AlignmentAmplitudes(z_vec=z_vec, central_ia_depends_on='constant')
     alignment_gi = alignment_amps.alignment_gi
@@ -133,7 +134,7 @@ def test_alignment_amplitudes_alignment_gi(setup_data, datadir):
 
 def test_alignment_amplitudes_gamma_1h_amp(setup_data, datadir):
     z_vec, _, _, _, _ = setup_data
-    filename = f"{datadir}/redsat_lum_tests.fits"
+    filename = f'{datadir}/redsat_lum_tests.fits'
 
     alignment_amps = AlignmentAmplitudes(
         z_vec=z_vec, satellite_ia_depends_on='constant'

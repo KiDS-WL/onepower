@@ -42,20 +42,20 @@ class SOVirial_Mead(SphericalOverdensity):
     SOVirial overdensity definition from Mead et al. (2021).
     """
 
-    _defaults = {"overdensity": 200}
+    _defaults = {'overdensity': 200}
 
     def halo_density(self, z=0, cosmo=Planck15):
         """The density of haloes under this definition."""
         # return self.params["overdensity"].reshape(z.shape) * self.mean_density(z, cosmo)
-        return self.params["overdensity"] * self.mean_density(z, cosmo)
+        return self.params['overdensity'] * self.mean_density(z, cosmo)
 
     @property
     def colossus_name(self):
-        return "200c"
+        return '200c'
 
     def __str__(self):
         """Describe the halo definition in standard notation."""
-        return "SOVirial"
+        return 'SOVirial'
 
 
 class CosmologyBase(Framework):
@@ -118,7 +118,7 @@ class CosmologyBase(Framework):
         self.sigma_8 = sigma_8
         self.log10T_AGN = log10T_AGN
 
-    @parameter("param")
+    @parameter('param')
     def z_vec(self, val):
         """
         Array of redshifts.
@@ -127,7 +127,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def h0(self, val):
         """
         Hubble parameter (small h).
@@ -136,7 +136,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def omega_c(self, val):
         """
         Cold dark matter density parameter.
@@ -145,7 +145,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def omega_b(self, val):
         """
         Baryon density parameter.
@@ -154,7 +154,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def omega_m(self, val):
         """
         Matter density parameter.
@@ -163,7 +163,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def w0(self, val):
         """
         Dark energy equation of state parameter.
@@ -172,7 +172,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def wa(self, val):
         """
         Dark energy equation of state parameter.
@@ -181,7 +181,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def n_s(self, val):
         """
         Spectral index.
@@ -190,7 +190,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def tcmb(self, val):
         """
         Temperature of the CMB.
@@ -199,7 +199,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def m_nu(self, val):
         """
         Neutrino mass.
@@ -208,7 +208,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def sigma_8(self, val):
         """
         Amplitude of matter fluctuations on 8 Mpc scales.
@@ -217,7 +217,7 @@ class CosmologyBase(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def log10T_AGN(self, val):
         """
         Log10 of AGN temperature.
@@ -620,10 +620,10 @@ class HaloModelIngredients(CosmologyBase):
     def validate(self):
         if self.mead_correction not in valid_corrections:
             raise ValueError(
-                f"Desired Mead correction is not supported. You have provided {self.mead_correction}, valid options are {valid_corrections}!"
+                f'Desired Mead correction is not supported. You have provided {self.mead_correction}, valid options are {valid_corrections}!'
             )
 
-    @parameter("param")
+    @parameter('param')
     def mead_correction(self, val):
         """
         Correction model from Mead et al.
@@ -632,7 +632,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def k_vec(self, val):
         """
         Array of wavenumbers.
@@ -641,7 +641,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def lnk_min(self, val):
         """
         Minimum natural log of wavenumber (for hmf).
@@ -650,7 +650,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def lnk_max(self, val):
         """
         Maximum natural log of wavenumber (for hmf).
@@ -659,7 +659,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def dlnk(self, val):
         """
         Spacing in natural log of wavenumber (for hmf).
@@ -668,7 +668,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def Mmin(self, val):
         """
         Minimum halo mass (for hmf).
@@ -677,7 +677,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def Mmax(self, val):
         """
         Maximum halo mass (for hmf).
@@ -686,7 +686,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def dlog10m(self, val):
         """
         Spacing in log10 of halo mass (for hmf).
@@ -695,7 +695,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def mdef_model(self, val):
         """
         Mass definition model (for hmf).
@@ -704,7 +704,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def hmf_model(self, val):
         """
         Halo mass function model (for hmf).
@@ -713,7 +713,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def bias_model(self, val):
         """
         Halo bias model (for halomod).
@@ -722,7 +722,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def halo_concentration_model_dm(self, val):
         """
         Halo concentration model of dark matter / central galaxies (for halomod).
@@ -731,7 +731,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def halo_concentration_model_sat(self, val):
         """
         Halo concentration model of satellite galaxies (for halomod).
@@ -740,7 +740,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def halo_profile_model_dm(self, val):
         """
         Halo profile model of dark matter / central galaxies (for halomod).
@@ -749,7 +749,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def halo_profile_model_sat(self, val):
         """
         Halo profile model of satellite galaxies (for halomod).
@@ -758,7 +758,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def transfer_model(self, val):
         """
         Transfer function model (for hmf).
@@ -767,7 +767,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def transfer_params(self, val):
         """
         Parameters for the transfer function (for hmf).
@@ -776,7 +776,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def growth_model(self, val):
         """
         Growth function model (for hmf).
@@ -785,7 +785,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def growth_params(self, val):
         """
         Parameters for the growth function (for hmf).
@@ -794,7 +794,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def norm_cen(self, val):
         """
         Normalization of c(M) relation for central galaxies.
@@ -803,7 +803,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return np.atleast_1d(val)
 
-    @parameter("param")
+    @parameter('param')
     def norm_sat(self, val):
         """
         Normalization of c(M) relation for satellite galaxies.
@@ -812,7 +812,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return np.atleast_1d(val)
 
-    @parameter("param")
+    @parameter('param')
     def eta_cen(self, val):
         """
         Bloating parameter for central galaxies.
@@ -821,7 +821,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return np.atleast_1d(val)
 
-    @parameter("param")
+    @parameter('param')
     def eta_sat(self, val):
         """
         eta_sat : float
@@ -829,7 +829,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return np.atleast_1d(val)
 
-    @parameter("param")
+    @parameter('param')
     def delta_c(self, val):
         r"""
         Critical density threshold for collapse :math:`\delta_c`.
@@ -838,7 +838,7 @@ class HaloModelIngredients(CosmologyBase):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def overdensity(self, val):
         """
         Overdensity parameter.
@@ -1057,10 +1057,7 @@ class HaloModelIngredients(CosmologyBase):
         --------
         bool
         """
-        if self.mead_correction in ['feedback', 'nofeedback']:
-            return True
-        else:
-            return False
+        return self.mead_correction in ['feedback', 'nofeedback']
 
     @cached_quantity
     def K(self):
@@ -1097,7 +1094,6 @@ class HaloModelIngredients(CosmologyBase):
         tuple
             tuple of lists of DMHaloModel objects for centrals and satellite galaxies at different redshifts
         """
-        self.scale_factor
         x = DMHaloModel(
             z=0.0,
             lnk_min=self.lnk_min,
@@ -1129,7 +1125,12 @@ class HaloModelIngredients(CosmologyBase):
         if self.mead_correction in ['feedback', 'nofeedback']:
             # For centrals
             for z, mdef_par, dc, norm_cen, k in zip(
-                self.z_vec, self.mdef_params, self._delta_c_mod, self._norm_c, self.K
+                self.z_vec,
+                self.mdef_params,
+                self._delta_c_mod,
+                self._norm_c,
+                self.K,
+                strict=False,
             ):
                 x.update(
                     z=z,
@@ -1146,7 +1147,12 @@ class HaloModelIngredients(CosmologyBase):
 
             # For satellites
             for z, mdef_par, dc, norm_sat, k in zip(
-                self.z_vec, self.mdef_params, self._delta_c_mod, self._norm_s, self.K
+                self.z_vec,
+                self.mdef_params,
+                self._delta_c_mod,
+                self._norm_s,
+                self.K,
+                strict=False,
             ):
                 y.update(
                     z=z,
@@ -1170,6 +1176,7 @@ class HaloModelIngredients(CosmologyBase):
                 self._delta_c_mod,
                 self._eta_c,
                 self._norm_c,
+                strict=False,
             ):
                 x.update(
                     z=z,
@@ -1188,6 +1195,7 @@ class HaloModelIngredients(CosmologyBase):
                 self._delta_c_mod,
                 self._eta_s,
                 self._norm_s,
+                strict=False,
             ):
                 y.update(
                     z=z,

@@ -6,9 +6,10 @@ from onepower import HOD, Cacciato, Simple, Zehavi, Zheng, Zhai, load_data
 
 @pytest.fixture
 def setup_data():
+    rng = np.random.default_rng(seed=42)
     mass = np.logspace(12, 15, 100)
-    dndlnm = np.random.rand(15, 100)
-    halo_bias = np.random.rand(15, 100)
+    dndlnm = rng.random((15, 100))
+    halo_bias = rng.random((15, 100))
     z_vec = np.linspace(0, 3, 15)
     cosmo = MagicMock()
     cosmo.h = 0.7
@@ -26,7 +27,7 @@ def setup_data():
 
 
 def test_load_data(datadir):
-    file_name = f"{datadir}/test_data.txt"
+    file_name = f'{datadir}/test_data.txt'
     data = np.array([[0.1, 8.0, 12.0], [0.2, 8.5, 12.5]])
     np.savetxt(file_name, data)
     z_data, obs_min, obs_max = load_data(file_name)
@@ -80,14 +81,15 @@ def test_hod_initialization_and_quantities(setup_data):
     log_obs_max = hod.log_obs_max
     assert log_obs_max.shape == (hod.nbins, hod.nz)
 
-    data = np.random.rand(hod.nbins, hod.nz)
+    rng = np.random.default_rng(seed=42)
+    data = rng.random((hod.nbins, hod.nz))
     interpolated_data = hod._interpolate(data)
     assert interpolated_data.shape == (hod.nbins, len(z_vec))
 
 
 def test_hod_quantities_with_file(setup_data, datadir):
     mass, dndlnm, halo_bias, z_vec, cosmo, hod_settings = setup_data
-    file_name = f"{datadir}/test_data.txt"
+    file_name = f'{datadir}/test_data.txt'
     data = np.array([[0.1, 8.0, 12.0], [0.2, 8.5, 12.5]])
     np.savetxt(file_name, data)
     hod_settings['observables_file'] = file_name
@@ -123,7 +125,8 @@ def test_hod_quantities_with_file(setup_data, datadir):
     log_obs_max = hod.log_obs_max
     assert log_obs_max.shape == (hod.nbins, hod.nz)
 
-    data = np.random.rand(hod.nbins, hod.nz)
+    rng = np.random.default_rng(seed=42)
+    data = rng.random((hod.nbins, hod.nz))
     interpolated_data = hod._interpolate(data)
     assert interpolated_data.shape == (hod.nbins, len(z_vec))
 

@@ -55,7 +55,7 @@ class UpsampledSpectra(Framework):
         self._model_2_params = model_2_params
         self.extrapolate_option = extrapolate_option
 
-    @parameter("param")
+    @parameter('param')
     def model(self, val):
         """
         Instance of Spectra(), pre-initialised for saving computing resources.
@@ -64,7 +64,7 @@ class UpsampledSpectra(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def _model_1_params(self, val):
         """
         Parameters for the first halo model, will not update the model if they are the same as the pre-initialised model.
@@ -73,7 +73,7 @@ class UpsampledSpectra(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def _model_2_params(self, val):
         """
         Parameters for the second halo model.
@@ -82,7 +82,7 @@ class UpsampledSpectra(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def fraction_z(self, val):
         """
         Redshifts of the red/blue fraction of galaxies in sample.
@@ -91,7 +91,7 @@ class UpsampledSpectra(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def fraction(self, val):
         """
         Red/blue fraction of galaxies in sample as a function of redshift.
@@ -100,7 +100,7 @@ class UpsampledSpectra(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def z(self, val):
         """
         Output redshifts to which to interpolate and optionally extrapolate power spectra.
@@ -109,7 +109,7 @@ class UpsampledSpectra(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def k(self, val):
         """
         Output k-vector to which to interpolate and optionally extrapolate power spectra.
@@ -118,7 +118,7 @@ class UpsampledSpectra(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def extrapolate_option(self, val):
         """
         Extrapolation option to pass to interp1d.
