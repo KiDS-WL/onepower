@@ -5,6 +5,8 @@ on:
       - main
     tags:
       - 'v*.*.*'
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       refs:
@@ -21,7 +23,7 @@ jobs:
       - id: set-matrix
         run: |
           # Split the input by commas and convert to JSON array
-          IFS=',' read -ra REFS <<< "${{ github.event.inputs.refs || 'main,andrej_dev' }}"
+          IFS=',' read -ra REFS <<< "${{ github.event.inputs.refs || 'main' }}"
           echo "matrix=$(jq -nc --arg refs "${REFS[*]}" '$refs | split(" ")')" >> $GITHUB_OUTPUT
 
   build:
