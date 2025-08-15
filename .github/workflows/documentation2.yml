@@ -1,5 +1,4 @@
 name: "sphinx: render"
-
 on:
   push:
     branches:
@@ -7,15 +6,25 @@ on:
       - andrej_dev
     tags:
       - 'v*.*.*'  # any tag
+  workflow_dispatch:
+    inputs:
+      branches_or_tags:
+        description: 'List of branches/tags to build (comma-separated, e.g., main,andrej_dev,v1.0.0)'
+        required: true
+        default: 'main,andrej_dev'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    strategy:
+      matrix:
+        ref: ${{ fromJSON(format('["{0}"]', inputs.branches_or_tags || 'main,andrej_dev')) }}
     steps:
     - uses: actions/checkout@v4
       with:
+        ref: ${{ matrix.ref }}
         persist-credentials: false
         fetch-depth: 0  # fetch all refs so we can check tags and gh-pages
 
@@ -31,14 +40,14 @@ jobs:
     - name: Determine docs folder
       id: vars
       run: |
-        if [[ "${GITHUB_REF_TYPE}" == "branch" && ( "${GITHUB_REF_NAME}" == "main" || "${GITHUB_REF_NAME}" == "andrej_dev" ) ]]; then
+        if [[ "${{ matrix.ref }}" == "main" || "${{ matrix.ref }}" == "andrej_dev" ]]; then
           echo "folder=main" >> $GITHUB_OUTPUT
           echo "always_build=true" >> $GITHUB_OUTPUT
-        elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-          echo "folder=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+        elif [[ "${{ matrix.ref }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "folder=${{ matrix.ref }}" >> $GITHUB_OUTPUT
           echo "always_build=false" >> $GITHUB_OUTPUT
         else
-          echo "folder=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          echo "folder=${{ matrix.ref }}" >> $GITHUB_OUTPUT
           echo "always_build=false" >> $GITHUB_OUTPUT
         fi
 
@@ -62,7 +71,7 @@ jobs:
       if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
       uses: actions/upload-artifact@v4
       with:
-        name: html-docs
+        name: html-docs-${{ matrix.ref }}
         path: docs/_build/html/
 
     - name: Deploy docs
@@ -74,15 +83,22 @@ jobs:
         publish_dir: docs/_build/html
         destination_dir: ${{ steps.vars.outputs.folder }}
 
-    - name: Update version index and JSON
-      if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
-      run: |
-        cd gh-pages-branch
-        git pull --rebase origin gh-pages || true
+  update-index:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout gh-pages
+      uses: actions/checkout@v4
+      with:
+        ref: gh-pages
+        persist-credentials: false
 
+    - name: Update version index and JSON
+      run: |
         # Get the latest stable tag
         latest_tag=$(git tag --sort=-v:refname | head -n 1)
-
         # Create index.html with a meta refresh to the latest stable version
         echo "<!DOCTYPE html>
         <html>
@@ -94,7 +110,6 @@ jobs:
             <h1>Redirecting to the latest stable version (${latest_tag})...</h1>
             <p>If you are not redirected automatically, <a href=\"https://kids-wl.github.io/onepower/${latest_tag}/\">click here</a>.</p>
             <ul>" > index.html
-
         versions_json="["
         # Sort dirs in semantic version order, newest first, skip 'main'
         dirs=$(ls -d */ 2>/dev/null | sed 's#/##' | grep -v '^main$' | sort -V -r)
@@ -108,13 +123,11 @@ jobs:
           versions_json="${versions_json}
           {\"name\": \"${name}\", \"version\": \"${version_name}\", \"url\": \"https://kids-wl.github.io/onepower/${version_name}/\"},"
         done
-
         # Finalize versions.json
         versions_json="${versions_json}
         {\"name\": \"main (development)\", \"version\": \"main\", \"url\": \"https://kids-wl.github.io/onepower/main/\"}
         ]"
         echo "$versions_json" > versions.json
-
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
         git add index.html versions.json
