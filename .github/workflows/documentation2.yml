@@ -45,8 +45,9 @@ jobs:
     - name: Check if docs already exist in gh-pages
       id: check
       run: |
-        git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-branch
-        if [ -d "gh-pages-branch/${{ steps.vars.outputs.folder }}" ]; then
+        git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-branch || mkdir gh-pages-branch
+        folder_path="gh-pages-branch/${{ steps.vars.outputs.folder }}"
+        if [ -d "$folder_path" ]; then
           echo "exists=true" >> $GITHUB_OUTPUT
         else
           echo "exists=false" >> $GITHUB_OUTPUT
@@ -74,20 +75,23 @@ jobs:
         destination_dir: ${{ steps.vars.outputs.folder }}
 
     - name: Update version index and JSON
-      # Always run this if we built anything new
       if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
       run: |
+        git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-branch || mkdir gh-pages-branch
         cd gh-pages-branch
+
+        # Make sure we have the latest changes from remote
+        git pull --rebase origin gh-pages || true
 
         echo "<html><body><h1>Available Documentation Versions</h1><ul>" > index.html
         versions_json="["
 
-        # Sort dirs in semantic version order (newest first), keep 'main' at bottom
+        # Sort dirs in semantic version order, newest first, skip 'main'
         dirs=$(ls -d */ 2>/dev/null | sed 's#/##' | grep -v '^main$' | sort -V -r)
         latest_tag=$(git tag --sort=-v:refname | head -n 1)
 
         for version_name in $dirs; do
-          url="https://kids-wl.github.io/onepower/$version_name/"
+          url="https://mysite.org/en/$version_name/"
           echo "<li><a href='$url'>$version_name</a></li>" >> index.html
 
           if [[ "$version_name" == "$latest_tag" ]]; then
@@ -97,15 +101,15 @@ jobs:
           fi
 
           versions_json="${versions_json}
-          {\"name\": \"${name}\", \"version\": \"${version_name}\", \"url\": \"https://kids-wl.github.io/onepower/${version_name}/\"},"
+          {\"name\": \"${name}\", \"version\": \"${version_name}\", \"url\": \"https://mysite.org/en/${version_name}/\"},"
         done
 
-        # Add main as development
-        echo "<li><a href='https://kids-wl.github.io/onepower/main/'>main (development)</a></li>" >> index.html
+        # Add main (development)
+        echo "<li><a href='https://mysite.org/en/main/'>main (development)</a></li>" >> index.html
         echo "</ul></body></html>" >> index.html
 
         versions_json="${versions_json}
-        {\"name\": \"main (development)\", \"version\": \"main\", \"url\": \"https://kids-wl.github.io/onepower/main/\"}
+        {\"name\": \"main (development)\", \"version\": \"main\", \"url\": \"https://mysite.org/en/main/\"}
         ]"
         echo "$versions_json" > versions.json
 
