@@ -31,7 +31,7 @@ jobs:
     - name: Determine docs folder
       id: vars
       run: |
-        if [[ "${GITHUB_REF_TYPE}" == "branch" && "${GITHUB_REF_NAME}" == "main" ]]; then
+        if [[ "${GITHUB_REF_TYPE}" == "branch" && "${GITHUB_REF_NAME}" == "main" || "${GITHUB_REF_NAME}" == "andrej_dev" ]]; then
           echo "folder=main" >> $GITHUB_OUTPUT
           echo "always_build=true" >> $GITHUB_OUTPUT
         elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
