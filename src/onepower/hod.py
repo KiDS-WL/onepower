@@ -46,7 +46,7 @@ def load_data(file_name):
 
 
 @pluggable
-class HOD(Component):
+class HaloOccupationDistribution(Component):
     r"""
     Base class for Halo Occupation Distribution (HOD) models.
     This class provides the framework for computing various properties of galaxies within dark matter halos.
@@ -80,7 +80,7 @@ class HOD(Component):
         halo_bias=None,
         z_vec=None,
         hod_settings=None,
-        **model_parameters
+        **model_parameters,
     ):
         self.cosmo = cosmo
         self.mass = mass[np.newaxis, np.newaxis, :]
@@ -230,7 +230,7 @@ class HOD(Component):
             return np.array(
                 [
                     np.linspace(zmin_i, zmax_i, self.nz)
-                    for zmin_i, zmax_i in zip(zmin, zmax)
+                    for zmin_i, zmax_i in zip(zmin, zmax, strict=False)
                 ]
             )
 
@@ -685,7 +685,7 @@ class HOD(Component):
         return None
 
 
-class Cacciato(HOD):
+class Cacciato(HaloOccupationDistribution):
     r"""
     CSMF/CLF model from Cacciato et al. (2013) [1]_.
 
@@ -786,7 +786,7 @@ class Cacciato(HOD):
     @property
     def COF_cen(self):
         r"""
-        COF for Central galaxies (eq 17 of D23: 2210.03110):
+        COF for Central galaxies.
 
         :math:`\Phi_{\rm c}(O|M) = 1/[\sqrt{(2\pi)} \ln(10) \sigma_{\rm c} O] \exp[-\log(O/O_{\star, {\rm c}})^{2}/ (2 \sigma_{\rm c}^{2})]`
 
@@ -816,7 +816,7 @@ class Cacciato(HOD):
     @property
     def COF_sat(self):
         r"""
-        COF for satellite galaxies (eq 18 of D23: 2210.03110):
+        COF for satellite galaxies.
 
         :math:`\Phi_{\rm s}(O|M) = \phi_{\star, {\rm s}}/O_{\star, {\rm s}} (O/O_{\star, {\rm s}})^{\alpha_{\rm s}} \exp [-(O/O_{\star, {\rm s}})^{2}]`,
 
@@ -863,8 +863,6 @@ class Cacciato(HOD):
         The differential mass function in terms of natural log of m,
         len=len(m) [units \(h^3 Mpc^{-3}\)]
 
-        dn(m)/ dln m eq1 of 1306.6721
-
         obs_func unit is h^3 Mpc^{-3} dex^-1
 
         Returns:
@@ -892,8 +890,6 @@ class Cacciato(HOD):
         dndlnm is basically n(M) x mass, it is the output of hmf
         The differential mass function in terms of natural log of m,
         len=len(m) [units \(h^3 Mpc^{-3}\)]
-
-        dn(m)/ dln m eq1 of 1306.6721
 
         obs_func unit is h^3 Mpc^{-3} dex^-1
 
@@ -923,8 +919,6 @@ class Cacciato(HOD):
         The differential mass function in terms of natural log of m,
         len=len(m) [units \(h^3 Mpc^{-3}\)]
 
-        dn(m)/ dln m eq1 of 1306.6721
-
         obs_func unit is h^3 Mpc^{-3} dex^-1
 
         Returns:
@@ -944,18 +938,18 @@ class Cacciato(HOD):
     def cal_mean_obs_c(self):
         r"""
         Stellar to halo mass relation (observable to halo mass relation).
-        Eqs 19 of D23: 2210.03110
 
-        :math:`O_{\star, {\rm c}}(M)` = O_0 (M/M_{1})^{\gamma_{1}} / [1 + (M/M_{1})]^{(\gamma_{1} - \gamma_{2})}`
+        :math:`O_{\star, {\rm c}}(M) = O_0 (M/M_{1})^{\gamma_{1}} / [1 + (M/M_{1})]^{(\gamma_{1} - \gamma_{2})}`
 
         To get the values for the satellite call this * hod_par.norm_s
 
-        :math:`O_{\star, {\rm s}}(M)` = 0.56 O_{\star, {\rm c}}(M)`
+        :math:`O_{\star, {\rm s}}(M) = 0.56 O_{\star, {\rm c}}(M)`
 
         Here  :math:`M_1` is a characteristic mass scale, and :math:`O_0` is the normalization.
 
         (observable can be galaxy luminosity or stellar mass)
         returns the observable given halo mass.
+        Eqs 19 of D23: 2210.03110
 
         Returns:
         --------
@@ -974,9 +968,10 @@ class Cacciato(HOD):
     def phi_star_s(self):
         r"""
         Normalisation of satellite COF function.
-        Eqs 21 and 22 of D23: 2210.03110
 
         :math:`log[\phi_{\star, {\rm s}}(M)] = b_0 + b_1(\log M_{13})` , :math:`M_{13} = M/({\rm pivot})`
+
+        Eqs 21 and 22 of D23: 2210.03110
 
         Returns:
         --------
@@ -1009,7 +1004,7 @@ class Cacciato(HOD):
         r"""
         Eq 23 of D23: 2210.03110
 
-        :math:`\\langle N_{\rm x}|M \rangle = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) {\rm d}O`
+        :math:`\langle N_{\rm x}|M \rangle = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) {\rm d}O`
         """
         N_sat = simpson(self.COF_sat, x=self.obs)
         if self.params['A_sat'] is not None:
@@ -1021,9 +1016,9 @@ class Cacciato(HOD):
     def _compute_stellar_fraction_cen(self):
         r"""
         The mean value of the observable for the given galaxy population for a given halo mass.
-        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\\Phi_{\rm x}(O|M)`
+        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\Phi_{\rm x}(O|M)`
 
-        :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`
+        :math:`f_{\star} = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) O {\rm d}O`
         """
         return simpson(self.COF_cen * self.obs, x=self.obs) / self.mass
 
@@ -1031,9 +1026,9 @@ class Cacciato(HOD):
     def _compute_stellar_fraction_sat(self):
         r"""
         The mean value of the observable for the given galaxy population for a given halo mass.
-        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\\Phi_{\rm x}(O|M)`
+        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\Phi_{\rm x}(O|M)`
 
-        :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`
+        :math:`f_{\star} = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) O {\rm d}O`
         """
         return simpson(self.COF_sat * self.obs, x=self.obs) / self.mass
 
@@ -1041,14 +1036,14 @@ class Cacciato(HOD):
     def _compute_stellar_fraction(self):
         r"""
         The mean value of the observable for the given galaxy population for a given halo mass.
-        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\\Phi_{\rm x}(O|M)`
+        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\Phi_{\rm x}(O|M)`
 
-        :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`
+        :math:`f_{\star} = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) O {\rm d}O`
         """
         return simpson(self.COF * self.obs, x=self.obs) / self.mass
 
 
-class Simple(HOD):
+class Simple(HaloOccupationDistribution):
     """
     Simple HOD model
 
@@ -1082,7 +1077,7 @@ class Simple(HOD):
         :type: array_like
         """
         val = self.params['log10_Mmin']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1094,7 +1089,7 @@ class Simple(HOD):
         :type: array_like
         """
         val = self.params['log10_Msat']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1106,7 +1101,7 @@ class Simple(HOD):
         :type: array_like
         """
         val = self.params['alpha']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 
@@ -1157,7 +1152,7 @@ class Simple(HOD):
         return N_sat
 
 
-class Zehavi(HOD):
+class Zehavi(HaloOccupationDistribution):
     """
     HOD model from Zehavi et al. (2004) [1]_.
 
@@ -1199,7 +1194,7 @@ class Zehavi(HOD):
         :type: array_like
         """
         val = self.params['log10_Mmin']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1211,7 +1206,7 @@ class Zehavi(HOD):
         :type: array_like
         """
         val = self.params['log10_Msat']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1223,7 +1218,7 @@ class Zehavi(HOD):
         :type: array_like
         """
         val = self.params['alpha']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 
@@ -1274,7 +1269,7 @@ class Zehavi(HOD):
         return np.tile(N_sat, (self.nz, 1))
 
 
-class Zheng(HOD):
+class Zheng(HaloOccupationDistribution):
     """
     HOD model from Zheng et al. (2005) [1]_.
 
@@ -1319,7 +1314,7 @@ class Zheng(HOD):
         :type: array_like
         """
         val = self.params['log10_Mmin']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1331,7 +1326,7 @@ class Zheng(HOD):
         :type: array_like
         """
         val = self.params['log10_M0']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1343,7 +1338,7 @@ class Zheng(HOD):
         :type: array_like
         """
         val = self.params['log10_M1']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1355,7 +1350,7 @@ class Zheng(HOD):
         :type: array_like
         """
         val = self.params['alpha']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 
@@ -1367,7 +1362,7 @@ class Zheng(HOD):
         :type: array_like
         """
         val = self.params['sigma']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 
@@ -1436,7 +1431,7 @@ class Zheng(HOD):
         return np.tile(N_sat, (self.nz, 1))
 
 
-class Zhai(HOD):
+class Zhai(HaloOccupationDistribution):
     """
     HOD model from Zhai et al. (2017) [1]_.
 
@@ -1481,7 +1476,7 @@ class Zhai(HOD):
         :type: array_like
         """
         val = self.params['log10_Mmin']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1493,7 +1488,7 @@ class Zhai(HOD):
         :type: array_like
         """
         val = self.params['log10_Msat']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1505,7 +1500,7 @@ class Zhai(HOD):
         :type: array_like
         """
         val = self.params['log10_Mcut']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)
 
@@ -1517,7 +1512,7 @@ class Zhai(HOD):
         :type: array_like
         """
         val = self.params['alpha']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 
@@ -1529,7 +1524,7 @@ class Zhai(HOD):
         :type: array_like
         """
         val = self.params['sigma']
-        if not hasattr(val, "__len__"):
+        if not hasattr(val, '__len__'):
             val = [val]
         return np.array(val)[:, np.newaxis, np.newaxis]
 

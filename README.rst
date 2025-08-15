@@ -1,3 +1,6 @@
+OnePower
+========
+
 .. image:: https://github.com/KiDS-WL/onepower/actions/workflows/tests.yml/badge.svg
   :target: https://github.com/KiDS-WL/onepower/
 
@@ -7,12 +10,15 @@
 .. image:: ./coverage.svg
   :target: https://github.com/KiDS-WL/onepower/
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-  :target: https://github.com/psf/black
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Ruff
 
-OnePower
-========
+.. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit
+   :target: https://github.com/pre-commit/pre-commit
+   :alt: pre-commit
 
+|
 .. raw:: html
 
       <div align="center">
@@ -80,7 +86,7 @@ If you want to calculate the covariance matrix for the power spectra calculated 
 Attribution
 -----------
 
-This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in `Fortuna et al. 2021 <https://doi.org/10.1093/mnras/staa3802>`_, and the halo model code used in `Dvornik et al. 2023 <https://doi.org/10.1051/0004-6361/202245158>`_ and earlier papers. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
+This code originated from the merger of the IA halo model repository of Maria-Cristina Fortuna and used in `Fortuna et al. 2021 <https://doi.org/10.1093/mnras/staa3802>`_, and the halo model code used in `Dvornik et al. 2023 <https://doi.org/10.1051/0004-6361/202245158>`_ and earlier papers. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
 Please cite the above papers if you find this code useful in your research:
 
 .. code-block:: bibtex

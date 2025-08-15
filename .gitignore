@@ -4,7 +4,9 @@
 *.pyc
 ._*
 *DS_Store*
+*__pycache__*
 .ipynb_checkpoints
+.venv/
 /.project
 .spyproject
 legacy_input_files/*.fits
@@ -22,6 +24,7 @@ src/onepower.egg-info
 /docs/_autosummary
 /docs/_build
 .pytest_cache/
+.ruff_cache/
 .ipynb_checkpoints
 \.pytest_cache/v/cache/
 \.tox

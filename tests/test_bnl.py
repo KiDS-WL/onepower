@@ -110,7 +110,8 @@ def test_rvir(bias_instance, setup_data):
 
 def test_hl_envelopes_idx(bias_instance):
     bias = bias_instance
-    data = np.random.rand(100)
+    rng = np.random.default_rng(seed=42)
+    data = rng.random(100)
     lmin, lmax = bias.hl_envelopes_idx(data)
     assert len(lmin) > 0
     assert len(lmax) > 0

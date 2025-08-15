@@ -1,19 +1,17 @@
-OnePower
-========
+
+.. image:: https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_white.png
+    :class: only-dark
+
+.. image:: https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png
+    :class: only-light
 
 .. raw:: html
 
-      <div align="center">
-        <picture>
-        <img
-          src="https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png"
-          alt="Logo"
-        />
-      </picture>
-    <p align="center">
-     <i>"The One Tool to Predict All Power Spectra."</i>
-    </p>
-    </div>
+  <div align="center">
+  <p align="center">
+  <i>"The One Tool to Predict All Power Spectra."</i>
+  </p>
+  </div>
 
 OnePower is a Python package for computing power spectra and one-point statistics using the halo model framework. It is designed for studying the galaxy-matter connection, cosmological structure formation, and intrinsic alignments, especially in the non-linear regime.
 
@@ -60,7 +58,7 @@ If you want to calculate the covariance matrix for the power spectra calculated 
 Attribution
 -----------
 
-This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in `Fortuna et al. 2021 <https://doi.org/10.1093/mnras/staa3802>`_, and the halo model code used in `Dvornik et al. 2023 <https://doi.org/10.1051/0004-6361/202245158>`_ and earlier papers. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
+This code originated from the merger of the IA halo model repository of Maria-Cristina Fortuna and used in `Fortuna et al. 2021 <https://doi.org/10.1093/mnras/staa3802>`_, and the halo model code used in `Dvornik et al. 2023 <https://doi.org/10.1051/0004-6361/202245158>`_ and earlier papers. It is designed so that it can natively interact with `CosmoSIS standard library <https://github.com/joezuntz/cosmosis-standard-library>`_.
 Please cite the above papers if you find this code useful in your research:
 
 .. code-block:: bibtex
@@ -109,6 +107,7 @@ Contents
    installation
    tutorials
    api
+   contributing
    license
    changelog
    contributors

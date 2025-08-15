@@ -1,0 +1,154 @@
+name: "sphinx: render"
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      refs:
+        description: 'List of branches/tags to build (comma-separated, e.g., main,andrej_dev,v1.0.0)'
+        required: false
+        default: 'main,andrej_dev'
+
+jobs:
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          # Split the input by commas and convert to JSON array
+          IFS=',' read -ra REFS <<< "${{ github.event.inputs.refs || 'main,andrej_dev' }}"
+          echo "matrix=$(jq -nc --arg refs "${REFS[*]}" '$refs | split(" ")')" >> $GITHUB_OUTPUT
+
+  build:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        ref: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.ref }}
+          persist-credentials: True
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+
+      - name: Install pandoc
+        uses: pandoc/actions/setup@v1
+
+      - name: Install dependencies
+        run: |
+          pip install -e .[docs]
+
+      - name: Determine docs folder
+        id: vars
+        run: |
+          if [[ "${{ matrix.ref }}" == "main" || "${{ matrix.ref }}" == "andrej_dev" ]]; then
+            echo "folder=main" >> $GITHUB_OUTPUT
+            echo "always_build=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ matrix.ref }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "folder=${{ matrix.ref }}" >> $GITHUB_OUTPUT
+            echo "always_build=false" >> $GITHUB_OUTPUT
+          else
+            echo "folder=${{ matrix.ref }}" >> $GITHUB_OUTPUT
+            echo "always_build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if docs already exist in gh-pages
+        id: check
+        run: |
+          rm -rf gh-pages-branch
+          git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-branch || mkdir gh-pages-branch
+          if [ -d "gh-pages-branch/${{ steps.vars.outputs.folder }}" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Sphinx documentation
+        if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
+        run: |
+          sphinx-build -b html docs docs/_build/html --keep-going
+
+      - name: Upload artifacts
+        if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-docs-${{ matrix.ref }}
+          path: docs/_build/html/
+
+      - name: Deploy docs
+        if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/_build/html
+          destination_dir: ${{ steps.vars.outputs.folder }}
+
+  update-index:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          persist-credentials: True
+
+      - name: Update version index and JSON
+        run: |
+          latest_tag=$(git tag --sort=-v:refname | head -n 1)
+          echo "<!DOCTYPE html>
+          <html>
+          <head>
+              <meta http-equiv=\"refresh\" content=\"0; url=https://kids-wl.github.io/onepower/${latest_tag}/\">
+              <title>Redirecting to latest stable version</title>
+          </head>
+          <body>
+              <h1>Redirecting to the latest stable version (${latest_tag})...</h1>
+              <p>If you are not redirected automatically, <a href=\"https://kids-wl.github.io/onepower/${latest_tag}/\">click here</a>.</p>
+              <ul>" > index.html
+          versions_json="["
+          dirs=$(ls -d */ 2>/dev/null | sed 's#/##' | grep -v '^main$' | sort -V -r)
+          for version_name in $dirs; do
+            url="https://kids-wl.github.io/onepower/$version_name/"
+            if [[ "$version_name" == "$latest_tag" ]]; then
+              name="$version_name (stable)"
+            else
+              name="$version_name"
+            fi
+            versions_json="${versions_json}
+            {\"name\": \"${name}\", \"version\": \"${version_name}\", \"url\": \"https://kids-wl.github.io/onepower/${version_name}/\"},"
+          done
+          versions_json="${versions_json}
+          {\"name\": \"main (development)\", \"version\": \"main\", \"url\": \"https://kids-wl.github.io/onepower/main/\"}
+          ]"
+          echo "$versions_json" > versions.json
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add index.html versions.json
+          git commit -m "Update version list and versions.json" || echo "No changes"
+          git push origin gh-pages
+
+      - name: Squash and create orphan branch
+        if: ${{ always() }}
+        run: |
+          git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-squash
+          cd gh-pages-squash
+          git checkout --orphan gh-pages-squashed
+          git add -A
+          git commit -m "Squashed all commits"
+          git branch -D gh-pages
+          git branch -m gh-pages
+          git push -f origin gh-pages

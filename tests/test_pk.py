@@ -5,13 +5,14 @@ from onepower import PowerSpectrumResult, Spectra
 
 @pytest.fixture
 def setup_data():
+    rng = np.random.default_rng(seed=42)
     k_vec = np.logspace(-4, 4, 100)
     z_vec = np.linspace(0.0, 3.0, 15)
     mass = np.logspace(12, 15, 100)
-    dndlnm = np.random.rand(15, 100)
-    halo_bias = np.random.rand(15, 100)
-    matter_power_lin = np.random.rand(15, 100)
-    matter_power_nl = np.random.rand(15, 100)
+    dndlnm = rng.random((15, 100))
+    halo_bias = rng.random((15, 100))
+    matter_power_lin = rng.random((15, 100))
+    matter_power_nl = rng.random((15, 100))
     return k_vec, z_vec, mass, dndlnm, halo_bias, matter_power_lin, matter_power_nl
 
 

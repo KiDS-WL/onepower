@@ -90,8 +90,9 @@ def test_results_method(spectra_instance):
 def test_add_spectra(spectra_instance):
     spectra = spectra_instance
     len_z, len_k = len(spectra.z), len(spectra.k)
-    pk_1 = np.random.rand(len_z, len_k)
-    pk_2 = np.random.rand(len_z, len_k)
+    rng = np.random.default_rng(seed=42)
+    pk_1 = rng.random((len_z, len_k))
+    pk_2 = rng.random((len_z, len_k))
 
     added_power_mm = spectra.add_spectra(pk_1, pk_2, 'mm')
     assert np.allclose(added_power_mm, pk_1)

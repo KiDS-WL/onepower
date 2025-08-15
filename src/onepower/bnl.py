@@ -78,7 +78,7 @@ class NonLinearBias(Framework):
 
         self.z_dep = z_dep
 
-    @parameter("param")
+    @parameter('param')
     def mass(self, val):
         """
         Array of halo masses.
@@ -87,7 +87,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def z_vec(self, val):
         """
         Array of redshifts.
@@ -96,7 +96,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def k_vec(self, val):
         """
         Array of wavenumbers.
@@ -105,7 +105,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def sigma_8(self, val):
         """
         Amplitude of matter fluctuations on 8 Mpc scales.
@@ -114,7 +114,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def A_s(self, val):
         """
         Amplitude of the primordial power spectrum.
@@ -123,7 +123,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def h0(self, val):
         """
         Hubble parameter.
@@ -132,7 +132,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def omega_b(self, val):
         """
         Baryon density parameter.
@@ -141,7 +141,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def omega_c(self, val):
         """
         Cold dark matter density parameter.
@@ -150,7 +150,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def omega_lambda(self, val):
         """
         Dark energy density parameter.
@@ -159,7 +159,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def n_s(self, val):
         """
         Spectral index.
@@ -168,7 +168,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def w0(self, val):
         """
         Dark energy equation of state parameter.
@@ -177,7 +177,7 @@ class NonLinearBias(Framework):
         """
         return val
 
-    @parameter("param")
+    @parameter('param')
     def z_dep(self, val):
         """
         If redshift dependence is to be evaluated in Bnl
@@ -246,7 +246,7 @@ class NonLinearBias(Framework):
             # We preffer A_s for DQ emulator!
             lnA = np.log(self.A_s * 1e10)
         else:
-            raise ValueError("One of A_s or sigma_8 need to be specified!")
+            raise ValueError('One of A_s or sigma_8 need to be specified!')
 
         cparam = self.test_cosmo(
             np.array(
