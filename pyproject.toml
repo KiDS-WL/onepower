@@ -78,6 +78,7 @@ all = [
     "onepower[dev]"
 ]
 
+
 [tool.pytest.ini_options]
 addopts = "--cov onepower --cov-report term-missing --verbose"
 norecursedirs = [
@@ -105,6 +106,7 @@ omit = [
     "*halomod/*"
 ]
 
+
 [tool.ruff]
 # Line length
 line-length = 88
@@ -113,19 +115,22 @@ include = ["*.pyi", "*.py"]
 
 # Exclude files/directories
 exclude = [
-    "development/*",
-    "cosmosis_modules/*",
     "docs/*",
     "legacy_input_files/*",
     "benchmarks/*",
+    "cosmosis_modules/example_ini_files/*",
+    "cosmosis_modules/legacy/*",
+    "cosmosis_modules/pk_to_real/*",
+    "cosmosis_modules/defaults_dictionary.txt",
+    "cosmosis_modules/module.yaml",
 ]
-extend-include = ["cosmosis_modules/onepower_interface.py"]
 
 # Per-file ignores
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D", "T001", "T201", "B018"]
 "docs/conf.py" = ["D", "A"]
 "**/__init__.py" = ["F401"]
+"cosmosis_modules/onepower_interface.py" = ["C901"]
 
 
 [tool.ruff.format]
@@ -194,7 +199,6 @@ section-order = [
     "third-party",
     "first-party",
     "local-folder",
-    "testing",
 ]
 
 # Default section for imports (same as isort's default_section)
