@@ -69,9 +69,11 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install pandoc
+        if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
         uses: pandoc/actions/setup@v1
 
       - name: Install dependencies
+        if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
         run: |
           pip install -e .[docs]
 
