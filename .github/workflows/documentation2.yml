@@ -41,15 +41,6 @@ jobs:
           persist-credentials: True
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
-
-      - name: Install pandoc
-        uses: pandoc/actions/setup@v1
-
-      - name: Install dependencies
-        run: |
-          pip install -e .[docs]
-
       - name: Determine docs folder
         id: vars
         run: |
@@ -74,6 +65,15 @@ jobs:
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
+
+      - uses: actions/setup-python@v5
+
+      - name: Install pandoc
+        uses: pandoc/actions/setup@v1
+
+      - name: Install dependencies
+        run: |
+          pip install -e .[docs]
 
       - name: Build Sphinx documentation
         if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
@@ -110,7 +110,13 @@ jobs:
 
       - name: Update version index and JSON
         run: |
-          latest_tag=$(git tag --sort=-v:refname | head -n 1)
+          git fetch --tags
+          # Get the latest tag, with fallback
+          latest_tag=$(git tag --sort=-version:refname | head -n 1)
+          if [ -z "$latest_tag" ]; then
+            echo "No tags found. Using 'main' as fallback."
+          latest_tag="main"
+          fi
           echo "<!DOCTYPE html>
           <html>
           <head>
