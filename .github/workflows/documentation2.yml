@@ -120,3 +120,15 @@ jobs:
         git add index.html versions.json
         git commit -m "Update version list and versions.json" || echo "No changes"
         git push origin gh-pages
+
+    - name: Squash and create orphan branch
+      if: ${{ always() }}
+      run: |
+        git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-squash
+        cd gh-pages-squash
+        git checkout --orphan gh-pages-squashed
+        git add -A
+        git commit -m "Squashed all commits"
+        git branch -D gh-pages
+        git branch -m gh-pages
+        git push -f origin gh-pages
