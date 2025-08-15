@@ -45,8 +45,8 @@ jobs:
     - name: Check if docs already exist in gh-pages
       id: check
       run: |
-        git fetch origin gh-pages:gh-pages
-        if git ls-tree --name-only origin/gh-pages | grep -q "^${{ steps.vars.outputs.folder }}/$"; then
+        git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-branch
+        if [ -d "gh-pages-branch/${{ steps.vars.outputs.folder }}" ]; then
           echo "exists=true" >> $GITHUB_OUTPUT
         else
           echo "exists=false" >> $GITHUB_OUTPUT
@@ -74,21 +74,20 @@ jobs:
         destination_dir: ${{ steps.vars.outputs.folder }}
 
     - name: Update version index and JSON
+      # Always run this if we built anything new
       if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
       run: |
-        git fetch origin gh-pages
-        git checkout gh-pages
+        cd gh-pages-branch
 
         echo "<html><body><h1>Available Documentation Versions</h1><ul>" > index.html
         versions_json="["
 
-        # Sort directories using semantic version order
-        dirs=$(ls -d */ | sed 's#/##' | grep -v '^main$' | sort -V -r)
-
+        # Sort dirs in semantic version order (newest first), keep 'main' at bottom
+        dirs=$(ls -d */ 2>/dev/null | sed 's#/##' | grep -v '^main$' | sort -V -r)
         latest_tag=$(git tag --sort=-v:refname | head -n 1)
 
         for version_name in $dirs; do
-          url="https://kids-wl.github.io/onepower/$version_name/"
+          url="https://mysite.org/en/$version_name/"
           echo "<li><a href='$url'>$version_name</a></li>" >> index.html
 
           if [[ "$version_name" == "$latest_tag" ]]; then
@@ -98,18 +97,20 @@ jobs:
           fi
 
           versions_json="${versions_json}
-          {\"name\": \"${name}\", \"version\": \"${version_name}\", \"url\": \"https://kids-wl.github.io/onepower/${version_name}/\"},"
+          {\"name\": \"${name}\", \"version\": \"${version_name}\", \"url\": \"https://mysite.org/en/${version_name}/\"},"
         done
 
-        # Include 'main' as latest dev docs
-        echo "<li><a href='https://kids-wl.github.io/onepower/main/'>main (development)</a></li>" >> index.html
-
+        # Add main as development
+        echo "<li><a href='https://mysite.org/en/main/'>main (development)</a></li>" >> index.html
         echo "</ul></body></html>" >> index.html
 
         versions_json="${versions_json}
-          {\"name\": \"main (development)\", \"version\": \"main\", \"url\": \"https://kids-wl.github.io/onepower/main/\"}
+        {\"name\": \"main (development)\", \"version\": \"main\", \"url\": \"https://mysite.org/en/main/\"}
         ]"
         echo "$versions_json" > versions.json
+
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
 
         git add index.html versions.json
         git commit -m "Update version list and versions.json" || echo "No changes"
