@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - andrej_dev
     tags:
       - 'v*.*.*'
   workflow_dispatch:
