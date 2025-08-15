@@ -156,10 +156,10 @@ html_theme_options = {
    ],
 "switcher": {
         "json_url": "https://kids-wl.github.io/onepower/versions.json",
+        "version_match": version,
     },
 
 "show_version_warning_banner": True,
-"version_match": version,
 }
 
 html_context = {
