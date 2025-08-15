@@ -89,7 +89,7 @@ jobs:
         latest_tag=$(git tag --sort=-v:refname | head -n 1)
 
         for version_name in $dirs; do
-          url="https://mysite.org/en/$version_name/"
+          url="https://kids-wl.github.io/onepower/$version_name/"
           echo "<li><a href='$url'>$version_name</a></li>" >> index.html
 
           if [[ "$version_name" == "$latest_tag" ]]; then
@@ -99,15 +99,15 @@ jobs:
           fi
 
           versions_json="${versions_json}
-          {\"name\": \"${name}\", \"version\": \"${version_name}\", \"url\": \"https://mysite.org/en/${version_name}/\"},"
+          {\"name\": \"${name}\", \"version\": \"${version_name}\", \"url\": \"https://kids-wl.github.io/onepower/${version_name}/\"},"
         done
 
         # Add main (development)
-        echo "<li><a href='https://mysite.org/en/main/'>main (development)</a></li>" >> index.html
+        echo "<li><a href='https://kids-wl.github.io/onepower/main/'>main (development)</a></li>" >> index.html
         echo "</ul></body></html>" >> index.html
 
         versions_json="${versions_json}
-        {\"name\": \"main (development)\", \"version\": \"main\", \"url\": \"https://mysite.org/en/main/\"}
+        {\"name\": \"main (development)\", \"version\": \"main\", \"url\": \"https://kids-wl.github.io/onepower/main/\"}
         ]"
         echo "$versions_json" > versions.json
 
