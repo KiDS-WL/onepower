@@ -6,12 +6,12 @@ on:
       - andrej_dev
     tags:
       - 'v*.*.*'
-  #workflow_dispatch:
-  #  inputs:
-  #    refs:
-  #      description: 'List of branches/tags to build (comma-separated, e.g., main,andrej_dev,v1.0.0)'
-  #      required: false
-  #      default: 'main,andrej_dev'
+  workflow_dispatch:
+    inputs:
+      refs:
+        description: 'List of branches/tags to build (comma-separated, e.g., main,andrej_dev,v1.0.0)'
+        required: false
+        default: 'main,andrej_dev'
 
 jobs:
   prepare-matrix:
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ matrix.ref }}
-          persist-credentials: false
+          persist-credentials: True
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
@@ -105,7 +105,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: gh-pages
-          persist-credentials: false
+          persist-credentials: True
 
       - name: Update version index and JSON
         run: |
