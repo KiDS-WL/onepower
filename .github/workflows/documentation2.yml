@@ -6,12 +6,12 @@ on:
       - andrej_dev
     tags:
       - 'v*.*.*'  # any tag
-  workflow_dispatch:
-    inputs:
-      branches_or_tags:
-        description: 'List of branches/tags to build (comma-separated, e.g., main,andrej_dev,v1.0.0)'
-        required: true
-        default: ['main', andrej_dev']
+  #workflow_dispatch:
+  #  inputs:
+  #    branches_or_tags:
+  #      description: 'List of branches/tags to build (comma-separated, e.g., main,andrej_dev,v1.0.0)'
+  #      required: true
+  #      default: ['main', andrej_dev']
 
 jobs:
   build:
