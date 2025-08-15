@@ -4,7 +4,7 @@ OnePower
 .. image:: https://github.com/KiDS-WL/onepower/actions/workflows/tests.yml/badge.svg
   :target: https://github.com/KiDS-WL/onepower/
 
-.. image:: https://github.com/KiDS-WL/onepower/actions/workflows/documentation.yml/badge.svg
+.. image:: https://github.com/KiDS-WL/onepower/actions/workflows/documentation2.yml/badge.svg
   :target: https://github.com/KiDS-WL/onepower/
 
 .. image:: ./coverage.svg

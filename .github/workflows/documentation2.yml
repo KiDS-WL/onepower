@@ -5,6 +5,8 @@ on:
       - main
     tags:
       - 'v*.*.*'
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       refs:
@@ -21,7 +23,7 @@ jobs:
       - id: set-matrix
         run: |
           # Split the input by commas and convert to JSON array
-          IFS=',' read -ra REFS <<< "${{ github.event.inputs.refs || 'main,andrej_dev' }}"
+          IFS=',' read -ra REFS <<< "${{ github.event.inputs.refs || 'main' }}"
           echo "matrix=$(jq -nc --arg refs "${REFS[*]}" '$refs | split(" ")')" >> $GITHUB_OUTPUT
 
   build:
@@ -38,15 +40,6 @@ jobs:
           ref: ${{ matrix.ref }}
           persist-credentials: True
           fetch-depth: 0
-
-      - uses: actions/setup-python@v5
-
-      - name: Install pandoc
-        uses: pandoc/actions/setup@v1
-
-      - name: Install dependencies
-        run: |
-          pip install -e .[docs]
 
       - name: Determine docs folder
         id: vars
@@ -72,6 +65,17 @@ jobs:
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
+
+      - uses: actions/setup-python@v5
+
+      - name: Install pandoc
+        if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
+        uses: pandoc/actions/setup@v1
+
+      - name: Install dependencies
+        if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
+        run: |
+          pip install -e .[docs]
 
       - name: Build Sphinx documentation
         if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
@@ -108,7 +112,13 @@ jobs:
 
       - name: Update version index and JSON
         run: |
-          latest_tag=$(git tag --sort=-v:refname | head -n 1)
+          git fetch --tags
+          # Get the latest tag, with fallback
+          latest_tag=$(git tag --sort=-version:refname | head -n 1)
+          if [ -z "$latest_tag" ]; then
+            echo "No tags found. Using 'main' as fallback."
+          latest_tag="main"
+          fi
           echo "<!DOCTYPE html>
           <html>
           <head>
