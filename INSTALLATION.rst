@@ -31,7 +31,7 @@ You may install the latest release of ``onepower`` using ``pip``
     pip install onepower
 
 This will install all uninstalled dependencies (see previous section).
-Alternatively, for the very bleeding edge, install from the master branch of the repo
+Alternatively, for the very bleeding edge, install from the main branch of the repo
 
 .. code-block:: bash
 
