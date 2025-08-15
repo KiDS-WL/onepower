@@ -4,6 +4,11 @@ Releases
 dev-version
 ----------------------
 
+
+
+v0.1.1 [15 Aug 2025]
+--------------------
+
 **Changes**
 
 * Unified the settings to ``pyproject.toml``
