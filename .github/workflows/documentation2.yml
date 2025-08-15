@@ -78,34 +78,38 @@ jobs:
       if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
       run: |
         cd gh-pages-branch
-
         git pull --rebase origin gh-pages || true
 
-        echo "<html><body><h1>Available Documentation Versions</h1><ul>" > index.html
-        versions_json="["
-
-        # Sort dirs in semantic version order, newest first, skip 'main'
-        dirs=$(ls -d */ 2>/dev/null | sed 's#/##' | grep -v '^main$' | sort -V -r)
+        # Get the latest stable tag
         latest_tag=$(git tag --sort=-v:refname | head -n 1)
 
+        # Create index.html with a meta refresh to the latest stable version
+        echo "<!DOCTYPE html>
+        <html>
+        <head>
+            <meta http-equiv=\"refresh\" content=\"0; url=https://kids-wl.github.io/onepower/${latest_tag}/\">
+            <title>Redirecting to latest stable version</title>
+        </head>
+        <body>
+            <h1>Redirecting to the latest stable version (${latest_tag})...</h1>
+            <p>If you are not redirected automatically, <a href=\"https://kids-wl.github.io/onepower/${latest_tag}/\">click here</a>.</p>
+            <ul>" > index.html
+
+        versions_json="["
+        # Sort dirs in semantic version order, newest first, skip 'main'
+        dirs=$(ls -d */ 2>/dev/null | sed 's#/##' | grep -v '^main$' | sort -V -r)
         for version_name in $dirs; do
           url="https://kids-wl.github.io/onepower/$version_name/"
-          echo "<li><a href='$url'>$version_name</a></li>" >> index.html
-
           if [[ "$version_name" == "$latest_tag" ]]; then
             name="$version_name (stable)"
           else
             name="$version_name"
           fi
-
           versions_json="${versions_json}
           {\"name\": \"${name}\", \"version\": \"${version_name}\", \"url\": \"https://kids-wl.github.io/onepower/${version_name}/\"},"
         done
 
-        # Add main (development)
-        echo "<li><a href='https://kids-wl.github.io/onepower/main/'>main (development)</a></li>" >> index.html
-        echo "</ul></body></html>" >> index.html
-
+        # Finalize versions.json
         versions_json="${versions_json}
         {\"name\": \"main (development)\", \"version\": \"main\", \"url\": \"https://kids-wl.github.io/onepower/main/\"}
         ]"
@@ -113,7 +117,6 @@ jobs:
 
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
-
         git add index.html versions.json
         git commit -m "Update version list and versions.json" || echo "No changes"
         git push origin gh-pages
