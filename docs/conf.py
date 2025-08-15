@@ -136,7 +136,7 @@ html_theme = 'pydata_sphinx_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-"navbar_start": ["navbar-logo"],
+"navbar_start": ["navbar-logo", "version-switcher"],
 "logo": {
       "image_light": "https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png",
       "image_dark": "https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_white.png",
@@ -153,7 +153,13 @@ html_theme_options = {
             # The type of image to be used (see below for details)
             "type": "fontawesome",
         }
-   ]
+   ],
+"switcher": {
+        "json_url": "https://kids-wl.github.io/onepower/versions.json",
+    },
+
+"show_version_warning_banner": True,
+"version_match": version,
 }
 
 html_context = {

@@ -1,0 +1,116 @@
+name: "sphinx: render"
+
+on:
+  push:
+    branches:
+      - main
+      - andrej_dev
+    tags:
+      - 'v*.*.*'  # any tag
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+        fetch-depth: 0  # fetch all refs so we can check tags and gh-pages
+
+    - uses: actions/setup-python@v5
+
+    - name: Install pandoc
+      uses: pandoc/actions/setup@v1
+
+    - name: Install dependencies
+      run: |
+        pip install -e .[docs]
+
+    - name: Determine docs folder
+      id: vars
+      run: |
+        if [[ "${GITHUB_REF_TYPE}" == "branch" && "${GITHUB_REF_NAME}" == "main" ]]; then
+          echo "folder=main" >> $GITHUB_OUTPUT
+          echo "always_build=true" >> $GITHUB_OUTPUT
+        elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+          echo "folder=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          echo "always_build=false" >> $GITHUB_OUTPUT
+        else
+          echo "folder=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          echo "always_build=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Check if docs already exist in gh-pages
+      id: check
+      run: |
+        git fetch origin gh-pages:gh-pages
+        if git ls-tree --name-only origin/gh-pages | grep -q "^${{ steps.vars.outputs.folder }}/$"; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Build Sphinx documentation
+      if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
+      run: |
+        sphinx-build -b html docs docs/_build/html --keep-going
+
+    - name: Upload artifacts
+      if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: html-docs
+        path: docs/_build/html/
+
+    - name: Deploy docs
+      if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        publish_branch: gh-pages
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/_build/html
+        destination_dir: ${{ steps.vars.outputs.folder }}
+
+    - name: Update version index and JSON
+      if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
+      run: |
+        git fetch origin gh-pages
+        git checkout gh-pages
+
+        echo "<html><body><h1>Available Documentation Versions</h1><ul>" > index.html
+        versions_json="["
+
+        # Sort directories using semantic version order
+        dirs=$(ls -d */ | sed 's#/##' | grep -v '^main$' | sort -V -r)
+
+        latest_tag=$(git tag --sort=-v:refname | head -n 1)
+
+        for version_name in $dirs; do
+          url="https://kids-wl.github.io/onepower/$version_name/"
+          echo "<li><a href='$url'>$version_name</a></li>" >> index.html
+
+          if [[ "$version_name" == "$latest_tag" ]]; then
+            name="$version_name (stable)"
+          else
+            name="$version_name"
+          fi
+
+          versions_json="${versions_json}
+          {\"name\": \"${name}\", \"version\": \"${version_name}\", \"url\": \"https://kids-wl.github.io/onepower/${version_name}/\"},"
+        done
+
+        # Include 'main' as latest dev docs
+        echo "<li><a href='https://kids-wl.github.io/onepower/main/'>main (development)</a></li>" >> index.html
+
+        echo "</ul></body></html>" >> index.html
+
+        versions_json="${versions_json}
+          {\"name\": \"main (development)\", \"version\": \"main\", \"url\": \"https://kids-wl.github.io/onepower/main/\"}
+        ]"
+        echo "$versions_json" > versions.json
+
+        git add index.html versions.json
+        git commit -m "Update version list and versions.json" || echo "No changes"
+        git push origin gh-pages
