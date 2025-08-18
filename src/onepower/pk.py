@@ -824,6 +824,7 @@ class Spectra(HaloModelIngredients):
         f_gas_fit = self.fg_fit(mass, mb, fstar)
 
         Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
+        # Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
         return Wm
 
     def matter_profile_with_feedback_stellar_fraction_from_obs(self, fstar):
