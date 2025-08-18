@@ -886,15 +886,12 @@ class Spectra(HaloModelIngredients):
         ndarray
             The truncation factor.
         """
-        # k_frac = k_vec/k_trunc
-        # return 1.0 - f * (k_frac**nd)/(1.0 + k_frac**nd)
         if self.two_halo_ktrunc is None:
             return np.ones_like(self.k_vec)
-        k_d = 0.05699  # 0.07
+        k_d = 0.05699
         nd = 2.853
         k_frac = self.k_vec / k_d
         return 1.0 - 0.05 * (k_frac**nd) / (1.0 + k_frac**nd)
-        # return 0.5*(1.0+(erf(-(k_vec-k_trunc))))
 
     @cached_quantity
     def one_halo_truncation_ia(self):
