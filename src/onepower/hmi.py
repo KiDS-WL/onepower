@@ -97,7 +97,6 @@ class CosmologyBase(Framework):
         h0=0.7,
         omega_c=0.25,
         omega_b=0.05,
-        omega_m=0.3,
         w0=-1.0,
         wa=0.0,
         n_s=0.9,
@@ -111,7 +110,6 @@ class CosmologyBase(Framework):
         self.h0 = h0
         self.omega_c = omega_c
         self.omega_b = omega_b
-        self.omega_m = omega_m
         self.w0 = w0
         self.wa = wa
         self.n_s = n_s
@@ -152,15 +150,6 @@ class CosmologyBase(Framework):
     def omega_b(self, val):
         """
         Baryon density parameter.
-
-        :type: float
-        """
-        return val
-
-    @parameter('param')
-    def omega_m(self, val):
-        """
-        Matter density parameter.
 
         :type: float
         """
@@ -251,13 +240,18 @@ class CosmologyBase(Framework):
         return Flatw0waCDM(
             H0=self.h0 * 100.0,
             Ob0=self.omega_b,
-            Om0=self.omega_m,
+            Om0=self.omega_c + self.omega_b,
             Neff=self.Neff,
-            m_nu=[self.m_nu, 0, 0] * u.eV,
+            m_nu=[0, 0, self.m_nu] * u.eV,
             Tcmb0=self.tcmb,
             w0=self.w0,
             wa=self.wa,
         )
+
+    @cached_property
+    def omega_m(self):
+        """Omega m."""
+        return self.cosmo_model.Om0
 
     @cached_quantity
     def scale_factor(self):

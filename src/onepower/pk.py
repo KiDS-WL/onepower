@@ -641,7 +641,7 @@ class Spectra(HaloModelIngredients):
         """
         sigma = self.sigmaV(self.k_vec, plin)
         ombh2 = self.omega_b * self.h0**2.0
-        ommh2 = self.omega_m * self.h0**2.0
+        ommh2 = (self.omega_m + self.cosmo_model.Onu0) * self.h0**2.0
         pk_wig = self.get_Pk_wiggle(
             self.k_vec, plin, self.h0, ombh2, ommh2, self.n_s, self.tcmb
         )
@@ -686,7 +686,8 @@ class Spectra(HaloModelIngredients):
             The matter halo profile.
         """
         Wm_0 = mass / mean_density0
-        return Wm_0 * u_dm * (1.0 - fnu)
+        # Given the astropy definiton of Om, we do not need to correct for neutrino fraction as the Om is already without!
+        return Wm_0 * u_dm  # * (1.0 - fnu)
 
     @cached_quantity
     def matter_profile(self):
@@ -763,8 +764,9 @@ class Spectra(HaloModelIngredients):
         f_gas = self.fg(mass, z, fstar)
 
         Wm_0 = mass / mean_density0
-        Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
-        # Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
+        # Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
+        # Given the astropy definiton of Om, we do not need to correct for neutrino fraction as the Om is already without!
+        Wm = (dm_to_matter_frac + f_gas) * Wm_0 * u_dm + fstar * Wm_0
         return Wm
 
     @cached_quantity
@@ -823,8 +825,9 @@ class Spectra(HaloModelIngredients):
         Wm_0 = mass / mean_density0
         f_gas_fit = self.fg_fit(mass, mb, fstar)
 
-        Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
-        # Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
+        # Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm * (1.0 - fnu) + fstar * Wm_0
+        # Given the astropy definiton of Om, we do not need to correct for neutrino fraction as the Om is already without!
+        Wm = (dm_to_matter_frac + f_gas_fit) * Wm_0 * u_dm + fstar * Wm_0
         return Wm
 
     def matter_profile_with_feedback_stellar_fraction_from_obs(self, fstar):
