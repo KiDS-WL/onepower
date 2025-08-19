@@ -783,7 +783,6 @@ def execute(block, config):
         'one_halo_ktrunc': one_halo_ktrunc,
         'two_halo_ktrunc': two_halo_ktrunc,
         'omega_c': block[cosmo_params, 'omega_c'],
-        'omega_m': block[cosmo_params, 'omega_m'],
         'omega_b': block[cosmo_params, 'omega_b'],
         'h0': block[cosmo_params, 'h0'],
         'n_s': block[cosmo_params, 'n_s'],
