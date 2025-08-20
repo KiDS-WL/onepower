@@ -45,6 +45,7 @@ from scipy.ndimage import gaussian_filter1d
 
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework, get_mdl
+from hmf.density_field.transfer_models import EH_NoBAO as Tk_EH_nowiggle
 
 from .bnl import NonLinearBias
 from .hmi import HaloModelIngredients
@@ -640,10 +641,10 @@ class Spectra(HaloModelIngredients):
             The dewiggled power spectrum.
         """
         sigma = self.sigmaV(self.k_vec, plin)
-        ombh2 = self.omega_b * self.h0**2.0
-        ommh2 = (self.omega_m + self.cosmo_model.Onu0) * self.h0**2.0
         pk_wig = self.get_Pk_wiggle(
-            self.k_vec, plin, self.h0, ombh2, ommh2, self.n_s, self.tcmb
+            self.k_vec,
+            plin,
+            self.n_s,
         )
         plin_dw = (
             plin
@@ -2613,47 +2614,6 @@ class Spectra(HaloModelIngredients):
         )
 
     # Helper functions borrowed from Alex Mead, no need to reinvent the wheel.
-    def Tk_EH_nowiggle(self, k, h, ombh2, ommh2, T_CMB=2.7255):
-        """
-        No-wiggle transfer function from Eisenstein & Hu (1998).
-
-        Parameters:
-        -----------
-        k : array_like
-            Wavenumber.
-        h : float
-            Hubble parameter.
-        ombh2 : float
-            Baryon density parameter times h^2.
-        ommh2 : float
-            Matter density parameter times h^2.
-        T_CMB : float, optional
-            Temperature of the CMB.
-
-        Returns:
-        --------
-        ndarray
-            The no-wiggle transfer function.
-        """
-        rb = ombh2 / ommh2  # Baryon ratio
-        s = (
-            44.5 * np.log(9.83 / ommh2) / np.sqrt(1.0 + 10.0 * ombh2**0.75)
-        )  # Equation (26)
-        alpha = (
-            1.0
-            - 0.328 * np.log(431.0 * ommh2) * rb
-            + 0.38 * np.log(22.3 * ommh2) * rb**2.0
-        )  # Equation (31)
-
-        Gamma = (ommh2 / h) * (
-            alpha + (1.0 - alpha) / (1.0 + (0.43 * k * s * h) ** 4)
-        )  # Equation (30)
-        q = k * (T_CMB / 2.7) ** 2.0 / Gamma  # Equation (28)
-        L = np.log(2.0 * np.e + 1.8 * q)  # Equation (29)
-        C = 14.2 + 731.0 / (1.0 + 62.5 * q)  # Equation (29)
-        Tk_nw = L / (L + C * q**2.0)  # Equation (29)
-        return Tk_nw
-
     def sigmaV(self, k, power):
         """
         Calculate the dispersion from the power spectrum.
@@ -2677,9 +2637,7 @@ class Spectra(HaloModelIngredients):
         sigma = (0.5 / np.pi**2.0) * simpson(integ, dx=dlnk, axis=-1)
         return np.sqrt(sigma / 3.0)
 
-    def get_Pk_wiggle(
-        self, k, Pk_lin, h, ombh2, ommh2, ns, T_CMB=2.7255, sigma_dlnk=0.25
-    ):
+    def get_Pk_wiggle(self, k, Pk_lin, ns, sigma_dlnk=0.25):
         """
         Extract the wiggle from the linear power spectrum.
 
@@ -2716,7 +2674,9 @@ class Spectra(HaloModelIngredients):
         dlnk = np.log(k[1] / k[0])
         sigma = sigma_dlnk / dlnk
 
-        Pk_nowiggle = (k**ns) * self.Tk_EH_nowiggle(k, h, ombh2, ommh2, T_CMB) ** 2
+        Pk_nowiggle = (k**ns) * np.exp(
+            Tk_EH_nowiggle(self.cosmo_model).lnt(np.log(k))
+        ) ** 2.0
         Pk_ratio = Pk_lin / Pk_nowiggle
         Pk_ratio = gaussian_filter1d(Pk_ratio, sigma)
         Pk_smooth = Pk_ratio * Pk_nowiggle

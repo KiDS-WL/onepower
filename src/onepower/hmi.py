@@ -242,7 +242,7 @@ class CosmologyBase(Framework):
             Ob0=self.omega_b,
             Om0=self.omega_c + self.omega_b,
             Neff=self.Neff,
-            m_nu=[0, 0, self.m_nu] * u.eV,
+            m_nu=[0.0, 0.0, self.m_nu] * u.eV,
             Tcmb0=self.tcmb,
             w0=self.w0,
             wa=self.wa,
