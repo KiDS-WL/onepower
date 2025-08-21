@@ -704,7 +704,7 @@ class Spectra(HaloModelIngredients):
             self.mass[np.newaxis, np.newaxis, np.newaxis, :],
             self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
             self.u_dm[np.newaxis, :, :, :],
-            self.fnu[np.newaxis, :, np.newaxis, np.newaxis],
+            0.0,
         )
         return profile
 
@@ -785,7 +785,7 @@ class Spectra(HaloModelIngredients):
             self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
             self.u_dm[np.newaxis, :, :, :],
             self.z_vec[np.newaxis, :, np.newaxis, np.newaxis],
-            self.fnu[np.newaxis, :, np.newaxis, np.newaxis],
+            0.0,
         )
         return profile
 
@@ -850,7 +850,7 @@ class Spectra(HaloModelIngredients):
             self.mean_density0[np.newaxis, :, np.newaxis, np.newaxis],
             self.u_dm[np.newaxis, :, :, :],
             self.z_vec[np.newaxis, :, np.newaxis, np.newaxis],
-            self.fnu[np.newaxis, :, np.newaxis, np.newaxis],
+            0.0,
             self.mb,
             fstar[:, :, np.newaxis, :],
         )
