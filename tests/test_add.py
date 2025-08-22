@@ -9,8 +9,8 @@ def setup_data():
     k = np.logspace(-2, 1, 5)
     fraction_z = np.linspace(0, 1, 5)
     fraction = np.linspace(0.1, 0.9, 5)
-    model_1_params = {'omega_m': 0.2, 'sigma_8': 0.8}
-    model_2_params = {'omega_m': 0.3, 'sigma_8': 0.8}
+    model_1_params = {'omega_c': 0.2, 'sigma_8': 0.8}
+    model_2_params = {'omega_c': 0.3, 'sigma_8': 0.8}
     return z, k, fraction_z, fraction, model_1_params, model_2_params
 
 
