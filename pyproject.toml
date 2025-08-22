@@ -78,6 +78,7 @@ all = [
     "onepower[dev]"
 ]
 
+
 [tool.pytest.ini_options]
 addopts = "--cov onepower --cov-report term-missing --verbose"
 norecursedirs = [
@@ -105,51 +106,43 @@ omit = [
     "*halomod/*"
 ]
 
+
 [tool.ruff]
+# Line length
+line-length = 88
 
 include = ["*.pyi", "*.py"]
 
-# Line length (same as flake8)
-line-length = 88
-
-# Exclude files/directories (same as flake8)
+# Exclude files/directories
 exclude = [
-    "development/*",
-    "cosmosis_modules/*",
     "docs/*",
     "legacy_input_files/*",
     "benchmarks/*",
+    "cosmosis_modules/example_ini_files/*",
+    "cosmosis_modules/legacy/*",
+    "cosmosis_modules/pk_to_real/*",
+    "cosmosis_modules/defaults_dictionary.txt",
+    "cosmosis_modules/module.yaml",
 ]
 
-# Per-file ignores (same as flake8)
+# Per-file ignores
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D", "T001", "T201", "B018"]
 "docs/conf.py" = ["D", "A"]
 "**/__init__.py" = ["F401"]
+"cosmosis_modules/onepower_interface.py" = ["C901"]
 
 
 [tool.ruff.format]
 # Equivalent to Black's skip-string-normalization
 quote-style = "single"
-
-# Equivalent to Black's force-exclude
-exclude = [
-    "cosmosis_modules/*",
-    "docs/*",
-    "legacy_input_files/*",
-    "benchmarks/*",
-]
-
 line-ending = "lf"
-
 
 [tool.ruff.lint.pydocstyle]
 convention = 'numpy'
 
-
 [tool.ruff.lint.mccabe]
 max-complexity = 25
-
 
 [tool.ruff.lint]
 extend-select = [
@@ -195,7 +188,6 @@ ignore = [
     "B023",   # Function definition does not bind loop variable
 ]
 
-
 # Import organization (Ruff's import sorting is enabled by default)
 [tool.ruff.lint.isort]
 known-first-party = ["onepower"]
@@ -207,7 +199,6 @@ section-order = [
     "third-party",
     "first-party",
     "local-folder",
-    "testing",
 ]
 
 # Default section for imports (same as isort's default_section)

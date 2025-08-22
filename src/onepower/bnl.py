@@ -229,7 +229,7 @@ class NonLinearBias(Framework):
                     [
                         self.ombh2,
                         self.omch2,
-                        self.omega_lambda,
+                        self.omega_lambda - 0.00064,
                         np.log(A_s_init * 1e10),
                         self.n_s,
                         self.w0,

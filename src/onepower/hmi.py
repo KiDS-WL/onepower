@@ -9,6 +9,7 @@ import halomod.profiles as profile_classes
 import numpy as np
 import warnings
 from astropy.cosmology import Flatw0waCDM, Planck15
+from astropy import units as u
 from functools import cached_property
 from halomod.concentration import interp_concentration, make_colossus_cm
 from halomod.halo_model import DMHaloModel, TracerHaloModel
@@ -96,11 +97,11 @@ class CosmologyBase(Framework):
         h0=0.7,
         omega_c=0.25,
         omega_b=0.05,
-        omega_m=0.3,
         w0=-1.0,
         wa=0.0,
         n_s=0.9,
         tcmb=2.7255,
+        Neff=3.044,
         m_nu=0.06,
         sigma_8=0.8,
         log10T_AGN=7.8,
@@ -109,11 +110,11 @@ class CosmologyBase(Framework):
         self.h0 = h0
         self.omega_c = omega_c
         self.omega_b = omega_b
-        self.omega_m = omega_m
         self.w0 = w0
         self.wa = wa
         self.n_s = n_s
         self.tcmb = tcmb
+        self.Neff = Neff
         self.m_nu = m_nu
         self.sigma_8 = sigma_8
         self.log10T_AGN = log10T_AGN
@@ -155,15 +156,6 @@ class CosmologyBase(Framework):
         return val
 
     @parameter('param')
-    def omega_m(self, val):
-        """
-        Matter density parameter.
-
-        :type: float
-        """
-        return val
-
-    @parameter('param')
     def w0(self, val):
         """
         Dark energy equation of state parameter.
@@ -194,6 +186,15 @@ class CosmologyBase(Framework):
     def tcmb(self, val):
         """
         Temperature of the CMB.
+
+        :type: float
+        """
+        return val
+
+    @parameter('param')
+    def Neff(self, val):
+        """
+        Effective number of neutrino species.
 
         :type: float
         """
@@ -239,12 +240,18 @@ class CosmologyBase(Framework):
         return Flatw0waCDM(
             H0=self.h0 * 100.0,
             Ob0=self.omega_b,
-            Om0=self.omega_m,
-            m_nu=[0, 0, self.m_nu],
+            Om0=self.omega_c + self.omega_b,
+            Neff=self.Neff,
+            m_nu=[0.0, 0.0, self.m_nu] * u.eV,
             Tcmb0=self.tcmb,
             w0=self.w0,
             wa=self.wa,
         )
+
+    @cached_property
+    def omega_m(self):
+        """Omega m."""
+        return self.cosmo_model.Om0
 
     @cached_quantity
     def scale_factor(self):

@@ -54,7 +54,7 @@ kwargs = {
     #        'lnk_min': np.log(10**(-4.0)),
     #        'lnk_max': np.log(10**(4.0)),
     #        'dlnk': (np.log(10**(-4.0)) - np.log(10**(4.0))) / 100,
-    'dewiggle': True,
+    #        'dewiggle': True,
     'Mmin': 9.0,
     'Mmax': 18.0,
     'dlog10m': 0.005,

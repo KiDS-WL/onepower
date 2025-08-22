@@ -5,10 +5,10 @@ on:
     branches: [main]
     paths-ignore:
       - coverage.svg # Prevent infinite loops when badge changes
-  #pull_request:
-  #  branches: [main]
-  #  paths-ignore:
-  #    - coverage.svg # Prevent infinite loops when badge changes
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - coverage.svg # Prevent infinite loops when badge changes
 
 jobs:
   test:
@@ -25,8 +25,8 @@ jobs:
             python-version: "3.12"
           #- os: ubuntu-latest
           #  python-version: "3.13" # 3.13 not supported due to older scipy (1.13 max) required by dark_emulator!
-          - os: macos-latest
-            python-version: "3.11"
+          #- os: macos-latest
+          #  python-version: "3.11"
 
     permissions:
       contents: write # Needed to commit badge
