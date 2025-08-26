@@ -73,8 +73,6 @@ class CosmologyBase(Framework):
         Cold dark matter density parameter.
     omega_b : float, optional
         Baryon density parameter.
-    omega_m : float, optional
-        Matter density parameter.
     w0 : float, optional
         Dark energy equation of state parameter.
     wa : float, optional
@@ -83,6 +81,8 @@ class CosmologyBase(Framework):
         Spectral index.
     tcmb : float, optional
         Temperature of the CMB.
+    Neff : float, optional
+        Effective number of neutrino species.
     m_nu : float, optional
         Neutrino mass.
     sigma_8 : float, optional
@@ -250,7 +250,7 @@ class CosmologyBase(Framework):
 
     @cached_property
     def omega_m(self):
-        """Omega m."""
+        """Matter density parameter."""
         return self.cosmo_model.Om0
 
     @cached_quantity
