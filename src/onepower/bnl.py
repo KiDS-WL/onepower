@@ -290,11 +290,11 @@ class NonLinearBias(Framework):
             beta_interp = np.zeros((len(self.z_vec), n, m, p))
             for i, _zi in enumerate(self.z_vec):
                 beta_interp[i, ii, jj, kk] = beta_interp_tmp[i](values)
-            return beta_interp
+            return beta_interp.transpose([0, 3, 1, 2])
         else:
             beta_interp = np.zeros((n, m, p))
             beta_interp[ii, jj, kk] = beta_interp_tmp(values)
-            return beta_interp[np.newaxis, :, :, :]
+            return beta_interp[np.newaxis, :, :, :].transpose([0, 3, 1, 2])
 
     def low_k_truncation(self, k, k_trunc):
         """
