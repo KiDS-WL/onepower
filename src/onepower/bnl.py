@@ -268,46 +268,32 @@ class NonLinearBias(Framework):
         """
         beta_interp_tmp = self.create_bnl_interpolation_function
 
-        indices = (
-            np.vstack(
-                np.meshgrid(
-                    np.arange(self.mass.size),
-                    np.arange(self.mass.size),
-                    np.arange(self.k_vec.size),
-                    copy=False,
-                )
-            )
-            .reshape(3, -1)
-            .T
-        )
-        values = (
-            np.vstack(
-                np.meshgrid(
-                    np.log10(self.mass),
-                    np.log10(self.mass),
-                    np.log10(self.k_vec),
-                    copy=False,
-                )
-            )
-            .reshape(3, -1)
-            .T
-        )
+        x = np.log10(self.mass)
+        y = np.log10(self.mass)
+        z = np.log10(self.k_vec)
 
+        n, m, p = len(x), len(y), len(z)
+
+        # Precompute all combinations of values (fast repeat/tile approach)
+        X = np.repeat(x, m * p)
+        Y = np.tile(np.repeat(y, p), n)
+        Z = np.tile(z, n * m)
+        values = np.column_stack((X, Y, Z))
+
+        # Precompute flat indices for direct assignment
+        ii = np.repeat(np.arange(n), m * p)
+        jj = np.tile(np.repeat(np.arange(m), p), n)
+        kk = np.tile(np.arange(p), n * m)
+
+        # Now allocate and fill beta_interp efficiently
         if self.z_dep:
-            beta_interp = np.zeros(
-                (self.z_vec.size, self.mass.size, self.mass.size, self.k_vec.size)
-            )
+            beta_interp = np.zeros((len(self.z_vec), n, m, p))
             for i, _zi in enumerate(self.z_vec):
-                beta_interp[i, indices[:, 0], indices[:, 1], indices[:, 2]] = (
-                    beta_interp_tmp[i](values)
-                )
+                beta_interp[i, ii, jj, kk] = beta_interp_tmp[i](values)
             return beta_interp
-
-        if not self.z_dep:
-            beta_interp = np.zeros((self.mass.size, self.mass.size, self.k_vec.size))
-            beta_interp[indices[:, 0], indices[:, 1], indices[:, 2]] = beta_interp_tmp(
-                values
-            )
+        else:
+            beta_interp = np.zeros((n, m, p))
+            beta_interp[ii, jj, kk] = beta_interp_tmp(values)
             return beta_interp[np.newaxis, :, :, :]
 
     def low_k_truncation(self, k, k_trunc):

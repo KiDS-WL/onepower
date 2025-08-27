@@ -1186,7 +1186,6 @@ class Spectra(HaloModelIngredients):
         integrand_m = b_dm * dndlnm * u_dm * (1.0 / mean_density0)
         return simpson(integrand_m, x=mass)
 
-    # @profile
     def prepare_I22_integrand(self, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
         """
         Prepare the integrand for the I22 term.
@@ -1296,7 +1295,6 @@ class Spectra(HaloModelIngredients):
         integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dndlnm_1e * inv_mass_1e')
         return integrand_21
 
-    # @profile
     def I_NL(
         self,
         W_1,
