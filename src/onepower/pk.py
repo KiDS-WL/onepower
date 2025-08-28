@@ -53,6 +53,138 @@ from .ia import SatelliteAlignment
 from .utils import poisson
 from . import hod
 
+from numba import njit, float64
+import time
+
+spec = (
+    float64[:],  # mass
+    float64[:, :],  # b_1
+    float64[:, :],  # b_2
+    float64[:, :],  # dndlnm_1
+    float64[:, :],  # dndlnm_2
+    float64[:, :, :, :],  # B_NL_k_z
+)
+
+spec_NL = (
+    float64[::1],  # mass
+    float64[:, :, :, :],  # W_1
+    float64[:, :, :, :],  # W_2
+    float64[:, :, :],  # A
+    float64[::1],  # rho_mean
+    float64[:, :, :, :],  # B_NL_k_z
+    float64[:, :, :],  # integrand_12_part
+    float64[:, :, :],  # integrand_21_part
+    float64[:, :, :, :],  # integrand_22_part
+)
+
+
+@njit(cache=True, fastmath=True)
+def trapezoid_numba(y, x):
+    """
+    Manual trapezoidal integration along a given axis.
+    Equivalent to np.trapezoid(y, x, axis=axis).
+    """
+    # Ensure x is 1D
+    dx = np.diff(x)
+    # Apply trapezoidal rule
+    return np.sum((y[..., :-1] + y[..., 1:]) * dx / 2.0, axis=-1)
+
+
+@njit(spec, cache=True, fastmath=True)
+def compute_I22_integrand(mass, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
+    integrand_22 = (
+        B_NL_k_z
+        * b_1[:, np.newaxis, :, np.newaxis]
+        * b_2[:, np.newaxis, np.newaxis, :]
+        * dndlnm_1[:, np.newaxis, :, np.newaxis]
+        * dndlnm_2[:, np.newaxis, np.newaxis, :]
+        / (
+            mass[np.newaxis, np.newaxis, :, np.newaxis]
+            * mass[np.newaxis, np.newaxis, np.newaxis, :]
+        )
+    )
+    return integrand_22
+
+
+@njit(spec, cache=True, fastmath=True)
+def compute_I12_integrand(mass, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
+    integrand_12 = (
+        B_NL_k_z[:, :, :, 0]
+        * b_2[:, np.newaxis, :]
+        * dndlnm_2[:, np.newaxis, :]
+        / mass[np.newaxis, np.newaxis, :]
+    )
+    return integrand_12
+
+
+@njit(spec, cache=True, fastmath=True)
+def compute_I21_integrand(mass, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
+    integrand_21 = (
+        B_NL_k_z[:, :, 0, :]
+        * b_1[:, np.newaxis, :]
+        * dndlnm_1[:, np.newaxis, :]
+        / mass[np.newaxis, np.newaxis, :]
+    )
+    return integrand_21
+
+
+@njit(spec_NL, cache=True, fastmath=True)
+def compute_I_NL(
+    mass,
+    W_1,
+    W_2,
+    A,
+    rho_mean,
+    B_NL_k_z,
+    integrand_12_part,
+    integrand_21_part,
+    integrand_22_part,
+):
+    # Reshape W_1 and W_2 for broadcasting
+    W_1e = W_1[:, :, :, :, np.newaxis]
+    W_2e = W_2[:, :, :, np.newaxis, :]
+
+    # Calculate integrand_22 using broadcasting
+    integrand_22 = integrand_22_part * W_1e * W_2e
+    # integrand_22 = np.ascontiguousarray(ne.evaluate('integrand_22_part * W_1e * W_2e'))
+
+    # Perform trapezoidal integration
+    integral_M1 = trapezoid_numba(
+        integrand_22, mass
+    )  # np.trapezoid(integrand_22, x=mass)#, axis=-1)
+    I_22 = trapezoid_numba(
+        integral_M1, mass
+    )  # np.trapezoid(integral_M1, x=mass)#, axis=-1)
+
+    # Calculate I_11 using broadcasting
+    I_11 = (
+        B_NL_k_z[:, :, 0, 0]
+        * (
+            A
+            * A
+            * W_1[:, :, :, 0]
+            * W_2[:, :, :, 0]
+            * rho_mean[:, np.newaxis]
+            * rho_mean[:, np.newaxis]
+        )
+        / (mass[0] * mass[0])
+    )
+
+    # Calculate I_12 using broadcasting
+    integral_12 = trapezoid_numba(
+        integrand_12_part * W_2, mass
+    )  # np.trapezoid(integrand_12_part * W_2, x=mass)#, axis=-1)
+    I_12 = A * W_1[:, :, :, 0] * integral_12 * rho_mean[:, np.newaxis] / mass[0]
+
+    # Calculate I_21 using broadcasting
+    integral_21 = trapezoid_numba(
+        integrand_21_part * W_1, mass
+    )  # np.trapezoid(integrand_21_part * W_1, x=mass)#, axis=-1)
+    I_21 = A * W_2[:, :, :, 0] * integral_21 * rho_mean[:, np.newaxis] / mass[0]
+
+    # Combine all terms
+    return I_11 + I_12 + I_21 + I_22
+
 
 class PowerSpectrumResult:
     """
@@ -425,7 +557,7 @@ class Spectra(HaloModelIngredients):
         """
         if self.bnl and self.beta_nl is None:
             return self.calc_bnl
-        return self.beta_nl
+        return np.ascontiguousarray(self.beta_nl)
 
     @cached_quantity
     def _pk_lin(self):
@@ -526,7 +658,7 @@ class Spectra(HaloModelIngredients):
             n_s=self.n_s,
             w0=self.w0,
         )
-        return bnl.bnl
+        return np.ascontiguousarray(bnl.bnl)
 
     @cached_quantity
     def I12(self):
@@ -1208,24 +1340,14 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I22 term.
         """
-
-        # integrand_22 = B_NL_k_z * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
-        #    * dndlnm_1[:,:,np.newaxis,np.newaxis] \
-        #    * dndlnm_2[:,np.newaxis,:,np.newaxis] \
-        #    / (self.mass[np.newaxis,:,np.newaxis,np.newaxis] * self.mass[np.newaxis,np.newaxis,:,np.newaxis])
-
-        inv_mass = 1.0 / self.mass
-        b_1e = b_1[:, np.newaxis, :, np.newaxis]
-        b_2e = b_2[:, np.newaxis, np.newaxis, :]
-        dndlnm_1e = dndlnm_1[:, np.newaxis, :, np.newaxis]
-        dndlnm_2e = dndlnm_2[:, np.newaxis, np.newaxis, :]
-        inv_mass_1e = inv_mass[np.newaxis, np.newaxis, :, np.newaxis]
-        inv_mass_2e = inv_mass[np.newaxis, np.newaxis, np.newaxis, :]
-
-        integrand_22 = ne.evaluate(
-            'B_NL_k_z * b_1e * b_2e * dndlnm_1e * dndlnm_2e * inv_mass_1e * inv_mass_2e'
+        return compute_I22_integrand(
+            np.ascontiguousarray(self.mass),
+            np.ascontiguousarray(b_1),
+            np.ascontiguousarray(b_2),
+            np.ascontiguousarray(dndlnm_1),
+            np.ascontiguousarray(dndlnm_2),
+            np.ascontiguousarray(B_NL_k_z),
         )
-        return integrand_22
 
     def prepare_I12_integrand(self, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
         """
@@ -1249,17 +1371,14 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I12 term.
         """
-
-        # integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
-        #    * dndlnm_2[:,:,np.newaxis] / self.mass[np.newaxis,:,np.newaxis]
-
-        B_NL_k_z_e = B_NL_k_z[:, :, :, 0]
-        b_2e = b_2[:, np.newaxis, :]
-        dndlnm_2e = dndlnm_2[:, np.newaxis, :]
-        inv_mass_2e = 1.0 / self.mass[np.newaxis, np.newaxis, :]
-
-        integrand_12 = ne.evaluate('B_NL_k_z_e * b_2e * dndlnm_2e * inv_mass_2e')
-        return integrand_12
+        return compute_I12_integrand(
+            np.ascontiguousarray(self.mass),
+            np.ascontiguousarray(b_1),
+            np.ascontiguousarray(b_2),
+            np.ascontiguousarray(dndlnm_1),
+            np.ascontiguousarray(dndlnm_2),
+            np.ascontiguousarray(B_NL_k_z),
+        )
 
     def prepare_I21_integrand(self, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
         """
@@ -1283,17 +1402,14 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I21 term.
         """
-
-        # integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
-        #    * dndlnm_1[:,:,np.newaxis] / self.mass[np.newaxis,:,np.newaxis]
-
-        B_NL_k_z_e = B_NL_k_z[:, :, 0, :]
-        b_1e = b_1[:, np.newaxis, :]
-        dndlnm_1e = dndlnm_1[:, np.newaxis, :]
-        inv_mass_1e = 1.0 / self.mass[np.newaxis, np.newaxis, :]
-
-        integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dndlnm_1e * inv_mass_1e')
-        return integrand_21
+        return compute_I21_integrand(
+            np.ascontiguousarray(self.mass),
+            np.ascontiguousarray(b_1),
+            np.ascontiguousarray(b_2),
+            np.ascontiguousarray(dndlnm_1),
+            np.ascontiguousarray(dndlnm_2),
+            np.ascontiguousarray(B_NL_k_z),
+        )
 
     def I_NL(
         self,
@@ -1345,46 +1461,17 @@ class Spectra(HaloModelIngredients):
         ndarray
             The integral over beta_nl.
         """
-        # Reshape W_1 and W_2 for broadcasting
-        W_1e = W_1[:, :, :, :, np.newaxis]
-        W_2e = W_2[:, :, :, np.newaxis, :]
-
-        # Calculate integrand_22 using broadcasting
-        # integrand_22 = integrand_22_part * W_1e * W_2e
-        integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
-
-        # Perform trapezoidal integration
-        integral_M1 = np.trapezoid(integrand_22, x=self.mass, axis=-1)
-        I_22 = np.trapezoid(integral_M1, x=self.mass, axis=-1)
-
-        # Calculate I_11 using broadcasting
-        I_11 = (
-            B_NL_k_z[:, :, 0, 0]
-            * (
-                A
-                * A
-                * W_1[:, :, :, 0]
-                * W_2[:, :, :, 0]
-                * rho_mean[:, np.newaxis]
-                * rho_mean[:, np.newaxis]
-            )
-            / (self.mass[0] * self.mass[0])
+        return compute_I_NL(
+            np.ascontiguousarray(self.mass),
+            np.ascontiguousarray(W_1),
+            np.ascontiguousarray(W_2),
+            np.ascontiguousarray(A),
+            np.ascontiguousarray(rho_mean),
+            np.ascontiguousarray(B_NL_k_z),
+            np.ascontiguousarray(integrand_12_part),
+            np.ascontiguousarray(integrand_21_part),
+            np.ascontiguousarray(integrand_22_part),
         )
-
-        # Calculate I_12 using broadcasting
-        integral_12 = np.trapezoid(integrand_12_part * W_2, x=self.mass, axis=-1)
-        I_12 = (
-            A * W_1[:, :, :, 0] * integral_12 * rho_mean[:, np.newaxis] / self.mass[0]
-        )
-
-        # Calculate I_21 using broadcasting
-        integral_21 = np.trapezoid(integrand_21_part * W_1, x=self.mass, axis=-1)
-        I_21 = (
-            A * W_2[:, :, :, 0] * integral_21 * rho_mean[:, np.newaxis] / self.mass[0]
-        )
-
-        # Combine all terms
-        return I_11 + I_12 + I_21 + I_22
 
     def fg(self, mass, z_vec, fstar, beta=2):
         r"""
