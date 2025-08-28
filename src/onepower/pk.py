@@ -425,7 +425,7 @@ class Spectra(HaloModelIngredients):
         """
         if self.bnl and self.beta_nl is None:
             return self.calc_bnl
-        return self.beta_nl
+        return np.ascontiguousarray(self.beta_nl)
 
     @cached_quantity
     def _pk_lin(self):
@@ -526,7 +526,7 @@ class Spectra(HaloModelIngredients):
             n_s=self.n_s,
             w0=self.w0,
         )
-        return bnl.bnl
+        return np.ascontiguousarray(bnl.bnl)
 
     @cached_quantity
     def I12(self):
@@ -1209,22 +1209,29 @@ class Spectra(HaloModelIngredients):
             Integrand for the I22 term.
         """
 
-        # integrand_22 = B_NL_k_z * b_1[:,:,np.newaxis,np.newaxis] * b_2[:,np.newaxis,:,np.newaxis] \
-        #    * dndlnm_1[:,:,np.newaxis,np.newaxis] \
-        #    * dndlnm_2[:,np.newaxis,:,np.newaxis] \
-        #    / (self.mass[np.newaxis,:,np.newaxis,np.newaxis] * self.mass[np.newaxis,np.newaxis,:,np.newaxis])
-
-        inv_mass = 1.0 / self.mass
-        b_1e = b_1[:, np.newaxis, :, np.newaxis]
-        b_2e = b_2[:, np.newaxis, np.newaxis, :]
-        dndlnm_1e = dndlnm_1[:, np.newaxis, :, np.newaxis]
-        dndlnm_2e = dndlnm_2[:, np.newaxis, np.newaxis, :]
-        inv_mass_1e = inv_mass[np.newaxis, np.newaxis, :, np.newaxis]
-        inv_mass_2e = inv_mass[np.newaxis, np.newaxis, np.newaxis, :]
-
-        integrand_22 = ne.evaluate(
-            'B_NL_k_z * b_1e * b_2e * dndlnm_1e * dndlnm_2e * inv_mass_1e * inv_mass_2e'
+        integrand_22 = (
+            B_NL_k_z
+            * b_1[:, np.newaxis, :, np.newaxis]
+            * b_2[:, np.newaxis, np.newaxis, :]
+            * dndlnm_1[:, np.newaxis, :, np.newaxis]
+            * dndlnm_2[:, np.newaxis, np.newaxis, :]
+            / (
+                self.mass[np.newaxis, np.newaxis, :, np.newaxis]
+                * self.mass[np.newaxis, np.newaxis, np.newaxis, :]
+            )
         )
+
+        # inv_mass = 1.0 / self.mass
+        # b_1e = b_1[:, np.newaxis, :, np.newaxis]
+        # b_2e = b_2[:, np.newaxis, np.newaxis, :]
+        # dndlnm_1e = dndlnm_1[:, np.newaxis, :, np.newaxis]
+        # dndlnm_2e = dndlnm_2[:, np.newaxis, np.newaxis, :]
+        # inv_mass_1e = inv_mass[np.newaxis, np.newaxis, :, np.newaxis]
+        # inv_mass_2e = inv_mass[np.newaxis, np.newaxis, np.newaxis, :]
+
+        # integrand_22 = ne.evaluate(
+        #     'B_NL_k_z * b_1e * b_2e * dndlnm_1e * dndlnm_2e * inv_mass_1e * inv_mass_2e'
+        # )
         return integrand_22
 
     def prepare_I12_integrand(self, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
@@ -1250,15 +1257,19 @@ class Spectra(HaloModelIngredients):
             Integrand for the I12 term.
         """
 
-        # integrand_12 = B_NL_k_z[:,:,0,:] * b_2[:,:,np.newaxis] \
-        #    * dndlnm_2[:,:,np.newaxis] / self.mass[np.newaxis,:,np.newaxis]
+        integrand_12 = (
+            B_NL_k_z[:, :, :, 0]
+            * b_2[:, np.newaxis, :]
+            * dndlnm_2[:, np.newaxis, :]
+            / self.mass[np.newaxis, np.newaxis, :]
+        )
 
-        B_NL_k_z_e = B_NL_k_z[:, :, :, 0]
-        b_2e = b_2[:, np.newaxis, :]
-        dndlnm_2e = dndlnm_2[:, np.newaxis, :]
-        inv_mass_2e = 1.0 / self.mass[np.newaxis, np.newaxis, :]
+        # B_NL_k_z_e = B_NL_k_z[:, :, :, 0]
+        # b_2e = b_2[:, np.newaxis, :]
+        # dndlnm_2e = dndlnm_2[:, np.newaxis, :]
+        # inv_mass_2e = 1.0 / self.mass[np.newaxis, np.newaxis, :]
 
-        integrand_12 = ne.evaluate('B_NL_k_z_e * b_2e * dndlnm_2e * inv_mass_2e')
+        # integrand_12 = ne.evaluate('B_NL_k_z_e * b_2e * dndlnm_2e * inv_mass_2e')
         return integrand_12
 
     def prepare_I21_integrand(self, b_1, b_2, dndlnm_1, dndlnm_2, B_NL_k_z):
@@ -1284,15 +1295,19 @@ class Spectra(HaloModelIngredients):
             Integrand for the I21 term.
         """
 
-        # integrand_21 = B_NL_k_z[:,0,:,:] * b_1[:,:,np.newaxis] \
-        #    * dndlnm_1[:,:,np.newaxis] / self.mass[np.newaxis,:,np.newaxis]
+        integrand_21 = (
+            B_NL_k_z[:, :, 0, :]
+            * b_1[:, np.newaxis, :]
+            * dndlnm_1[:, np.newaxis, :]
+            / self.mass[np.newaxis, np.newaxis, :]
+        )
 
-        B_NL_k_z_e = B_NL_k_z[:, :, 0, :]
-        b_1e = b_1[:, np.newaxis, :]
-        dndlnm_1e = dndlnm_1[:, np.newaxis, :]
-        inv_mass_1e = 1.0 / self.mass[np.newaxis, np.newaxis, :]
+        # B_NL_k_z_e = B_NL_k_z[:, :, 0, :]
+        # b_1e = b_1[:, np.newaxis, :]
+        # dndlnm_1e = dndlnm_1[:, np.newaxis, :]
+        # inv_mass_1e = 1.0 / self.mass[np.newaxis, np.newaxis, :]
 
-        integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dndlnm_1e * inv_mass_1e')
+        # integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dndlnm_1e * inv_mass_1e')
         return integrand_21
 
     def I_NL(
@@ -1350,8 +1365,8 @@ class Spectra(HaloModelIngredients):
         W_2e = W_2[:, :, :, np.newaxis, :]
 
         # Calculate integrand_22 using broadcasting
-        # integrand_22 = integrand_22_part * W_1e * W_2e
-        integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
+        integrand_22 = integrand_22_part * W_1e * W_2e
+        # integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
 
         # Perform trapezoidal integration
         integral_M1 = np.trapezoid(integrand_22, x=self.mass, axis=-1)
@@ -2631,6 +2646,10 @@ class Spectra(HaloModelIngredients):
         sigma = (0.5 / np.pi**2.0) * simpson(integ, dx=dlnk, axis=-1)
         return np.sqrt(sigma / 3.0)
 
+    @cached_quantity
+    def Tk_EH_nowiggle_lnt(self):
+        return Tk_EH_nowiggle(self.cosmo_model).lnt
+
     def get_Pk_wiggle(self, k, Pk_lin, ns, sigma_dlnk=0.25):
         """
         Extract the wiggle from the linear power spectrum.
@@ -2668,9 +2687,7 @@ class Spectra(HaloModelIngredients):
         dlnk = np.log(k[1] / k[0])
         sigma = sigma_dlnk / dlnk
 
-        Pk_nowiggle = (k**ns) * np.exp(
-            Tk_EH_nowiggle(self.cosmo_model).lnt(np.log(k))
-        ) ** 2.0
+        Pk_nowiggle = (k**ns) * np.exp(self.Tk_EH_nowiggle_lnt(np.log(k))) ** 2.0
         Pk_ratio = Pk_lin / Pk_nowiggle
         Pk_ratio = gaussian_filter1d(Pk_ratio, sigma)
         Pk_smooth = Pk_ratio * Pk_nowiggle
