@@ -1404,7 +1404,7 @@ class Spectra(HaloModelIngredients):
         I_11 = ne.evaluate('B_NL * A_sq * W1_0 * W2_0 * rho_sq * inv_mass0_sq')
 
         # Calculate I_12 using broadcasting
-        # integral_12 = self.trapezoidal_integrator(integrand_12_part * W_2, x=self.mass, axis=-1)
+        # integral_12 = np.trapezoid(integrand_12_part * W_2, x=self.mass, axis=-1)
         # I_12 = (
         #    A * W_1[:, :, :, 0] * integral_12 * rho_mean[:, np.newaxis] / self.mass[0]
         # )
@@ -1413,7 +1413,7 @@ class Spectra(HaloModelIngredients):
         I_12 = ne.evaluate('A * W1_0 * integral_12 * rho_col * inv_mass0')
 
         # Calculate I_21 using broadcasting
-        # integral_21 = self.trapezoidal_integrator(integrand_21_part * W_1, x=self.mass, axis=-1)
+        # integral_21 = np.trapezoid(integrand_21_part * W_1, x=self.mass, axis=-1)
         # I_21 = (
         #    A * W_2[:, :, :, 0] * integral_21 * rho_mean[:, np.newaxis] / self.mass[0]
         # )
