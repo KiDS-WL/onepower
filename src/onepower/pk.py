@@ -1369,8 +1369,9 @@ class Spectra(HaloModelIngredients):
         # integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
 
         # Perform trapezoidal integration
-        integral_M1 = np.trapezoid(integrand_22, x=self.mass, axis=-1)
-        I_22 = np.trapezoid(integral_M1, x=self.mass, axis=-1)
+        I_22 = np.trapezoid(
+            np.trapezoid(integrand_22, x=self.mass, axis=-1), x=self.mass, axis=-1
+        )
 
         # Calculate I_11 using broadcasting
         I_11 = (
