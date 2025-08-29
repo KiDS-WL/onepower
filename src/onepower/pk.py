@@ -1208,26 +1208,17 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I22 term.
         """
-
-        # integrand_22 = (
-        #    B_NL_k_z
-        #    * b_1[:, np.newaxis, :, np.newaxis]
-        #    * b_2[:, np.newaxis, np.newaxis, :]
-        #    * dndlnm_1[:, np.newaxis, :, np.newaxis]
-        #    * dndlnm_2[:, np.newaxis, np.newaxis, :]
-        #    / (
-        #        self.mass[np.newaxis, np.newaxis, :, np.newaxis]
-        #        * self.mass[np.newaxis, np.newaxis, np.newaxis, :]
-        #    )
-        # )
-
         inv_mass = 1.0 / self.mass
-        b_1e = b_1[:, np.newaxis, :, np.newaxis]
-        b_2e = b_2[:, np.newaxis, np.newaxis, :]
-        dndlnm_1e = dndlnm_1[:, np.newaxis, :, np.newaxis]
-        dndlnm_2e = dndlnm_2[:, np.newaxis, np.newaxis, :]
-        inv_mass_1e = inv_mass[np.newaxis, np.newaxis, :, np.newaxis]
-        inv_mass_2e = inv_mass[np.newaxis, np.newaxis, np.newaxis, :]
+        b_1e = np.ascontiguousarray(b_1[:, np.newaxis, :, np.newaxis])
+        b_2e = np.ascontiguousarray(b_2[:, np.newaxis, np.newaxis, :])
+        dndlnm_1e = np.ascontiguousarray(dndlnm_1[:, np.newaxis, :, np.newaxis])
+        dndlnm_2e = np.ascontiguousarray(dndlnm_2[:, np.newaxis, np.newaxis, :])
+        inv_mass_1e = np.ascontiguousarray(
+            inv_mass[np.newaxis, np.newaxis, :, np.newaxis]
+        )
+        inv_mass_2e = np.ascontiguousarray(
+            inv_mass[np.newaxis, np.newaxis, np.newaxis, :]
+        )
 
         integrand_22 = ne.evaluate(
             'B_NL_k_z * b_1e * b_2e * dndlnm_1e * dndlnm_2e * inv_mass_1e * inv_mass_2e'
@@ -1256,18 +1247,10 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I12 term.
         """
-
-        # integrand_12 = (
-        #    B_NL_k_z[:, :, :, 0]
-        #    * b_2[:, np.newaxis, :]
-        #    * dndlnm_2[:, np.newaxis, :]
-        #    / self.mass[np.newaxis, np.newaxis, :]
-        # )
-
-        B_NL_k_z_e = B_NL_k_z[:, :, :, 0]
-        b_2e = b_2[:, np.newaxis, :]
-        dndlnm_2e = dndlnm_2[:, np.newaxis, :]
-        inv_mass_2e = 1.0 / self.mass[np.newaxis, np.newaxis, :]
+        B_NL_k_z_e = np.ascontiguousarray(B_NL_k_z[:, :, :, 0])
+        b_2e = np.ascontiguousarray(b_2[:, np.newaxis, :])
+        dndlnm_2e = np.ascontiguousarray(dndlnm_2[:, np.newaxis, :])
+        inv_mass_2e = np.ascontiguousarray(1.0 / self.mass[np.newaxis, np.newaxis, :])
 
         integrand_12 = ne.evaluate('B_NL_k_z_e * b_2e * dndlnm_2e * inv_mass_2e')
         return integrand_12
@@ -1294,18 +1277,10 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I21 term.
         """
-
-        # integrand_21 = (
-        #    B_NL_k_z[:, :, 0, :]
-        #    * b_1[:, np.newaxis, :]
-        #    * dndlnm_1[:, np.newaxis, :]
-        #    / self.mass[np.newaxis, np.newaxis, :]
-        # )
-
-        B_NL_k_z_e = B_NL_k_z[:, :, 0, :]
-        b_1e = b_1[:, np.newaxis, :]
-        dndlnm_1e = dndlnm_1[:, np.newaxis, :]
-        inv_mass_1e = 1.0 / self.mass[np.newaxis, np.newaxis, :]
+        B_NL_k_z_e = np.ascontiguousarray(B_NL_k_z[:, :, 0, :])
+        b_1e = np.ascontiguousarray(b_1[:, np.newaxis, :])
+        dndlnm_1e = np.ascontiguousarray(dndlnm_1[:, np.newaxis, :])
+        inv_mass_1e = np.ascontiguousarray(1.0 / self.mass[np.newaxis, np.newaxis, :])
 
         integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dndlnm_1e * inv_mass_1e')
         return integrand_21
@@ -1361,11 +1336,10 @@ class Spectra(HaloModelIngredients):
             The integral over beta_nl.
         """
         # Reshape W_1 and W_2 for broadcasting
-        W_1e = W_1[:, :, :, :, np.newaxis]
-        W_2e = W_2[:, :, :, np.newaxis, :]
+        W_1e = np.ascontiguousarray(W_1[:, :, :, :, np.newaxis])
+        W_2e = np.ascontiguousarray(W_2[:, :, :, np.newaxis, :])
 
         # Calculate integrand_22 using broadcasting
-        # integrand_22 = integrand_22_part * W_1e * W_2e
         integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
 
         # Perform trapezoidal integration
@@ -1376,47 +1350,27 @@ class Spectra(HaloModelIngredients):
         )
 
         # Calculate I_11 using broadcasting
-        # I_11 = (
-        #    B_NL_k_z[:, :, 0, 0]
-        #    * (
-        #        A
-        #        * A
-        #        * W_1[:, :, :, 0]
-        #        * W_2[:, :, :, 0]
-        #        * rho_mean[:, np.newaxis]
-        #        * rho_mean[:, np.newaxis]
-        #    )
-        #    / (self.mass[0] * self.mass[0])
-        # )
-        inv_mass0 = 1.0 / self.mass[0]
-        inv_mass0_sq = inv_mass0 * inv_mass0
+        inv_mass0 = np.ascontiguousarray(1.0 / self.mass[0])
+        inv_mass0_sq = np.ascontiguousarray(inv_mass0 * inv_mass0)
 
         # Precompute reusable arrays
-        A_sq = A * A
-        rho_sq = rho_mean[:, None] * rho_mean[:, None]
+        A_sq = np.ascontiguousarray(A * A)
+        rho_sq = np.ascontiguousarray(rho_mean[:, None] * rho_mean[:, None])
 
         # Pre-slice commonly used parts
-        W1_0 = W_1[:, :, :, 0]
-        W2_0 = W_2[:, :, :, 0]
-        rho_col = rho_mean[:, None]
-        B_NL = B_NL_k_z[:, :, 0, 0]
+        W1_0 = np.ascontiguousarray(W_1[:, :, :, 0])
+        W2_0 = np.ascontiguousarray(W_2[:, :, :, 0])
+        rho_col = np.ascontiguousarray(rho_mean[:, None])
+        B_NL = np.ascontiguousarray(B_NL_k_z[:, :, 0, 0])
 
         I_11 = ne.evaluate('B_NL * A_sq * W1_0 * W2_0 * rho_sq * inv_mass0_sq')
 
         # Calculate I_12 using broadcasting
-        # integral_12 = np.trapezoid(integrand_12_part * W_2, x=self.mass, axis=-1)
-        # I_12 = (
-        #    A * W_1[:, :, :, 0] * integral_12 * rho_mean[:, np.newaxis] / self.mass[0]
-        # )
         integrand_12 = ne.evaluate('integrand_12_part * W_2')
         integral_12 = self.trapezoidal_integrator(integrand_12, x=self.mass, axis=-1)
         I_12 = ne.evaluate('A * W1_0 * integral_12 * rho_col * inv_mass0')
 
         # Calculate I_21 using broadcasting
-        # integral_21 = np.trapezoid(integrand_21_part * W_1, x=self.mass, axis=-1)
-        # I_21 = (
-        #    A * W_2[:, :, :, 0] * integral_21 * rho_mean[:, np.newaxis] / self.mass[0]
-        # )
         integrand_21 = ne.evaluate('integrand_21_part * W_1')
         integral_21 = self.trapezoidal_integrator(integrand_21, x=self.mass, axis=-1)
         I_21 = ne.evaluate('A * W2_0 * integral_21 * rho_col * inv_mass0')
@@ -2174,7 +2128,11 @@ class Spectra(HaloModelIngredients):
         ndarray
             The radial alignment profile of satellite galaxies.
         """
-        return self.alignment_class.upsampled_wkm(self.k_vec, self.mass)
+        return np.ascontiguousarray(
+            self.alignment_class.upsampled_wkm(self.k_vec, self.mass).transpose(
+                0, 2, 1
+            )[np.newaxis, :, :, :]
+        )
 
     def compute_central_galaxy_alignment_profile(
         self, growth_factor, f_c, C1, mass, beta=None, mpivot=None, mass_avg=None
@@ -2291,7 +2249,7 @@ class Spectra(HaloModelIngredients):
             self.hod.hod_sat[:, :, np.newaxis, :],
             self.hod.number_density_sat[:, :, np.newaxis, np.newaxis],
             self.hod.f_s[:, :, np.newaxis, np.newaxis],
-            self.wkm_sat.transpose(0, 2, 1)[np.newaxis, :, :, :],
+            self.wkm_sat,
             self.beta_sat,
             self.mpivot_sat,
             self.mass_avg[:, :, np.newaxis, np.newaxis],

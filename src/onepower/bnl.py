@@ -15,6 +15,8 @@ from scipy.optimize import curve_fit
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework
 
+from scipy.ndimage import map_coordinates
+
 
 class NonLinearBias(Framework):
     """
@@ -274,27 +276,27 @@ class NonLinearBias(Framework):
 
         n, m, p = len(x), len(y), len(z)
 
-        # Precompute all combinations of values (fast repeat/tile approach)
-        X = np.repeat(x, m * p)
-        Y = np.tile(np.repeat(y, p), n)
-        Z = np.tile(z, n * m)
+        # Precompute all combinations of values (reordered for direct fill)
+        Z = np.repeat(z, n * m)  # p varies fastest (outer axis first)
+        X = np.tile(np.repeat(x, m), p)
+        Y = np.tile(y, n * p)
         values = np.column_stack((X, Y, Z))
 
         # Precompute flat indices for direct assignment
-        ii = np.repeat(np.arange(n), m * p)
-        jj = np.tile(np.repeat(np.arange(m), p), n)
-        kk = np.tile(np.arange(p), n * m)
+        kk = np.repeat(np.arange(p), n * m)
+        ii = np.tile(np.repeat(np.arange(n), m), p)
+        jj = np.tile(np.arange(m), n * p)
 
-        # Now allocate and fill beta_interp efficiently
+        # Allocate and fill beta_interp efficiently
         if self.z_dep:
-            beta_interp = np.zeros((len(self.z_vec), n, m, p))
+            beta_interp = np.zeros((len(self.z_vec), p, n, m))
             for i, _zi in enumerate(self.z_vec):
-                beta_interp[i, ii, jj, kk] = beta_interp_tmp[i](values)
-            return beta_interp.transpose([0, 3, 1, 2])
+                beta_interp[i, kk, ii, jj] = beta_interp_tmp[i](values)
+            return beta_interp
         else:
-            beta_interp = np.zeros((n, m, p))
-            beta_interp[ii, jj, kk] = beta_interp_tmp(values)
-            return beta_interp[np.newaxis, :, :, :].transpose([0, 3, 1, 2])
+            beta_interp = np.zeros((p, n, m))
+            beta_interp[kk, ii, jj] = beta_interp_tmp(values)
+            return beta_interp[np.newaxis, :, :, :]
 
     def low_k_truncation(self, k, k_trunc):
         """
