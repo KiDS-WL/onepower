@@ -180,7 +180,7 @@ def test_spectra_alignment_properties_and_profiles_and_terms(setup_data, spectra
     assert spectra.alignment_amplitude_2h_II.shape == (len(z_vec), 1)
     assert spectra.C1.shape == (len(z_vec), 1, 1)
 
-    assert spectra.wkm_sat.shape == (len(z_vec), len(mass), len(spectra.k_vec))
+    assert spectra.wkm_sat.shape == (1, len(z_vec), len(mass), len(spectra.k_vec))
     assert spectra.central_alignment_profile.shape == (1, len(z_vec), 1, len(mass))
     assert spectra.satellite_alignment_profile.shape == (
         1,

@@ -425,7 +425,7 @@ class Spectra(HaloModelIngredients):
         """
         if self.bnl and self.beta_nl is None:
             return self.calc_bnl
-        return np.ascontiguousarray(self.beta_nl)
+        return np.ascontiguousarray(self.beta_nl) if self.beta_nl is not None else None
 
     @cached_quantity
     def _pk_lin(self):
