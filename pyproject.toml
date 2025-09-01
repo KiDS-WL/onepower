@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "onepower"
-description = "A halo model code with modules for CosmoSIS"
+description = "Python package for computing power spectra and one-point statistics using the halo model framework."
 readme = "README.rst"
 authors = [
     {name="Andrej Dvornik", email="andrej.dvornik@me.com"},
