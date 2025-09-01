@@ -62,7 +62,7 @@ OnePower is ideal for:
 
 📄 `Documentation <https://kids-wl.github.io/onepower/index.html>`_
 
-💾 Install via PyPI (link to be added)
+💾 `Install via PyPI <https://pypi.org/p/onepower>`_
 
 Example usage
 -------------

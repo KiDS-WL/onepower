@@ -75,7 +75,7 @@ def test_bnl(bias_instance):
             len(bias.k_vec),
         )
     else:
-        assert bnl.shape == (1, len(bias.mass), len(bias.mass), len(bias.k_vec))
+        assert bnl.shape == (1, len(bias.k_vec), len(bias.mass), len(bias.mass))
 
 
 def test_low_k_truncation(bias_instance, setup_data):
@@ -122,13 +122,13 @@ def test_create_bnl_interpolation_function(bias_instance, setup_data):
     bias = bias_instance
     interpolation_function = bias.create_bnl_interpolation_function
     assert callable(interpolation_function)
-    assert bias.bnl.shape == (1, len(mass), len(mass), len(bias.k_vec))
+    assert bias.bnl.shape == (1, len(bias.k_vec), len(mass), len(mass))
 
     bias_zdep = bias.clone()
     bias_zdep.update(z_dep=True)
     interpolation_function = bias_zdep.create_bnl_interpolation_function
     assert len(interpolation_function) == len(z_vec)
-    assert bias_zdep.bnl.shape == (len(z_vec), len(mass), len(mass), len(bias.k_vec))
+    assert bias_zdep.bnl.shape == (len(z_vec), len(bias.k_vec), len(mass), len(mass))
 
 
 def test_out_of_range(bias_instance):

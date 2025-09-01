@@ -14,7 +14,7 @@ authors = [
     {name="Marika Asgari", email="marika.asgari@newcastle.ac.uk"},
 ]
 license = {text="MIT"}
-requires-python = ">=3.10"
+requires-python = ">=3.10, <3.13"
 classifiers = [
     "Development Status :: 6 - Mature",
     "Intended Audience :: Science/Research",
@@ -32,7 +32,7 @@ classifiers = [
 dependencies = [
     "hmf @ git+https://github.com/andrejdvornik/hmf.git",
     "halomod @ git+https://github.com/andrejdvornik/halomod.git",
-    "numpy>=1.24.0",
+    "numpy>=2.0",
     "astropy>=6.0.0",
     "dark_emulator==1.1.2",
     "scipy<1.14.0",

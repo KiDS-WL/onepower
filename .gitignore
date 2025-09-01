@@ -9,6 +9,7 @@
 .venv/
 /.project
 build/
+dist/
 .spyproject
 legacy_input_files/*.fits
 /filesfromIsaac
