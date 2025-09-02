@@ -46,8 +46,7 @@ dependencies = [
     "rich",
     "pre-commit",
 ]
-#dynamic = ["version"]
-version = "0.1.5"
+dynamic = ["version"]
 
 [project.optional-dependencies]
 docs = [
