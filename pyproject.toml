@@ -1,9 +1,6 @@
 [build-system]
 requires = ["setuptools>=61", "wheel", "setuptools_scm>=8.0", "numpy"]
-# build-backend = "setuptools.build_meta"
-build-backend = "pypibuild"
-backend-path = ["."]
-
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 
@@ -49,7 +46,8 @@ dependencies = [
     "rich",
     "pre-commit",
 ]
-dynamic = ["version"]
+#dynamic = ["version"]
+version = "0.1.5"
 
 [project.optional-dependencies]
 docs = [
