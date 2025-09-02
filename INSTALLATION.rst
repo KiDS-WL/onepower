@@ -10,13 +10,6 @@ Dependencies
 as you install the package itself. You therefore do not need to worry about installing
 them yourself, except in some circumstances.
 
-**Note that currently the** ``hmf`` **and** ``halomod`` **need to be installed manually from an alternative fork, until pull requests are approved:**
-
-.. code-block:: bash
-
-    pip install hmf @ git+git://github.com/andrejdvornik/hmf.git@main
-    pip install halomod git+git://github.com/andrejdvornik/halomod.git@main
-
 The list of major dependencies used by ``onepower`` is:
 
 1. The `halo mass function calculator, hmf <https://hmf.readthedocs.io/en/3.3.4/>`_
@@ -31,6 +24,8 @@ Similar data is required for any luminosity based IA predictions are to be used.
 User Install
 ------------
 You may install the latest release of ``onepower`` using ``pip``
+
+**Note that because currently the** ``hmf`` **and** ``halomod`` **dependencies need to be installed from an alternative fork until pull requests are approved, the** ``onepower`` **is not yet available on PyPI and thus the simple installation with pip below does not work yet!**
 
 .. code-block:: bash
 
