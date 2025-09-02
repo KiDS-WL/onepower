@@ -22,7 +22,7 @@ Features
 - Predictions of **stellar mass functions** and / or **luminosity functions**
 - Modeling of **intrinsic alignments** using the halo model approach
 - Built on a flexible, extensible halo model architecture
-- Includes a interface module for interfacing the code with the `CosmoSIS <https://github.com/joezuntz/cosmosis>`_
+- Includes a interface module for interfacing the code with the `CosmoSIS <https://github.com/joezuntz/cosmosis>`_ (cloning of GitHub repository required for ease of use)
 
 OnePower is ideal for:
 
@@ -34,7 +34,7 @@ OnePower is ideal for:
 
 📄 `Documentation <https://kids-wl.github.io/onepower/index.html>`_
 
-💾 `Install via PyPI <https://pypi.org/p/onepower>`_
+💾 `Install via PyPI <https://github.com/KiDS-WL/onepower>`_
 
 Example usage
 -------------

@@ -7,17 +7,19 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "onepower"
 description = "Python package for computing power spectra and one-point statistics using the halo model framework."
-readme = "README.rst"
+readme = "README.md"
 authors = [
     {name="Andrej Dvornik", email="andrej.dvornik@me.com"},
     {name="Maria Cristina Fortuna", email="maricri.fortuna@gmail.com"},
     {name="Marika Asgari", email="marika.asgari@newcastle.ac.uk"},
 ]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
 requires-python = ">=3.10, <3.13"
 classifiers = [
     "Development Status :: 6 - Mature",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX",
     "Operating System :: Unix",
     "Programming Language :: Python",
@@ -29,8 +31,8 @@ classifiers = [
 	"Topic :: Scientific/Engineering :: Astronomy",
 ]
 dependencies = [
-    "hmf @ git+https://github.com/andrejdvornik/hmf.git",
-    "halomod @ git+https://github.com/andrejdvornik/halomod.git",
+    "hmf @ git+https://github.com/andrejdvornik/hmf.git@main",
+    "halomod @ git+https://github.com/andrejdvornik/halomod.git@main",
     "numpy>=2.0",
     "astropy>=6.0.0",
     "dark_emulator==1.1.2",
@@ -45,7 +47,6 @@ dependencies = [
     "pre-commit",
 ]
 dynamic = ["version"]
-
 
 [project.optional-dependencies]
 docs = [
