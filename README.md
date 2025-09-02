@@ -34,7 +34,7 @@ OnePower is ideal for:
 
 📄 [Documentation](https://kids-wl.github.io/onepower/index.html)
 
-💾 [Install via PyPI](https://github.com/KiDS-WL/onepower)
+💾 [Install via PyPI](https://pypi.org/p/onepower)
 
 
 ## Example usage

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=60", "wheel", "setuptools_scm>=8.0", "numpy"]
+requires = ["setuptools>=61", "wheel", "setuptools_scm>=8.0", "numpy"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
@@ -31,8 +31,8 @@ classifiers = [
 	"Topic :: Scientific/Engineering :: Astronomy",
 ]
 dependencies = [
-    "hmf @ git+https://github.com/andrejdvornik/hmf.git@main",
-    "halomod @ git+https://github.com/andrejdvornik/halomod.git@main",
+    #"hmf @ git+https://github.com/andrejdvornik/hmf.git@main",
+    #"halomod @ git+https://github.com/andrejdvornik/halomod.git@main",
     "numpy>=2.0",
     "astropy>=6.0.0",
     "dark_emulator==1.1.2",
