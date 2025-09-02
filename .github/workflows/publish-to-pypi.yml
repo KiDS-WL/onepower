@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - andrej_dev
     tags:
       - 'v*.*.*'
   release:
@@ -56,26 +55,26 @@ jobs:
     - name: Publish distribution 📦 to PyPI
       uses: pypa/gh-action-pypi-publish@v1.12.4
 
-  publish-to-testpypi:
-    name: Publish Python 🐍 distribution 📦 to TestPyPI
-    needs:
-    - build
-    runs-on: ubuntu-latest
-
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/onepower
-
-    permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
-
-    steps:
-    - name: Download all the dists
-      uses: actions/download-artifact@v4
-      with:
-        name: python-package-distributions
-        path: dist/
-    - name: Publish distribution 📦 to TestPyPI
-      uses: pypa/gh-action-pypi-publish@v1.12.4
-      with:
-        repository-url: https://test.pypi.org/legacy/
+  #publish-to-testpypi:
+  #  name: Publish Python 🐍 distribution 📦 to TestPyPI
+  #  needs:
+  #  - build
+  #  runs-on: ubuntu-latest
+  #
+  #  environment:
+  #    name: testpypi
+  #    url: https://test.pypi.org/p/onepower
+  #
+  #  permissions:
+  #    id-token: write  # IMPORTANT: mandatory for trusted publishing
+  #
+  #  steps:
+  #  - name: Download all the dists
+  #    uses: actions/download-artifact@v4
+  #    with:
+  #      name: python-package-distributions
+  #      path: dist/
+  #  - name: Publish distribution 📦 to TestPyPI
+  #    uses: pypa/gh-action-pypi-publish@v1.12.4
+  #    with:
+  #      repository-url: https://test.pypi.org/legacy/
