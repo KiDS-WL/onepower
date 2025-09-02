@@ -10,6 +10,12 @@ Dependencies
 as you install the package itself. You therefore do not need to worry about installing
 them yourself, except in some circumstances.
 
+** Note that currently the ``hmf`` and ``halomod`` need to be installed manually from an alternative fork, until pull requests are approved: **
+
+.. code-block:: bash
+    pip install hmf @ git+git://github.com/andrejdvornik/hmf.git@main
+    pip install halomod git+git://github.com/andrejdvornik/halomod.git@main
+
 The list of dependencies used by ``onepower`` is:
 
 1. The `halo mass function calculator, hmf <https://hmf.readthedocs.io/en/3.3.4/>`_
@@ -39,7 +45,14 @@ Alternatively, for the very bleeding edge, install from the main branch of the r
 
 Developer Install
 -----------------
-If you intend to develop ``onepower``, clone the repository (or your fork of it)
+If you intend to develop ``onepower``, clone the repository:
+
+.. code-block:: bash
+
+    git clone https://github.com/KiDS-WL/onepower.git
+
+
+or your fork of it:
 
 .. code-block:: bash
 
