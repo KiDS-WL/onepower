@@ -71,7 +71,7 @@ jobs:
       - name: Verify Changed files
         if : matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && success() && github.event_name == 'push'
         id: verify
-        uses: tj-actions/verify-changed-files@v16
+        uses: tj-actions/verify-changed-files@v20
         with:
           files: coverage.svg
 
