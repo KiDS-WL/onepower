@@ -4,7 +4,23 @@ Releases
 dev-version
 ----------------------
 
+**Changes**
 
+**Fixes**
+
+v0.2.0 [2 Sep 2025]
+--------------------
+
+**Changes**
+
+* Cosmology inputs take different parameters, dropping Omega_M
+* More numexpr usage to speed up the code
+* Update to the documentation theme
+* Setting up PyPI support
+
+**Fixes**
+
+* Fixed neutrinos
 
 v0.1.1 [15 Aug 2025]
 --------------------
