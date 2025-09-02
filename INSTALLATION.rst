@@ -10,9 +10,10 @@ Dependencies
 as you install the package itself. You therefore do not need to worry about installing
 them yourself, except in some circumstances.
 
-** Note that currently the ``hmf`` and ``halomod`` need to be installed manually from an alternative fork, until pull requests are approved: **
+**Note that currently the** ``hmf`` **and** ``halomod`` **need to be installed manually from an alternative fork, until pull requests are approved:**
 
 .. code-block:: bash
+
     pip install hmf @ git+git://github.com/andrejdvornik/hmf.git@main
     pip install halomod git+git://github.com/andrejdvornik/halomod.git@main
 
