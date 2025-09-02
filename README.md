@@ -5,6 +5,7 @@
 [![Coverage](https://raw.githubusercontent.com/KiDS-WL/onepower/main/coverage.svg)](https://github.com/KiDS-WL/onepower/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/KiDS-WL/onepower/main.svg)](https://results.pre-commit.ci/latest/github/KiDS-WL/onepower/main)
 
 <picture>
 	<source media="(prefers-color-scheme: dark)" srcset="https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logosmall_white_merged.png">
