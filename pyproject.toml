@@ -80,6 +80,13 @@ all = [
     "onepower[dev]"
 ]
 
+[project.urls]
+Homepage = "https://github.com/KiDS-WL/onepower"
+Repository = "https://github.com/KiDS-WL/onepower.git"
+Documentation = "https://kids-wl.github.io/onepower/"
+Issues = "https://github.com/KiDS-WL/onepower/issues"
+Changelog = "https://github.com/KiDS-WL/onepower/blob/main/CHANGELOG.rst"
+
 
 [tool.pytest.ini_options]
 addopts = "--cov onepower --cov-report term-missing --verbose"
