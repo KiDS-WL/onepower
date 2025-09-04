@@ -6,7 +6,12 @@ dev-version
 
 **Changes**
 
+* Use the updated ``halomod`` and ``hmf`` packages that implement changes require to run ``onepower``
+* Updates to the pyproject.toml file to include all dependencies and metadata
+
 **Fixes**
+
+* None
 
 v0.2.0 [2 Sep 2025]
 --------------------
