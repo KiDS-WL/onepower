@@ -1210,14 +1210,14 @@ class Spectra(HaloModelIngredients):
             Integrand for the I22 term.
         """
         inv_mass = 1.0 / self.mass
-        b_1e = np.ascontiguousarray(b_1[:, np.newaxis, :, np.newaxis])
-        b_2e = np.ascontiguousarray(b_2[:, np.newaxis, np.newaxis, :])
-        dndlnm_1e = np.ascontiguousarray(dndlnm_1[:, np.newaxis, :, np.newaxis])
-        dndlnm_2e = np.ascontiguousarray(dndlnm_2[:, np.newaxis, np.newaxis, :])
-        inv_mass_1e = np.ascontiguousarray(
+        b_1e = np.ascontiguousarray(b_1[:, np.newaxis, :, np.newaxis])  # noqa: F841
+        b_2e = np.ascontiguousarray(b_2[:, np.newaxis, np.newaxis, :])  # noqa: F841
+        dndlnm_1e = np.ascontiguousarray(dndlnm_1[:, np.newaxis, :, np.newaxis])  # noqa: F841
+        dndlnm_2e = np.ascontiguousarray(dndlnm_2[:, np.newaxis, np.newaxis, :])  # noqa: F841
+        inv_mass_1e = np.ascontiguousarray(  # noqa: F841
             inv_mass[np.newaxis, np.newaxis, :, np.newaxis]
         )
-        inv_mass_2e = np.ascontiguousarray(
+        inv_mass_2e = np.ascontiguousarray(  # noqa: F841
             inv_mass[np.newaxis, np.newaxis, np.newaxis, :]
         )
 
@@ -1248,10 +1248,10 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I12 term.
         """
-        B_NL_k_z_e = np.ascontiguousarray(B_NL_k_z[:, :, :, 0])
-        b_2e = np.ascontiguousarray(b_2[:, np.newaxis, :])
-        dndlnm_2e = np.ascontiguousarray(dndlnm_2[:, np.newaxis, :])
-        inv_mass_2e = np.ascontiguousarray(1.0 / self.mass[np.newaxis, np.newaxis, :])
+        B_NL_k_z_e = np.ascontiguousarray(B_NL_k_z[:, :, :, 0])  # noqa: F841
+        b_2e = np.ascontiguousarray(b_2[:, np.newaxis, :])  # noqa: F841
+        dndlnm_2e = np.ascontiguousarray(dndlnm_2[:, np.newaxis, :])  # noqa: F841
+        inv_mass_2e = np.ascontiguousarray(1.0 / self.mass[np.newaxis, np.newaxis, :])  # noqa: F841
 
         integrand_12 = ne.evaluate('B_NL_k_z_e * b_2e * dndlnm_2e * inv_mass_2e')
         return integrand_12
@@ -1278,10 +1278,10 @@ class Spectra(HaloModelIngredients):
         ndarray
             Integrand for the I21 term.
         """
-        B_NL_k_z_e = np.ascontiguousarray(B_NL_k_z[:, :, 0, :])
-        b_1e = np.ascontiguousarray(b_1[:, np.newaxis, :])
-        dndlnm_1e = np.ascontiguousarray(dndlnm_1[:, np.newaxis, :])
-        inv_mass_1e = np.ascontiguousarray(1.0 / self.mass[np.newaxis, np.newaxis, :])
+        B_NL_k_z_e = np.ascontiguousarray(B_NL_k_z[:, :, 0, :])  # noqa: F841
+        b_1e = np.ascontiguousarray(b_1[:, np.newaxis, :])  # noqa: F841
+        dndlnm_1e = np.ascontiguousarray(dndlnm_1[:, np.newaxis, :])  # noqa: F841
+        inv_mass_1e = np.ascontiguousarray(1.0 / self.mass[np.newaxis, np.newaxis, :])  # noqa: F841
 
         integrand_21 = ne.evaluate('B_NL_k_z_e * b_1e * dndlnm_1e * inv_mass_1e')
         return integrand_21
@@ -1337,14 +1337,14 @@ class Spectra(HaloModelIngredients):
             The integral over beta_nl.
         """
         # Reshape W_1 and W_2 for broadcasting
-        W_1e = np.ascontiguousarray(W_1[:, :, :, :, np.newaxis])
-        W_2e = np.ascontiguousarray(W_2[:, :, :, np.newaxis, :])
+        W_1e = np.ascontiguousarray(W_1[:, :, :, :, np.newaxis])  # noqa: F841
+        W_2e = np.ascontiguousarray(W_2[:, :, :, np.newaxis, :])  # noqa: F841
 
         # Calculate integrand_22 using broadcasting
         integrand_22 = ne.evaluate('integrand_22_part * W_1e * W_2e')
 
         # Perform trapezoidal integration
-        I_22 = self.trapezoidal_integrator(
+        I_22 = self.trapezoidal_integrator(  # noqa: F841
             self.trapezoidal_integrator(integrand_22, x=self.mass, axis=-1),
             x=self.mass,
             axis=-1,
@@ -1352,29 +1352,29 @@ class Spectra(HaloModelIngredients):
 
         # Calculate I_11 using broadcasting
         inv_mass0 = np.ascontiguousarray(1.0 / self.mass[0])
-        inv_mass0_sq = np.ascontiguousarray(inv_mass0 * inv_mass0)
+        inv_mass0_sq = np.ascontiguousarray(inv_mass0 * inv_mass0)  # noqa: F841
 
         # Precompute reusable arrays
-        A_sq = np.ascontiguousarray(A * A)
-        rho_sq = np.ascontiguousarray(rho_mean[:, None] * rho_mean[:, None])
+        A_sq = np.ascontiguousarray(A * A)  # noqa: F841
+        rho_sq = np.ascontiguousarray(rho_mean[:, None] * rho_mean[:, None])  # noqa: F841
 
         # Pre-slice commonly used parts
-        W1_0 = np.ascontiguousarray(W_1[:, :, :, 0])
-        W2_0 = np.ascontiguousarray(W_2[:, :, :, 0])
-        rho_col = np.ascontiguousarray(rho_mean[:, None])
-        B_NL = np.ascontiguousarray(B_NL_k_z[:, :, 0, 0])
+        W1_0 = np.ascontiguousarray(W_1[:, :, :, 0])  # noqa: F841
+        W2_0 = np.ascontiguousarray(W_2[:, :, :, 0])  # noqa: F841
+        rho_col = np.ascontiguousarray(rho_mean[:, None])  # noqa: F841
+        B_NL = np.ascontiguousarray(B_NL_k_z[:, :, 0, 0])  # noqa: F841
 
-        I_11 = ne.evaluate('B_NL * A_sq * W1_0 * W2_0 * rho_sq * inv_mass0_sq')
+        I_11 = ne.evaluate('B_NL * A_sq * W1_0 * W2_0 * rho_sq * inv_mass0_sq')  # noqa: F841
 
         # Calculate I_12 using broadcasting
         integrand_12 = ne.evaluate('integrand_12_part * W_2')
-        integral_12 = self.trapezoidal_integrator(integrand_12, x=self.mass, axis=-1)
-        I_12 = ne.evaluate('A * W1_0 * integral_12 * rho_col * inv_mass0')
+        integral_12 = self.trapezoidal_integrator(integrand_12, x=self.mass, axis=-1)  # noqa: F841
+        I_12 = ne.evaluate('A * W1_0 * integral_12 * rho_col * inv_mass0')  # noqa: F841
 
         # Calculate I_21 using broadcasting
         integrand_21 = ne.evaluate('integrand_21_part * W_1')
-        integral_21 = self.trapezoidal_integrator(integrand_21, x=self.mass, axis=-1)
-        I_21 = ne.evaluate('A * W2_0 * integral_21 * rho_col * inv_mass0')
+        integral_21 = self.trapezoidal_integrator(integrand_21, x=self.mass, axis=-1)  # noqa: F841
+        I_21 = ne.evaluate('A * W2_0 * integral_21 * rho_col * inv_mass0')  # noqa: F841
 
         # Combine all terms
         return ne.evaluate('I_11 + I_12 + I_21 + I_22')
