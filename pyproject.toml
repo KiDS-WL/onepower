@@ -148,7 +148,7 @@ quote-style = "single"
 line-ending = "lf"
 
 [tool.ruff.lint.pydocstyle]
-convention = 'numpy'
+convention = "numpy"
 
 [tool.ruff.lint.mccabe]
 max-complexity = 25
