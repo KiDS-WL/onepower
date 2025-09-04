@@ -11,7 +11,7 @@ dev-version
 
 **Fixes**
 
-* None
+* Stricter linting
 
 v0.2.0 [2 Sep 2025]
 -------------------
