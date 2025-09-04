@@ -54,7 +54,7 @@ it is almost pointless to list them. A brief summary is in order:
 * Majority of documentation written, with examples on how to use the code.
 * Majority of functional tests written, with more scientifi tests and benchmars to come.
 
-**Bugfixes**
+**Fixes**
 
 * A lot.
 
