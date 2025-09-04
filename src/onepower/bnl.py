@@ -8,14 +8,11 @@ an analytic prescription from Flamingo sims.
 import numpy as np
 from collections import OrderedDict
 from dark_emulator import darkemu
-from functools import cached_property
 from scipy.interpolate import RegularGridInterpolator, interp1d
 from scipy.optimize import curve_fit
 
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework
-
-from scipy.ndimage import map_coordinates
 
 
 class NonLinearBias(Framework):

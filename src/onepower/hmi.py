@@ -5,19 +5,18 @@ cosmological parameters, and related quantities using different models and corre
 """
 
 import halomod.concentration as concentration_classes
-import halomod.profiles as profile_classes
 import numpy as np
 import warnings
 from astropy.cosmology import Flatw0waCDM, Planck15
 from astropy import units as u
 from functools import cached_property
 from halomod.concentration import interp_concentration, make_colossus_cm
-from halomod.halo_model import DMHaloModel, TracerHaloModel
+from halomod.halo_model import DMHaloModel
 from scipy.integrate import quad, simpson, solve_ivp
 from scipy.interpolate import interp1d
 from scipy.optimize import root_scalar
 
-from hmf._internals._cache import cached_quantity, parameter, subframework
+from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework
 from hmf.halos.mass_definitions import SphericalOverdensity
 

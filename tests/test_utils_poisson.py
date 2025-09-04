@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from onepower.utils.poisson import Poisson, constant, power_law
+from onepower.utils.poisson import constant, power_law
 
 
 @pytest.fixture

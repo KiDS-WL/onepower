@@ -1,9 +1,8 @@
 import numpy as np
-import warnings
 from functools import cached_property
 from scipy.interpolate import interp1d
 
-from hmf._internals._cache import cached_quantity, parameter, subframework
+from hmf._internals._cache import parameter
 from hmf._internals._framework import Framework
 
 from .pk import PowerSpectrumResult, Spectra

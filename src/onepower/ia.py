@@ -6,7 +6,6 @@ related to the intrinsic alignment of central and satellite galaxies within dark
 
 import numpy as np
 from astropy.io import fits
-from functools import cached_property
 from hankel import HankelTransform
 from scipy.fft import fht, fhtoffset
 from scipy.integrate import simpson

@@ -38,13 +38,12 @@ and the integral over beta_nl is
 import numexpr as ne
 import numpy as np
 import warnings
-from functools import cached_property
 from scipy.integrate import simpson
 from scipy.interpolate import interp1d
 from scipy.ndimage import gaussian_filter1d
 
 from hmf._internals._cache import cached_quantity, parameter
-from hmf._internals._framework import Framework, get_mdl
+from hmf._internals._framework import get_mdl
 from hmf.density_field.transfer_models import EH_NoBAO as Tk_EH_nowiggle
 
 from .bnl import NonLinearBias
@@ -1104,7 +1103,9 @@ class Spectra(HaloModelIngredients):
         A = 1.0 - simpson(integrand_m1, x=mass)
         if (A < 0.0).any():  # pragma: no cover
             warnings.warn(
-                'Warning: Mass function/bias correction is negative!', RuntimeWarning
+                'Warning: Mass function/bias correction is negative!',
+                RuntimeWarning,
+                stacklevel=2,
             )
         return A
 
