@@ -982,7 +982,7 @@ class HaloModelIngredients(CosmologyBase):
             halo_concentration class, Bullock 2001 model in case if meed_correction is True
         """
         if self.mead_correction in ['feedback', 'nofeedback']:
-            val = interp_concentration(getattr(concentration_classes, 'Bullock01'))
+            val = interp_concentration(concentration_classes.Bullock01)
         else:
             try:
                 val = interp_concentration(
@@ -1005,7 +1005,7 @@ class HaloModelIngredients(CosmologyBase):
             halo_concentration class
         """
         if self.mead_correction in ['feedback', 'nofeedback']:
-            val = interp_concentration(getattr(concentration_classes, 'Bullock01'))
+            val = interp_concentration(concentration_classes.Bullock01)
         else:
             try:
                 val = interp_concentration(
