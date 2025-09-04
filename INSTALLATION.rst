@@ -25,8 +25,6 @@ User Install
 ------------
 You may install the latest release of ``onepower`` using ``pip``
 
-**Note that because currently the** ``halomod`` **dependencies need to be installed from an alternative fork until pull requests are approved, the** ``onepower`` **is not yet available on PyPI and thus the simple installation with pip below does not work yet!**
-
 .. code-block:: bash
 
     pip install onepower
