@@ -66,7 +66,7 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
 
       - name: Install pandoc
         if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
