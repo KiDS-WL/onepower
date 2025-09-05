@@ -35,7 +35,7 @@ jobs:
       matrix:
         ref: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ matrix.ref }}
           persist-credentials: True
@@ -105,7 +105,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout gh-pages
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: gh-pages
           persist-credentials: True
