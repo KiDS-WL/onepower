@@ -1,5 +1,10 @@
 name: Dependabot auto-merge
-on: pull_request
+on:
+  workflow_dispatch:
+    inputs:
+      pr-number:
+        required: true
+  pull_request:
 
 permissions:
   contents: write
@@ -8,10 +13,7 @@ permissions:
 jobs:
   automerge:
     runs-on: ubuntu-latest
-
-    permissions:
-      pull-requests: write
-      contents: write
-
     steps:
       - uses: fastify/github-action-merge-dependabot@v3
+        with:
+          pr-number: ${{ github.event.inputs.pr-number || github.event.pull_request.number }}
