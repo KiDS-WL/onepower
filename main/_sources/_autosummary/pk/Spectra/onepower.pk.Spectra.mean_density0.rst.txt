@@ -1,0 +1,6 @@
+onepower.pk.Spectra.mean\_density0
+==================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.mean_density0

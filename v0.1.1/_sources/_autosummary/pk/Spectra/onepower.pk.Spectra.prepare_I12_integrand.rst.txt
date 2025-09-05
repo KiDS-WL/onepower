@@ -1,0 +1,6 @@
+onepower.pk.Spectra.prepare\_I12\_integrand
+===========================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.prepare_I12_integrand
