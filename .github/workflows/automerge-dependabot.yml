@@ -6,7 +6,6 @@ permissions:
   pull-requests: write
 
 jobs:
-  jobs:
   automerge:
     runs-on: ubuntu-latest
 
