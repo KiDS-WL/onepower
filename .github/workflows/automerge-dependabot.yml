@@ -16,4 +16,5 @@ jobs:
     steps:
       - uses: fastify/github-action-merge-dependabot@v3
         with:
+          use-github-auto-merge: True
           pr-number: ${{ github.event.inputs.pr-number || github.event.pull_request.number }}
