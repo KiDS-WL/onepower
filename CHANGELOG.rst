@@ -8,6 +8,7 @@ dev-version
 
 * Use the updated ``halomod`` and ``hmf`` packages that implement changes required to run ``onepower``
 * Updates to the pyproject.toml file to include all dependencies and metadata
+* Enables Dependabot and pre-commit.ci
 
 **Fixes**
 
