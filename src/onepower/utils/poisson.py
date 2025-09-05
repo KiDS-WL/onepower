@@ -1,6 +1,5 @@
 import numpy as np
 from abc import ABCMeta, abstractmethod
-from functools import cached_property
 
 from hmf._internals._framework import Component, pluggable
 

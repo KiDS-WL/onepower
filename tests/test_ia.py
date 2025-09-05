@@ -1,7 +1,5 @@
 import pytest
 import numpy as np
-from unittest.mock import MagicMock
-from pathlib import Path
 from onepower import AlignmentAmplitudes, SatelliteAlignment
 
 

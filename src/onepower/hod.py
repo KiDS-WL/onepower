@@ -5,7 +5,6 @@ using various HOD models and conditional observable functions (COFs).
 """
 
 import numpy as np
-from functools import cached_property
 from scipy.integrate import simpson
 from scipy.interpolate import interp1d
 from scipy.special import erf

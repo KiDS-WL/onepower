@@ -505,7 +505,6 @@ def save_hod_results(block, power, z_vec, hod_section_name, hod_settings):
 
 
 def save_obs_results(block, power, observable_section_name, obs_settings):
-    mass = power.mass
     obs_func = power.obs_func
     obs_func_c = power.obs_func_cen
     obs_func_s = power.obs_func_sat

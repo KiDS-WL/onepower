@@ -6,7 +6,6 @@ related to the intrinsic alignment of central and satellite galaxies within dark
 
 import numpy as np
 from astropy.io import fits
-from functools import cached_property
 from hankel import HankelTransform
 from scipy.fft import fht, fhtoffset
 from scipy.integrate import simpson
@@ -273,11 +272,6 @@ class AlignmentAmplitudes(Framework):
         numpy.ndarray : lum
             Luminosity array.
         """
-        depends_on = (
-            self.central_ia_depends_on
-            if galaxy_type == 'centrals'
-            else self.satellite_ia_depends_on
-        )
         z_loglum_file = (
             self.z_loglum_file_centrals
             if galaxy_type == 'centrals'

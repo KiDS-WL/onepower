@@ -8,14 +8,11 @@ an analytic prescription from Flamingo sims.
 import numpy as np
 from collections import OrderedDict
 from dark_emulator import darkemu
-from functools import cached_property
 from scipy.interpolate import RegularGridInterpolator, interp1d
 from scipy.optimize import curve_fit
 
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework
-
-from scipy.ndimage import map_coordinates
 
 
 class NonLinearBias(Framework):
@@ -347,7 +344,7 @@ class NonLinearBias(Framework):
         np_min = 200.0  # Minimum number of halo particles
         npart = 2048.0  # Cube root of number of simulation particles
         Lbox_HR = 1000.0  # Box size for high-resolution simulations [Mpc/h]
-        Lbox_LR = 2000.0  # Box size for low-resolution simulations [Mpc/h]
+        Lbox_LR = 2000.0  # Box size for low-resolution simulations [Mpc/h] # noqa: F841
 
         Om_m = self.emulator.cosmo.get_Omega0()
         rhom = 2.77536627e11 * Om_m
