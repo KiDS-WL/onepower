@@ -4,7 +4,28 @@ Releases
 dev-version
 ----------------------
 
+**Changes**
 
+* Use the updated ``halomod`` and ``hmf`` packages that implement changes required to run ``onepower``
+* Updates to the pyproject.toml file to include all dependencies and metadata
+
+**Fixes**
+
+* Stricter linting
+
+v0.2.0 [2 Sep 2025]
+-------------------
+
+**Changes**
+
+* Cosmology inputs take different parameters, dropping Omega_M
+* More numexpr usage to speed up the code
+* Update to the documentation theme
+* Setting up PyPI support
+
+**Fixes**
+
+* Fixed neutrinos
 
 v0.1.1 [15 Aug 2025]
 --------------------
@@ -33,7 +54,7 @@ it is almost pointless to list them. A brief summary is in order:
 * Majority of documentation written, with examples on how to use the code.
 * Majority of functional tests written, with more scientifi tests and benchmars to come.
 
-**Bugfixes**
+**Fixes**
 
 * A lot.
 
