@@ -1,11 +1,7 @@
 """A package for calculating the halo model."""
 
 import contextlib
-
-try:
-    from importlib.metadata import PackageNotFoundError, version
-except ImportError:
-    from importlib_metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError, version
 
 with contextlib.suppress(PackageNotFoundError):
     __version__ = version(__name__)
