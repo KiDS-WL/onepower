@@ -16,6 +16,7 @@ on:
 
 jobs:
   prepare-matrix:
+    if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.user.login != 'pre-commit-ci[bot]'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -27,6 +28,7 @@ jobs:
           echo "matrix=$(jq -nc --arg refs "${REFS[*]}" '$refs | split(" ")')" >> $GITHUB_OUTPUT
 
   build:
+    if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.user.login != 'pre-commit-ci[bot]'
     needs: prepare-matrix
     runs-on: ubuntu-latest
     permissions:
@@ -99,6 +101,7 @@ jobs:
           destination_dir: ${{ steps.vars.outputs.folder }}
 
   update-index:
+    if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.user.login != 'pre-commit-ci[bot]'
     needs: build
     runs-on: ubuntu-latest
     permissions:
