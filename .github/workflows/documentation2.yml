@@ -111,6 +111,7 @@ jobs:
       - name: Checkout gh-pages
         uses: actions/checkout@v5
         with:
+          fetch-depth: 0
           ref: gh-pages
           persist-credentials: True
 
