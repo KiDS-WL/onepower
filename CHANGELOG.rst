@@ -6,6 +6,13 @@ dev-version
 
 **Changes**
 
+v0.3.4 [18 Sep 2025]
+--------------------
+
+**Changes**
+
+* Fix to Github actions
+
 v0.3.3 [18 Sep 2025]
 --------------------
 
