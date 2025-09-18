@@ -2,7 +2,13 @@ Releases
 ========
 
 dev-version
-----------------------
+-----------
+
+**Changes**
+
+
+v0.3.0 [18 Sep 2025]
+--------------------
 
 **Changes**
 
@@ -13,6 +19,10 @@ dev-version
 **Fixes**
 
 * Stricter linting
+
+**Updates**
+
+* Updated benchmarks
 
 v0.2.0 [2 Sep 2025]
 -------------------

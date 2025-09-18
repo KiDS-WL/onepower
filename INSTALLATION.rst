@@ -23,10 +23,11 @@ Similar data is required for any luminosity based IA predictions are to be used.
 
 User Install
 ------------
-You may install the latest release of ``onepower`` using ``pip``
+You may install the latest release of ``onepower`` using ``pip``. Note that until the ``halomod`` is released with a new version, ``onepower`` requires the manual install of the main branch of ``halomod``.
 
 .. code-block:: bash
 
+    pip install halomod @ git+https://github.com/halomod/halomod.git@main
     pip install onepower
 
 This will install all uninstalled dependencies (see previous section).
