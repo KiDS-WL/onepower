@@ -1,0 +1,61 @@
+onepower.bnl.NonLinearBias
+==========================
+
+.. currentmodule:: onepower.bnl
+
+.. autoclass:: NonLinearBias
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: NonLinearBias
+   
+      ~NonLinearBias.__init__
+      ~NonLinearBias.clone
+      ~NonLinearBias.compute_bnl_darkquest
+      ~NonLinearBias.get_all_parameter_defaults
+      ~NonLinearBias.get_all_parameter_names
+      ~NonLinearBias.get_dependencies
+      ~NonLinearBias.high_k_truncation
+      ~NonLinearBias.hl_envelopes_idx
+      ~NonLinearBias.low_k_truncation
+      ~NonLinearBias.parameter_info
+      ~NonLinearBias.quantities_available
+      ~NonLinearBias.rvir
+      ~NonLinearBias.test_cosmo
+      ~NonLinearBias.update
+      ~NonLinearBias.validate
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: NonLinearBias
+   
+      ~NonLinearBias.A_s
+      ~NonLinearBias.bnl
+      ~NonLinearBias.create_bnl_interpolation_function
+      ~NonLinearBias.emulator
+      ~NonLinearBias.h0
+      ~NonLinearBias.k_vec
+      ~NonLinearBias.mass
+      ~NonLinearBias.minimum_halo_mass
+      ~NonLinearBias.n_s
+      ~NonLinearBias.ombh2
+      ~NonLinearBias.omch2
+      ~NonLinearBias.omega_b
+      ~NonLinearBias.omega_c
+      ~NonLinearBias.omega_lambda
+      ~NonLinearBias.parameter_values
+      ~NonLinearBias.sigma_8
+      ~NonLinearBias.w0
+      ~NonLinearBias.z_dep
+      ~NonLinearBias.z_vec
+   
+   

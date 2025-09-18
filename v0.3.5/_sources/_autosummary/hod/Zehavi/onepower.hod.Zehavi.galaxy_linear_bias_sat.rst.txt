@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.galaxy\_linear\_bias\_sat
+=============================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.galaxy_linear_bias_sat

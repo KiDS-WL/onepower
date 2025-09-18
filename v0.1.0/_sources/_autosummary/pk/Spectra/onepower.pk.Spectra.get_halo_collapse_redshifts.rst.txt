@@ -1,0 +1,6 @@
+onepower.pk.Spectra.get\_halo\_collapse\_redshifts
+==================================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.get_halo_collapse_redshifts

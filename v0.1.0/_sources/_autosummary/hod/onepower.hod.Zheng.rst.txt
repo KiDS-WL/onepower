@@ -1,0 +1,64 @@
+onepower.hod.Zheng
+==================
+
+.. currentmodule:: onepower.hod
+
+.. autoclass:: Zheng
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: Zheng
+   
+      ~Zheng.__init__
+      ~Zheng.get_models
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: Zheng
+   
+      ~Zheng.M0
+      ~Zheng.M1
+      ~Zheng.Mmin
+      ~Zheng.alpha
+      ~Zheng.avg_halo_mass
+      ~Zheng.avg_halo_mass_cen
+      ~Zheng.avg_halo_mass_sat
+      ~Zheng.data
+      ~Zheng.dndlnm_int
+      ~Zheng.f_c
+      ~Zheng.f_s
+      ~Zheng.galaxy_linear_bias
+      ~Zheng.galaxy_linear_bias_cen
+      ~Zheng.galaxy_linear_bias_sat
+      ~Zheng.halo_bias_int
+      ~Zheng.hod
+      ~Zheng.hod_cen
+      ~Zheng.hod_sat
+      ~Zheng.log10_M0
+      ~Zheng.log10_M1
+      ~Zheng.log10_Mmin
+      ~Zheng.log_obs_max
+      ~Zheng.log_obs_min
+      ~Zheng.nbins
+      ~Zheng.nobs
+      ~Zheng.number_density
+      ~Zheng.number_density_cen
+      ~Zheng.number_density_sat
+      ~Zheng.nz
+      ~Zheng.obs
+      ~Zheng.sigma
+      ~Zheng.stellar_fraction
+      ~Zheng.stellar_fraction_cen
+      ~Zheng.stellar_fraction_sat
+      ~Zheng.z
+   
+   

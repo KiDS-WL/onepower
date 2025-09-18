@@ -1,0 +1,64 @@
+onepower.hod.Zhai
+=================
+
+.. currentmodule:: onepower.hod
+
+.. autoclass:: Zhai
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: Zhai
+   
+      ~Zhai.__init__
+      ~Zhai.get_models
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: Zhai
+   
+      ~Zhai.Mcut
+      ~Zhai.Mmin
+      ~Zhai.Msat
+      ~Zhai.alpha
+      ~Zhai.avg_halo_mass
+      ~Zhai.avg_halo_mass_cen
+      ~Zhai.avg_halo_mass_sat
+      ~Zhai.data
+      ~Zhai.dndlnm_int
+      ~Zhai.f_c
+      ~Zhai.f_s
+      ~Zhai.galaxy_linear_bias
+      ~Zhai.galaxy_linear_bias_cen
+      ~Zhai.galaxy_linear_bias_sat
+      ~Zhai.halo_bias_int
+      ~Zhai.hod
+      ~Zhai.hod_cen
+      ~Zhai.hod_sat
+      ~Zhai.log10_Mcut
+      ~Zhai.log10_Mmin
+      ~Zhai.log10_Msat
+      ~Zhai.log_obs_max
+      ~Zhai.log_obs_min
+      ~Zhai.nbins
+      ~Zhai.nobs
+      ~Zhai.number_density
+      ~Zhai.number_density_cen
+      ~Zhai.number_density_sat
+      ~Zhai.nz
+      ~Zhai.obs
+      ~Zhai.sigma
+      ~Zhai.stellar_fraction
+      ~Zhai.stellar_fraction_cen
+      ~Zhai.stellar_fraction_sat
+      ~Zhai.z
+   
+   

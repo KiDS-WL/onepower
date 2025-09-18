@@ -1,0 +1,6 @@
+onepower.hmi.SOVirial\_Mead.\_\_init\_\_
+========================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: SOVirial_Mead.__init__

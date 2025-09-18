@@ -1,0 +1,61 @@
+onepower.hod.Simple
+===================
+
+.. currentmodule:: onepower.hod
+
+.. autoclass:: Simple
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: Simple
+   
+      ~Simple.__init__
+      ~Simple.get_models
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: Simple
+   
+      ~Simple.Mmin
+      ~Simple.Msat
+      ~Simple.alpha
+      ~Simple.avg_halo_mass
+      ~Simple.avg_halo_mass_cen
+      ~Simple.avg_halo_mass_sat
+      ~Simple.data
+      ~Simple.dndlnm_int
+      ~Simple.f_c
+      ~Simple.f_s
+      ~Simple.galaxy_linear_bias
+      ~Simple.galaxy_linear_bias_cen
+      ~Simple.galaxy_linear_bias_sat
+      ~Simple.halo_bias_int
+      ~Simple.hod
+      ~Simple.hod_cen
+      ~Simple.hod_sat
+      ~Simple.log10_Mmin
+      ~Simple.log10_Msat
+      ~Simple.log_obs_max
+      ~Simple.log_obs_min
+      ~Simple.nbins
+      ~Simple.nobs
+      ~Simple.number_density
+      ~Simple.number_density_cen
+      ~Simple.number_density_sat
+      ~Simple.nz
+      ~Simple.obs
+      ~Simple.stellar_fraction
+      ~Simple.stellar_fraction_cen
+      ~Simple.stellar_fraction_sat
+      ~Simple.z
+   
+   

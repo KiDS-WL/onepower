@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.truncate
+=======================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.truncate
