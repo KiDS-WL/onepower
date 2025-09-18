@@ -62,7 +62,6 @@ docs = [
     "importlib_metadata",
     "ipykernel",
     "docutils>=0.19",
-    "halomod @ git+https://github.com/halomod/halomod.git@main",
 ]
 tests = [
 	"coverage>=4.5.1",
@@ -73,7 +72,6 @@ tests = [
     "PyYAML",
 	"mpmath>=1.0.0",
 	"numba",
-    "halomod @ git+https://github.com/halomod/halomod.git@main",
 ]
 dev = [
     "onepower[docs,tests]"

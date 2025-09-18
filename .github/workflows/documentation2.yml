@@ -77,6 +77,7 @@ jobs:
       - name: Install dependencies
         if: ${{ steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false' }}
         run: |
+          pip install halomod @ git+https://github.com/halomod/halomod.git@main
           pip install -e .[docs]
 
       - name: Build Sphinx documentation
