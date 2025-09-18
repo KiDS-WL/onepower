@@ -173,8 +173,9 @@ jobs:
           echo "$versions_json" > versions.json
 
           git add index.html versions.json
-          git -c user.name='github-actions[bot]' -c user.email='github-actions[bot]@users.noreply.github.com' \
-              commit -m "Update version list and versions.json" || echo "No changes"
+          git config --global user.name='github-actions[bot]'
+          git config --global user.email='github-actions[bot]@users.noreply.github.com'
+          git commit -m "Update version list and versions.json" || echo "No changes"
 
       - name: Upload index files
         uses: actions/upload-artifact@v4
@@ -220,7 +221,8 @@ jobs:
         run: |
           cd gh-pages-squash
           git add -A
-          git -c user.name='github-actions[bot]' -c user.email='github-actions[bot]@users.noreply.github.com' \
-              commit -m "Deploy all docs for $GITHUB_REF_NAME (squashed)" || echo "No changes"
+          git config --global user.name='github-actions[bot]'
+          git config --global user.email='github-actions[bot]@users.noreply.github.com'
+          git commit -m "Deploy all docs for $GITHUB_REF_NAME (squashed)" || echo "No changes"
           git symbolic-ref HEAD refs/heads/gh-pages
           git push --force-with-lease origin gh-pages
