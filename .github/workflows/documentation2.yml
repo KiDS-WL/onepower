@@ -195,11 +195,12 @@ jobs:
     steps:
       - name: Clone gh-pages branch
         run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git clone --depth=1 --branch gh-pages \
             https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-squash
           cd gh-pages-squash
           git switch --orphan gh-pages-squashed
-          git reset --hard
 
       - name: Download built docs
         uses: actions/download-artifact@v4
@@ -220,9 +221,10 @@ jobs:
       - name: Commit and push squashed gh-pages
         run: |
           cd gh-pages-squash
-          git add -A
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
           git commit -m "Deploy all docs for $GITHUB_REF_NAME (squashed)"
-          git symbolic-ref HEAD refs/heads/gh-pages
+          git branch -D gh-pages
+          git branch -m gh-pages
           git push -f origin gh-pages
