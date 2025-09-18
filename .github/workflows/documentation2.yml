@@ -23,6 +23,12 @@ jobs:
     steps:
       - id: set-matrix
         run: |
+          # Skip push for tags that will trigger a release
+          if [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "This tag push is part of a release. Exiting."
+            exit 0
+          fi
+
           # Determine refs based on event
           if [[ "${GITHUB_EVENT_NAME}" == "release" ]]; then
             REFS=("${GITHUB_REF_NAME}")  # only the release tag
