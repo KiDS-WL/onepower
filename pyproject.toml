@@ -34,7 +34,6 @@ classifiers = [
 ]
 dependencies = [
     "hmf>=3.5.2",
-    #"halomod @ git+https://github.com/halomod/halomod.git@main",
     "numpy>=2.0",
     "astropy>=6.0.0",
     "dark_emulator==1.1.2",
