@@ -117,6 +117,7 @@ jobs:
             cp -r "$d"/* "$ref"/
             rm -rf "$d"
           done
+          touch .nojekyll
 
       - name: Update version index and JSON
         run: |
