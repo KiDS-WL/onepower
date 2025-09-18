@@ -41,8 +41,7 @@ jobs:
             REFS=("main")
           fi
 
-          refs_json=$(printf '%s\n' "${REFS[@]}" | jq -R . | jq -s .)
-          echo "matrix=$refs_json" >> $GITHUB_OUTPUT
+          echo "matrix=$(jq -nc --argjson refs "$(printf '%s\n' "${REFS[@]}" | jq -R . | jq -s .)" '$refs')" >> $GITHUB_OUTPUT
 
   build:
     needs: prepare-matrix
