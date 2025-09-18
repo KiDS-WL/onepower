@@ -208,8 +208,6 @@ jobs:
       - name: Copy built docs into gh-pages
         run: |
           cd gh-pages-squash
-          # Remove old docs
-          rm -rf *
           # Copy all docs per ref
           for d in ../artifacts/html-docs-*; do
             ref=$(basename "$d" | sed 's/html-docs-//')
