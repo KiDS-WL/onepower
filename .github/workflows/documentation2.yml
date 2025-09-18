@@ -129,10 +129,10 @@ jobs:
           persist-credentials: true
           path: gh-pages
 
-      - name: Fetch latest semver tags only
+      - name: Fetch tags (shallow)
         run: |
           cd gh-pages
-          git fetch origin 'refs/tags/v*.*.*:refs/tags/v*.*.*' --depth=1
+          git fetch --tags --depth=1
 
       - name: Update version index and JSON
         working-directory: gh-pages
