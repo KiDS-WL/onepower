@@ -24,8 +24,9 @@ jobs:
       - id: set-matrix
         run: |
           # Skip push for tags that will trigger a release
-          if [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF}" == refs/tags/v* ]]; then
-            echo "This tag push is part of a release. Exiting."
+          if [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF}" =~ refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "Skipping tag push because release will handle it"
+            echo "matrix=$(jq -nc '[]')" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -38,14 +39,22 @@ jobs:
             # workflow_dispatch
             IFS=',' read -ra REFS <<< "${{ github.event.inputs.refs || 'main' }}"
           fi
+
+          # Make sure matrix is never empty
+          if [ ${#REFS[@]} -eq 0 ]; then
+            REFS=("main")
+          fi
+
           echo "matrix=$(jq -nc --argjson refs "$(printf '%s\n' "${REFS[@]}" | jq -R . | jq -s .)" '$refs')" >> $GITHUB_OUTPUT
 
   build:
     needs: prepare-matrix
     runs-on: ubuntu-latest
+    if: needs.prepare-matrix.outputs.matrix != '[]'
     strategy:
       matrix:
         ref: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
+
     steps:
       - uses: actions/checkout@v5
         with:
