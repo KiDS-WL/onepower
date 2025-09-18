@@ -1,5 +1,4 @@
 name: "sphinx: render"
-
 on:
   push:
     branches:
@@ -14,7 +13,6 @@ on:
         description: 'List of branches/tags to build (comma-separated, e.g., main,andrej_dev,v1.0.0)'
         required: false
         default: 'main,andrej_dev'
-
 jobs:
   prepare-matrix:
     runs-on: ubuntu-latest
@@ -28,7 +26,6 @@ jobs:
             echo "matrix=$(jq -nc '[]')" >> $GITHUB_OUTPUT
             exit 0
           fi
-
           if [[ "${GITHUB_EVENT_NAME}" == "release" ]]; then
             REFS=("${GITHUB_REF_NAME}")
           elif [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
@@ -36,13 +33,10 @@ jobs:
           else
             IFS=',' read -ra REFS <<< "${{ github.event.inputs.refs || 'main' }}"
           fi
-
           if [ ${#REFS[@]} -eq 0 ]; then
             REFS=("main")
           fi
-
           echo "matrix=$(jq -nc --argjson refs "$(printf '%s\n' "${REFS[@]}" | jq -R . | jq -s .)" '$refs')" >> $GITHUB_OUTPUT
-
   build:
     needs: prepare-matrix
     runs-on: ubuntu-latest
@@ -50,14 +44,12 @@ jobs:
     strategy:
       matrix:
         ref: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
-
     steps:
       - uses: actions/checkout@v5
         with:
           ref: ${{ matrix.ref }}
           fetch-depth: 0
           persist-credentials: true
-
       - name: Determine docs folder
         id: vars
         run: |
@@ -71,55 +63,39 @@ jobs:
             echo "folder=${{ matrix.ref }}" >> $GITHUB_OUTPUT
             echo "always_build=false" >> $GITHUB_OUTPUT
           fi
-
       - name: Check if docs already exist in gh-pages
         id: check
-        uses: actions/checkout@v5
-        with:
-          ref: gh-pages
-          fetch-depth: 0
-          path: gh-pages-check
-        continue-on-error: true
-
-      - name: Set exists flag
-        id: exists-flag
         run: |
-          if [ -d "gh-pages-check/${{ steps.vars.outputs.folder }}" ]; then
+          rm -rf gh-pages-branch
+          git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-branch || mkdir gh-pages-branch
+          if [ -d "gh-pages-branch/${{ steps.vars.outputs.folder }}" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
-
       - uses: actions/setup-python@v5
-        if: steps.vars.outputs.always_build == 'true' || steps.exists-flag.outputs.exists == 'false'
-
+        if: steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false'
       - name: Install pandoc
-        if: steps.vars.outputs.always_build == 'true' || steps.exists-flag.outputs.exists == 'false'
+        if: steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false'
         uses: pandoc/actions/setup@v1
-
       - name: Install dependencies
-        if: steps.vars.outputs.always_build == 'true' || steps.exists-flag.outputs.exists == 'false'
+        if: steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false'
         run: |
           pip install git+https://github.com/halomod/halomod.git@main
           pip install -e .[docs]
-
       - name: Build Sphinx documentation
-        if: steps.vars.outputs.always_build == 'true' || steps.exists-flag.outputs.exists == 'false'
+        if: steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false'
         run: sphinx-build -b html docs docs/_build/html --keep-going
-
-      - name: Upload built docs
-        if: steps.vars.outputs.always_build == 'true' || steps.exists-flag.outputs.exists == 'false'
+      - name: Upload artifacts
+        if: steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false'
         uses: actions/upload-artifact@v4
         with:
           name: html-docs-${{ matrix.ref }}
           path: docs/_build/html/
 
-  update-index:
+  prepare-deployment:
     needs: build
-    if: github.event_name == 'release' || github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout gh-pages
         uses: actions/checkout@v5
@@ -127,36 +103,39 @@ jobs:
           ref: gh-pages
           fetch-depth: 0
           persist-credentials: true
-          path: gh-pages
 
-      - name: Fetch tags (shallow)
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Deploy all docs
         run: |
-          cd gh-pages
-          git fetch --tags --depth=1
+          for artifact in html-docs-*; do
+            ref=${artifact#html-docs-}
+            if [ -d "$artifact" ]; then
+              echo "Deploying docs for $ref..."
+              mkdir -p "$ref"
+              cp -r "$artifact"/* "$ref/"
+            fi
+          done
 
       - name: Update version index and JSON
-        working-directory: gh-pages
         run: |
-          latest_tag=$(git tag -l 'v*.*.*' --sort=-version:refname | head -n 1)
+          latest_tag=$(git tag --sort=-version:refname | head -n 1)
           if [ -z "$latest_tag" ]; then
             latest_tag="main"
           fi
-
-          cat > index.html <<EOF
-          <!DOCTYPE html>
+          echo "<!DOCTYPE html>
           <html>
           <head>
-              <meta http-equiv="refresh" content="0; url=https://kids-wl.github.io/onepower/${latest_tag}/">
+              <meta http-equiv=\"refresh\" content=\"0; url=https://kids-wl.github.io/onepower/${latest_tag}/\">
               <title>Redirecting to latest stable version</title>
           </head>
           <body>
               <h1>Redirecting to the latest stable version (${latest_tag})...</h1>
-              <p>If you are not redirected automatically, <a href="https://kids-wl.github.io/onepower/${latest_tag}/">click here</a>.</p>
-              <ul>
-          EOF
-
+              <p>If you are not redirected automatically, <a href=\"https://kids-wl.github.io/onepower/${latest_tag}/\">click here</a>.</p>
+              <ul>" > index.html
           versions_json="["
-          dirs=$(ls -d */ | sed 's#/##' | grep -vE '^\.(git|github)$' | sort -V -r)
+          dirs=$(ls -d */ 2>/dev/null | sed 's#/##' | sort -V -r)
           for version_name in $dirs; do
             url="https://kids-wl.github.io/onepower/$version_name/"
             if [[ "$version_name" == "$latest_tag" ]]; then
@@ -172,59 +151,15 @@ jobs:
           ]"
           echo "$versions_json" > versions.json
 
-          git add index.html versions.json
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "Update version list and versions.json" || echo "No changes"
-
-      - name: Upload index files
-        uses: actions/upload-artifact@v4
-        with:
-          name: gh-pages-index
-          path: |
-            gh-pages/index.html
-            gh-pages/versions.json
-
-  squash-gh-pages:
-    needs: update-index
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
-    concurrency:
-      group: gh-pages
-      cancel-in-progress: true
-    steps:
-      - name: Clone gh-pages branch
+      - name: Commit and squash
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git clone --depth=1 --branch gh-pages \
-            https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-squash
-          cd gh-pages-squash
-          git switch --orphan gh-pages-squashed
+          git add .
+          git commit -m "Deploy docs and update version list" || echo "No changes"
 
-      - name: Download built docs
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
-
-      - name: Move built docs into place
-        run: |
-          cd gh-pages-squash
-          for d in ../artifacts/html-docs-*; do
-            ref=$(basename "$d" | sed 's/html-docs-//')
-            mkdir -p "$ref"
-            cp -r "$d"/* "$ref"/
-          done
-          cp ../artifacts/gh-pages-index/index.html .
-          cp ../artifacts/gh-pages-index/versions.json .
-
-      - name: Commit and push squashed gh-pages
-        run: |
-          cd gh-pages-squash
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # Create a new orphan branch for squashing
+          git checkout --orphan gh-pages-squashed
           git add -A
-          git commit -m "Deploy all docs for $GITHUB_REF_NAME (squashed)"
-          git branch -D gh-pages
-          git branch -m gh-pages
-          git push -f origin gh-pages
+          git commit -m "Squashed all commits"
+          git push -f origin gh-pages-squashed:gh-pages
