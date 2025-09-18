@@ -46,6 +46,7 @@ jobs:
 
       - name: Install
         run: |
+          pip install halomod @ git+https://github.com/halomod/halomod.git@main
           pip install -e .[dev]
 
       # Coverage only on Ubuntu + Python 3.11
