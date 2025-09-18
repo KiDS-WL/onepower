@@ -106,16 +106,16 @@ jobs:
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
 
       - name: Deploy all docs
         run: |
-          for artifact in html-docs-*; do
-            ref=${artifact#html-docs-}
-            if [ -d "$artifact" ]; then
-              echo "Deploying docs for $ref..."
-              mkdir -p "$ref"
-              cp -r "$artifact"/* "$ref/"
-            fi
+          for d in artifacts/html-docs-*; do
+            ref=$(basename "$d" | sed 's/html-docs-//')
+            mkdir -p "$ref"
+            cp -r "$d"/* "$ref"/
+            rm -rf "$d"
           done
 
       - name: Update version index and JSON
@@ -124,16 +124,18 @@ jobs:
           if [ -z "$latest_tag" ]; then
             latest_tag="main"
           fi
-          echo "<!DOCTYPE html>
+          cat > index.html <<EOF
+          <!DOCTYPE html>
           <html>
           <head>
-              <meta http-equiv=\"refresh\" content=\"0; url=https://kids-wl.github.io/onepower/${latest_tag}/\">
+              <meta http-equiv="refresh" content="0; url=https://kids-wl.github.io/onepower/${latest_tag}/">
               <title>Redirecting to latest stable version</title>
           </head>
           <body>
               <h1>Redirecting to the latest stable version (${latest_tag})...</h1>
-              <p>If you are not redirected automatically, <a href=\"https://kids-wl.github.io/onepower/${latest_tag}/\">click here</a>.</p>
-              <ul>" > index.html
+              <p>If you are not redirected automatically, <a href="https://kids-wl.github.io/onepower/${latest_tag}/">click here</a>.</p>
+              <ul>
+          EOF
           versions_json="["
           dirs=$(ls -d */ 2>/dev/null | sed 's#/##' | sort -V -r)
           for version_name in $dirs; do
@@ -155,7 +157,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
+          git add -- . ':!artifacts'
           git commit -m "Deploy docs and update version list" || echo "No changes"
 
           # Create a new orphan branch for squashing
