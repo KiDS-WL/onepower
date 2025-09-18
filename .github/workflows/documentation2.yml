@@ -198,33 +198,31 @@ jobs:
           git clone --depth=1 --branch gh-pages \
             https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-squash
           cd gh-pages-squash
-          git pull origin gh-pages
+          git switch --orphan gh-pages-squashed
+          git reset --hard
 
       - name: Download built docs
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
 
-      - name: Copy built docs into gh-pages
+      - name: Move built docs into place
         run: |
           cd gh-pages-squash
-          # Remove old docs
-          rm -rf *
-          # Copy all docs per ref
           for d in ../artifacts/html-docs-*; do
             ref=$(basename "$d" | sed 's/html-docs-//')
             mkdir -p "$ref"
             cp -r "$d"/* "$ref"/
           done
-          # Copy index files
           cp ../artifacts/gh-pages-index/index.html .
           cp ../artifacts/gh-pages-index/versions.json .
 
-      - name: Commit and push to gh-pages
+      - name: Commit and push squashed gh-pages
         run: |
           cd gh-pages-squash
           git add -A
-          git -c user.name='github-actions[bot]' \
-              -c user.email='github-actions[bot]@users.noreply.github.com' \
-              commit --allow-empty -m "Deploy docs for $GITHUB_REF_NAME"
-          git push origin gh-pages
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "Deploy all docs for $GITHUB_REF_NAME (squashed)"
+          git symbolic-ref HEAD refs/heads/gh-pages
+          git push -f origin gh-pages
