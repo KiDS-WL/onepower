@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.update
+========================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: HaloModelIngredients.update

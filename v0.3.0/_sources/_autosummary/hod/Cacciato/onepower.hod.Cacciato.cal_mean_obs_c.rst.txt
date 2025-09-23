@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.cal\_mean\_obs\_c
+=======================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.cal_mean_obs_c

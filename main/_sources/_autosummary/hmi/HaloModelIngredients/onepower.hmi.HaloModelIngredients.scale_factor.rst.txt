@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.scale\_factor
+===============================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.scale_factor

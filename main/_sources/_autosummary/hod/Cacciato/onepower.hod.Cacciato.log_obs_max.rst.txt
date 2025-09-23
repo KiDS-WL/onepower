@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.log\_obs\_max
+===================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.log_obs_max
