@@ -9,6 +9,10 @@ updates:
     directory: "/"
     schedule:
       interval: monthly
+    ignore:
+      - dependency-name: "actions/download-artifact"
+        update-types:
+          - version-update:semver-major
   - package-ecosystem: pip
     directory: "/"
     schedule:

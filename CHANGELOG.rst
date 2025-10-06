@@ -7,7 +7,7 @@ dev-version
 **Changes**
 
 
-v0.3.1 - v0.3.5 [18 Sep 2025]
+v0.3.5 [18 Sep 2025]
 --------------------
 
 **Changes**
