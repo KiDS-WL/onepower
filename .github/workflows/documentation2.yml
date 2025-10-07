@@ -19,12 +19,20 @@ jobs:
   prepare-matrix:
     if: >
       ${{
-        (github.event_name == 'pull_request' &&
-         github.event.pull_request.user.login != 'dependabot[bot]' &&
-         github.event.pull_request.user.login != 'pre-commit-ci[bot]') ||
-        (github.event_name == 'push' &&
-         github.actor != 'dependabot[bot]' &&
-         github.actor != 'pre-commit-ci[bot]') ||
+        (
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          github.event.pull_request.user.login != 'pre-commit-ci[bot]'
+        ) ||
+        (
+          github.event_name == 'push' &&
+          github.actor != 'dependabot[bot]' &&
+          github.actor != 'pre-commit-ci[bot]' &&
+          !(
+            contains(join(github.event.commits.*.author.name, ' '), 'dependabot[bot]') ||
+            contains(join(github.event.commits.*.author.name, ' '), 'pre-commit-ci[bot]')
+          )
+        ) ||
         (github.event_name == 'release') ||
         (github.event_name == 'workflow_dispatch')
       }}
@@ -58,15 +66,21 @@ jobs:
       ${{
         needs.prepare-matrix.outputs.matrix != '[]' &&
         (
-          (github.event_name == 'pull_request' &&
-           github.event.pull_request.user.login != 'dependabot[bot]' &&
-           github.event.pull_request.user.login != 'pre-commit-ci[bot]') ||
-          (github.event_name == 'push' &&
-           github.actor != 'dependabot[bot]' &&
-           github.actor != 'pre-commit-ci[bot]') ||
-          (github.event_name == 'release') ||
-          (github.event_name == 'workflow_dispatch')
-        )
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          github.event.pull_request.user.login != 'pre-commit-ci[bot]'
+        ) ||
+        (
+          github.event_name == 'push' &&
+          github.actor != 'dependabot[bot]' &&
+          github.actor != 'pre-commit-ci[bot]' &&
+          !(
+            contains(join(github.event.commits.*.author.name, ' '), 'dependabot[bot]') ||
+            contains(join(github.event.commits.*.author.name, ' '), 'pre-commit-ci[bot]')
+          )
+        ) ||
+        (github.event_name == 'release') ||
+        (github.event_name == 'workflow_dispatch')
       }}
     strategy:
       matrix:
@@ -132,12 +146,20 @@ jobs:
     runs-on: ubuntu-latest
     if: >
       ${{
-        (github.event_name == 'pull_request' &&
-         github.event.pull_request.user.login != 'dependabot[bot]' &&
-         github.event.pull_request.user.login != 'pre-commit-ci[bot]') ||
-        (github.event_name == 'push' &&
-         github.actor != 'dependabot[bot]' &&
-         github.actor != 'pre-commit-ci[bot]') ||
+        (
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          github.event.pull_request.user.login != 'pre-commit-ci[bot]'
+        ) ||
+        (
+          github.event_name == 'push' &&
+          github.actor != 'dependabot[bot]' &&
+          github.actor != 'pre-commit-ci[bot]' &&
+          !(
+            contains(join(github.event.commits.*.author.name, ' '), 'dependabot[bot]') ||
+            contains(join(github.event.commits.*.author.name, ' '), 'pre-commit-ci[bot]')
+          )
+        ) ||
         (github.event_name == 'release') ||
         (github.event_name == 'workflow_dispatch')
       }}
