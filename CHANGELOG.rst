@@ -6,6 +6,8 @@ dev-version
 
 **Changes**
 
+* Added the convert_theta module to cosmosis modules for backwards support of other cosmosis modules
+
 
 v0.3.5 [18 Sep 2025]
 --------------------
