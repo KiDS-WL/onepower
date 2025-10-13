@@ -28,11 +28,6 @@ hod_settings = {
     'observable_h_unit': '1/h^2',
 }
 
-#hod_settings_mm = {
-#    'observables_file': '../input_files/red_cen_lum_pdf.txt',
-#    'observable_z': True,
-#}
-
 obs_settings = {
     'observables_file': None,
     'obs_min': np.array([9.1]),
