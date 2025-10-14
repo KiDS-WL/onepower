@@ -1,4 +1,4 @@
-name: Auto-merge bot PRs
+name: Dependabot auto-merge
 on:
   workflow_dispatch:
     inputs:
@@ -11,25 +11,11 @@ permissions:
   pull-requests: write
 
 jobs:
-  merge-dependabot:
-    name: Merge Dependabot PRs
+  automerge:
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
     steps:
       - uses: fastify/github-action-merge-dependabot@v3
         with:
           use-github-auto-merge: False
           merge-method: merge
           pr-number: ${{ github.event.inputs.pr-number || github.event.pull_request.number }}
-
-  merge-pre-commit:
-    name: Merge pre-commit.ci PRs
-    runs-on: ubuntu-latest
-    if: github.actor == 'pre-commit-ci[bot]'
-    steps:
-      - name: Merge pre-commit.ci PR
-        uses: ridedott/merge-me-action@v2
-        with:
-          GITHUB_LOGIN: pre-commit-ci[bot]
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MERGE_METHOD: merge
