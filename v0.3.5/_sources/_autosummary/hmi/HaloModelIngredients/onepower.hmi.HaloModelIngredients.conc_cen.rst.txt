@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.conc\_cen
+===========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.conc_cen

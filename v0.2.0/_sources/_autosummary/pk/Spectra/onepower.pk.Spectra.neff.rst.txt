@@ -1,0 +1,6 @@
+onepower.pk.Spectra.neff
+========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.neff

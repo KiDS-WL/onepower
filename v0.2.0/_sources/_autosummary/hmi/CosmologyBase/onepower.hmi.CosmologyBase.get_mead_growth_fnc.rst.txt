@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.get\_mead\_growth\_fnc
+=================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: CosmologyBase.get_mead_growth_fnc

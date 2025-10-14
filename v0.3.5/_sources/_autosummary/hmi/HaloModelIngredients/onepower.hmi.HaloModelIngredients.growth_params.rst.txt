@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.growth\_params
+================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.growth_params
