@@ -1,0 +1,6 @@
+onepower.hod.HOD.hod\_cen
+=========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HOD.hod_cen

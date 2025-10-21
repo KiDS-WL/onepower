@@ -1,0 +1,6 @@
+onepower.pk.Spectra.dlog10m
+===========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.dlog10m
