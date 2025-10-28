@@ -15,32 +15,20 @@ jobs:
     if: >
       ${{
         (
+          github.event_name == 'pull_request' &&
+          github.actor != 'dependabot[bot]' &&
+          github.actor != 'pre-commit-ci[bot]' &&
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          github.event.pull_request.user.login != 'pre-commit-ci[bot]'
+        ) ||
+        (
           github.event_name == 'push' &&
           github.actor != 'dependabot[bot]' &&
           github.actor != 'pre-commit-ci[bot]' &&
-          !(
-            contains(join(github.event.commits.*.author.name, ' '), 'dependabot[bot]') ||
-            contains(join(github.event.commits.*.author.name, ' '), 'pre-commit-ci[bot]') ||
-            contains(join(github.event.commits.*.committer.name, ' '), 'dependabot[bot]') ||
-            contains(join(github.event.commits.*.committer.name, ' '), 'pre-commit-ci[bot]')
-          )
-        ) ||
-        (
-          github.event_name == 'pull_request' &&
-          !(
-            (
-              github.event.pull_request.user.login == 'dependabot[bot]' ||
-              github.event.pull_request.user.login == 'pre-commit-ci[bot]'
-            ) ||
-            (
-              (
-                github.event.pull_request.user.login == 'dependabot[bot]' ||
-                github.event.pull_request.user.login == 'pre-commit-ci[bot]'
-              ) &&
-              github.event.action == 'closed' &&
-              github.event.pull_request.merged == true
-            )
-          )
+          !contains(join(github.event.commits.*.author.name, ' '), 'dependabot[bot]') &&
+          !contains(join(github.event.commits.*.author.name, ' '), 'pre-commit-ci[bot]') &&
+          !contains(join(github.event.commits.*.committer.name, ' '), 'dependabot[bot]') &&
+          !contains(join(github.event.commits.*.committer.name, ' '), 'pre-commit-ci[bot]')
         )
       }}
     runs-on: ${{ matrix.os }}
