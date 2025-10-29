@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.scale\_factor
+========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: CosmologyBase.scale_factor

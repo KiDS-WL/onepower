@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.log\_obs\_min
+=====================================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HaloOccupationDistribution.log_obs_min
