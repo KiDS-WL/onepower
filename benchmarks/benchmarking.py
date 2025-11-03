@@ -43,13 +43,13 @@ class OnepowerBenchmark:
             Results for each value and spectra type.
         """
         convergence_results = {}
-        
+
         for value in values:
             modified_params = self._modify_params(self.params.copy(), quantity, value)
             spectra = Spectra(**modified_params)
 
             value_results = {}
-            
+
             if 'smf' in spectra_types:
                 value_results['smf'] = self._extract_smf_results(
                     spectra, modified_params)
@@ -68,7 +68,7 @@ class OnepowerBenchmark:
                             'dlog10m': modified_params['dlog10m']})
                     elif quantity == 'k':
                         value_results[spectrum_type]['dlnk'] = modified_params['dlnk']
-            
+
             convergence_results[value] = value_results
 
         return convergence_results
@@ -115,16 +115,16 @@ class OnepowerBenchmark:
             Dictionary with extracted results.
         """
         obs = spectra.obs
-        
+
         result = {
             'stellar_mass': obs.obs[0, 0, 0, :],
             'smf_total': obs.obs_func[0, 0, :],
             'smf_cen': obs.obs_func_cen[0, 0, :],
             'smf_sat': obs.obs_func_sat[0, 0, :]}
-        
+
         result['mass'] = spectra.mass
         result['dlog10m'] = modified_params['dlog10m']
-        
+
         return result
 
     def _extract_hod_results(self, spectra, modified_params):
@@ -144,20 +144,20 @@ class OnepowerBenchmark:
             Dictionary with extracted results.
         """
         hod = spectra.hod
-        
+
         result = {
             'mass': spectra.mass,
             'hod_cen': hod.hod_cen,
             'hod_sat': hod.hod_sat}
-        
+
         result['nobs'] = modified_params['hod_settings']['nobs']
-        
+
         return result
 
     def _modify_params(self, params, quantity, value):
         """
         Modify parameters based on quantity type.
-        
+
         Parameters
         ----------
         params : dict
@@ -166,7 +166,7 @@ class OnepowerBenchmark:
             Type of quantity ('mass', 'k', or 'nobs').
         value : float or int
             Value to set.
-            
+
         Returns
         -------
         dict
@@ -178,13 +178,13 @@ class OnepowerBenchmark:
             params['dlnk'] = value
         elif quantity == 'nobs':
             params['hod_settings']['nobs'] = value
-        
+
         return params
 
     def create_benchmark(self, precision_params=None, filename=None):
         """
         Create high-resolution benchmark.
-        
+
         Parameters
         ----------
         precision_params : dict
@@ -199,7 +199,7 @@ class OnepowerBenchmark:
         if filename is None:
             param_str = "_".join([f"{k}_{v}" for k, v in precision_params.items()])
             filename = f"high_resolution_benchmark_{param_str}.pkl"
-        
+
         high_res_params = {**self.params, **precision_params}
         spectra = Spectra(**high_res_params)
 
@@ -207,9 +207,9 @@ class OnepowerBenchmark:
             'mm': spectra.power_spectrum_mm,
             'gg': spectra.power_spectrum_gg,
             'gm': spectra.power_spectrum_gm}
-        
+
         self.save_to_file(high_res_params, results_to_save, spectra, filename)
-        
+
         return filename
 
     def test_mass(self, dlog10m_values=[0.05, 0.01], spectra_types=['mm']):
@@ -223,7 +223,7 @@ class OnepowerBenchmark:
     def test_mass_smf(self, dlog10m_values=[0.05, 0.005]):
         """Test SMF convergence with different halo mass resolutions."""
         return self._test_convergence('mass', dlog10m_values, spectra_types=['smf'])
-    
+
     def test_nobs_hod(self, nobs_values=[300, 500]):
         """Test HOD convergence with different nobs resolutions."""
         return self._test_convergence('nobs', nobs_values, spectra_types=['hod'])
