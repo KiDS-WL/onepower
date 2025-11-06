@@ -345,7 +345,8 @@ def setup_hod(options, alignment, split_ia):
         ).lower()
     else:
         obs_settings = {}
-
+        obs_settings['save_observable'] = False
+        obs_settings['observable_section_name'] = 'stellar_mass_function'
     return (
         hod_section_name,
         hod_values_name,
