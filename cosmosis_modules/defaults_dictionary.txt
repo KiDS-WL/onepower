@@ -75,7 +75,6 @@ kwargs = {
         'beta_nl': None,
 
         'omega_c': 0.25,
-        'omega_m': 0.3,
         'omega_b': 0.05,
         'h0': 0.7,
         'n_s': 0.9,
