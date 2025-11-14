@@ -27,7 +27,7 @@ You may install the latest release of ``onepower`` using ``pip``. Note that unti
 
 .. code-block:: bash
 
-    pip install halomod @ git+https://github.com/halomod/halomod.git@main
+    pip install halomod@git+https://github.com/halomod/halomod.git@main
     pip install onepower
 
 This will install all uninstalled dependencies (see previous section).
@@ -35,7 +35,7 @@ Alternatively, for the very bleeding edge, install from the main branch of the r
 
 .. code-block:: bash
 
-    pip install onepower @ git+git://github.com/KiDS-WL/onepower.git
+    pip install onepower@git+git://github.com/KiDS-WL/onepower.git
 
 Developer Install
 -----------------
