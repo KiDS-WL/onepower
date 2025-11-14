@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.neff
+======================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.neff

@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.parameter\_info
+==========================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.parameter_info

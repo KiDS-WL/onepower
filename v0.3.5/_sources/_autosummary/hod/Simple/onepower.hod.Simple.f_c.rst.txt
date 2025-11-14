@@ -1,0 +1,6 @@
+onepower.hod.Simple.f\_c
+========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.f_c

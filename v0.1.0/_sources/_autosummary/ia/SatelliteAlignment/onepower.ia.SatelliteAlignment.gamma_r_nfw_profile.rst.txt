@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.gamma\_r\_nfw\_profile
+=====================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.gamma_r_nfw_profile
