@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.sigma8\_z
+===========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.sigma8_z

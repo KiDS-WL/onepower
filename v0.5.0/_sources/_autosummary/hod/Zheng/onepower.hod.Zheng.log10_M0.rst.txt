@@ -1,0 +1,6 @@
+onepower.hod.Zheng.log10\_M0
+============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zheng.log10_M0
