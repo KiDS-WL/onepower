@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.nonlinear\_power
+==================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.nonlinear_power

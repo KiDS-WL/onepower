@@ -1,0 +1,6 @@
+onepower.pk.Spectra.central\_alignment\_profile
+===============================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.central_alignment_profile

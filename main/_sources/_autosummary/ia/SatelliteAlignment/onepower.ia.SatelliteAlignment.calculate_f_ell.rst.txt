@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.calculate\_f\_ell
+================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.calculate_f_ell

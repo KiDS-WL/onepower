@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.get\_all\_parameter\_defaults
+========================================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.get_all_parameter_defaults

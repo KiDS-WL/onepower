@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.validate
+==========================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: HaloModelIngredients.validate
