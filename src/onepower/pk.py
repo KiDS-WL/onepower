@@ -1531,7 +1531,7 @@ class Spectra(HaloModelIngredients):
         return PowerSpectrumResult(pk_tot=self._pk_lin[np.newaxis, :, :])
 
     @cached_quantity
-    def power_spectrum_mm(
+    def _power_spectrum_mm(
         self,
     ):
         """
@@ -1614,6 +1614,26 @@ class Spectra(HaloModelIngredients):
         return PowerSpectrumResult(
             pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None
         )
+
+    @cached_quantity
+    def power_spectrum_mm(
+        self,
+    ):
+        """
+        Return the matter-matter power spectrum.
+
+        Returns:
+        --------
+        PowerSpectrumResult object
+            The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
+            Each element of PowerSpectrumResult is a 3D array with shape (1, n_z, n_k).
+        """
+        if self.response:
+            return PowerSpectrumResult(
+                pk_1h=None, pk_2h=None, pk_tot=self._pk_nl, galaxy_linear_bias=None
+            )
+        else:
+            return self._power_spectrum_mm
 
     # --------------------------------  Galaxy spectra specific funtions ------------------------------
 
@@ -1929,9 +1949,9 @@ class Spectra(HaloModelIngredients):
         )
 
         if self.response:
-            pk_1h *= self._pk_nl / self.power_spectrum_mm.pk_tot
-            pk_2h *= self._pk_nl / self.power_spectrum_mm.pk_tot
-            pk_tot *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_1h *= self._pk_nl / self._power_spectrum_mm.pk_tot
+            pk_2h *= self._pk_nl / self._power_spectrum_mm.pk_tot
+            pk_tot *= self._pk_nl / self._power_spectrum_mm.pk_tot
 
         return PowerSpectrumResult(
             pk_1h=pk_1h,
@@ -2020,9 +2040,9 @@ class Spectra(HaloModelIngredients):
         )
 
         if self.response:
-            pk_1h *= self._pk_nl / self.power_spectrum_mm.pk_tot
-            pk_2h *= self._pk_nl / self.power_spectrum_mm.pk_tot
-            pk_tot *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_1h *= self._pk_nl / self._power_spectrum_mm.pk_tot
+            pk_2h *= self._pk_nl / self._power_spectrum_mm.pk_tot
+            pk_tot *= self._pk_nl / self._power_spectrum_mm.pk_tot
 
         return PowerSpectrumResult(
             pk_1h=pk_1h,
@@ -2391,9 +2411,9 @@ class Spectra(HaloModelIngredients):
             pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h
 
         if self.response:
-            pk_1h *= self._pk_nl / self.power_spectrum_mm.pk_tot
-            pk_2h *= self._pk_nl / self.power_spectrum_mm.pk_tot
-            pk_tot *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_1h *= self._pk_nl / self._power_spectrum_mm.pk_tot
+            pk_2h *= self._pk_nl / self._power_spectrum_mm.pk_tot
+            pk_tot *= self._pk_nl / self._power_spectrum_mm.pk_tot
 
         return PowerSpectrumResult(
             pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None
@@ -2514,9 +2534,9 @@ class Spectra(HaloModelIngredients):
             pk_tot = pk_ss_1h + pk_cc_2h + pk_ss_2h + pk_cs_2h
 
         if self.response:
-            pk_1h *= self._pk_nl / self.power_spectrum_mm.pk_tot
-            pk_2h *= self._pk_nl / self.power_spectrum_mm.pk_tot
-            pk_tot *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_1h *= self._pk_nl / self._power_spectrum_mm.pk_tot
+            pk_2h *= self._pk_nl / self._power_spectrum_mm.pk_tot
+            pk_tot *= self._pk_nl / self._power_spectrum_mm.pk_tot
 
         return PowerSpectrumResult(
             pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None
@@ -2612,9 +2632,9 @@ class Spectra(HaloModelIngredients):
             pk_tot = pk_cs_1h + pk_cs_2h + pk_cc_2h
 
         if self.response:
-            pk_1h *= self._pk_nl / self.power_spectrum_mm.pk_tot
-            pk_2h *= self._pk_nl / self.power_spectrum_mm.pk_tot
-            pk_tot *= self._pk_nl / self.power_spectrum_mm.pk_tot
+            pk_1h *= self._pk_nl / self._power_spectrum_mm.pk_tot
+            pk_2h *= self._pk_nl / self._power_spectrum_mm.pk_tot
+            pk_tot *= self._pk_nl / self._power_spectrum_mm.pk_tot
 
         return PowerSpectrumResult(
             pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None
