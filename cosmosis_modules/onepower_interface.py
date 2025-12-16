@@ -1055,18 +1055,7 @@ def execute(block, config):
         pk_mm_1h = results.power_spectrum_mm.pk_1h
         pk_mm_2h = results.power_spectrum_mm.pk_2h
         pk_mm = results.power_spectrum_mm.pk_tot
-        if response:
-            # Here we save the computed Pmm to datablock as matter_power_hm,
-            # but not replacing the Pnl with it, as in the response
-            # method, the Pnl stays the same as one from CAMB
-            block.put_grid(
-                'matter_power_hm', 'z', z_out, 'k_h', k_out, 'p_k_1h', pk_mm_1h[0]
-            )
-            block.put_grid(
-                'matter_power_hm', 'z', z_out, 'k_h', k_out, 'p_k_2h', pk_mm_2h[0]
-            )
-            block.put_grid('matter_power_hm', 'z', z_out, 'k_h', k_out, 'p_k', pk_mm[0])
-        else:
+        if not response:
             block.put_grid(
                 'matter_power_nl', 'z', z_out, 'k_h', k_out, 'p_k_1h', pk_mm_1h[0]
             )
