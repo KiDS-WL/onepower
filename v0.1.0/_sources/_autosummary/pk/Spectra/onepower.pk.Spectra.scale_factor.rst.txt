@@ -1,0 +1,6 @@
+onepower.pk.Spectra.scale\_factor
+=================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.scale_factor

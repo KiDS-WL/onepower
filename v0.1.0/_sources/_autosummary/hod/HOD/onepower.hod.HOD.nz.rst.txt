@@ -1,0 +1,6 @@
+onepower.hod.HOD.nz
+===================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HOD.nz

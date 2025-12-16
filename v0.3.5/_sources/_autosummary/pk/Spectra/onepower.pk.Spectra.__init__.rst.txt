@@ -1,0 +1,6 @@
+onepower.pk.Spectra.\_\_init\_\_
+================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.__init__

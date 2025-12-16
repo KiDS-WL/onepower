@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.compute\_luminosity\_pdf
+=======================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.compute_luminosity_pdf

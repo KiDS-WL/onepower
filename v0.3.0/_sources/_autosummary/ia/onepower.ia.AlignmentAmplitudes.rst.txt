@@ -1,0 +1,60 @@
+onepower.ia.AlignmentAmplitudes
+===============================
+
+.. currentmodule:: onepower.ia
+
+.. autoclass:: AlignmentAmplitudes
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: AlignmentAmplitudes
+   
+      ~AlignmentAmplitudes.__init__
+      ~AlignmentAmplitudes.broken_powerlaw
+      ~AlignmentAmplitudes.clone
+      ~AlignmentAmplitudes.compute_luminosity_pdf
+      ~AlignmentAmplitudes.get_all_parameter_defaults
+      ~AlignmentAmplitudes.get_all_parameter_names
+      ~AlignmentAmplitudes.get_dependencies
+      ~AlignmentAmplitudes.mean_l_l0_to_beta
+      ~AlignmentAmplitudes.parameter_info
+      ~AlignmentAmplitudes.quantities_available
+      ~AlignmentAmplitudes.update
+      ~AlignmentAmplitudes.validate
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: AlignmentAmplitudes
+   
+      ~AlignmentAmplitudes.alignment_gi
+      ~AlignmentAmplitudes.beta_cen
+      ~AlignmentAmplitudes.beta_sat
+      ~AlignmentAmplitudes.central_ia_depends_on
+      ~AlignmentAmplitudes.gamma_1h_amp
+      ~AlignmentAmplitudes.gamma_1h_amplitude
+      ~AlignmentAmplitudes.gamma_1h_slope
+      ~AlignmentAmplitudes.gamma_2h_amplitude
+      ~AlignmentAmplitudes.lpivot_cen
+      ~AlignmentAmplitudes.lpivot_sat
+      ~AlignmentAmplitudes.lum_centrals
+      ~AlignmentAmplitudes.lum_pdf_z_centrals
+      ~AlignmentAmplitudes.lum_pdf_z_satellites
+      ~AlignmentAmplitudes.lum_satellites
+      ~AlignmentAmplitudes.mpivot_cen
+      ~AlignmentAmplitudes.mpivot_sat
+      ~AlignmentAmplitudes.parameter_values
+      ~AlignmentAmplitudes.satellite_ia_depends_on
+      ~AlignmentAmplitudes.z_loglum_file_centrals
+      ~AlignmentAmplitudes.z_loglum_file_satellites
+      ~AlignmentAmplitudes.z_vec
+   
+   

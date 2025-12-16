@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.parameter\_info
+==========================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: CosmologyBase.parameter_info

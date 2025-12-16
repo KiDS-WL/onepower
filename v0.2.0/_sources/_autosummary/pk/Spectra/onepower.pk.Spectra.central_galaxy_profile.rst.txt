@@ -1,0 +1,6 @@
+onepower.pk.Spectra.central\_galaxy\_profile
+============================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.central_galaxy_profile
