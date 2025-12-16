@@ -6,6 +6,18 @@ dev-version
 
 **Changes**
 
+v0.6 [14 Nov 2025]
+--------------------
+
+**Changes**
+
+* Changed the behaviour of the matter-matter power spectra when response is True
+* Updates to the pre-commit configuration
+
+**Fixes**
+
+* Minor fixes to the codebase, mostly stemming from the changes to the matter-matter power spectra
+
 v0.5 [14 Nov 2025]
 --------------------
 
