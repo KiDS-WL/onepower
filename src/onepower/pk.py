@@ -1632,8 +1632,7 @@ class Spectra(HaloModelIngredients):
             return PowerSpectrumResult(
                 pk_1h=None, pk_2h=None, pk_tot=self._pk_nl, galaxy_linear_bias=None
             )
-        else:
-            return self._power_spectrum_mm
+        return self._power_spectrum_mm
 
     # --------------------------------  Galaxy spectra specific funtions ------------------------------
 
