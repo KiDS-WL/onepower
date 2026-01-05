@@ -1,0 +1,6 @@
+onepower.pk.Spectra.bias\_model
+===============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.bias_model

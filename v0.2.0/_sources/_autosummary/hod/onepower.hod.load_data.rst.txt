@@ -1,0 +1,6 @@
+onepower.hod.load\_data
+=======================
+
+.. currentmodule:: onepower.hod
+
+.. autofunction:: load_data

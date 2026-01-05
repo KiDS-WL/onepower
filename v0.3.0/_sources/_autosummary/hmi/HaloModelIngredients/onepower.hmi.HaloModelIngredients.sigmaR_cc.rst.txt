@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.sigmaR\_cc
+============================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: HaloModelIngredients.sigmaR_cc

@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.z\_loglum\_file\_centrals
+=========================================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.z_loglum_file_centrals

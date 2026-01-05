@@ -1,0 +1,6 @@
+onepower.hod.Zhai.data
+======================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.data

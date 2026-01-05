@@ -1,0 +1,6 @@
+onepower.hod.Zheng.stellar\_fraction\_cen
+=========================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zheng.stellar_fraction_cen
