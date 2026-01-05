@@ -92,3 +92,21 @@ kwargs = {
         'obs_settings': obs_settings,
         'compute_observable': True,
 }
+
+kwargs_pk = {
+        'Mmin': 9.0,
+        'Mmax': 16.0,
+        'dlog10m': 0.05,
+
+        'log10T_AGN': 7.8,
+
+        'poisson_model': 'constant',
+        'poisson_params': poisson_params,
+        'pointmass': True,
+
+        'hod_model': 'Cacciato',
+        'hod_params': hod_params,
+        'hod_settings': hod_settings,
+        'obs_settings': obs_settings,
+        'compute_observable': True,
+}
