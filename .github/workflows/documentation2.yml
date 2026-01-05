@@ -79,7 +79,7 @@ jobs:
       matrix:
         ref: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ matrix.ref }}
           fetch-depth: 0
@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload artifacts
         if: steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: html-docs-${{ matrix.ref }}
           path: docs/_build/html/
@@ -154,7 +154,7 @@ jobs:
       }}
     steps:
       - name: Checkout gh-pages
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: gh-pages
           fetch-depth: 0
