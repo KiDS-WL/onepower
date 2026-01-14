@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.sigma\_8
+===================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: CosmologyBase.sigma_8

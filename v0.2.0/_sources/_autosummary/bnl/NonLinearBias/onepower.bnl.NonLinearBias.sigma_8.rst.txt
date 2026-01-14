@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.sigma\_8
+===================================
+
+.. currentmodule:: onepower.bnl
+
+.. autoproperty:: NonLinearBias.sigma_8

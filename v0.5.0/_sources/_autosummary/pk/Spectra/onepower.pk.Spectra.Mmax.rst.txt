@@ -1,0 +1,6 @@
+onepower.pk.Spectra.Mmax
+========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.Mmax

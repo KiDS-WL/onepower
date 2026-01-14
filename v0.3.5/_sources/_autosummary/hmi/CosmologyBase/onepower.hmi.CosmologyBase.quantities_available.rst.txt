@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.quantities\_available
+================================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: CosmologyBase.quantities_available
