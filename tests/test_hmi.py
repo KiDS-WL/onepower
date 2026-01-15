@@ -164,9 +164,9 @@ def test_halo_model_ingredients_initialization(ingredients, setup_data):
 
 def test_wrong_mead_option(ingredients, setup_data):
     with pytest.raises(ValueError):
-        ingredients.update(mead_correction='something')
-    ingredients.update(mead_correction=None)
-    assert ingredients.mead_correction is None
+        ingredients.update(hmcode_ingredients='something')
+    ingredients.update(hmcode_ingredients=None)
+    assert ingredients.hmcode_ingredients is None
 
 
 def test_halo_model_ingredients_properties(ingredients, setup_data):
@@ -186,35 +186,35 @@ def test_halo_model_ingredients_properties(ingredients, setup_data):
     assert eta_s.shape == z_vec.shape
 
     delta_c_mod = ingredients._delta_c_mod
-    ingredients.update(mead_correction='feedback')
+    ingredients.update(hmcode_ingredients='mead2020_feedback')
     delta_c_mod_mead = ingredients._delta_c_mod
     assert delta_c_mod.shape == z_vec.shape
     assert delta_c_mod_mead.shape == z_vec.shape
     assert np.allclose(delta_c_mod_mead, ingredients.dc_Mead)
-    ingredients.update(mead_correction=None)
+    ingredients.update(hmcode_ingredients=None)
 
     mdef_mod = ingredients._mdef_mod
-    ingredients.update(mead_correction='feedback')
+    ingredients.update(hmcode_ingredients='mead2020_feedback')
     mdef_mod_mead = ingredients._mdef_mod
     assert isinstance(mdef_mod, str)
     assert isinstance(mdef_mod_mead, type(SOVirial_Mead))
-    ingredients.update(mead_correction=None)
+    ingredients.update(hmcode_ingredients=None)
 
     hmf_mod = ingredients._hmf_mod
-    ingredients.update(mead_correction='feedback')
+    ingredients.update(hmcode_ingredients='mead2020_feedback')
     hmf_mod_mead = ingredients._hmf_mod
     assert isinstance(hmf_mod, str)
     assert isinstance(hmf_mod_mead, str)
     assert hmf_mod_mead == 'ST'
-    ingredients.update(mead_correction=None)
+    ingredients.update(hmcode_ingredients=None)
 
     bias_mod = ingredients._bias_mod
-    ingredients.update(mead_correction='feedback')
+    ingredients.update(hmcode_ingredients='mead2020_feedback')
     bias_mod_mead = ingredients._bias_mod
     assert isinstance(bias_mod, str)
     assert isinstance(bias_mod_mead, str)
     assert bias_mod_mead == 'ST99'
-    ingredients.update(mead_correction=None)
+    ingredients.update(hmcode_ingredients=None)
 
     halo_concentration_mod_dm = ingredients._halo_concentration_mod_dm
     assert callable(halo_concentration_mod_dm)
@@ -222,11 +222,11 @@ def test_halo_model_ingredients_properties(ingredients, setup_data):
     halo_concentration_mod_dm = ingredients._halo_concentration_mod_dm
     assert callable(halo_concentration_mod_dm)
     ingredients.update(
-        halo_concentration_model_dm='Duffy08', mead_correction='feedback'
+        halo_concentration_model_dm='Duffy08', hmcode_ingredients='mead2020_feedback'
     )
     halo_concentration_mod_dm_mead = ingredients._halo_concentration_mod_dm
     assert callable(halo_concentration_mod_dm_mead)
-    ingredients.update(mead_correction=None)
+    ingredients.update(hmcode_ingredients=None)
 
     halo_concentration_mod_sat = ingredients._halo_concentration_mod_sat
     assert callable(halo_concentration_mod_sat)
@@ -251,30 +251,30 @@ def test_halo_model_ingredients_miscellaneous(ingredients, setup_data):
 
     disable_mass_conversion = ingredients.disable_mass_conversion
     assert isinstance(disable_mass_conversion, bool)
-    ingredients.update(mead_correction='feedback')
+    ingredients.update(hmcode_ingredients='mead2020_feedback')
     disable_mass_conversion = ingredients.disable_mass_conversion
     assert isinstance(disable_mass_conversion, bool)
-    ingredients.update(mead_correction=None)
+    ingredients.update(hmcode_ingredients=None)
 
     K = ingredients.K
     assert isinstance(K, np.ndarray)
     assert np.allclose(K, np.zeros_like(z_vec))
-    ingredients.update(mead_correction='feedback')
+    ingredients.update(hmcode_ingredients='mead2020_feedback')
     K = ingredients.K
     assert isinstance(K, np.ndarray)
-    ingredients.update(mead_correction='nofeedback')
+    ingredients.update(hmcode_ingredients='mead2020')
     K = ingredients.K
     assert isinstance(K, np.ndarray)
-    ingredients.update(mead_correction=None)
+    ingredients.update(hmcode_ingredients=None)
 
     hmf_generator = ingredients._hmf_generator
     assert isinstance(hmf_generator, tuple)
     assert len(hmf_generator) == 2
-    ingredients.update(mead_correction='feedback')
+    ingredients.update(hmcode_ingredients='mead2020_feedback')
     hmf_generator = ingredients._hmf_generator
     assert isinstance(hmf_generator, tuple)
     assert len(hmf_generator) == 2
-    ingredients.update(mead_correction=None)
+    ingredients.update(hmcode_ingredients=None)
 
     hmf_cen = ingredients._hmf_cen
     assert isinstance(hmf_cen, list)

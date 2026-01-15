@@ -56,7 +56,7 @@ def test_spectra_properties_and_zvec_kvec_shape(setup_data, spectra):
         z_vec=z_vec[:-2],
         matter_power_lin=matter_power_lin,
         matter_power_nl=matter_power_nl,
-        fortuna=True,
+        nonlinear_mode='fortuna',
         response=True,
     )
     with pytest.raises(ValueError):
@@ -68,7 +68,7 @@ def test_spectra_properties_and_zvec_kvec_shape(setup_data, spectra):
 def test_spectra_bnl_related_properties(setup_data, spectra):
     k_vec, _, mass, _, _, _, _ = setup_data
 
-    spectra.update(bnl=True)
+    spectra.update(nonlinear_mode='bnl')
     assert spectra.calc_bnl.shape == (1, len(mass), len(mass), len(k_vec))
     assert spectra.I12 is not None
     assert spectra.I21 is not None
@@ -80,7 +80,7 @@ def test_spectra_bnl_related_properties(setup_data, spectra):
     assert isinstance(spectra.power_spectrum_ii, PowerSpectrumResult)
     assert isinstance(spectra.power_spectrum_gi, PowerSpectrumResult)
 
-    spectra.update(bnl=False)
+    spectra.update(nonlinear_mode=None)
     assert spectra.I12 is None
     assert spectra.I21 is None
     assert spectra.I22 is None
@@ -195,7 +195,7 @@ def test_spectra_alignment_properties_and_profiles_and_terms(setup_data, spectra
 def test_spectra_alignment_power_spectra_and_mead(setup_data):
     _, _, mass, _, _, _, _ = setup_data
 
-    spectra_mead = Spectra(mead_correction='nofeedback')
+    spectra_mead = Spectra(hmcode_ingredients='mead2020')
     assert isinstance(spectra_mead.power_spectrum_mm, PowerSpectrumResult)
     assert isinstance(spectra_mead.power_spectrum_gg, PowerSpectrumResult)
     assert isinstance(spectra_mead.power_spectrum_gm, PowerSpectrumResult)
@@ -203,7 +203,7 @@ def test_spectra_alignment_power_spectra_and_mead(setup_data):
     assert isinstance(spectra_mead.power_spectrum_ii, PowerSpectrumResult)
     assert isinstance(spectra_mead.power_spectrum_gi, PowerSpectrumResult)
 
-    spectra_mead = Spectra(mead_correction='feedback')
+    spectra_mead = Spectra(hmcode_ingredients='mead2020_feedback')
     assert isinstance(spectra_mead.power_spectrum_mm, PowerSpectrumResult)
     assert isinstance(spectra_mead.power_spectrum_gg, PowerSpectrumResult)
     assert isinstance(spectra_mead.power_spectrum_gm, PowerSpectrumResult)
@@ -212,7 +212,7 @@ def test_spectra_alignment_power_spectra_and_mead(setup_data):
     assert isinstance(spectra_mead.power_spectrum_gi, PowerSpectrumResult)
 
     spectra_mead = Spectra(
-        mead_correction='fit', Mmin=12, Mmax=15, dlog10m=(15 - 12) / 100
+        hmcode_ingredients='fit', Mmin=12, Mmax=15, dlog10m=(15 - 12) / 100
     )
     assert spectra_mead.hod_mm is not None
     assert spectra_mead.fstar_mm.shape == (1, len(spectra_mead.z_vec), len(mass))
@@ -230,7 +230,7 @@ def test_fortuna_and_response(setup_data):
         z_vec=z_vec,
         matter_power_lin=matter_power_lin,
         matter_power_nl=matter_power_nl,
-        fortuna=True,
+        nonlinear_mode='fortuna',
         response=True,
     )
 

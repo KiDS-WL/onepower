@@ -34,7 +34,7 @@ warnings.filterwarnings('ignore', message='Nonlinear mass outside mass range')
 warnings.filterwarnings('ignore', category=UserWarning)
 
 DMHaloModel.ERROR_ON_BAD_MDEF = False
-valid_corrections = ['feedback', 'nofeedback', 'fit', None]
+VALID_HMCODE_INGREDIENTS = ['mead2020_feedback', 'mead2020', 'fit', None]
 
 
 class SOVirial_Mead(SphericalOverdensity):
@@ -557,7 +557,7 @@ class HaloModelIngredients(CosmologyBase):
         Overdensity parameter.
     delta_c : float, optional
         Critical density threshold for collapse.
-    mead_correction : str, optional
+    hmcode_ingredients : str, optional
         Correction model from Mead et al.
 
     """
@@ -588,12 +588,29 @@ class HaloModelIngredients(CosmologyBase):
         eta_sat=0.0,
         overdensity=200,
         delta_c=1.686,
+        hmcode_ingredients: str | None = None,
         mead_correction: str | None = None,
         **cosmology_kwargs,
     ):
         super().__init__(**cosmology_kwargs)
 
-        self.mead_correction = mead_correction
+        if hmcode_ingredients is not None and mead_correction is not None:
+            raise TypeError(
+                "Please pass only one of 'hmcode_ingredients' or 'mead_correction', "
+                "not both. 'mead_correction' is deprecated."
+            )
+        if hmcode_ingredients is not None:
+            self.hmcode_ingredients = hmcode_ingredients
+        elif mead_correction is not None:
+            warnings.warn(
+                "'mead_correction' is deprecated and will be removed in a future "
+                "release. Please use 'hmcode_ingredients' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.hmcode_ingredients = mead_correction
+        else:
+            self.hmcode_ingredients = None
 
         self.k_vec = k_vec
         self.lnk_min = lnk_min
@@ -623,19 +640,17 @@ class HaloModelIngredients(CosmologyBase):
         self.overdensity = overdensity
         self.delta_c = delta_c
 
-    def validate(self):
-        if self.mead_correction not in valid_corrections:
-            raise ValueError(
-                f'Desired Mead correction is not supported. You have provided {self.mead_correction}, valid options are {valid_corrections}!'
-            )
-
     @parameter('param')
-    def mead_correction(self, val):
+    def hmcode_ingredients(self, val):
         """
         Correction model from Mead et al.
 
         :type: str
         """
+        if val not in VALID_HMCODE_INGREDIENTS:
+            raise ValueError(
+                f'Desired HMCode ingredients is not supported. You have provided {val}, valid options are {VALID_HMCODE_INGREDIENTS}!'
+            )
         return val
 
     @parameter('param')
@@ -913,7 +928,7 @@ class HaloModelIngredients(CosmologyBase):
         array_like
             delta_c array
         """
-        if self.mead_correction in ['feedback', 'nofeedback']:
+        if self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']:
             val = self.dc_Mead
         else:
             val = (
@@ -934,9 +949,9 @@ class HaloModelIngredients(CosmologyBase):
         Returns:
         --------
         object
-            SOVirial_Mead mass definition class if mead_correction is True, otherwise the input mass definition class
+            SOVirial_Mead mass definition class if hmcode_ingredients is True, otherwise the input mass definition class
         """
-        if self.mead_correction in ['feedback', 'nofeedback']:
+        if self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']:
             return SOVirial_Mead
         return self.mdef_model
 
@@ -949,9 +964,9 @@ class HaloModelIngredients(CosmologyBase):
         Returns:
         --------
         object
-            hmf_model class, Sheth-Thormen model in case if meed_correction is True
+            hmf_model class, Sheth-Thormen model in case if hmcode_ingredients is True
         """
-        if self.mead_correction in ['feedback', 'nofeedback']:
+        if self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']:
             return 'ST'
         return self.hmf_model
 
@@ -964,9 +979,9 @@ class HaloModelIngredients(CosmologyBase):
         Returns:
         --------
         object
-            bias_model class, Sheth-Thormen model in case if meed_correction is True
+            bias_model class, Sheth-Thormen model in case if hmcode_ingredients is True
         """
-        if self.mead_correction in ['feedback', 'nofeedback']:
+        if self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']:
             return 'ST99'
         return self.bias_model
 
@@ -979,9 +994,9 @@ class HaloModelIngredients(CosmologyBase):
         Returns:
         --------
         object
-            halo_concentration class, Bullock 2001 model in case if meed_correction is True
+            halo_concentration class, Bullock 2001 model in case if hmcode_ingredients is True
         """
-        if self.mead_correction in ['feedback', 'nofeedback']:
+        if self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']:
             val = interp_concentration(concentration_classes.Bullock01)
         else:
             try:
@@ -1004,7 +1019,7 @@ class HaloModelIngredients(CosmologyBase):
         object
             halo_concentration class
         """
-        if self.mead_correction in ['feedback', 'nofeedback']:
+        if self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']:
             val = interp_concentration(concentration_classes.Bullock01)
         else:
             try:
@@ -1028,7 +1043,7 @@ class HaloModelIngredients(CosmologyBase):
         array_like
             array of mass mass definition dictionaries, one for each redshift
         """
-        if self.mead_correction in ['feedback', 'nofeedback']:
+        if self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']:
             val = [{'overdensity': overdensity} for overdensity in self.Dv_Mead]
         else:
             val = [
@@ -1063,7 +1078,7 @@ class HaloModelIngredients(CosmologyBase):
         --------
         bool
         """
-        return self.mead_correction in ['feedback', 'nofeedback']
+        return self.hmcode_ingredients in ['feedback', 'nofeedback']
 
     @cached_quantity
     def K(self):
@@ -1074,11 +1089,11 @@ class HaloModelIngredients(CosmologyBase):
         Returns:
         --------
         array_like
-            normalisation of the Bullock 2001 c(M) relation, if mead_corrections is True
+            normalisation of the Bullock 2001 c(M) relation, if hmcode_ingredients is True
         """
-        if self.mead_correction == 'nofeedback':
+        if self.hmcode_ingredients == 'mead2020':
             k = 5.196 * np.ones_like(self.z_vec)
-        elif self.mead_correction == 'feedback':
+        elif self.hmcode_ingredients == 'mead2020_feedback':
             theta_agn = self.log10T_AGN - 7.8
             k = (5.196 / 4.0) * (
                 (3.44 - 0.496 * theta_agn)
@@ -1128,7 +1143,7 @@ class HaloModelIngredients(CosmologyBase):
         y = x.clone()
         x_out, y_out = [], []
 
-        if self.mead_correction in ['feedback', 'nofeedback']:
+        if self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']:
             # For centrals
             for z, mdef_par, dc, norm_cen, k in zip(
                 self.z_vec,
@@ -1542,7 +1557,7 @@ class HaloModelIngredients(CosmologyBase):
     # Rnl = DM_hmf.filter.mass_to_radius(DM_hmf.mass_nonlinear, DM_hmf.mean_density0)
     # neff[jz] = -3.0 - 2.0*DM_hmf.normalised_filter.dlnss_dlnm(Rnl)
 
-    # Only used for mead_corrections
+    # Only used for hmcode_ingredients
     # pk_cold = DM_hmf.power * hmu.Tk_cold_ratio(DM_hmf.k, g, block[cosmo_params, 'ommh2'], block[cosmo_params, 'h0'], this_cosmo_run.Onu0/this_cosmo_run.Om0, this_cosmo_run.Neff, T_CMB=tcmb)**2.0
     # sigma8_z[jz] = hmu.sigmaR_cc(pk_cold, DM_hmf.k, 8.0)
 

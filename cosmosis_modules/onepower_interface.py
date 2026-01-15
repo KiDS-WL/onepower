@@ -33,14 +33,6 @@ poisson_parameters = {
     'power_law': ['poisson', 'pivot', 'slope'],
 }
 
-# Mapping of use_mead values to mead_correction values
-mead_correction_map = {
-    'mead2020': 'nofeedback',
-    'mead2020_feedback': 'feedback',
-    'fit_feedback': 'fit',
-    # Add more mappings here if needed
-}
-
 
 def get_string_or_none(cosmosis_block, section, name, default):
     """
@@ -209,10 +201,6 @@ def setup_pipeline_parameters(options):
     # If True, calculate the response of the halo model for the requested power spectra compared to matter power
     # multiplies this to input non-linear matter power spectra.
     response = options.get_bool(option_section, 'response', default=False)
-    # If true, use the IA formalism of Fortuna et al. 2021: Truncated NLA at high k + 1-halo term
-    fortuna = options.get_bool(option_section, 'fortuna', default=False)
-    # If True, uses beta_nl
-    bnl = options.get_bool(option_section, 'bnl', default=False)
     split_ia = options.get_bool(option_section, 'split_ia', default=False)
 
     matter = p_mm
@@ -237,9 +225,11 @@ def setup_pipeline_parameters(options):
     )  # h/Mpc or None
 
     # Additional parameters
-    mead_correction = mead_correction_map.get(
-        options.get_string(option_section, 'mead2020_correction', default='None'), None
+    hmcode_ingredients = options.get_string(
+        option_section, 'hmcode_ingredients', default=None
     )
+    nonlinear_mode = options.get_string(option_section, 'nonlinear_mode', default=None)
+
     dewiggle = options.get_bool(option_section, 'dewiggle', default=False)
     point_mass = options.get_bool(option_section, 'point_mass', default=False)
     poisson_type = options.get_string(option_section, 'poisson_type', default='')
@@ -252,17 +242,16 @@ def setup_pipeline_parameters(options):
         p_mI,
         p_II,
         response,
-        fortuna,
         matter,
         galaxy,
-        bnl,
         alignment,
         split_ia,
         one_halo_ktrunc,
         two_halo_ktrunc,
         one_halo_ktrunc_ia,
         two_halo_ktrunc_ia,
-        mead_correction,
+        hmcode_ingredients,
+        nonlinear_mode,
         dewiggle,
         point_mass,
         poisson_type,
@@ -591,17 +580,16 @@ def setup(options):
         p_mI,
         p_II,
         response,
-        fortuna,
         matter,
         galaxy,
-        bnl,
         alignment,
         split_ia,
         one_halo_ktrunc,
         two_halo_ktrunc,
         one_halo_ktrunc_ia,
         two_halo_ktrunc_ia,
-        mead_correction,
+        hmcode_ingredients,
+        nonlinear_mode,
         dewiggle,
         point_mass,
         poisson_type,
@@ -629,7 +617,7 @@ def setup(options):
     # hmf config
     config_hmf = setup_hmf_config(options)
 
-    if bnl:
+    if nonlinear_mode == 'bnl':
         cached_bnl = {
             'num_calls': 0,
             'cached_bnl': None,
@@ -648,10 +636,8 @@ def setup(options):
         p_mI,
         p_II,
         response,
-        fortuna,
         matter,
         galaxy,
-        bnl,
         alignment,
         split_ia,
         one_halo_ktrunc,
@@ -659,7 +645,8 @@ def setup(options):
         one_halo_ktrunc_ia,
         two_halo_ktrunc_ia,
         hod_section_name,
-        mead_correction,
+        hmcode_ingredients,
+        nonlinear_mode,
         dewiggle,
         point_mass,
         poisson_type,
@@ -693,10 +680,8 @@ def execute(block, config):
         p_mI,
         p_II,
         response,
-        fortuna,
         matter,
         galaxy,
-        bnl,
         alignment,
         split_ia,
         one_halo_ktrunc,
@@ -704,7 +689,8 @@ def execute(block, config):
         one_halo_ktrunc_ia,
         two_halo_ktrunc_ia,
         hod_section_name,
-        mead_correction,
+        hmcode_ingredients,
+        nonlinear_mode,
         dewiggle,
         point_mass,
         poisson_type,
@@ -753,7 +739,8 @@ def execute(block, config):
 
     power_kwargs = {
         'matter_power_lin': plin,
-        'mead_correction': mead_correction,
+        'hmcode_ingredients': hmcode_ingredients,
+        'nonlinear_mode': nonlinear_mode,
         'dewiggle': dewiggle,
         'k_vec': k_vec,
         'z_vec': config_hmf['z_vec'],
@@ -795,7 +782,7 @@ def execute(block, config):
         'mb': 10.0 ** block['halo_model_parameters', 'm_b'],
     }
 
-    if bnl:
+    if nonlinear_mode == 'bnl':
         num_calls = cached_bnl['num_calls']
         update_bnl = cached_bnl['update_bnl']
 
@@ -828,12 +815,11 @@ def execute(block, config):
 
         power_kwargs.update(
             {
-                'bnl': bnl,
                 'beta_nl': beta_interp,
             }
         )
 
-    if response or fortuna:
+    if response or nonlinear_mode == 'fortuna':
         k_nl, p_nl = get_nonlinear_power_spectrum(block, z_vec)
         pk_mm_in = log_linear_interpolation_k(p_nl, k_nl, k_vec)
         power_kwargs.update({'matter_power_nl': pk_mm_in, 'response': response})
@@ -962,7 +948,6 @@ def execute(block, config):
                 'align_params': align_params,
                 'one_halo_ktrunc_ia': one_halo_ktrunc_ia,
                 'two_halo_ktrunc_ia': two_halo_ktrunc_ia,
-                'fortuna': fortuna,
                 't_eff': block.get_double(
                     'pk_parameters', 'linear_fraction_fortuna', default=0.0
                 ),
