@@ -30,6 +30,15 @@ def spectra(setup_data):
     )
 
 
+def test_validate(setup_data):
+    with pytest.raises(ValueError):
+        Spectra(hmcode_ingredients=None, nonlinear_mode='hmcode')
+    with pytest.raises(ValueError):
+        Spectra(hmcode_ingredients='fit', nonlinear_mode='hmcode')
+    with pytest.raises(ValueError):
+        Spectra(nonlinear_mode='unknown_mode')
+
+
 def test_spectra_initialization_and_params_none(setup_data):
     _, _, _, _, _, matter_power_lin, matter_power_nl = setup_data
     spectra = Spectra(
@@ -195,7 +204,7 @@ def test_spectra_alignment_properties_and_profiles_and_terms(setup_data, spectra
 def test_spectra_alignment_power_spectra_and_mead(setup_data):
     _, _, mass, _, _, _, _ = setup_data
 
-    spectra_mead = Spectra(hmcode_ingredients='mead2020')
+    spectra_mead = Spectra(hmcode_ingredients='mead2020', nonlinear_mode='hmcode')
     assert isinstance(spectra_mead.power_spectrum_mm, PowerSpectrumResult)
     assert isinstance(spectra_mead.power_spectrum_gg, PowerSpectrumResult)
     assert isinstance(spectra_mead.power_spectrum_gm, PowerSpectrumResult)
@@ -203,7 +212,9 @@ def test_spectra_alignment_power_spectra_and_mead(setup_data):
     assert isinstance(spectra_mead.power_spectrum_ii, PowerSpectrumResult)
     assert isinstance(spectra_mead.power_spectrum_gi, PowerSpectrumResult)
 
-    spectra_mead = Spectra(hmcode_ingredients='mead2020_feedback')
+    spectra_mead = Spectra(
+        hmcode_ingredients='mead2020_feedback', nonlinear_mode='hmcode'
+    )
     assert isinstance(spectra_mead.power_spectrum_mm, PowerSpectrumResult)
     assert isinstance(spectra_mead.power_spectrum_gg, PowerSpectrumResult)
     assert isinstance(spectra_mead.power_spectrum_gm, PowerSpectrumResult)
