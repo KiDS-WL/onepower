@@ -211,22 +211,25 @@ def execute(block, config):
                 theory_x_in = block[input, 'rp']
             else:
                 data_x = x[count].astype(float)
-                theory_x_in = block[input, f'obs_{j+1}'] * block['cosmological_parameters', 'h0']
+                try:
+                    theory_x_in = block[input, f'mass_{j+1}']
+                except:
+                    theory_x_in = block[input, f'luminosity_{j+1}']
             theory_y_in = block[input, f'bin_{j+1}']
 
             theory_vectors[count] = get_theory_point(theory_x_in, theory_y_in,
                                             mode=binning_mode,
                                             interpolated_x=data_x,
                                             bin_edges=edges[count])
-            #pl.plot(data_x, data_vectors[count])
-            #pl.plot(data_x, theory_vectors[count])
-            #pl.plot(data_x, data_vectors[count]/theory_vectors[count])
+            pl.plot(data_x, data_vectors[count])
+            pl.plot(data_x, theory_vectors[count])
+            pl.plot(data_x, data_vectors[count]/theory_vectors[count])
             count += 1
 
-        #pl.xscale('log')
-        #pl.yscale('log')
-        #pl.show()
-        #pl.clf
+        pl.xscale('log')
+        pl.yscale('log')
+        pl.show()
+        pl.clf
 
     residuals = data_vectors - theory_vectors
     chi2 = np.array([np.dot(residuals[m], np.dot(inv_cov[m][n], residuals[n]))

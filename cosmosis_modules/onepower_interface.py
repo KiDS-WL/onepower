@@ -228,7 +228,11 @@ def setup_pipeline_parameters(options):
     hmcode_ingredients = options.get_string(
         option_section, 'hmcode_ingredients', default=None
     )
+    if hmcode_ingredients == 'None':
+        hmcode_ingredients = None
     nonlinear_mode = options.get_string(option_section, 'nonlinear_mode', default=None)
+    if nonlinear_mode == 'None':
+        nonlinear_mode = None
 
     dewiggle = options.get_bool(option_section, 'dewiggle', default=False)
     point_mass = options.get_bool(option_section, 'point_mass', default=False)
@@ -779,7 +783,7 @@ def execute(block, config):
         'wa': block[cosmo_params, 'wa'],
         'tcmb': block.get_double(cosmo_params, 'TCMB', default=2.7255),
         'log10T_AGN': block['halo_model_parameters', 'logT_AGN'],
-        'mb': 10.0 ** block['halo_model_parameters', 'm_b'],
+        'mb': 10.0 ** block.get_double('halo_model_parameters', 'm_b', default=13.87),
     }
 
     if nonlinear_mode == 'bnl':
@@ -1023,8 +1027,7 @@ def execute(block, config):
         model_2_params=None,
     )
 
-    if matter:
-        save_matter_results(block, power, z_vec, k_vec)
+    save_matter_results(block, power, z_vec, k_vec)
 
     if hod:
         hod_bins = save_hod_results(block, power, z_vec, hod_section_name, hod_settings)
