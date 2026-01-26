@@ -558,7 +558,7 @@ class HaloModelIngredients(CosmologyBase):
     delta_c : float, optional
         Critical density threshold for collapse.
     hmcode_ingredients : str, optional
-        Correction model from Mead et al.
+        Correction model from implemented versions of HMCode (currently supported are Mead et al. 2020 models (no feedback and feedback)).
 
     """
 

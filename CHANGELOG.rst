@@ -6,7 +6,19 @@ dev-version
 
 **Changes**
 
-v0.6 [14 Nov 2025]
+v0.7.0 [26 Jan 2026]
+--------------------
+
+**Changes**
+
+* Changed the behaviour of the bnl, fortuna and hmcode non-linear corrections, and changed the behaviour of the hmcode ingredients, both are now governed by two sepearate variables called ``hmcode_ingredients`` and ``nonlinear_mode``. Backwards compatibility is **not** maintained!
+* Updates and fixes to the pk_to_real code and the corresponding likelihood.
+
+**Fixes**
+
+* Minor fixes to the codebase, mostly stemming from the changes to the changes in non-linear corrections and hmcode ingredients.
+
+v0.6.0 [14 Nov 2025]
 --------------------
 
 **Changes**
@@ -18,7 +30,7 @@ v0.6 [14 Nov 2025]
 
 * Minor fixes to the codebase, mostly stemming from the changes to the matter-matter power spectra
 
-v0.5 [14 Nov 2025]
+v0.5.0 [14 Nov 2025]
 --------------------
 
 **Changes**

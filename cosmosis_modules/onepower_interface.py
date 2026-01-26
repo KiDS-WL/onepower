@@ -40,25 +40,20 @@ def get_string_or_none(cosmosis_block, section, name, default):
     or return None if no value is present.
     """
     if cosmosis_block.has_value(section, name):
-        test_param = cosmosis_block.get(section, name)
-        if isinstance(test_param, numbers.Number):
-            param = cosmosis_block.get_double(section, name, default)
-        if isinstance(test_param, str):
-            str_in = cosmosis_block.get_string(section, name)
-            if str_in == 'None':
-                param = None
-    else:
-        try:
-            param = cosmosis_block.get_double(section, name, default)
-        except ValueError:
-            param = None
+        value = cosmosis_block.get(section, name)
 
-    if not isinstance(param, (numbers.Number | type(None))):
-        raise ValueError(
-            f'Parameter {name} is not an instance of a number or NoneType!'
-        )
+        if isinstance(value, str):
+            return None if value == 'None' else value
 
-    return param
+        if isinstance(value, numbers.Number):
+            return cosmosis_block.get_double(section, name, default)
+
+        raise ValueError(f"Parameter {name} must be a number, string, or 'None'")
+
+    try:
+        return cosmosis_block.get_double(section, name, default)
+    except ValueError:
+        return None
 
 
 def interpolate_in_z(input_grid, z_in, z_out, axis=0):
@@ -225,14 +220,12 @@ def setup_pipeline_parameters(options):
     )  # h/Mpc or None
 
     # Additional parameters
-    hmcode_ingredients = options.get_string(
-        option_section, 'hmcode_ingredients', default=None
+    hmcode_ingredients = get_string_or_none(
+        options, option_section, 'hmcode_ingredients', default=None
     )
-    if hmcode_ingredients == 'None':
-        hmcode_ingredients = None
-    nonlinear_mode = options.get_string(option_section, 'nonlinear_mode', default=None)
-    if nonlinear_mode == 'None':
-        nonlinear_mode = None
+    nonlinear_mode = get_string_or_none(
+        options, option_section, 'nonlinear_mode', default=None
+    )
 
     dewiggle = options.get_bool(option_section, 'dewiggle', default=False)
     point_mass = options.get_bool(option_section, 'point_mass', default=False)
