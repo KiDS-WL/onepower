@@ -134,10 +134,10 @@ class Transformer:
 
         if self.q == 0:
             xi = pyfftlog.fht(self.k * pk, self.xsave,
-                              tdir=self.direction) * (2 * np.pi) / self.rp
+                              tdir=self.direction) / (2 * np.pi) / self.rp
         else:
             xi = pyfftlog.fhtq(self.k * pk, self.xsave,
-                               tdir=self.direction) * (2 * np.pi) / self.rp
+                               tdir=self.direction) / (2 * np.pi) / self.rp
 
         return self.rp[self.range], xi[self.range]
 
@@ -212,9 +212,9 @@ class CosmosisTransformer(Transformer):
         # Choose the bin values to go up to.  Different modules might specify this in different ways.
         # They might have one nbin value (for cosmic shear and clustering) or two (for GGL)
         if self.corr_type == "ds":
-            density = block["density", "mean_density0"]/1e12
+            density_in = np.unique(block["density", "mean_density0"])
         else:
-            density = 1.0
+            density_in = 1.0
 
         if self.nbins is None:
             nbins = block[self.sample, "nbin"]
@@ -236,6 +236,8 @@ class CosmosisTransformer(Transformer):
             k = block[input_section, "k_h"]
             z = block[input_section, "z"]
 
+            density = density_in * np.ones_like(z)[:, np.newaxis]
+
             # Read input P(k) from data block.
             pk = block[input_section, "p_k"]
 
@@ -248,7 +250,10 @@ class CosmosisTransformer(Transformer):
             nz = self.load_kernel(block, self.sample, b1, z, 0.0)
             xi = simpson(nz[:,np.newaxis]*xi*density, z, axis=0)
             # Save results back to cosmosis
-            block[self.output_section, output_name] = xi
+            if self.corr_type == "ds":
+                block[self.output_section, output_name] = xi / 1e12
+            else:
+                block[self.output_section, output_name] = xi
 
         block[self.output_section, "nbin"] = nbins
         block[self.output_section, "sample"] = self.sample

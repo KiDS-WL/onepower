@@ -43,7 +43,8 @@ obs_settings = {
 }
 kwargs = {
         'matter_power_lin': None,
-        'mead_correction': 'fit_feedback',
+        'hmcode_ingredients': 'fit',
+        'nonlinear_mode': 'bnl',
         'dewiggle': True,
         'k_vec': np.logspace(-4, 4, 100),
         'z_vec': np.linspace(0.0, 3.0, 15),
@@ -71,7 +72,6 @@ kwargs = {
         'one_halo_ktrunc': 0.1,
         'two_halo_ktrunc': 2.0,
         'matter_power_nl': None,
-        'bnl': True,
         'beta_nl': None,
 
         'omega_c': 0.25,
@@ -107,7 +107,6 @@ kwargs = {
 
         'one_halo_ktrunc_ia': 4.0,
         'two_halo_ktrunc_ia': 6.0,
-        'fortuna': False,
         't_eff': 0.0,
 
         'align_params': {

@@ -211,7 +211,10 @@ def execute(block, config):
                 theory_x_in = block[input, 'rp']
             else:
                 data_x = x[count].astype(float)
-                theory_x_in = block[input, f'obs_{j+1}'] * block['cosmological_parameters', 'h0']
+                try:
+                    theory_x_in = block[input, f'mass_{j+1}']
+                except:
+                    theory_x_in = block[input, f'luminosity_{j+1}']
             theory_y_in = block[input, f'bin_{j+1}']
 
             theory_vectors[count] = get_theory_point(theory_x_in, theory_y_in,

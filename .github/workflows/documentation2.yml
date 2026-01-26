@@ -26,7 +26,7 @@ jobs:
         (
           github.event_name == 'push' &&
           !contains(github.event.head_commit.message, 'dependabot') &&
-          !contains(github.event.head_commit.message, 'pre-commit-ci')
+          !contains(github.event.head_commit.message, 'pre-commit.ci')
         ) ||
         github.event_name == 'release' ||
         github.event_name == 'workflow_dispatch'
@@ -69,7 +69,7 @@ jobs:
           (
             github.event_name == 'push' &&
             !contains(github.event.head_commit.message, 'dependabot') &&
-            !contains(github.event.head_commit.message, 'pre-commit-ci')
+            !contains(github.event.head_commit.message, 'pre-commit.ci')
           ) ||
           github.event_name == 'release' ||
           github.event_name == 'workflow_dispatch'
@@ -147,7 +147,7 @@ jobs:
         (
           github.event_name == 'push' &&
           !contains(github.event.head_commit.message, 'dependabot') &&
-          !contains(github.event.head_commit.message, 'pre-commit-ci')
+          !contains(github.event.head_commit.message, 'pre-commit.ci')
         ) ||
         github.event_name == 'release' ||
         github.event_name == 'workflow_dispatch'

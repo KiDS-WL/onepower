@@ -52,6 +52,8 @@ from .ia import SatelliteAlignment
 from .utils import poisson
 from . import hod
 
+NONLINEAR_MODES = ['bnl', 'hmcode', 'fortuna', None]
+
 
 class PowerSpectrumResult:
     """
@@ -81,8 +83,8 @@ class Spectra(HaloModelIngredients):
         Gas distribution mass pivot parameter.
     dewiggle : bool, optional
         Whether to dewiggle the power spectrum.
-    bnl : bool, optional
-        Whether to include non-linear bias.
+    nonlinear_mode : str, optional
+        Non-linear mode to use (e.g. 'bnl', 'fortuna', 'hmcode').
     beta_nl : array_like, optional
         Non-linear bias parameter.
     one_halo_ktrunc : float, optional
@@ -109,8 +111,6 @@ class Spectra(HaloModelIngredients):
         Parameters for the Poisson distribution.
     t_eff : float, optional
         Effective parameter for the Fortuna model.
-    fortuna : bool, optional
-        Whether to use the Fortuna model.
     one_halo_ktrunc_ia : float, optional
         Truncation wavenumber for the 1-halo IA term.
     two_halo_ktrunc_ia : float, optional
@@ -143,17 +143,17 @@ class Spectra(HaloModelIngredients):
 
     def __init__(
         self,
+        nonlinear_mode: str | None = None,
+        dewiggle=False,
+        response=False,
+        pointmass=False,
+        compute_observable=False,
         matter_power_lin=None,
         matter_power_nl=None,
-        response=False,
         mb=13.87,
-        dewiggle=False,
-        bnl=False,
         beta_nl=None,
         one_halo_ktrunc=0.1,
         two_halo_ktrunc=2.0,
-        pointmass=False,
-        compute_observable=False,
         poisson_model=poisson.constant,
         poisson_params=None,
         hod_model=hod.Cacciato,
@@ -162,7 +162,6 @@ class Spectra(HaloModelIngredients):
         hod_settings_mm=None,
         obs_settings=None,
         t_eff=0.0,
-        fortuna=False,
         one_halo_ktrunc_ia=4.0,
         two_halo_ktrunc_ia=6.0,
         align_params=None,
@@ -171,20 +170,23 @@ class Spectra(HaloModelIngredients):
         # Call super init MUST BE DONE FIRST.
         super().__init__(**hmf_kwargs)
 
-        self.mb = mb
-        self.bnl = bnl
-        self.beta_nl = beta_nl
+        self.nonlinear_mode = nonlinear_mode
+
+        # Options settings
         self.dewiggle = dewiggle
+        self.response = response
+        self.pointmass = pointmass
+        self.compute_observable = compute_observable
+
+        self.mb = mb
+        self.beta_nl = beta_nl
         self.matter_power_lin = matter_power_lin
         self.matter_power_nl = matter_power_nl
-        self.response = response
 
         self.one_halo_ktrunc = one_halo_ktrunc
         self.two_halo_ktrunc = two_halo_ktrunc
 
         # Galaxy spectra specific kwargs:
-        self.pointmass = pointmass
-        self.compute_observable = compute_observable
         self.poisson_model = poisson_model
         self.poisson_params = poisson_params or {}
         self.hod_settings = hod_settings or {}
@@ -196,10 +198,34 @@ class Spectra(HaloModelIngredients):
 
         # Alignment spectra specific kwargs:
         self.t_eff = t_eff
-        self.fortuna = fortuna
         self.one_halo_ktrunc_ia = one_halo_ktrunc_ia
         self.two_halo_ktrunc_ia = two_halo_ktrunc_ia
         self.align_params = align_params or {}
+
+    def validate(self):
+        if self.nonlinear_mode == 'hmcode' and not self.hmcode_ingredients:
+            raise ValueError(
+                "'hmcode' non-linear mode can only be applied if 'hmcode_ingredients' is set."
+            )
+        if self.nonlinear_mode == 'hmcode' and self.hmcode_ingredients == 'fit':
+            raise ValueError(
+                "The option 'fit' cannot be used with 'hmcode' as non-linear mode."
+            )
+
+    @parameter('switch')
+    def nonlinear_mode(self, val):
+        """
+        The type of non-linear correction.
+        Options are bnl, hmcode, fortuna or None.
+        Can be expanded to include more corrections if needed.
+
+        :type: bool
+        """
+        if val not in NONLINEAR_MODES:
+            raise ValueError(
+                f'Desired non-linear correction is not supported. You have provided {val}, valid options are {NONLINEAR_MODES}!'
+            )
+        return val
 
     @parameter('param')
     def mb(self, val):
@@ -207,15 +233,6 @@ class Spectra(HaloModelIngredients):
         Gas distribution mass pivot parameter :math:`M_{\rm b}`.
 
         :type: float
-        """
-        return val
-
-    @parameter('switch')
-    def bnl(self, val):
-        """
-        Whether to include non-linear bias.
-
-        :type: bool
         """
         return val
 
@@ -346,15 +363,6 @@ class Spectra(HaloModelIngredients):
         return val
 
     @parameter('param')
-    def fortuna(self, val):
-        """
-        Whether to use the Fortuna model.
-
-        :type: bool
-        """
-        return val
-
-    @parameter('param')
     def t_eff(self, val):
         """
         Effective parameter for the Fortuna model.
@@ -422,7 +430,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             beta_nl
         """
-        if self.bnl and self.beta_nl is None:
+        if self.nonlinear_mode == 'bnl' and self.beta_nl is None:
             return self.calc_bnl
         return np.ascontiguousarray(self.beta_nl) if self.beta_nl is not None else None
 
@@ -451,7 +459,7 @@ class Spectra(HaloModelIngredients):
         else:
             val = self.matter_power_lin
 
-        if self.mead_correction in ['feedback', 'nofeedback'] or self.dewiggle:
+        if self.nonlinear_mode == 'hmcode' or self.dewiggle:
             val = self.dewiggle_plin(val)
         if val.shape != (self.z_vec.size, self.k_vec.size):
             raise ValueError(
@@ -470,7 +478,7 @@ class Spectra(HaloModelIngredients):
             non-linear power spectrum
         """
         val = self.matter_power_nl
-        if self.fortuna or self.response:
+        if self.nonlinear_mode == 'fortuna' or self.response:
             # P(k) can be returned by hmf!
             if self.matter_power_nl is None:
                 val_interp = interp1d(
@@ -499,7 +507,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             effective power spectrum
         """
-        if self.fortuna:
+        if self.nonlinear_mode == 'fortuna':
             return (1.0 - self.t_eff) * self._pk_nl + self.t_eff * self._pk_lin
         return None
 
@@ -535,7 +543,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             I12 integrand
         """
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             return self.prepare_I12_integrand(
                 self.halo_bias,
                 self.halo_bias,
@@ -554,7 +562,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             I21 integrand
         """
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             return self.prepare_I21_integrand(
                 self.halo_bias,
                 self.halo_bias,
@@ -573,7 +581,7 @@ class Spectra(HaloModelIngredients):
         ndarray
             I22 integrand
         """
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             return self.prepare_I22_integrand(
                 self.halo_bias,
                 self.halo_bias,
@@ -597,7 +605,7 @@ class Spectra(HaloModelIngredients):
             The HOD model for matter-matter power spectrum.
         """
         hod = self.hod_model
-        if self.mead_correction == 'fit' and hod.__name__ == 'Cacciato':
+        if self.hmcode_ingredients == 'fit' and hod.__name__ == 'Cacciato':
             return hod(
                 cosmo=self.cosmo_model,
                 mass=self.mass,
@@ -1543,9 +1551,11 @@ class Spectra(HaloModelIngredients):
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
             Each element of PowerSpectrumResult is a 3D array with shape (1, n_z, n_k).
         """
-        if self.mead_correction == 'feedback':
+        if self.hmcode_ingredients == 'mead2020_feedback':
             matter_profile_1h = self.matter_profile_with_feedback
-        elif self.mead_correction == 'fit':
+        elif self.hmcode_ingredients == 'mead2020':
+            matter_profile_1h = self.matter_profile
+        elif self.hmcode_ingredients == 'fit':
             matter_profile_1h = (
                 self.matter_profile_with_feedback_stellar_fraction_from_obs(
                     self.fstar_mm
@@ -1553,7 +1563,8 @@ class Spectra(HaloModelIngredients):
             )
         else:
             matter_profile_1h = self.matter_profile
-        if self.bnl:
+
+        if self.nonlinear_mode == 'bnl':
             I_NL = self.I_NL(
                 self.matter_profile_2h,
                 self.matter_profile_2h,
@@ -1581,8 +1592,8 @@ class Spectra(HaloModelIngredients):
                 * self.one_halo_truncation
             )
             pk_tot = pk_1h + pk_2h
-        else:
-            if self.mead_correction in ['feedback', 'nofeedback']:
+        elif self.nonlinear_mode == 'hmcode':
+            if self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']:
                 pk_2h = self._pk_lin[np.newaxis, :, :] * self.two_halo_truncation_mead(
                     self.sigma8_z
                 )
@@ -1593,23 +1604,24 @@ class Spectra(HaloModelIngredients):
                     self.dndlnm[np.newaxis, :, np.newaxis, :],
                 ) * self.one_halo_truncation_mead(self.sigma8_z)
                 pk_tot = self.transition_smoothing(self.neff, pk_1h, pk_2h)
-            else:
-                pk_2h = (
-                    self._pk_lin
-                    * self.Im_term
-                    * self.Im_term
-                    * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            # elif here to include mead2016 etc if ever implemented ...
+        else:
+            pk_2h = (
+                self._pk_lin
+                * self.Im_term
+                * self.Im_term
+                * self.two_halo_truncation[np.newaxis, np.newaxis, :]
+            )
+            pk_1h = (
+                self.compute_1h_term(
+                    matter_profile_1h,
+                    matter_profile_1h,
+                    self.mass[np.newaxis, np.newaxis, np.newaxis, :],
+                    self.dndlnm[np.newaxis, :, np.newaxis, :],
                 )
-                pk_1h = (
-                    self.compute_1h_term(
-                        matter_profile_1h,
-                        matter_profile_1h,
-                        self.mass[np.newaxis, np.newaxis, np.newaxis, :],
-                        self.dndlnm[np.newaxis, :, np.newaxis, :],
-                    )
-                    * self.one_halo_truncation
-                )
-                pk_tot = pk_1h + pk_2h
+                * self.one_halo_truncation
+            )
+            pk_tot = pk_1h + pk_2h
 
         return PowerSpectrumResult(
             pk_1h=pk_1h, pk_2h=pk_2h, pk_tot=pk_tot, galaxy_linear_bias=None
@@ -1878,7 +1890,7 @@ class Spectra(HaloModelIngredients):
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
             Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             I_NL = self.I_NL(
                 self.central_galaxy_profile + self.satellite_galaxy_profile,
                 self.central_galaxy_profile + self.satellite_galaxy_profile,
@@ -1937,7 +1949,7 @@ class Spectra(HaloModelIngredients):
 
         pk_1h = 2.0 * pk_cs_1h + pk_ss_1h
         pk_2h = pk_cc_2h + pk_ss_2h + 2.0 * pk_cs_2h
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             pk_2h += self._pk_lin * I_NL
 
         pk_tot = pk_1h + pk_2h
@@ -1970,16 +1982,18 @@ class Spectra(HaloModelIngredients):
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
             Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
-        if self.mead_correction == 'feedback':
+        if self.hmcode_ingredients == 'mead2020_feedback':
             matter_profile_1h = self.matter_profile_with_feedback
-        elif self.mead_correction == 'fit' or self.pointmass:
+        elif self.hmcode_ingredients == 'mead2020':
+            matter_profile_1h = self.matter_profile
+        elif self.hmcode_ingredients == 'fit' or self.pointmass:
             matter_profile_1h = (
                 self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar)
             )
         else:
             matter_profile_1h = self.matter_profile
 
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             I_NL = self.I_NL(
                 self.central_galaxy_profile + self.satellite_galaxy_profile,
                 self.matter_profile_2h,
@@ -2030,7 +2044,7 @@ class Spectra(HaloModelIngredients):
 
         pk_1h = pk_cm_1h + pk_sm_1h
         pk_2h = pk_cm_2h + pk_sm_2h
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             pk_2h += self._pk_lin * I_NL
 
         pk_tot = pk_1h + pk_2h
@@ -2335,16 +2349,18 @@ class Spectra(HaloModelIngredients):
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
             Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
-        if self.mead_correction == 'feedback':
+        if self.hmcode_ingredients == 'mead2020_feedback':
             matter_profile_1h = self.matter_profile_with_feedback
-        elif self.mead_correction == 'fit' or self.pointmass:
+        elif self.hmcode_ingredients == 'mead2020':
+            matter_profile_1h = self.matter_profile
+        elif self.hmcode_ingredients == 'fit' or self.pointmass:
             matter_profile_1h = (
                 self.matter_profile_with_feedback_stellar_fraction_from_obs(self.fstar)
             )
         else:
             matter_profile_1h = self.matter_profile
 
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             I_NL = self.I_NL(
                 self.central_alignment_profile + self.satellite_alignment_profile,
                 self.matter_profile_2h,
@@ -2361,7 +2377,7 @@ class Spectra(HaloModelIngredients):
             )
             pk_sm_2h = (-1.0) * self._pk_lin * self.Is_align_term * self.Im_term
             pk_cm_2h = (-1.0) * self._pk_lin * self.Ic_align_term * self.Im_term
-        elif self.fortuna:
+        elif self.nonlinear_mode == 'fortuna':
             pk_cm_2h = (
                 self.hod.f_c[:, :, np.newaxis]
                 * self.peff
@@ -2396,11 +2412,11 @@ class Spectra(HaloModelIngredients):
         )
         # pk_cm_1h = (-1.0) * self.compute_1h_term(matter_profile_1h, self.central_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
 
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             pk_1h = pk_sm_1h
             pk_2h = pk_cm_2h + pk_sm_2h - self._pk_lin * I_NL
             pk_tot = pk_sm_1h + pk_cm_2h + pk_sm_2h - self._pk_lin * I_NL
-        elif self.fortuna:
+        elif self.nonlinear_mode == 'fortuna':
             pk_1h = pk_sm_1h
             pk_2h = pk_cm_2h
             pk_tot = pk_sm_1h + pk_cm_2h
@@ -2430,7 +2446,7 @@ class Spectra(HaloModelIngredients):
             Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
         # Needs Poisson parameter as well!
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             I_NL_ss = self.I_NL(
                 self.satellite_alignment_profile,
                 self.satellite_alignment_profile,
@@ -2485,7 +2501,7 @@ class Spectra(HaloModelIngredients):
                 self._pk_lin * self.Ic_align_term * self.Is_align_term
                 + self._pk_lin * I_NL_cs
             )
-        elif self.fortuna:
+        elif self.nonlinear_mode == 'fortuna':
             pk_cc_2h = (
                 self.hod.f_c[:, :, np.newaxis] ** 2.0
                 * self.peff
@@ -2523,7 +2539,7 @@ class Spectra(HaloModelIngredients):
         )
         # pk_cs_1h = self.compute_1h_term(self.central_alignment_profile, self.satellite_alignment_profile, self.mass[np.newaxis, np.newaxis, np.newaxis, :], self.dndlnm[np.newaxis, :, np.newaxis, :]) * self.one_halo_truncation_ia
 
-        if self.fortuna:
+        if self.nonlinear_mode == 'fortuna':
             pk_1h = pk_ss_1h
             pk_2h = pk_cc_2h
             pk_tot = pk_ss_1h + pk_cc_2h
@@ -2552,7 +2568,7 @@ class Spectra(HaloModelIngredients):
             The 1-halo term, 2-halo term, total power spectrum, and galaxy linear bias.
             Each element of PowerSpectrumResult is a 3D array with shape (n_obs_bins, n_z, n_k).
         """
-        if self.bnl:
+        if self.nonlinear_mode == 'bnl':
             I_NL_cc = self.I_NL(
                 self.central_alignment_profile,
                 self.central_galaxy_profile,
@@ -2589,7 +2605,7 @@ class Spectra(HaloModelIngredients):
                 self._pk_lin * self.Ic_term * self.Is_align_term
                 + self._pk_lin * I_NL_cs
             )
-        elif self.fortuna:
+        elif self.nonlinear_mode == 'fortuna':
             pk_cc_2h = (
                 -1.0
                 * self.peff
@@ -2621,7 +2637,7 @@ class Spectra(HaloModelIngredients):
             * self.one_halo_truncation_ia
         )
 
-        if self.fortuna:
+        if self.nonlinear_mode == 'fortuna':
             pk_1h = pk_cs_1h
             pk_2h = pk_cc_2h
             pk_tot = pk_cs_1h + pk_cc_2h

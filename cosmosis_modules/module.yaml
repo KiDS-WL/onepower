@@ -82,14 +82,10 @@ params:
           meaning: "if True uses the response method to calculate power spectra, if False calculates power spectra directly. See the explanation section for details."
           type: bool
           default: False
-      fortuna:
-          meaning: "if True any p_*I calculated will use the Fortuna et al. 2021 methodology."
-          type: bool
-          default: False
-      bnl:
-          meaning: "if True uses the beyond linear halo bias formalism of Mead & Verde 2020. If fortuna is True this is not used for p_*I."
-          type: bool
-          default: False
+      nonlinear_mode:
+          meaning: "if set uses the mode requested. Currently supported options are hmcode, fortuna, bnl and None (default)."
+          type: str
+          default: None
       split_ia:
           meaning: "if True it splits the calculation of IA power spectra to red and blue contributions. IA parameters and HOD settings need to be passed for the two different populations, as well as the fractions of red/blue galaxies."
           type: bool
@@ -154,8 +150,8 @@ params:
           meaning: "Section name for hod values."
           type: str
           default:
-      use_mead2020_corrections:
-          meaning: "Choose from mead2020, mead2020_feedback, fit_feedback and None. If not None or fit_feedback sets the ingredients to match Mead+ 2021, HMCode2020 paper. fit_feedback uses input HOD to apply baryonic feedback to the P_mm, linking the P_mm to P_gg and P_gm in a self-consistent way"
+      hmcode_ingredients:
+          meaning: "Choose from mead2020, mead2020_feedback, fit_feedback and None. If not None or fit sets the ingredients to match Mead+ 2021, HMCode2020 paper. fit uses input HOD to apply baryonic feedback to the P_mm, linking the P_mm to P_gg and P_gm in a self-consistent way"
           type: str
           default: None
       hod_model:
