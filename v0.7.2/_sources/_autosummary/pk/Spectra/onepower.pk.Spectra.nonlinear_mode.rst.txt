@@ -1,0 +1,6 @@
+onepower.pk.Spectra.nonlinear\_mode
+===================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.nonlinear_mode

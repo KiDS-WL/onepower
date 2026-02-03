@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.quantities\_available
+===================================================
+
+.. currentmodule:: onepower.add
+
+.. automethod:: UpsampledSpectra.quantities_available

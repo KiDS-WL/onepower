@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.z\_vec
+========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.z_vec

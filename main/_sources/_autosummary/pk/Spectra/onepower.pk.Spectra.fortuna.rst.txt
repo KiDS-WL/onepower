@@ -1,0 +1,6 @@
+onepower.pk.Spectra.fortuna
+===========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.fortuna
