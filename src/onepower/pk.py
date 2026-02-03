@@ -1641,10 +1641,11 @@ class Spectra(HaloModelIngredients):
             Each element of PowerSpectrumResult is a 3D array with shape (1, n_z, n_k).
         """
         if self.response:
+            pk_tot = self._pk_nl[np.newaxis, :, :]
             return PowerSpectrumResult(
-                pk_1h=np.zeros_like(self._pk_nl),
-                pk_2h=np.zeros_like(self._pk_nl),
-                pk_tot=self._pk_nl,
+                pk_1h=np.zeros_like(pk_tot),
+                pk_2h=np.zeros_like(pk_tot),
+                pk_tot=pk_tot,
                 galaxy_linear_bias=None,
             )
         return self._power_spectrum_mm
