@@ -6,6 +6,13 @@ dev-version
 
 **Changes**
 
+v0.7.1 [3 Feb 2026]
+--------------------
+
+**Fixes**
+
+* Minor fixes to the codebase, mostly stemming from the changes in non-linear corrections and hmcode ingredients.
+
 v0.7.0 [26 Jan 2026]
 --------------------
 
