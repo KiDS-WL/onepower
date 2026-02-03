@@ -586,31 +586,14 @@ class HaloModelIngredients(CosmologyBase):
         norm_sat=1.0,
         eta_cen=0.0,
         eta_sat=0.0,
-        overdensity=200,
+        overdensity=200.0,
         delta_c=1.686,
         hmcode_ingredients: str | None = None,
-        mead_correction: str | None = None,
         **cosmology_kwargs,
     ):
         super().__init__(**cosmology_kwargs)
 
-        if hmcode_ingredients is not None and mead_correction is not None:
-            raise TypeError(
-                "Please pass only one of 'hmcode_ingredients' or 'mead_correction', "
-                "not both. 'mead_correction' is deprecated."
-            )
-        if hmcode_ingredients is not None:
-            self.hmcode_ingredients = hmcode_ingredients
-        elif mead_correction is not None:
-            warnings.warn(
-                "'mead_correction' is deprecated and will be removed in a future "
-                "release. Please use 'hmcode_ingredients' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            self.hmcode_ingredients = mead_correction
-        else:
-            self.hmcode_ingredients = None
+        self.hmcode_ingredients = hmcode_ingredients
 
         self.k_vec = k_vec
         self.lnk_min = lnk_min
@@ -1078,7 +1061,7 @@ class HaloModelIngredients(CosmologyBase):
         --------
         bool
         """
-        return self.hmcode_ingredients in ['feedback', 'nofeedback']
+        return self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']
 
     @cached_quantity
     def K(self):
