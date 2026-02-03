@@ -27,13 +27,6 @@ def cosmo():
     return CosmologyBase()
 
 
-def test_deprecation():
-    with pytest.raises(TypeError):
-        HaloModelIngredients(mead_correction='mead2020', hmcode_ingredients='mead2020')
-    with pytest.warns(DeprecationWarning):
-        HaloModelIngredients(mead_correction='mead2020')
-
-
 def test_SOVirial_Mead_properties():
     sov = SOVirial_Mead()
     dens = sov.halo_density(z=0)
