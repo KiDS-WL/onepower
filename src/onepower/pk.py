@@ -1642,7 +1642,10 @@ class Spectra(HaloModelIngredients):
         """
         if self.response:
             return PowerSpectrumResult(
-                pk_1h=None, pk_2h=None, pk_tot=self._pk_nl, galaxy_linear_bias=None
+                pk_1h=np.zeros_like(self._pk_nl),
+                pk_2h=np.zeros_like(self._pk_nl),
+                pk_tot=self._pk_nl,
+                galaxy_linear_bias=None,
             )
         return self._power_spectrum_mm
 
