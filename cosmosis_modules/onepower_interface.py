@@ -758,10 +758,18 @@ def execute(block, config):
         'transfer_params': {'k': transfer_k, 'T': transfer_func},
         'growth_model': 'FromArray',
         'growth_params': {'z': growth_z, 'd': growth_func},
-        'norm_cen': block[config_hmf['profile_value_name'], 'norm_cen'],
-        'norm_sat': block[config_hmf['profile_value_name'], 'norm_sat'],
-        'eta_cen': block[config_hmf['profile_value_name'], 'eta_cen'],
-        'eta_sat': block[config_hmf['profile_value_name'], 'eta_sat'],
+        'norm_cen': block.get_double(
+            config_hmf['profile_value_name'], 'norm_cen', default=1.0
+        ),
+        'norm_sat': block.get_double(
+            config_hmf['profile_value_name'], 'norm_sat', default=1.0
+        ),
+        'eta_cen': block.get_double(
+            config_hmf['profile_value_name'], 'eta_cen', default=0.0
+        ),
+        'eta_sat': block.get_double(
+            config_hmf['profile_value_name'], 'eta_sat', default=0.0
+        ),
         'overdensity': config_hmf['overdensity'],
         'delta_c': config_hmf['delta_c'],
         'one_halo_ktrunc': one_halo_ktrunc,
