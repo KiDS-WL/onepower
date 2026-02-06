@@ -256,7 +256,9 @@ def setup_pipeline_parameters(options):
 
 
 def setup_hod(options, galaxy, alignment, split_ia):
-    hod_section_name = options.get_string(option_section, 'hod_section_name')
+    hod_section_name = options.get_string(
+        option_section, 'hod_section_name', default='hod'
+    )
     hod_values_name = options.get_string(
         option_section, 'values_name', default='hod_parameters'
     ).lower()
