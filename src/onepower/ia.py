@@ -964,14 +964,17 @@ class SatelliteAlignment(AlignmentAmplitudes):
             if self.method == 'hankel':
                 for jz in range(self.z_vec.size):
                     for im in range(self.mass.size):
-                        nfw_f = lambda x: self.gamma_r_nfw_profile(
-                            x,
-                            self.r_s[jz, im],
-                            self.rvir[im],
-                            self.gamma_1h_amp[jz],
-                            self.gamma_1h_slope,
-                            truncate=self.truncate,
-                        ) * np.sqrt((x * np.pi) / 2.0)
+                        nfw_f = lambda x: (
+                            self.gamma_r_nfw_profile(
+                                x,
+                                self.r_s[jz, im],
+                                self.rvir[im],
+                                self.gamma_1h_amp[jz],
+                                self.gamma_1h_slope,
+                                truncate=self.truncate,
+                            )
+                            * np.sqrt((x * np.pi) / 2.0)
+                        )
                         uk_l[i, jz, im, :] = self.hankel[i].transform(
                             nfw_f, self.k_vec
                         )[0] / (self.k_vec**0.5 * mnfw[jz, im])
