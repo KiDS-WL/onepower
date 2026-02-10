@@ -9,7 +9,6 @@ import numpy as np
 from collections import OrderedDict
 from dark_emulator import darkemu
 from scipy.interpolate import RegularGridInterpolator, interp1d
-from scipy.optimize import curve_fit
 
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework
@@ -249,7 +248,14 @@ class NonLinearBias(Framework):
 
         cparam = self.test_cosmo(
             np.array(
-                [self.ombh2, self.omch2, self.omega_lambda, lnA, self.n_s, self.w0]
+                [
+                    self.ombh2,
+                    self.omch2,
+                    self.omega_lambda - 0.00064,
+                    lnA,
+                    self.n_s,
+                    self.w0,
+                ]
             )
         )
         emu.set_cosmology(cparam)
@@ -289,11 +295,11 @@ class NonLinearBias(Framework):
             beta_interp = np.zeros((len(self.z_vec), p, n, m))
             for i, _zi in enumerate(self.z_vec):
                 beta_interp[i, kk, ii, jj] = beta_interp_tmp[i](values)
-            return beta_interp
+            return np.ascontiguousarray(beta_interp)
         else:
             beta_interp = np.zeros((p, n, m))
             beta_interp[kk, ii, jj] = beta_interp_tmp(values)
-            return beta_interp[np.newaxis, :, :, :]
+            return np.ascontiguousarray(beta_interp[np.newaxis, :, :, :])
 
     def low_k_truncation(self, k, k_trunc):
         """
@@ -431,78 +437,76 @@ class NonLinearBias(Framework):
         ndarray
             Non-linear bias values.
         """
+
+        # beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 30.0)/(db + 1.0) - 1.0) * low_k_truncation(k, klin)
+        # beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) #* low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#/(1.0+z))
+        # rmax = max(self.rvir(M01), self.rvir(M02))
+        # kmax = 2.0*np.pi/rmax
+
         M1 = 10.0**log10M1
         M2 = 10.0**log10M2
 
-        # Large 'linear' scale for linear halo bias [h/Mpc]
         klin = np.array([0.05])
 
-        # Calculate beta_NL by looping over mass arrays
-        beta_func = np.zeros((len(M1), len(M2), len(k)))
+        n1, n2, nk = len(M1), len(M2), len(k)
+        beta_func = np.zeros((n1, n2, nk))
 
-        # Linear power
+        # Linear power spectra
         Pk_lin = self.emulator.get_pklin_from_z(k, z)
         Pk_klin = self.emulator.get_pklin_from_z(klin, z)
 
-        # Calculate b01 for all M1
-        b01 = np.zeros(len(M1))
-        # b02 = np.zeros(len(M2))
-        for iM, M0 in enumerate(M1):
-            b01[iM] = np.sqrt(self.emulator.get_phh_mass(klin, M0, M0, z) / Pk_klin)
+        # Linear halo bias b0(M)
+        b01 = np.empty(n1)
+        for i, M in enumerate(M1):
+            phh = self.emulator.get_phh_mass(klin, M, M, z)
+            b01[i] = np.sqrt(phh / Pk_klin)
 
-        for iM1, M01 in enumerate(M1):
-            for iM2, M02 in enumerate(M2):
-                if iM2 < iM1:
-                    # Use symmetry to not double calculate
-                    beta_func[iM1, iM2, :] = beta_func[iM2, iM1, :]
-                else:
-                    # Linear halo bias
-                    b1 = b01[iM1]
-                    b2 = b01[iM2]
+        # High-k region for shot noise
+        hk_mask = (k > 100.0) & (k < 200.0)
 
-                    # Halo-halo power spectrum
-                    Pk_hh = self.emulator.get_phh_mass(k, M01, M02, z)
+        lowk_trunc = self.low_k_truncation(k, klin)
+        highk_trunc = self.high_k_truncation(k, 3.0 * kmax)
 
-                    # rmax = max(self.rvir(M01), self.rvir(M02))
-                    # kmax = 2.0*np.pi/rmax
+        for i in range(n1):
+            b1 = b01[i]
+            M01 = M1[i]
 
-                    # Create beta_NL
-                    shot_noise = lambda x, a: a
-                    popt, popc = curve_fit(
-                        shot_noise,
-                        k[(k > 100) & (k < 200)],
-                        Pk_hh[(k > 100) & (k < 200)],
-                    )
-                    Pk_hh = Pk_hh - np.ones_like(k) * shot_noise(k, *popt)
+            for j in range(i, n2):
+                b2 = b01[j]
+                M02 = M2[j]
 
-                    beta_func[iM1, iM2, :] = Pk_hh / (b1 * b2 * Pk_lin) - 1.0
+                # Halo-halo power
+                Pk_hh = self.emulator.get_phh_mass(k, M01, M02, z)
 
-                    Pk_hh0 = self.emulator.get_phh_mass(klin, M01, M02, z)
-                    Pk_hh0 = Pk_hh0 - np.ones_like(klin) * shot_noise(klin, *popt)
-                    db = Pk_hh0 / (b1 * b2 * Pk_klin) - 1.0
+                # Shot-noise subtraction (constant model)
+                shot = np.mean(Pk_hh[hk_mask])
+                Pk_hh -= shot
 
-                    lmin, lmax = self.hl_envelopes_idx(
-                        np.abs(beta_func[iM1, iM2, :] + 1.0)
-                    )
-                    beta_func_interp = interp1d(
-                        k[lmax],
-                        np.abs(beta_func[iM1, iM2, lmax] + 1.0),
-                        kind='quadratic',
-                        bounds_error=False,
-                        fill_value='extrapolate',
-                    )
-                    beta_func[iM1, iM2, :] = (
-                        beta_func_interp(k) - 1.0
-                    )  # * low_k_truncation(k, klin)
-                    db = beta_func_interp(klin) - 1.0
+                # Raw beta_NL
+                beta = Pk_hh / (b1 * b2 * Pk_lin) - 1.0
 
-                    # beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0) * high_k_truncation(k, 30.0)/(db + 1.0) - 1.0) * low_k_truncation(k, klin)
-                    # beta_func[iM1, iM2, :] = ((beta_func[iM1, iM2, :] + 1.0)/(db + 1.0) - 1.0) #* low_k_truncation(k, klin) * high_k_truncation(k, 30.0)#/(1.0+z))
-                    beta_func[iM1, iM2, :] = (
-                        (beta_func[iM1, iM2, :] - db)
-                        * self.low_k_truncation(k, klin)
-                        * self.high_k_truncation(k, 3.0 * kmax)
-                    )
+                # Linear-scale offset
+                Pk_hh0 = self.emulator.get_phh_mass(klin, M01, M02, z) - shot
+                db = Pk_hh0 / (b1 * b2 * Pk_klin) - 1.0
+
+                # Envelope smoothing
+                lmin, lmax = self.hl_envelopes_idx(np.abs(beta + 1.0))
+                interp = interp1d(
+                    k[lmax],
+                    np.abs(beta[lmax] + 1.0),
+                    kind='quadratic',
+                    bounds_error=False,
+                    fill_value='extrapolate',
+                )
+
+                beta_smooth = interp(k) - 1.0
+                db = interp(klin)[0] - 1.0
+
+                beta_final = (beta_smooth - db) * lowk_trunc * highk_trunc
+
+                beta_func[i, j, :] = beta_final
+                if j != i:
+                    beta_func[j, i, :] = beta_final  # symmetry
 
         return beta_func
 
@@ -518,7 +522,7 @@ class NonLinearBias(Framework):
         """
         lenM = 5
         lenk = 1000
-        zc = self.z_vec.copy()
+        zc = np.atleast_1d(self.z_vec)
 
         Mmin, kmax = self.minimum_halo_mass
         M_up = np.log10(10.0**14.0)
@@ -528,32 +532,24 @@ class NonLinearBias(Framework):
         M = np.logspace(M_lo, M_up, lenM)
         k = np.logspace(-3.0, np.log10(200), lenk)
 
-        if not self.z_dep:
-            beta_func = self.compute_bnl_darkquest(
-                0.01, np.log10(M), np.log10(M), k, kmax
-            )
-            beta_nl_interp_i = RegularGridInterpolator(
-                [np.log10(M), np.log10(M), np.log10(k)],
-                beta_func,
-                fill_value=None,
-                bounds_error=False,
+        def build_interp(z):
+            beta = self.compute_bnl_darkquest(z, np.log10(M), np.log10(M), k, kmax)
+            return RegularGridInterpolator(
+                (np.log10(M), np.log10(M), np.log10(k)),
+                beta,
                 method='nearest',
+                bounds_error=False,
+                fill_value=None,
             )
 
-        if self.z_dep:
-            beta_nl_interp_i = np.empty(len(self.z_vec), dtype=object)
-            for i, zi in enumerate(zc):
-                beta_func = self.compute_bnl_darkquest(
-                    zi, np.log10(M), np.log10(M), k, kmax
-                )
-                beta_nl_interp_i[i] = RegularGridInterpolator(
-                    [np.log10(M), np.log10(M), np.log10(k)],
-                    beta_func,
-                    fill_value=None,
-                    bounds_error=False,
-                    method='nearest',
-                )
-        return beta_nl_interp_i
+        if not self.z_dep:
+            return build_interp(0.01)
+
+        interp_arr = np.empty(len(zc), dtype=object)
+        for i, zi in enumerate(zc):
+            interp_arr[i] = build_interp(zi)
+
+        return interp_arr
 
     def test_cosmo(self, cparam_in):
         """
