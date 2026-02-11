@@ -6,6 +6,12 @@ dev-version
 
 **Changes**
 
+* Performance improvements in Bnl non-linear corrections.
+
+**Fixes**
+
+* Fixed neutrino contributions in DarkQuest Emulator cosmology object.
+
 v0.7.2 [3 Feb 2026]
 --------------------
 
