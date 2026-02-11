@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.\_\_init\_\_
+=======================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.__init__

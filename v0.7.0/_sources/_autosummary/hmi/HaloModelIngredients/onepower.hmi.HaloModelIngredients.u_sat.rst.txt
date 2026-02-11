@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.u\_sat
+========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.u_sat

@@ -1,0 +1,6 @@
+onepower.hod.Simple.stellar\_fraction\_sat
+==========================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.stellar_fraction_sat

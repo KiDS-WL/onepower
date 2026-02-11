@@ -1,0 +1,115 @@
+onepower.hmi.HaloModelIngredients
+=================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoclass:: HaloModelIngredients
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: HaloModelIngredients
+   
+      ~HaloModelIngredients.Tk_cold_ratio
+      ~HaloModelIngredients.__init__
+      ~HaloModelIngredients.clone
+      ~HaloModelIngredients.f_Mead
+      ~HaloModelIngredients.get_all_parameter_defaults
+      ~HaloModelIngredients.get_all_parameter_names
+      ~HaloModelIngredients.get_dependencies
+      ~HaloModelIngredients.get_halo_collapse_redshifts
+      ~HaloModelIngredients.parameter_info
+      ~HaloModelIngredients.quantities_available
+      ~HaloModelIngredients.sigmaR_cc
+      ~HaloModelIngredients.update
+      ~HaloModelIngredients.validate
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: HaloModelIngredients
+   
+      ~HaloModelIngredients.Dv_Mead
+      ~HaloModelIngredients.K
+      ~HaloModelIngredients.Mmax
+      ~HaloModelIngredients.Mmin
+      ~HaloModelIngredients.Neff
+      ~HaloModelIngredients.bias_model
+      ~HaloModelIngredients.conc_cen
+      ~HaloModelIngredients.conc_sat
+      ~HaloModelIngredients.cosmo_model
+      ~HaloModelIngredients.dc_Mead
+      ~HaloModelIngredients.delta_c
+      ~HaloModelIngredients.disable_mass_conversion
+      ~HaloModelIngredients.dlnk
+      ~HaloModelIngredients.dlog10m
+      ~HaloModelIngredients.dndlnm
+      ~HaloModelIngredients.eta_cen
+      ~HaloModelIngredients.eta_sat
+      ~HaloModelIngredients.fnu
+      ~HaloModelIngredients.get_mead_accumulated_growth
+      ~HaloModelIngredients.get_mead_growth
+      ~HaloModelIngredients.get_mead_growth_fnc
+      ~HaloModelIngredients.growth_factor
+      ~HaloModelIngredients.growth_model
+      ~HaloModelIngredients.growth_params
+      ~HaloModelIngredients.h0
+      ~HaloModelIngredients.halo_bias
+      ~HaloModelIngredients.halo_concentration_model_dm
+      ~HaloModelIngredients.halo_concentration_model_sat
+      ~HaloModelIngredients.halo_overdensity_mean
+      ~HaloModelIngredients.halo_profile_model_dm
+      ~HaloModelIngredients.halo_profile_model_sat
+      ~HaloModelIngredients.halo_profile_params
+      ~HaloModelIngredients.hmcode_ingredients
+      ~HaloModelIngredients.hmf_model
+      ~HaloModelIngredients.k_vec
+      ~HaloModelIngredients.kh
+      ~HaloModelIngredients.lnk_max
+      ~HaloModelIngredients.lnk_min
+      ~HaloModelIngredients.log10T_AGN
+      ~HaloModelIngredients.m_nu
+      ~HaloModelIngredients.mass
+      ~HaloModelIngredients.mdef_model
+      ~HaloModelIngredients.mdef_params
+      ~HaloModelIngredients.mean_density0
+      ~HaloModelIngredients.mean_density_z
+      ~HaloModelIngredients.n_s
+      ~HaloModelIngredients.neff
+      ~HaloModelIngredients.nfw_cen
+      ~HaloModelIngredients.nfw_sat
+      ~HaloModelIngredients.nonlinear_power
+      ~HaloModelIngredients.norm_cen
+      ~HaloModelIngredients.norm_sat
+      ~HaloModelIngredients.nu
+      ~HaloModelIngredients.omega_b
+      ~HaloModelIngredients.omega_c
+      ~HaloModelIngredients.omega_m
+      ~HaloModelIngredients.overdensity
+      ~HaloModelIngredients.parameter_values
+      ~HaloModelIngredients.power
+      ~HaloModelIngredients.r_s_cen
+      ~HaloModelIngredients.r_s_sat
+      ~HaloModelIngredients.rho_halo
+      ~HaloModelIngredients.rvir_cen
+      ~HaloModelIngredients.rvir_sat
+      ~HaloModelIngredients.scale_factor
+      ~HaloModelIngredients.sigma8_z
+      ~HaloModelIngredients.sigma_8
+      ~HaloModelIngredients.tcmb
+      ~HaloModelIngredients.transfer_model
+      ~HaloModelIngredients.transfer_params
+      ~HaloModelIngredients.u_dm
+      ~HaloModelIngredients.u_sat
+      ~HaloModelIngredients.w0
+      ~HaloModelIngredients.wa
+      ~HaloModelIngredients.z_vec
+   
+   

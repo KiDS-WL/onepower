@@ -1,0 +1,6 @@
+onepower.pk.Spectra.calc\_bnl
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.calc_bnl

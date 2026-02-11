@@ -1,0 +1,6 @@
+onepower.pk.Spectra.matter\_profile\_with\_feedback
+===================================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.matter_profile_with_feedback

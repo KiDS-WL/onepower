@@ -1,0 +1,6 @@
+onepower.pk.Spectra.omega\_m
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.omega_m

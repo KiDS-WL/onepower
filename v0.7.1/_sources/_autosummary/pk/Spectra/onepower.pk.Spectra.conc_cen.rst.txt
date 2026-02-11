@@ -1,0 +1,6 @@
+onepower.pk.Spectra.conc\_cen
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.conc_cen
