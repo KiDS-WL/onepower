@@ -70,6 +70,7 @@ jobs:
             --cov=onepower \
             --cov-config=.coveragerc \
             --cov-report=term \
+            --cov-report=xml:cov.xml \
             --cov-report= \
             --durations=25
 
@@ -81,7 +82,10 @@ jobs:
 
       - name: Generate coverage badge
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && success() && github.event_name == 'push'
-        uses: tj-actions/coverage-badge-py@v2
+        run : |
+          pip install genbadge[coverage]
+          genbadge coverage -i "cov.xml" -o "coverage.svg"
+        #uses: tj-actions/coverage-badge-py@v2
 
       - name: Verify Changed files
         if : matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && success() && github.event_name == 'push'
