@@ -151,8 +151,8 @@ def setup_hmf_config(options):
         )
         / options.get_int(option_section, 'nmass', default=200),
         'z_vec': np.linspace(
-            options.get_double(option_section, 'zmin_hmf'),
-            options.get_double(option_section, 'zmax_hmf'),
+            options.get_double(option_section, 'zmin_hmf', default=0.0),
+            options.get_double(option_section, 'zmax_hmf', default=3.0),
             options.get_int(option_section, 'nz_hmf', default=15),
         ),
         'nk': options.get_int(option_section, 'nk', default=100),
@@ -255,8 +255,10 @@ def setup_pipeline_parameters(options):
     )
 
 
-def setup_hod(options, alignment, split_ia):
-    hod_section_name = options.get_string(option_section, 'hod_section_name')
+def setup_hod(options, galaxy, alignment, split_ia):
+    hod_section_name = options.get_string(
+        option_section, 'hod_section_name', default='hod'
+    )
     hod_values_name = options.get_string(
         option_section, 'values_name', default='hod_parameters'
     ).lower()
@@ -308,9 +310,15 @@ def setup_hod(options, alignment, split_ia):
         satellite_IA = None
 
     hod_model = options.get_string(option_section, 'hod_model', default='Cacciato')
-    hod_settings = setup_hod_settings(options, 'hod')
-    hod_settings_mm = setup_hod_settings_mm(hod_settings)
-    nbins = len(hod_settings['obs_min'])
+    if galaxy:
+        hod_settings = setup_hod_settings(options, 'hod')
+        hod_settings_mm = setup_hod_settings_mm(hod_settings)
+        nbins = len(hod_settings['obs_min'])
+    else:
+        hod_settings = {}
+        hod_settings_mm = {}
+        nbins = 0
+
     if alignment:
         if split_ia:
             hod_settings_ia_1 = setup_hod_settings(options, 'ia_1')
@@ -321,7 +329,7 @@ def setup_hod(options, alignment, split_ia):
     else:
         hod_settings_ia_1 = {}
         hod_settings_ia_2 = {}
-    if options.get_bool(option_section, 'save_observable', default=True):
+    if options.get_bool(option_section, 'save_observable', default=False):
         obs_settings = setup_hod_settings(options, 'smf')
         obs_settings['save_observable'] = options.get_bool(
             option_section, 'save_observable', default=True
@@ -609,7 +617,7 @@ def setup(options):
         pop_name_ia_2,
         central_IA,
         satellite_IA,
-    ) = setup_hod(options, alignment, split_ia)
+    ) = setup_hod(options, galaxy, alignment, split_ia)
 
     # hmf config
     config_hmf = setup_hmf_config(options)
@@ -758,10 +766,18 @@ def execute(block, config):
         'transfer_params': {'k': transfer_k, 'T': transfer_func},
         'growth_model': 'FromArray',
         'growth_params': {'z': growth_z, 'd': growth_func},
-        'norm_cen': block[config_hmf['profile_value_name'], 'norm_cen'],
-        'norm_sat': block[config_hmf['profile_value_name'], 'norm_sat'],
-        'eta_cen': block[config_hmf['profile_value_name'], 'eta_cen'],
-        'eta_sat': block[config_hmf['profile_value_name'], 'eta_sat'],
+        'norm_cen': block.get_double(
+            config_hmf['profile_value_name'], 'norm_cen', default=1.0
+        ),
+        'norm_sat': block.get_double(
+            config_hmf['profile_value_name'], 'norm_sat', default=1.0
+        ),
+        'eta_cen': block.get_double(
+            config_hmf['profile_value_name'], 'eta_cen', default=0.0
+        ),
+        'eta_sat': block.get_double(
+            config_hmf['profile_value_name'], 'eta_sat', default=0.0
+        ),
         'overdensity': config_hmf['overdensity'],
         'delta_c': config_hmf['delta_c'],
         'one_halo_ktrunc': one_halo_ktrunc,
