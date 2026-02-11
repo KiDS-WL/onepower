@@ -7,6 +7,7 @@ dev-version
 **Changes**
 
 * Performance improvements in Bnl non-linear corrections.
+* Added more defaults in CosmosSIS interface, so the Pmm case can be run without any HOD parameters needed.
 
 **Fixes**
 
