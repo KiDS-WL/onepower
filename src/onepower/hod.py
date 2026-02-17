@@ -124,6 +124,8 @@ class HaloOccupationDistribution(Component):
         array_like
             interpolated halo mass function at self.z
         """
+        if (self.z == self.z_vec).all():
+            return self.dndlnm
         dndlnm_fnc = interp1d(
             self.z_vec,
             self.dndlnm,
@@ -144,6 +146,8 @@ class HaloOccupationDistribution(Component):
         array_like
             interpolated halo bias function at self.z
         """
+        if (self.z == self.z_vec).all():
+            return self.halo_bias
         halo_bias_fnc = interp1d(
             self.z_vec,
             self.halo_bias,
