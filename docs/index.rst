@@ -1,8 +1,8 @@
 
-.. image:: https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logosmall_white_merged.png
+.. image:: https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logosmall_white_merged.png
     :class: only-dark
 
-.. image:: https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logosmall_black_merged.png
+.. image:: https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logosmall_black_merged.png
     :class: only-light
 
 .. raw:: html

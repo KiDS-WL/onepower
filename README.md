@@ -8,9 +8,9 @@
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/KiDS-WL/onepower/main.svg)](https://results.pre-commit.ci/latest/github/KiDS-WL/onepower/main)
 
 <picture>
-	<source media="(prefers-color-scheme: dark)" srcset="https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logosmall_white_merged.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logosmall_black_merged.png">
-	<img align="left" alt="i" src="https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logosmall_black_merged.png">
+	<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logosmall_white_merged.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logosmall_black_merged.png">
+	<img align="left" alt="i" src="https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logosmall_black_merged.png">
 </picture>
 
 *<p align="center"> The One Tool to Predict All Power Spectra. </p>*
