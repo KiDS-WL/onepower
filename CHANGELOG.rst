@@ -8,6 +8,7 @@ dev-version
 
 * Performance improvements in Bnl non-linear corrections.
 * Added more defaults in CosmosSIS interface, so the Pmm case can be run without any HOD parameters needed.
+* Deprecated Python 3.10, planning to drop support for 3.11 when ``hmf/halomod`` does the same.
 
 **Fixes**
 

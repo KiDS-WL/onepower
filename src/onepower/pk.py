@@ -942,7 +942,7 @@ class Spectra(HaloModelIngredients):
             return np.ones_like(self.k_vec)
         return np.exp(-((self.k_vec / self.two_halo_ktrunc_ia) ** 2.0))
 
-    def one_halo_truncation_mead(self, sigma8_in):
+    def one_halo_truncation_mead2020(self, sigma8_in):
         """
         1-halo term truncation in Mead et al. 2021, eq 17 and table 2.
 
@@ -962,7 +962,7 @@ class Spectra(HaloModelIngredients):
         k_frac = self.k_vec[np.newaxis, np.newaxis, :] / k_star
         return (k_frac**4.0) / (1.0 + k_frac**4.0)
 
-    def two_halo_truncation_mead(self, sigma8_in):
+    def two_halo_truncation_mead2020(self, sigma8_in):
         """
         2-halo term truncation in Mead et al. 2021, eq 16.
 
@@ -1588,15 +1588,15 @@ class Spectra(HaloModelIngredients):
             pk_tot = pk_1h + pk_2h
         elif self.nonlinear_mode == 'hmcode':
             if self.hmcode_ingredients in ['mead2020_feedback', 'mead2020']:
-                pk_2h = self._pk_lin[np.newaxis, :, :] * self.two_halo_truncation_mead(
-                    self.sigma8_z
-                )
+                pk_2h = self._pk_lin[
+                    np.newaxis, :, :
+                ] * self.two_halo_truncation_mead2020(self.sigma8_z)
                 pk_1h = self.compute_1h_term(
                     matter_profile_1h,
                     matter_profile_1h,
                     self.mass[np.newaxis, np.newaxis, np.newaxis, :],
                     self.dndlnm[np.newaxis, :, np.newaxis, :],
-                ) * self.one_halo_truncation_mead(self.sigma8_z)
+                ) * self.one_halo_truncation_mead2020(self.sigma8_z)
                 pk_tot = self.transition_smoothing(self.neff, pk_1h, pk_2h)
             # elif here to include mead2016 etc if ever implemented ...
         else:
