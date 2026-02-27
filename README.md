@@ -36,7 +36,7 @@ OnePower is ideal for:
 
 💾 [Install via PyPI](https://pypi.org/project/onepower/)
 
-🖥️ [Use a web app](https://onepower.streamlit.app)
+🖥️ [Use a web app](https://onepower.dvrnk.si)
 
 
 ## Example usage
