@@ -138,8 +138,8 @@ html_theme = 'pydata_sphinx_theme'
 html_theme_options = {
 "navbar_start": ["navbar-logo", "version-switcher"],
 "logo": {
-      "image_light": "https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logo_hex.png",
-      "image_dark": "https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logo_hex.png",
+      "image_light": "https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logo_hex.png",
+      "image_dark": "https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logo_hex.png",
    },
 "use_edit_page_button": True,
 "icon_links": [
@@ -170,7 +170,7 @@ html_context = {
     "doc_path": "docs",
 }
 html_show_sourcelink = False
-html_favicon = "https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logo_hex.png"
+html_favicon = "https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logo_hex.png"
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
