@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.broken\_powerlaw
+===============================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.broken_powerlaw

@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.nbins
+=========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.nbins

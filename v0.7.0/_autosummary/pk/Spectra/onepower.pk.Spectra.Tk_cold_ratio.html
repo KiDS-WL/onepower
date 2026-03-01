@@ -1,0 +1,1356 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>onepower.pk.Spectra.Tk_cold_ratio &#8212; OnePower</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../_static/documentation_options.js?v=fe7df9b0"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/pk/Spectra/onepower.pk.Spectra.Tk_cold_ratio';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://kids-wl.github.io/onepower/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.7.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <link rel="icon" href="https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logo_hex.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="onepower.pk.Spectra.__init__" href="onepower.pk.Spectra.__init__.html" />
+    <link rel="prev" title="onepower.pk.Spectra.I_NL" href="onepower.pk.Spectra.I_NL.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.7.0" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logo_hex.png" class="logo__image only-light" alt="OnePower - Home"/>
+    <img src="https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logo_hex.png" class="logo__image only-dark pst-js-only" alt="OnePower - Home"/>
+  
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../tutorials.html">
+    Usage and Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API Summary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing to OnePower
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../license.html">
+    License
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../changelog.html">
+    Releases
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../contributors.html">
+    Authors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../developing.html">
+    Developing OnePower
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/KiDS-WL/onepower" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../tutorials.html">
+    Usage and Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API Summary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing to OnePower
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../changelog.html">
+    Releases
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributors.html">
+    Authors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../developing.html">
+    Developing OnePower
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/KiDS-WL/onepower" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../onepower.pk.html">onepower.pk</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="../onepower.pk.PowerSpectrumResult.html">onepower.pk.PowerSpectrumResult</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../PowerSpectrumResult/onepower.pk.PowerSpectrumResult.__init__.html">onepower.pk.PowerSpectrumResult.__init__</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../onepower.pk.Spectra.html">onepower.pk.Spectra</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.I_NL.html">onepower.pk.Spectra.I_NL</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">onepower.pk.Spectra.Tk_cold_ratio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.__init__.html">onepower.pk.Spectra.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.clone.html">onepower.pk.Spectra.clone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.compute_1h_term.html">onepower.pk.Spectra.compute_1h_term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.compute_A_term.html">onepower.pk.Spectra.compute_A_term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.compute_Ig_term.html">onepower.pk.Spectra.compute_Ig_term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.compute_Im_term.html">onepower.pk.Spectra.compute_Im_term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.compute_central_galaxy_alignment_profile.html">onepower.pk.Spectra.compute_central_galaxy_alignment_profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.compute_matter_profile.html">onepower.pk.Spectra.compute_matter_profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.compute_matter_profile_with_feedback.html">onepower.pk.Spectra.compute_matter_profile_with_feedback</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.compute_matter_profile_with_feedback_stellar_fraction_from_obs.html">onepower.pk.Spectra.compute_matter_profile_with_feedback_stellar_fraction_from_obs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.compute_satellite_galaxy_alignment_profile.html">onepower.pk.Spectra.compute_satellite_galaxy_alignment_profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.dewiggle_plin.html">onepower.pk.Spectra.dewiggle_plin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.f_Mead.html">onepower.pk.Spectra.f_Mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.fg.html">onepower.pk.Spectra.fg</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.fg_fit.html">onepower.pk.Spectra.fg_fit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.fs.html">onepower.pk.Spectra.fs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.get_Pk_wiggle.html">onepower.pk.Spectra.get_Pk_wiggle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.get_all_parameter_defaults.html">onepower.pk.Spectra.get_all_parameter_defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.get_all_parameter_names.html">onepower.pk.Spectra.get_all_parameter_names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.get_dependencies.html">onepower.pk.Spectra.get_dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.get_halo_collapse_redshifts.html">onepower.pk.Spectra.get_halo_collapse_redshifts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.matter_profile_with_feedback_stellar_fraction_from_obs.html">onepower.pk.Spectra.matter_profile_with_feedback_stellar_fraction_from_obs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.one_halo_truncation_mead.html">onepower.pk.Spectra.one_halo_truncation_mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.parameter_info.html">onepower.pk.Spectra.parameter_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.prepare_I12_integrand.html">onepower.pk.Spectra.prepare_I12_integrand</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.prepare_I21_integrand.html">onepower.pk.Spectra.prepare_I21_integrand</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.prepare_I22_integrand.html">onepower.pk.Spectra.prepare_I22_integrand</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.quantities_available.html">onepower.pk.Spectra.quantities_available</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.sigmaR_cc.html">onepower.pk.Spectra.sigmaR_cc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.sigmaV.html">onepower.pk.Spectra.sigmaV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.transition_smoothing.html">onepower.pk.Spectra.transition_smoothing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.trapezoidal_integrator.html">onepower.pk.Spectra.trapezoidal_integrator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.two_halo_truncation_mead.html">onepower.pk.Spectra.two_halo_truncation_mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.update.html">onepower.pk.Spectra.update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.validate.html">onepower.pk.Spectra.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.A_term.html">onepower.pk.Spectra.A_term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.C1.html">onepower.pk.Spectra.C1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.Dv_Mead.html">onepower.pk.Spectra.Dv_Mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.I12.html">onepower.pk.Spectra.I12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.I21.html">onepower.pk.Spectra.I21</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.I22.html">onepower.pk.Spectra.I22</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.Ic_align_term.html">onepower.pk.Spectra.Ic_align_term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.Ic_term.html">onepower.pk.Spectra.Ic_term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.Im_term.html">onepower.pk.Spectra.Im_term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.Is_align_term.html">onepower.pk.Spectra.Is_align_term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.Is_term.html">onepower.pk.Spectra.Is_term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.K.html">onepower.pk.Spectra.K</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.Mmax.html">onepower.pk.Spectra.Mmax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.Mmin.html">onepower.pk.Spectra.Mmin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.Neff.html">onepower.pk.Spectra.Neff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.Tk_EH_nowiggle_lnt.html">onepower.pk.Spectra.Tk_EH_nowiggle_lnt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.align_params.html">onepower.pk.Spectra.align_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.alignment_amplitude_2h.html">onepower.pk.Spectra.alignment_amplitude_2h</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.alignment_amplitude_2h_II.html">onepower.pk.Spectra.alignment_amplitude_2h_II</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.alignment_class.html">onepower.pk.Spectra.alignment_class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.alignment_gi.html">onepower.pk.Spectra.alignment_gi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.beta_cen.html">onepower.pk.Spectra.beta_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.beta_nl.html">onepower.pk.Spectra.beta_nl</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.beta_sat.html">onepower.pk.Spectra.beta_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.bias_model.html">onepower.pk.Spectra.bias_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.calc_bnl.html">onepower.pk.Spectra.calc_bnl</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.central_alignment_profile.html">onepower.pk.Spectra.central_alignment_profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.central_galaxy_profile.html">onepower.pk.Spectra.central_galaxy_profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.compute_observable.html">onepower.pk.Spectra.compute_observable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.conc_cen.html">onepower.pk.Spectra.conc_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.conc_sat.html">onepower.pk.Spectra.conc_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.cosmo_model.html">onepower.pk.Spectra.cosmo_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.dc_Mead.html">onepower.pk.Spectra.dc_Mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.delta_c.html">onepower.pk.Spectra.delta_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.dewiggle.html">onepower.pk.Spectra.dewiggle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.disable_mass_conversion.html">onepower.pk.Spectra.disable_mass_conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.dlnk.html">onepower.pk.Spectra.dlnk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.dlog10m.html">onepower.pk.Spectra.dlog10m</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.dndlnm.html">onepower.pk.Spectra.dndlnm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.eta_cen.html">onepower.pk.Spectra.eta_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.eta_sat.html">onepower.pk.Spectra.eta_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.fnu.html">onepower.pk.Spectra.fnu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.fstar.html">onepower.pk.Spectra.fstar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.fstar_mm.html">onepower.pk.Spectra.fstar_mm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.get_mead_accumulated_growth.html">onepower.pk.Spectra.get_mead_accumulated_growth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.get_mead_growth.html">onepower.pk.Spectra.get_mead_growth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.get_mead_growth_fnc.html">onepower.pk.Spectra.get_mead_growth_fnc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.growth_factor.html">onepower.pk.Spectra.growth_factor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.growth_model.html">onepower.pk.Spectra.growth_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.growth_params.html">onepower.pk.Spectra.growth_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.h0.html">onepower.pk.Spectra.h0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.halo_bias.html">onepower.pk.Spectra.halo_bias</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.halo_concentration_model_dm.html">onepower.pk.Spectra.halo_concentration_model_dm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.halo_concentration_model_sat.html">onepower.pk.Spectra.halo_concentration_model_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.halo_overdensity_mean.html">onepower.pk.Spectra.halo_overdensity_mean</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.halo_profile_model_dm.html">onepower.pk.Spectra.halo_profile_model_dm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.halo_profile_model_sat.html">onepower.pk.Spectra.halo_profile_model_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.halo_profile_params.html">onepower.pk.Spectra.halo_profile_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.hmcode_ingredients.html">onepower.pk.Spectra.hmcode_ingredients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.hmf_model.html">onepower.pk.Spectra.hmf_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.hod.html">onepower.pk.Spectra.hod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.hod_mm.html">onepower.pk.Spectra.hod_mm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.hod_model.html">onepower.pk.Spectra.hod_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.hod_params.html">onepower.pk.Spectra.hod_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.hod_settings.html">onepower.pk.Spectra.hod_settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.hod_settings_mm.html">onepower.pk.Spectra.hod_settings_mm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.k_vec.html">onepower.pk.Spectra.k_vec</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.kh.html">onepower.pk.Spectra.kh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.lnk_max.html">onepower.pk.Spectra.lnk_max</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.lnk_min.html">onepower.pk.Spectra.lnk_min</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.log10T_AGN.html">onepower.pk.Spectra.log10T_AGN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.m_nu.html">onepower.pk.Spectra.m_nu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.mass.html">onepower.pk.Spectra.mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.mass_avg.html">onepower.pk.Spectra.mass_avg</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.matter_power_lin.html">onepower.pk.Spectra.matter_power_lin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.matter_power_nl.html">onepower.pk.Spectra.matter_power_nl</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.matter_profile.html">onepower.pk.Spectra.matter_profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.matter_profile_2h.html">onepower.pk.Spectra.matter_profile_2h</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.matter_profile_with_feedback.html">onepower.pk.Spectra.matter_profile_with_feedback</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.mb.html">onepower.pk.Spectra.mb</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.mdef_model.html">onepower.pk.Spectra.mdef_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.mdef_params.html">onepower.pk.Spectra.mdef_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.mean_density0.html">onepower.pk.Spectra.mean_density0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.mean_density_z.html">onepower.pk.Spectra.mean_density_z</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.missing_mass_integral.html">onepower.pk.Spectra.missing_mass_integral</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.mpivot_cen.html">onepower.pk.Spectra.mpivot_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.mpivot_sat.html">onepower.pk.Spectra.mpivot_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.n_s.html">onepower.pk.Spectra.n_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.neff.html">onepower.pk.Spectra.neff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.nfw_cen.html">onepower.pk.Spectra.nfw_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.nfw_sat.html">onepower.pk.Spectra.nfw_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.nonlinear_mode.html">onepower.pk.Spectra.nonlinear_mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.nonlinear_power.html">onepower.pk.Spectra.nonlinear_power</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.norm_cen.html">onepower.pk.Spectra.norm_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.norm_sat.html">onepower.pk.Spectra.norm_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.nu.html">onepower.pk.Spectra.nu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.obs.html">onepower.pk.Spectra.obs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.obs_func.html">onepower.pk.Spectra.obs_func</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.obs_func_cen.html">onepower.pk.Spectra.obs_func_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.obs_func_obs.html">onepower.pk.Spectra.obs_func_obs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.obs_func_sat.html">onepower.pk.Spectra.obs_func_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.obs_func_z.html">onepower.pk.Spectra.obs_func_z</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.obs_settings.html">onepower.pk.Spectra.obs_settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.omega_b.html">onepower.pk.Spectra.omega_b</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.omega_c.html">onepower.pk.Spectra.omega_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.omega_m.html">onepower.pk.Spectra.omega_m</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.one_halo_ktrunc.html">onepower.pk.Spectra.one_halo_ktrunc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.one_halo_ktrunc_ia.html">onepower.pk.Spectra.one_halo_ktrunc_ia</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.one_halo_truncation.html">onepower.pk.Spectra.one_halo_truncation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.one_halo_truncation_ia.html">onepower.pk.Spectra.one_halo_truncation_ia</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.overdensity.html">onepower.pk.Spectra.overdensity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.parameter_values.html">onepower.pk.Spectra.parameter_values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.peff.html">onepower.pk.Spectra.peff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.pointmass.html">onepower.pk.Spectra.pointmass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.poisson_func.html">onepower.pk.Spectra.poisson_func</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.poisson_model.html">onepower.pk.Spectra.poisson_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.poisson_params.html">onepower.pk.Spectra.poisson_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.power.html">onepower.pk.Spectra.power</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_gg.html">onepower.pk.Spectra.power_spectrum_gg</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_gi.html">onepower.pk.Spectra.power_spectrum_gi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_gm.html">onepower.pk.Spectra.power_spectrum_gm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_ii.html">onepower.pk.Spectra.power_spectrum_ii</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_lin.html">onepower.pk.Spectra.power_spectrum_lin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_mi.html">onepower.pk.Spectra.power_spectrum_mi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_mm.html">onepower.pk.Spectra.power_spectrum_mm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.r_s_cen.html">onepower.pk.Spectra.r_s_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.r_s_sat.html">onepower.pk.Spectra.r_s_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.response.html">onepower.pk.Spectra.response</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.rho_halo.html">onepower.pk.Spectra.rho_halo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.rvir_cen.html">onepower.pk.Spectra.rvir_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.rvir_sat.html">onepower.pk.Spectra.rvir_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.satellite_alignment_profile.html">onepower.pk.Spectra.satellite_alignment_profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.satellite_galaxy_profile.html">onepower.pk.Spectra.satellite_galaxy_profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.scale_factor.html">onepower.pk.Spectra.scale_factor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.sigma8_z.html">onepower.pk.Spectra.sigma8_z</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.sigma_8.html">onepower.pk.Spectra.sigma_8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.t_eff.html">onepower.pk.Spectra.t_eff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.tcmb.html">onepower.pk.Spectra.tcmb</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.transfer_model.html">onepower.pk.Spectra.transfer_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.transfer_params.html">onepower.pk.Spectra.transfer_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.two_halo_ktrunc.html">onepower.pk.Spectra.two_halo_ktrunc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.two_halo_ktrunc_ia.html">onepower.pk.Spectra.two_halo_ktrunc_ia</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.two_halo_truncation.html">onepower.pk.Spectra.two_halo_truncation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.two_halo_truncation_ia.html">onepower.pk.Spectra.two_halo_truncation_ia</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.u_dm.html">onepower.pk.Spectra.u_dm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.u_sat.html">onepower.pk.Spectra.u_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.w0.html">onepower.pk.Spectra.w0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.wa.html">onepower.pk.Spectra.wa</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.wkm_sat.html">onepower.pk.Spectra.wkm_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.Spectra.z_vec.html">onepower.pk.Spectra.z_vec</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../onepower.ia.html">onepower.ia</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../ia/onepower.ia.AlignmentAmplitudes.html">onepower.ia.AlignmentAmplitudes</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.__init__.html">onepower.ia.AlignmentAmplitudes.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.broken_powerlaw.html">onepower.ia.AlignmentAmplitudes.broken_powerlaw</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.clone.html">onepower.ia.AlignmentAmplitudes.clone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.compute_luminosity_pdf.html">onepower.ia.AlignmentAmplitudes.compute_luminosity_pdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.get_all_parameter_defaults.html">onepower.ia.AlignmentAmplitudes.get_all_parameter_defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.get_all_parameter_names.html">onepower.ia.AlignmentAmplitudes.get_all_parameter_names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.get_dependencies.html">onepower.ia.AlignmentAmplitudes.get_dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.mean_l_l0_to_beta.html">onepower.ia.AlignmentAmplitudes.mean_l_l0_to_beta</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.parameter_info.html">onepower.ia.AlignmentAmplitudes.parameter_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.quantities_available.html">onepower.ia.AlignmentAmplitudes.quantities_available</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.update.html">onepower.ia.AlignmentAmplitudes.update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.validate.html">onepower.ia.AlignmentAmplitudes.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.alignment_gi.html">onepower.ia.AlignmentAmplitudes.alignment_gi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.beta_cen.html">onepower.ia.AlignmentAmplitudes.beta_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.beta_sat.html">onepower.ia.AlignmentAmplitudes.beta_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.central_ia_depends_on.html">onepower.ia.AlignmentAmplitudes.central_ia_depends_on</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.gamma_1h_amp.html">onepower.ia.AlignmentAmplitudes.gamma_1h_amp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.gamma_1h_amplitude.html">onepower.ia.AlignmentAmplitudes.gamma_1h_amplitude</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.gamma_1h_slope.html">onepower.ia.AlignmentAmplitudes.gamma_1h_slope</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.gamma_2h_amplitude.html">onepower.ia.AlignmentAmplitudes.gamma_2h_amplitude</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.lpivot_cen.html">onepower.ia.AlignmentAmplitudes.lpivot_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.lpivot_sat.html">onepower.ia.AlignmentAmplitudes.lpivot_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.lum_centrals.html">onepower.ia.AlignmentAmplitudes.lum_centrals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.lum_pdf_z_centrals.html">onepower.ia.AlignmentAmplitudes.lum_pdf_z_centrals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.lum_pdf_z_satellites.html">onepower.ia.AlignmentAmplitudes.lum_pdf_z_satellites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.lum_satellites.html">onepower.ia.AlignmentAmplitudes.lum_satellites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.mpivot_cen.html">onepower.ia.AlignmentAmplitudes.mpivot_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.mpivot_sat.html">onepower.ia.AlignmentAmplitudes.mpivot_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.parameter_values.html">onepower.ia.AlignmentAmplitudes.parameter_values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.satellite_ia_depends_on.html">onepower.ia.AlignmentAmplitudes.satellite_ia_depends_on</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.z_loglum_file_centrals.html">onepower.ia.AlignmentAmplitudes.z_loglum_file_centrals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.z_loglum_file_satellites.html">onepower.ia.AlignmentAmplitudes.z_loglum_file_satellites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.z_vec.html">onepower.ia.AlignmentAmplitudes.z_vec</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../ia/onepower.ia.SatelliteAlignment.html">onepower.ia.SatelliteAlignment</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.I_x.html">onepower.ia.SatelliteAlignment.I_x</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.__init__.html">onepower.ia.SatelliteAlignment.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.broken_powerlaw.html">onepower.ia.SatelliteAlignment.broken_powerlaw</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.calculate_f_ell.html">onepower.ia.SatelliteAlignment.calculate_f_ell</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.clone.html">onepower.ia.SatelliteAlignment.clone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.compute_luminosity_pdf.html">onepower.ia.SatelliteAlignment.compute_luminosity_pdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_r_nfw_profile.html">onepower.ia.SatelliteAlignment.gamma_r_nfw_profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.get_all_parameter_defaults.html">onepower.ia.SatelliteAlignment.get_all_parameter_defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.get_all_parameter_names.html">onepower.ia.SatelliteAlignment.get_all_parameter_names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.get_dependencies.html">onepower.ia.SatelliteAlignment.get_dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.mean_l_l0_to_beta.html">onepower.ia.SatelliteAlignment.mean_l_l0_to_beta</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.parameter_info.html">onepower.ia.SatelliteAlignment.parameter_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.quantities_available.html">onepower.ia.SatelliteAlignment.quantities_available</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.update.html">onepower.ia.SatelliteAlignment.update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.upsampled_wkm.html">onepower.ia.SatelliteAlignment.upsampled_wkm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.validate.html">onepower.ia.SatelliteAlignment.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.alignment_gi.html">onepower.ia.SatelliteAlignment.alignment_gi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.beta_cen.html">onepower.ia.SatelliteAlignment.beta_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.beta_sat.html">onepower.ia.SatelliteAlignment.beta_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.c.html">onepower.ia.SatelliteAlignment.c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.c_in.html">onepower.ia.SatelliteAlignment.c_in</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.central_ia_depends_on.html">onepower.ia.SatelliteAlignment.central_ia_depends_on</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.compute_uell_gamma_r_hankel.html">onepower.ia.SatelliteAlignment.compute_uell_gamma_r_hankel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.ell_max.html">onepower.ia.SatelliteAlignment.ell_max</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.ell_values.html">onepower.ia.SatelliteAlignment.ell_values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_1h_amp.html">onepower.ia.SatelliteAlignment.gamma_1h_amp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_1h_amplitude.html">onepower.ia.SatelliteAlignment.gamma_1h_amplitude</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_1h_slope.html">onepower.ia.SatelliteAlignment.gamma_1h_slope</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_2h_amplitude.html">onepower.ia.SatelliteAlignment.gamma_2h_amplitude</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.hankel.html">onepower.ia.SatelliteAlignment.hankel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.k_vec.html">onepower.ia.SatelliteAlignment.k_vec</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.lpivot_cen.html">onepower.ia.SatelliteAlignment.lpivot_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.lpivot_sat.html">onepower.ia.SatelliteAlignment.lpivot_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_centrals.html">onepower.ia.SatelliteAlignment.lum_centrals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_pdf_z_centrals.html">onepower.ia.SatelliteAlignment.lum_pdf_z_centrals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_pdf_z_satellites.html">onepower.ia.SatelliteAlignment.lum_pdf_z_satellites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_satellites.html">onepower.ia.SatelliteAlignment.lum_satellites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.mass.html">onepower.ia.SatelliteAlignment.mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.mass_in.html">onepower.ia.SatelliteAlignment.mass_in</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.method.html">onepower.ia.SatelliteAlignment.method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.mpivot_cen.html">onepower.ia.SatelliteAlignment.mpivot_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.mpivot_sat.html">onepower.ia.SatelliteAlignment.mpivot_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.n_hankel.html">onepower.ia.SatelliteAlignment.n_hankel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.nk.html">onepower.ia.SatelliteAlignment.nk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.nmass.html">onepower.ia.SatelliteAlignment.nmass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.parameter_values.html">onepower.ia.SatelliteAlignment.parameter_values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.r_s.html">onepower.ia.SatelliteAlignment.r_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.r_s_in.html">onepower.ia.SatelliteAlignment.r_s_in</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.rvir.html">onepower.ia.SatelliteAlignment.rvir</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.rvir_in.html">onepower.ia.SatelliteAlignment.rvir_in</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.satellite_ia_depends_on.html">onepower.ia.SatelliteAlignment.satellite_ia_depends_on</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.truncate.html">onepower.ia.SatelliteAlignment.truncate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.wkm.html">onepower.ia.SatelliteAlignment.wkm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.wkm_f_ell.html">onepower.ia.SatelliteAlignment.wkm_f_ell</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.z_loglum_file_centrals.html">onepower.ia.SatelliteAlignment.z_loglum_file_centrals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.z_loglum_file_satellites.html">onepower.ia.SatelliteAlignment.z_loglum_file_satellites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.z_vec.html">onepower.ia.SatelliteAlignment.z_vec</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../onepower.bnl.html">onepower.bnl</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../bnl/onepower.bnl.NonLinearBias.html">onepower.bnl.NonLinearBias</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.__init__.html">onepower.bnl.NonLinearBias.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.clone.html">onepower.bnl.NonLinearBias.clone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.compute_bnl_darkquest.html">onepower.bnl.NonLinearBias.compute_bnl_darkquest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.get_all_parameter_defaults.html">onepower.bnl.NonLinearBias.get_all_parameter_defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.get_all_parameter_names.html">onepower.bnl.NonLinearBias.get_all_parameter_names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.get_dependencies.html">onepower.bnl.NonLinearBias.get_dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.high_k_truncation.html">onepower.bnl.NonLinearBias.high_k_truncation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.hl_envelopes_idx.html">onepower.bnl.NonLinearBias.hl_envelopes_idx</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.low_k_truncation.html">onepower.bnl.NonLinearBias.low_k_truncation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.parameter_info.html">onepower.bnl.NonLinearBias.parameter_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.quantities_available.html">onepower.bnl.NonLinearBias.quantities_available</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.rvir.html">onepower.bnl.NonLinearBias.rvir</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.test_cosmo.html">onepower.bnl.NonLinearBias.test_cosmo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.update.html">onepower.bnl.NonLinearBias.update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.validate.html">onepower.bnl.NonLinearBias.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.A_s.html">onepower.bnl.NonLinearBias.A_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.bnl.html">onepower.bnl.NonLinearBias.bnl</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.create_bnl_interpolation_function.html">onepower.bnl.NonLinearBias.create_bnl_interpolation_function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.emulator.html">onepower.bnl.NonLinearBias.emulator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.h0.html">onepower.bnl.NonLinearBias.h0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.k_vec.html">onepower.bnl.NonLinearBias.k_vec</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.mass.html">onepower.bnl.NonLinearBias.mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.minimum_halo_mass.html">onepower.bnl.NonLinearBias.minimum_halo_mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.n_s.html">onepower.bnl.NonLinearBias.n_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.ombh2.html">onepower.bnl.NonLinearBias.ombh2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.omch2.html">onepower.bnl.NonLinearBias.omch2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.omega_b.html">onepower.bnl.NonLinearBias.omega_b</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.omega_c.html">onepower.bnl.NonLinearBias.omega_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.omega_lambda.html">onepower.bnl.NonLinearBias.omega_lambda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.parameter_values.html">onepower.bnl.NonLinearBias.parameter_values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.sigma_8.html">onepower.bnl.NonLinearBias.sigma_8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.w0.html">onepower.bnl.NonLinearBias.w0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.z_dep.html">onepower.bnl.NonLinearBias.z_dep</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bnl/NonLinearBias/onepower.bnl.NonLinearBias.z_vec.html">onepower.bnl.NonLinearBias.z_vec</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../onepower.hod.html">onepower.hod</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../hod/onepower.hod.load_data.html">onepower.hod.load_data</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../hod/onepower.hod.Cacciato.html">onepower.hod.Cacciato</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.__init__.html">onepower.hod.Cacciato.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.get_models.html">onepower.hod.Cacciato.get_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.COF.html">onepower.hod.Cacciato.COF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.COF_cen.html">onepower.hod.Cacciato.COF_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.COF_sat.html">onepower.hod.Cacciato.COF_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.M_char.html">onepower.hod.Cacciato.M_char</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.Obs_norm_c.html">onepower.hod.Cacciato.Obs_norm_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.avg_halo_mass.html">onepower.hod.Cacciato.avg_halo_mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.avg_halo_mass_cen.html">onepower.hod.Cacciato.avg_halo_mass_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.avg_halo_mass_sat.html">onepower.hod.Cacciato.avg_halo_mass_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.cal_mean_obs_c.html">onepower.hod.Cacciato.cal_mean_obs_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.data.html">onepower.hod.Cacciato.data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.dndlnm_int.html">onepower.hod.Cacciato.dndlnm_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.f_c.html">onepower.hod.Cacciato.f_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.f_s.html">onepower.hod.Cacciato.f_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.galaxy_linear_bias.html">onepower.hod.Cacciato.galaxy_linear_bias</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.galaxy_linear_bias_cen.html">onepower.hod.Cacciato.galaxy_linear_bias_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.galaxy_linear_bias_sat.html">onepower.hod.Cacciato.galaxy_linear_bias_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.halo_bias_int.html">onepower.hod.Cacciato.halo_bias_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.hod.html">onepower.hod.Cacciato.hod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.hod_cen.html">onepower.hod.Cacciato.hod_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.hod_sat.html">onepower.hod.Cacciato.hod_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.log_obs_max.html">onepower.hod.Cacciato.log_obs_max</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.log_obs_min.html">onepower.hod.Cacciato.log_obs_min</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.nbins.html">onepower.hod.Cacciato.nbins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.nobs.html">onepower.hod.Cacciato.nobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.number_density.html">onepower.hod.Cacciato.number_density</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.number_density_cen.html">onepower.hod.Cacciato.number_density_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.number_density_sat.html">onepower.hod.Cacciato.number_density_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.nz.html">onepower.hod.Cacciato.nz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.obs.html">onepower.hod.Cacciato.obs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.obs_func.html">onepower.hod.Cacciato.obs_func</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.obs_func_cen.html">onepower.hod.Cacciato.obs_func_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.obs_func_sat.html">onepower.hod.Cacciato.obs_func_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.phi_star_s.html">onepower.hod.Cacciato.phi_star_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.stellar_fraction.html">onepower.hod.Cacciato.stellar_fraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.stellar_fraction_cen.html">onepower.hod.Cacciato.stellar_fraction_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.stellar_fraction_sat.html">onepower.hod.Cacciato.stellar_fraction_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Cacciato/onepower.hod.Cacciato.z.html">onepower.hod.Cacciato.z</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../hod/onepower.hod.HaloOccupationDistribution.html">onepower.hod.HaloOccupationDistribution</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.__init__.html">onepower.hod.HaloOccupationDistribution.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.get_models.html">onepower.hod.HaloOccupationDistribution.get_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.avg_halo_mass.html">onepower.hod.HaloOccupationDistribution.avg_halo_mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.avg_halo_mass_cen.html">onepower.hod.HaloOccupationDistribution.avg_halo_mass_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.avg_halo_mass_sat.html">onepower.hod.HaloOccupationDistribution.avg_halo_mass_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.data.html">onepower.hod.HaloOccupationDistribution.data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.dndlnm_int.html">onepower.hod.HaloOccupationDistribution.dndlnm_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.f_c.html">onepower.hod.HaloOccupationDistribution.f_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.f_s.html">onepower.hod.HaloOccupationDistribution.f_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.galaxy_linear_bias.html">onepower.hod.HaloOccupationDistribution.galaxy_linear_bias</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.galaxy_linear_bias_cen.html">onepower.hod.HaloOccupationDistribution.galaxy_linear_bias_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.galaxy_linear_bias_sat.html">onepower.hod.HaloOccupationDistribution.galaxy_linear_bias_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.halo_bias_int.html">onepower.hod.HaloOccupationDistribution.halo_bias_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.hod.html">onepower.hod.HaloOccupationDistribution.hod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.hod_cen.html">onepower.hod.HaloOccupationDistribution.hod_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.hod_sat.html">onepower.hod.HaloOccupationDistribution.hod_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.log_obs_max.html">onepower.hod.HaloOccupationDistribution.log_obs_max</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.log_obs_min.html">onepower.hod.HaloOccupationDistribution.log_obs_min</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.nbins.html">onepower.hod.HaloOccupationDistribution.nbins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.nobs.html">onepower.hod.HaloOccupationDistribution.nobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.number_density.html">onepower.hod.HaloOccupationDistribution.number_density</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.number_density_cen.html">onepower.hod.HaloOccupationDistribution.number_density_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.number_density_sat.html">onepower.hod.HaloOccupationDistribution.number_density_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.nz.html">onepower.hod.HaloOccupationDistribution.nz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.obs.html">onepower.hod.HaloOccupationDistribution.obs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.stellar_fraction.html">onepower.hod.HaloOccupationDistribution.stellar_fraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.stellar_fraction_cen.html">onepower.hod.HaloOccupationDistribution.stellar_fraction_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.stellar_fraction_sat.html">onepower.hod.HaloOccupationDistribution.stellar_fraction_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/HaloOccupationDistribution/onepower.hod.HaloOccupationDistribution.z.html">onepower.hod.HaloOccupationDistribution.z</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../hod/onepower.hod.Simple.html">onepower.hod.Simple</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.__init__.html">onepower.hod.Simple.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.get_models.html">onepower.hod.Simple.get_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.Mmin.html">onepower.hod.Simple.Mmin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.Msat.html">onepower.hod.Simple.Msat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.alpha.html">onepower.hod.Simple.alpha</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.avg_halo_mass.html">onepower.hod.Simple.avg_halo_mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.avg_halo_mass_cen.html">onepower.hod.Simple.avg_halo_mass_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.avg_halo_mass_sat.html">onepower.hod.Simple.avg_halo_mass_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.data.html">onepower.hod.Simple.data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.dndlnm_int.html">onepower.hod.Simple.dndlnm_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.f_c.html">onepower.hod.Simple.f_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.f_s.html">onepower.hod.Simple.f_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.galaxy_linear_bias.html">onepower.hod.Simple.galaxy_linear_bias</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.galaxy_linear_bias_cen.html">onepower.hod.Simple.galaxy_linear_bias_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.galaxy_linear_bias_sat.html">onepower.hod.Simple.galaxy_linear_bias_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.halo_bias_int.html">onepower.hod.Simple.halo_bias_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.hod.html">onepower.hod.Simple.hod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.hod_cen.html">onepower.hod.Simple.hod_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.hod_sat.html">onepower.hod.Simple.hod_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.log10_Mmin.html">onepower.hod.Simple.log10_Mmin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.log10_Msat.html">onepower.hod.Simple.log10_Msat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.log_obs_max.html">onepower.hod.Simple.log_obs_max</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.log_obs_min.html">onepower.hod.Simple.log_obs_min</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.nbins.html">onepower.hod.Simple.nbins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.nobs.html">onepower.hod.Simple.nobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.number_density.html">onepower.hod.Simple.number_density</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.number_density_cen.html">onepower.hod.Simple.number_density_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.number_density_sat.html">onepower.hod.Simple.number_density_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.nz.html">onepower.hod.Simple.nz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.obs.html">onepower.hod.Simple.obs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.stellar_fraction.html">onepower.hod.Simple.stellar_fraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.stellar_fraction_cen.html">onepower.hod.Simple.stellar_fraction_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.stellar_fraction_sat.html">onepower.hod.Simple.stellar_fraction_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Simple/onepower.hod.Simple.z.html">onepower.hod.Simple.z</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../hod/onepower.hod.Zehavi.html">onepower.hod.Zehavi</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.__init__.html">onepower.hod.Zehavi.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.get_models.html">onepower.hod.Zehavi.get_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.Mmin.html">onepower.hod.Zehavi.Mmin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.Msat.html">onepower.hod.Zehavi.Msat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.alpha.html">onepower.hod.Zehavi.alpha</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.avg_halo_mass.html">onepower.hod.Zehavi.avg_halo_mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.avg_halo_mass_cen.html">onepower.hod.Zehavi.avg_halo_mass_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.avg_halo_mass_sat.html">onepower.hod.Zehavi.avg_halo_mass_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.data.html">onepower.hod.Zehavi.data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.dndlnm_int.html">onepower.hod.Zehavi.dndlnm_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.f_c.html">onepower.hod.Zehavi.f_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.f_s.html">onepower.hod.Zehavi.f_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.galaxy_linear_bias.html">onepower.hod.Zehavi.galaxy_linear_bias</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.galaxy_linear_bias_cen.html">onepower.hod.Zehavi.galaxy_linear_bias_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.galaxy_linear_bias_sat.html">onepower.hod.Zehavi.galaxy_linear_bias_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.halo_bias_int.html">onepower.hod.Zehavi.halo_bias_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.hod.html">onepower.hod.Zehavi.hod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.hod_cen.html">onepower.hod.Zehavi.hod_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.hod_sat.html">onepower.hod.Zehavi.hod_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.log10_Mmin.html">onepower.hod.Zehavi.log10_Mmin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.log10_Msat.html">onepower.hod.Zehavi.log10_Msat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.log_obs_max.html">onepower.hod.Zehavi.log_obs_max</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.log_obs_min.html">onepower.hod.Zehavi.log_obs_min</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.nbins.html">onepower.hod.Zehavi.nbins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.nobs.html">onepower.hod.Zehavi.nobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.number_density.html">onepower.hod.Zehavi.number_density</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.number_density_cen.html">onepower.hod.Zehavi.number_density_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.number_density_sat.html">onepower.hod.Zehavi.number_density_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.nz.html">onepower.hod.Zehavi.nz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.obs.html">onepower.hod.Zehavi.obs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.stellar_fraction.html">onepower.hod.Zehavi.stellar_fraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.stellar_fraction_cen.html">onepower.hod.Zehavi.stellar_fraction_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.stellar_fraction_sat.html">onepower.hod.Zehavi.stellar_fraction_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zehavi/onepower.hod.Zehavi.z.html">onepower.hod.Zehavi.z</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../hod/onepower.hod.Zhai.html">onepower.hod.Zhai</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.__init__.html">onepower.hod.Zhai.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.get_models.html">onepower.hod.Zhai.get_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.Mcut.html">onepower.hod.Zhai.Mcut</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.Mmin.html">onepower.hod.Zhai.Mmin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.Msat.html">onepower.hod.Zhai.Msat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.alpha.html">onepower.hod.Zhai.alpha</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.avg_halo_mass.html">onepower.hod.Zhai.avg_halo_mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.avg_halo_mass_cen.html">onepower.hod.Zhai.avg_halo_mass_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.avg_halo_mass_sat.html">onepower.hod.Zhai.avg_halo_mass_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.data.html">onepower.hod.Zhai.data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.dndlnm_int.html">onepower.hod.Zhai.dndlnm_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.f_c.html">onepower.hod.Zhai.f_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.f_s.html">onepower.hod.Zhai.f_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.galaxy_linear_bias.html">onepower.hod.Zhai.galaxy_linear_bias</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.galaxy_linear_bias_cen.html">onepower.hod.Zhai.galaxy_linear_bias_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.galaxy_linear_bias_sat.html">onepower.hod.Zhai.galaxy_linear_bias_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.halo_bias_int.html">onepower.hod.Zhai.halo_bias_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.hod.html">onepower.hod.Zhai.hod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.hod_cen.html">onepower.hod.Zhai.hod_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.hod_sat.html">onepower.hod.Zhai.hod_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.log10_Mcut.html">onepower.hod.Zhai.log10_Mcut</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.log10_Mmin.html">onepower.hod.Zhai.log10_Mmin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.log10_Msat.html">onepower.hod.Zhai.log10_Msat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.log_obs_max.html">onepower.hod.Zhai.log_obs_max</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.log_obs_min.html">onepower.hod.Zhai.log_obs_min</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.nbins.html">onepower.hod.Zhai.nbins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.nobs.html">onepower.hod.Zhai.nobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.number_density.html">onepower.hod.Zhai.number_density</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.number_density_cen.html">onepower.hod.Zhai.number_density_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.number_density_sat.html">onepower.hod.Zhai.number_density_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.nz.html">onepower.hod.Zhai.nz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.obs.html">onepower.hod.Zhai.obs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.sigma.html">onepower.hod.Zhai.sigma</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.stellar_fraction.html">onepower.hod.Zhai.stellar_fraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.stellar_fraction_cen.html">onepower.hod.Zhai.stellar_fraction_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.stellar_fraction_sat.html">onepower.hod.Zhai.stellar_fraction_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zhai/onepower.hod.Zhai.z.html">onepower.hod.Zhai.z</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../hod/onepower.hod.Zheng.html">onepower.hod.Zheng</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.__init__.html">onepower.hod.Zheng.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.get_models.html">onepower.hod.Zheng.get_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.M0.html">onepower.hod.Zheng.M0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.M1.html">onepower.hod.Zheng.M1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.Mmin.html">onepower.hod.Zheng.Mmin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.alpha.html">onepower.hod.Zheng.alpha</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.avg_halo_mass.html">onepower.hod.Zheng.avg_halo_mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.avg_halo_mass_cen.html">onepower.hod.Zheng.avg_halo_mass_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.avg_halo_mass_sat.html">onepower.hod.Zheng.avg_halo_mass_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.data.html">onepower.hod.Zheng.data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.dndlnm_int.html">onepower.hod.Zheng.dndlnm_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.f_c.html">onepower.hod.Zheng.f_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.f_s.html">onepower.hod.Zheng.f_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.galaxy_linear_bias.html">onepower.hod.Zheng.galaxy_linear_bias</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.galaxy_linear_bias_cen.html">onepower.hod.Zheng.galaxy_linear_bias_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.galaxy_linear_bias_sat.html">onepower.hod.Zheng.galaxy_linear_bias_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.halo_bias_int.html">onepower.hod.Zheng.halo_bias_int</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.hod.html">onepower.hod.Zheng.hod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.hod_cen.html">onepower.hod.Zheng.hod_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.hod_sat.html">onepower.hod.Zheng.hod_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.log10_M0.html">onepower.hod.Zheng.log10_M0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.log10_M1.html">onepower.hod.Zheng.log10_M1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.log10_Mmin.html">onepower.hod.Zheng.log10_Mmin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.log_obs_max.html">onepower.hod.Zheng.log_obs_max</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.log_obs_min.html">onepower.hod.Zheng.log_obs_min</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.nbins.html">onepower.hod.Zheng.nbins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.nobs.html">onepower.hod.Zheng.nobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.number_density.html">onepower.hod.Zheng.number_density</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.number_density_cen.html">onepower.hod.Zheng.number_density_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.number_density_sat.html">onepower.hod.Zheng.number_density_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.nz.html">onepower.hod.Zheng.nz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.obs.html">onepower.hod.Zheng.obs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.sigma.html">onepower.hod.Zheng.sigma</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.stellar_fraction.html">onepower.hod.Zheng.stellar_fraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.stellar_fraction_cen.html">onepower.hod.Zheng.stellar_fraction_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.stellar_fraction_sat.html">onepower.hod.Zheng.stellar_fraction_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hod/Zheng/onepower.hod.Zheng.z.html">onepower.hod.Zheng.z</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../onepower.hmi.html">onepower.hmi</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../hmi/onepower.hmi.CosmologyBase.html">onepower.hmi.CosmologyBase</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.__init__.html">onepower.hmi.CosmologyBase.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.clone.html">onepower.hmi.CosmologyBase.clone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.f_Mead.html">onepower.hmi.CosmologyBase.f_Mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.get_all_parameter_defaults.html">onepower.hmi.CosmologyBase.get_all_parameter_defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.get_all_parameter_names.html">onepower.hmi.CosmologyBase.get_all_parameter_names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.get_dependencies.html">onepower.hmi.CosmologyBase.get_dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.parameter_info.html">onepower.hmi.CosmologyBase.parameter_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.quantities_available.html">onepower.hmi.CosmologyBase.quantities_available</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.update.html">onepower.hmi.CosmologyBase.update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.validate.html">onepower.hmi.CosmologyBase.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.Dv_Mead.html">onepower.hmi.CosmologyBase.Dv_Mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.Neff.html">onepower.hmi.CosmologyBase.Neff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.cosmo_model.html">onepower.hmi.CosmologyBase.cosmo_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.dc_Mead.html">onepower.hmi.CosmologyBase.dc_Mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.get_mead_accumulated_growth.html">onepower.hmi.CosmologyBase.get_mead_accumulated_growth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.get_mead_growth.html">onepower.hmi.CosmologyBase.get_mead_growth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.get_mead_growth_fnc.html">onepower.hmi.CosmologyBase.get_mead_growth_fnc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.h0.html">onepower.hmi.CosmologyBase.h0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.log10T_AGN.html">onepower.hmi.CosmologyBase.log10T_AGN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.m_nu.html">onepower.hmi.CosmologyBase.m_nu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.n_s.html">onepower.hmi.CosmologyBase.n_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.omega_b.html">onepower.hmi.CosmologyBase.omega_b</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.omega_c.html">onepower.hmi.CosmologyBase.omega_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.omega_m.html">onepower.hmi.CosmologyBase.omega_m</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.parameter_values.html">onepower.hmi.CosmologyBase.parameter_values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.scale_factor.html">onepower.hmi.CosmologyBase.scale_factor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.sigma_8.html">onepower.hmi.CosmologyBase.sigma_8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.tcmb.html">onepower.hmi.CosmologyBase.tcmb</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.w0.html">onepower.hmi.CosmologyBase.w0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.wa.html">onepower.hmi.CosmologyBase.wa</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/CosmologyBase/onepower.hmi.CosmologyBase.z_vec.html">onepower.hmi.CosmologyBase.z_vec</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../hmi/onepower.hmi.HaloModelIngredients.html">onepower.hmi.HaloModelIngredients</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.Tk_cold_ratio.html">onepower.hmi.HaloModelIngredients.Tk_cold_ratio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.__init__.html">onepower.hmi.HaloModelIngredients.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.clone.html">onepower.hmi.HaloModelIngredients.clone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.f_Mead.html">onepower.hmi.HaloModelIngredients.f_Mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.get_all_parameter_defaults.html">onepower.hmi.HaloModelIngredients.get_all_parameter_defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.get_all_parameter_names.html">onepower.hmi.HaloModelIngredients.get_all_parameter_names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.get_dependencies.html">onepower.hmi.HaloModelIngredients.get_dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.get_halo_collapse_redshifts.html">onepower.hmi.HaloModelIngredients.get_halo_collapse_redshifts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.parameter_info.html">onepower.hmi.HaloModelIngredients.parameter_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.quantities_available.html">onepower.hmi.HaloModelIngredients.quantities_available</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.sigmaR_cc.html">onepower.hmi.HaloModelIngredients.sigmaR_cc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.update.html">onepower.hmi.HaloModelIngredients.update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.validate.html">onepower.hmi.HaloModelIngredients.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.Dv_Mead.html">onepower.hmi.HaloModelIngredients.Dv_Mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.K.html">onepower.hmi.HaloModelIngredients.K</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.Mmax.html">onepower.hmi.HaloModelIngredients.Mmax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.Mmin.html">onepower.hmi.HaloModelIngredients.Mmin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.Neff.html">onepower.hmi.HaloModelIngredients.Neff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.bias_model.html">onepower.hmi.HaloModelIngredients.bias_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.conc_cen.html">onepower.hmi.HaloModelIngredients.conc_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.conc_sat.html">onepower.hmi.HaloModelIngredients.conc_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.cosmo_model.html">onepower.hmi.HaloModelIngredients.cosmo_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.dc_Mead.html">onepower.hmi.HaloModelIngredients.dc_Mead</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.delta_c.html">onepower.hmi.HaloModelIngredients.delta_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.disable_mass_conversion.html">onepower.hmi.HaloModelIngredients.disable_mass_conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.dlnk.html">onepower.hmi.HaloModelIngredients.dlnk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.dlog10m.html">onepower.hmi.HaloModelIngredients.dlog10m</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.dndlnm.html">onepower.hmi.HaloModelIngredients.dndlnm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.eta_cen.html">onepower.hmi.HaloModelIngredients.eta_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.eta_sat.html">onepower.hmi.HaloModelIngredients.eta_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.fnu.html">onepower.hmi.HaloModelIngredients.fnu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.get_mead_accumulated_growth.html">onepower.hmi.HaloModelIngredients.get_mead_accumulated_growth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.get_mead_growth.html">onepower.hmi.HaloModelIngredients.get_mead_growth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.get_mead_growth_fnc.html">onepower.hmi.HaloModelIngredients.get_mead_growth_fnc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.growth_factor.html">onepower.hmi.HaloModelIngredients.growth_factor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.growth_model.html">onepower.hmi.HaloModelIngredients.growth_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.growth_params.html">onepower.hmi.HaloModelIngredients.growth_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.h0.html">onepower.hmi.HaloModelIngredients.h0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.halo_bias.html">onepower.hmi.HaloModelIngredients.halo_bias</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.halo_concentration_model_dm.html">onepower.hmi.HaloModelIngredients.halo_concentration_model_dm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.halo_concentration_model_sat.html">onepower.hmi.HaloModelIngredients.halo_concentration_model_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.halo_overdensity_mean.html">onepower.hmi.HaloModelIngredients.halo_overdensity_mean</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.halo_profile_model_dm.html">onepower.hmi.HaloModelIngredients.halo_profile_model_dm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.halo_profile_model_sat.html">onepower.hmi.HaloModelIngredients.halo_profile_model_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.halo_profile_params.html">onepower.hmi.HaloModelIngredients.halo_profile_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.hmcode_ingredients.html">onepower.hmi.HaloModelIngredients.hmcode_ingredients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.hmf_model.html">onepower.hmi.HaloModelIngredients.hmf_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.k_vec.html">onepower.hmi.HaloModelIngredients.k_vec</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.kh.html">onepower.hmi.HaloModelIngredients.kh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.lnk_max.html">onepower.hmi.HaloModelIngredients.lnk_max</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.lnk_min.html">onepower.hmi.HaloModelIngredients.lnk_min</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.log10T_AGN.html">onepower.hmi.HaloModelIngredients.log10T_AGN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.m_nu.html">onepower.hmi.HaloModelIngredients.m_nu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.mass.html">onepower.hmi.HaloModelIngredients.mass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.mdef_model.html">onepower.hmi.HaloModelIngredients.mdef_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.mdef_params.html">onepower.hmi.HaloModelIngredients.mdef_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.mean_density0.html">onepower.hmi.HaloModelIngredients.mean_density0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.mean_density_z.html">onepower.hmi.HaloModelIngredients.mean_density_z</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.n_s.html">onepower.hmi.HaloModelIngredients.n_s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.neff.html">onepower.hmi.HaloModelIngredients.neff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.nfw_cen.html">onepower.hmi.HaloModelIngredients.nfw_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.nfw_sat.html">onepower.hmi.HaloModelIngredients.nfw_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.nonlinear_power.html">onepower.hmi.HaloModelIngredients.nonlinear_power</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.norm_cen.html">onepower.hmi.HaloModelIngredients.norm_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.norm_sat.html">onepower.hmi.HaloModelIngredients.norm_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.nu.html">onepower.hmi.HaloModelIngredients.nu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.omega_b.html">onepower.hmi.HaloModelIngredients.omega_b</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.omega_c.html">onepower.hmi.HaloModelIngredients.omega_c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.omega_m.html">onepower.hmi.HaloModelIngredients.omega_m</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.overdensity.html">onepower.hmi.HaloModelIngredients.overdensity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.parameter_values.html">onepower.hmi.HaloModelIngredients.parameter_values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.power.html">onepower.hmi.HaloModelIngredients.power</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.r_s_cen.html">onepower.hmi.HaloModelIngredients.r_s_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.r_s_sat.html">onepower.hmi.HaloModelIngredients.r_s_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.rho_halo.html">onepower.hmi.HaloModelIngredients.rho_halo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.rvir_cen.html">onepower.hmi.HaloModelIngredients.rvir_cen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.rvir_sat.html">onepower.hmi.HaloModelIngredients.rvir_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.scale_factor.html">onepower.hmi.HaloModelIngredients.scale_factor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.sigma8_z.html">onepower.hmi.HaloModelIngredients.sigma8_z</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.sigma_8.html">onepower.hmi.HaloModelIngredients.sigma_8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.tcmb.html">onepower.hmi.HaloModelIngredients.tcmb</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.transfer_model.html">onepower.hmi.HaloModelIngredients.transfer_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.transfer_params.html">onepower.hmi.HaloModelIngredients.transfer_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.u_dm.html">onepower.hmi.HaloModelIngredients.u_dm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.u_sat.html">onepower.hmi.HaloModelIngredients.u_sat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.w0.html">onepower.hmi.HaloModelIngredients.w0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.wa.html">onepower.hmi.HaloModelIngredients.wa</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.z_vec.html">onepower.hmi.HaloModelIngredients.z_vec</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../hmi/onepower.hmi.SOVirial_Mead.html">onepower.hmi.SOVirial_Mead</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.__init__.html">onepower.hmi.SOVirial_Mead.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.change_definition.html">onepower.hmi.SOVirial_Mead.change_definition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.critical_density.html">onepower.hmi.SOVirial_Mead.critical_density</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.get_models.html">onepower.hmi.SOVirial_Mead.get_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.halo_density.html">onepower.hmi.SOVirial_Mead.halo_density</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.halo_overdensity_crit.html">onepower.hmi.SOVirial_Mead.halo_overdensity_crit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.halo_overdensity_mean.html">onepower.hmi.SOVirial_Mead.halo_overdensity_mean</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.m_to_r.html">onepower.hmi.SOVirial_Mead.m_to_r</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.mean_density.html">onepower.hmi.SOVirial_Mead.mean_density</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.r_to_m.html">onepower.hmi.SOVirial_Mead.r_to_m</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../hmi/SOVirial_Mead/onepower.hmi.SOVirial_Mead.colossus_name.html">onepower.hmi.SOVirial_Mead.colossus_name</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../onepower.add.html">onepower.add</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../add/onepower.add.UpsampledSpectra.html">onepower.add.UpsampledSpectra</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.__init__.html">onepower.add.UpsampledSpectra.__init__</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.add_spectra.html">onepower.add.UpsampledSpectra.add_spectra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.clone.html">onepower.add.UpsampledSpectra.clone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.extrapolate_spectra.html">onepower.add.UpsampledSpectra.extrapolate_spectra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.get_all_parameter_defaults.html">onepower.add.UpsampledSpectra.get_all_parameter_defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.get_all_parameter_names.html">onepower.add.UpsampledSpectra.get_all_parameter_names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.get_dependencies.html">onepower.add.UpsampledSpectra.get_dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.parameter_info.html">onepower.add.UpsampledSpectra.parameter_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.quantities_available.html">onepower.add.UpsampledSpectra.quantities_available</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.results.html">onepower.add.UpsampledSpectra.results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.update.html">onepower.add.UpsampledSpectra.update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.validate.html">onepower.add.UpsampledSpectra.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.extrapolate_option.html">onepower.add.UpsampledSpectra.extrapolate_option</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.frac_1.html">onepower.add.UpsampledSpectra.frac_1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.frac_2.html">onepower.add.UpsampledSpectra.frac_2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.fraction.html">onepower.add.UpsampledSpectra.fraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.fraction_z.html">onepower.add.UpsampledSpectra.fraction_z</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.k.html">onepower.add.UpsampledSpectra.k</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.model.html">onepower.add.UpsampledSpectra.model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.parameter_values.html">onepower.add.UpsampledSpectra.parameter_values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.power_1.html">onepower.add.UpsampledSpectra.power_1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.power_2.html">onepower.add.UpsampledSpectra.power_2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../add/UpsampledSpectra/onepower.add.UpsampledSpectra.z.html">onepower.add.UpsampledSpectra.z</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../api.html" class="nav-link">API Summary</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../onepower.pk.html" class="nav-link">onepower.pk</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../onepower.pk.Spectra.html" class="nav-link">onepower.pk.Spectra</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">onepower.pk.Spectra.Tk_cold_ratio</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="onepower-pk-spectra-tk-cold-ratio">
+<h1>onepower.pk.Spectra.Tk_cold_ratio<a class="headerlink" href="#onepower-pk-spectra-tk-cold-ratio" title="Link to this heading">#</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="onepower.pk.Spectra.Tk_cold_ratio">
+<span class="sig-prename descclassname"><span class="pre">Spectra.</span></span><span class="sig-name descname"><span class="pre">Tk_cold_ratio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ommh2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_CMB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.7255</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#onepower.pk.Spectra.Tk_cold_ratio" title="Link to this definition">#</a></dt>
+<dd><p>Ratio of cold to matter transfer function from Eisenstein &amp; Hu (1999).
+This can be used to get the cold-matter spectrum approximately from the matter spectrum.
+Captures the scale-dependent growth with neutrino free-streaming scale.</p>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="onepower.pk.Spectra.I_NL.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">onepower.pk.Spectra.I_NL</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="onepower.pk.Spectra.__init__.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">onepower.pk.Spectra.__init__</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#onepower.pk.Spectra.Tk_cold_ratio"><code class="docutils literal notranslate"><span class="pre">Spectra.Tk_cold_ratio()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/KiDs-WL/onepower/edit/main/docs/_autosummary/pk/Spectra/onepower.pk.Spectra.Tk_cold_ratio.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Andrej Dvornik.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

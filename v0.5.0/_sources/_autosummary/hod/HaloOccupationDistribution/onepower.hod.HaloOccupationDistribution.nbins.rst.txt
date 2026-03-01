@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.nbins
+=============================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HaloOccupationDistribution.nbins

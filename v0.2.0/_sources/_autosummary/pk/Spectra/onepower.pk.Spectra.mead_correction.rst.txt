@@ -1,0 +1,6 @@
+onepower.pk.Spectra.mead\_correction
+====================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.mead_correction

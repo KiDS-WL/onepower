@@ -1,0 +1,6 @@
+onepower.pk.Spectra.sigma\_8
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.sigma_8

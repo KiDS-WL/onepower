@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.stellar\_fraction\_sat
+============================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.stellar_fraction_sat

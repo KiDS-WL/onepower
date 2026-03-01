@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.z\_vec
+=================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: CosmologyBase.z_vec

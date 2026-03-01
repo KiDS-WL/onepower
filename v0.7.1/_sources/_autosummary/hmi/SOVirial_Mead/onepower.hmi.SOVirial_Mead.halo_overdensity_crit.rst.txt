@@ -1,0 +1,6 @@
+onepower.hmi.SOVirial\_Mead.halo\_overdensity\_crit
+===================================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: SOVirial_Mead.halo_overdensity_crit

@@ -1,0 +1,6 @@
+onepower.hod.Simple.avg\_halo\_mass
+===================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.avg_halo_mass

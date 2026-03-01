@@ -1,0 +1,6 @@
+onepower.pk.Spectra.cosmo\_model
+================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.cosmo_model

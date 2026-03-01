@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.lum\_satellites
+===============================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.lum_satellites

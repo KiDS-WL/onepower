@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.quantities\_available
+=====================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: AlignmentAmplitudes.quantities_available

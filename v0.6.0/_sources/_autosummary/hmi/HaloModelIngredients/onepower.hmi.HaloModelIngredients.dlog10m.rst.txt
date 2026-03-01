@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.dlog10m
+=========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.dlog10m

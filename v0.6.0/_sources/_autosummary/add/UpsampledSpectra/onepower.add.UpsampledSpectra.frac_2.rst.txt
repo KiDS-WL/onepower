@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.frac\_2
+=====================================
+
+.. currentmodule:: onepower.add
+
+.. autoproperty:: UpsampledSpectra.frac_2

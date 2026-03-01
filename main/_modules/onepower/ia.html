@@ -1,0 +1,1646 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>onepower.ia &#8212; OnePower</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/documentation_options.js?v=e6c987b5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/onepower/ia';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://kids-wl.github.io/onepower/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.7.3.dev36+g77b1eabd6';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <link rel="icon" href="https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logo_hex.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.7.3.dev36+g77b1eabd6" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logo_hex.png" class="logo__image only-light" alt="OnePower - Home"/>
+    <img src="https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logo_hex.png" class="logo__image only-dark pst-js-only" alt="OnePower - Home"/>
+  
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tutorials.html">
+    Usage and Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Summary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing to OnePower
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../license.html">
+    License
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../changelog.html">
+    Releases
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../contributors.html">
+    Authors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../developing.html">
+    Developing OnePower
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/KiDS-WL/onepower" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tutorials.html">
+    Usage and Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Summary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing to OnePower
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Releases
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributors.html">
+    Authors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developing.html">
+    Developing OnePower
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/KiDS-WL/onepower" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">onepower.ia</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for onepower.ia</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A module for computing intrinsic alignment properties.</span>
+<span class="sd">This module provides classes and functions to calculate various properties</span>
+<span class="sd">related to the intrinsic alignment of central and satellite galaxies within dark matter halos.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
+<span class="kn">from</span> <span class="nn">hankel</span> <span class="kn">import</span> <span class="n">HankelTransform</span>
+<span class="kn">from</span> <span class="nn">scipy.fft</span> <span class="kn">import</span> <span class="n">fht</span><span class="p">,</span> <span class="n">fhtoffset</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">simpson</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">RegularGridInterpolator</span><span class="p">,</span> <span class="n">interp1d</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">binom</span><span class="p">,</span> <span class="n">gamma</span>
+
+<span class="kn">from</span> <span class="nn">hmf._internals._cache</span> <span class="kn">import</span> <span class="n">cached_quantity</span><span class="p">,</span> <span class="n">parameter</span>
+<span class="kn">from</span> <span class="nn">hmf._internals._framework</span> <span class="kn">import</span> <span class="n">Framework</span>
+
+
+<div class="viewcode-block" id="AlignmentAmplitudes">
+<a class="viewcode-back" href="../../_autosummary/ia/onepower.ia.AlignmentAmplitudes.html#onepower.ia.AlignmentAmplitudes">[docs]</a>
+<span class="k">class</span> <span class="nc">AlignmentAmplitudes</span><span class="p">(</span><span class="n">Framework</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to IA amplitudes given options and dependencies on either luminosity, stellar mass, or halo mass.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    z_vec : array-like</span>
+<span class="sd">        Redshift vector.</span>
+<span class="sd">    central_ia_depends_on : str</span>
+<span class="sd">        Dependency for central intrinsic alignment. Options: &#39;constant&#39;, &#39;luminosity&#39;, &#39;halo_mass&#39;.</span>
+<span class="sd">    satellite_ia_depends_on : str</span>
+<span class="sd">        Dependency for satellite intrinsic alignment. Options: &#39;constant&#39;, &#39;luminosity&#39;, &#39;halo_mass&#39;.</span>
+<span class="sd">    gamma_2h_amplitude : float</span>
+<span class="sd">        Amplitude for 2-halo term.</span>
+<span class="sd">    beta_cen : float</span>
+<span class="sd">        Beta parameter for central galaxies.</span>
+<span class="sd">    beta_two : float, optional</span>
+<span class="sd">        Secondary beta parameter.</span>
+<span class="sd">    gamma_1h_amplitude : float</span>
+<span class="sd">        Amplitude for 1-halo term.</span>
+<span class="sd">    gamma_1h_slope : float</span>
+<span class="sd">        Slope for 1-halo term.</span>
+<span class="sd">    beta_sat : float</span>
+<span class="sd">        Beta parameter for satellite galaxies.</span>
+<span class="sd">    mpivot_cen : float, optional</span>
+<span class="sd">        Pivot mass for central galaxies.</span>
+<span class="sd">    mpivot_sat : float, optional</span>
+<span class="sd">        Pivot mass for satellite galaxies.</span>
+<span class="sd">    lpivot_cen : float, optional</span>
+<span class="sd">        Pivot luminosity for central galaxies.</span>
+<span class="sd">    lpivot_sat : float, optional</span>
+<span class="sd">        Pivot luminosity for satellite galaxies.</span>
+<span class="sd">    z_loglum_file_centrals : str, optional</span>
+<span class="sd">        File path for central galaxy luminosity data.</span>
+<span class="sd">    z_loglum_file_satellites : str, optional</span>
+<span class="sd">        File path for satellite galaxy luminosity data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AlignmentAmplitudes.__init__">
+<a class="viewcode-back" href="../../_autosummary/ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.__init__.html#onepower.ia.AlignmentAmplitudes.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">z_vec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">central_ia_depends_on</span><span class="o">=</span><span class="s1">&#39;halo_mass&#39;</span><span class="p">,</span>
+        <span class="n">satellite_ia_depends_on</span><span class="o">=</span><span class="s1">&#39;halo_mass&#39;</span><span class="p">,</span>
+        <span class="n">gamma_2h_amplitude</span><span class="o">=</span><span class="mf">5.33</span><span class="p">,</span>
+        <span class="n">beta_cen</span><span class="o">=</span><span class="mf">0.44</span><span class="p">,</span>
+        <span class="n">beta_two</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">gamma_1h_amplitude</span><span class="o">=</span><span class="mf">0.0015</span><span class="p">,</span>
+        <span class="n">gamma_1h_slope</span><span class="o">=-</span><span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">beta_sat</span><span class="o">=</span><span class="mf">0.44</span><span class="p">,</span>
+        <span class="n">mpivot_cen</span><span class="o">=</span><span class="mf">13.5</span><span class="p">,</span>
+        <span class="n">mpivot_sat</span><span class="o">=</span><span class="mf">13.5</span><span class="p">,</span>
+        <span class="n">lpivot_cen</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">lpivot_sat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">z_loglum_file_centrals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">z_loglum_file_satellites</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span> <span class="o">=</span> <span class="n">z_vec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">central_ia_depends_on</span> <span class="o">=</span> <span class="n">central_ia_depends_on</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">satellite_ia_depends_on</span> <span class="o">=</span> <span class="n">satellite_ia_depends_on</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma_2h_amplitude</span> <span class="o">=</span> <span class="n">gamma_2h_amplitude</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_cen</span> <span class="o">=</span> <span class="n">beta_cen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_two</span> <span class="o">=</span> <span class="n">beta_two</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma_1h_slope</span> <span class="o">=</span> <span class="n">gamma_1h_slope</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma_1h_amplitude</span> <span class="o">=</span> <span class="n">gamma_1h_amplitude</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_sat</span> <span class="o">=</span> <span class="n">beta_sat</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpivot_cen</span> <span class="o">=</span> <span class="n">mpivot_cen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpivot_sat</span> <span class="o">=</span> <span class="n">mpivot_sat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lpivot_cen</span> <span class="o">=</span> <span class="n">lpivot_cen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lpivot_sat</span> <span class="o">=</span> <span class="n">lpivot_sat</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_loglum_file_centrals</span> <span class="o">=</span> <span class="n">z_loglum_file_centrals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_loglum_file_satellites</span> <span class="o">=</span> <span class="n">z_loglum_file_satellites</span></div>
+
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">z_vec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Redshift vector.</span>
+
+<span class="sd">        :type: array-like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">central_ia_depends_on</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the central intrinsic alignment dependencies.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">        -------</span>
+<span class="sd">        ValueError : If an invalid option is provided for central_ia_depends_on or satellite_ia_depends_on.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">valid_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="s1">&#39;luminosity&#39;</span><span class="p">,</span> <span class="s1">&#39;halo_mass&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_options</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Choose one of the following options for central_IA_depends_on: </span><span class="si">{</span><span class="n">valid_options</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">satellite_ia_depends_on</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the satellite intrinsic alignment dependencies.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">        -------</span>
+<span class="sd">        ValueError : If an invalid option is provided for central_ia_depends_on or satellite_ia_depends_on.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">valid_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="s1">&#39;luminosity&#39;</span><span class="p">,</span> <span class="s1">&#39;halo_mass&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_options</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Choose one of the following options for satellite_IA_depends_on: </span><span class="si">{</span><span class="n">valid_options</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">gamma_2h_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Amplitude for 2-halo term.</span>
+
+<span class="sd">        :type: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">gamma_1h_slope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Slope for 1-halo term.</span>
+
+<span class="sd">        :type: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">gamma_1h_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Amplitude for 1-halo term.</span>
+
+<span class="sd">        :type: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">beta_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Beta parameter for central galaxies.</span>
+
+<span class="sd">        :type: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">beta_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        beta_sat : float</span>
+<span class="sd">            Beta parameter for satellite galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mpivot_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pivot mass for central galaxies.</span>
+
+<span class="sd">        :type: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span><span class="o">**</span><span class="n">val</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mpivot_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pivot mass for satellite galaxies.</span>
+
+<span class="sd">        :type: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span><span class="o">**</span><span class="n">val</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lpivot_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pivot luminosity for central galaxies.</span>
+
+<span class="sd">        :type: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span><span class="o">**</span><span class="n">val</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lpivot_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pivot luminosity for satellite galaxies.</span>
+
+<span class="sd">        :type: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span><span class="o">**</span><span class="n">val</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">z_loglum_file_centrals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        File path for central galaxy luminosity data.</span>
+
+<span class="sd">        :type: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">z_loglum_file_satellites</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        File path for satellite galaxy luminosity data.</span>
+
+<span class="sd">        :type: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">lum_centrals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the luminosity array for centrals.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_luminosity_array</span><span class="p">(</span><span class="s1">&#39;centrals&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">lum_pdf_z_centrals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the luminosity array for satellites.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_luminosity_array</span><span class="p">(</span><span class="s1">&#39;centrals&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">lum_satellites</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the luminosity PDF array for centrals.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_luminosity_array</span><span class="p">(</span><span class="s1">&#39;satellites&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">lum_pdf_z_satellites</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the luminosity PDF array for satellites.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_luminosity_array</span><span class="p">(</span><span class="s1">&#39;satellites&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_initialize_luminosity_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">galaxy_type</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize and return the luminosity array based on galaxy type.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        galaxy_type : str</span>
+<span class="sd">            Type of galaxy, either &#39;centrals&#39; or &#39;satellites&#39;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.ndarray : lum</span>
+<span class="sd">            Luminosity array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">z_loglum_file</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z_loglum_file_centrals</span>
+            <span class="k">if</span> <span class="n">galaxy_type</span> <span class="o">==</span> <span class="s1">&#39;centrals&#39;</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_loglum_file_satellites</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">z_loglum_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;You have not provided a luminosity file for </span><span class="si">{</span><span class="n">galaxy_type</span><span class="si">}</span><span class="s1">. Please include z_loglum_file_</span><span class="si">{</span><span class="n">galaxy_type</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="p">)</span>
+
+        <span class="n">nlbins</span> <span class="o">=</span> <span class="mi">10000</span>
+        <span class="n">lum</span><span class="p">,</span> <span class="n">lum_pdf_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_luminosity_pdf</span><span class="p">(</span><span class="n">z_loglum_file</span><span class="p">,</span> <span class="n">nlbins</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">lum</span><span class="p">,</span> <span class="n">lum_pdf_z</span>
+
+<div class="viewcode-block" id="AlignmentAmplitudes.mean_l_l0_to_beta">
+<a class="viewcode-back" href="../../_autosummary/ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.mean_l_l0_to_beta.html#onepower.ia.AlignmentAmplitudes.mean_l_l0_to_beta">[docs]</a>
+    <span class="k">def</span> <span class="nf">mean_l_l0_to_beta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xlum</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">l0</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the mean luminosity scaling.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        xlum : array-like</span>
+<span class="sd">            Luminosity values.</span>
+<span class="sd">        pdf : array-like</span>
+<span class="sd">            Probability density function values.</span>
+<span class="sd">        l0 : float</span>
+<span class="sd">            Pivot luminosity.</span>
+<span class="sd">        beta : float</span>
+<span class="sd">            Beta parameter.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        float : Mean luminosity scaling.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">simpson</span><span class="p">(</span><span class="n">pdf</span> <span class="o">*</span> <span class="p">(</span><span class="n">xlum</span> <span class="o">/</span> <span class="n">l0</span><span class="p">)</span> <span class="o">**</span> <span class="n">beta</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">xlum</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AlignmentAmplitudes.broken_powerlaw">
+<a class="viewcode-back" href="../../_autosummary/ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.broken_powerlaw.html#onepower.ia.AlignmentAmplitudes.broken_powerlaw">[docs]</a>
+    <span class="k">def</span> <span class="nf">broken_powerlaw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xlum</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">gamma_2h_lum</span><span class="p">,</span> <span class="n">l0</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">beta_low</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the broken power law.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        xlum : array-like</span>
+<span class="sd">            Luminosity values.</span>
+<span class="sd">        pdf : array-like</span>
+<span class="sd">            Probability density function values.</span>
+<span class="sd">        gamma_2h_lum : float</span>
+<span class="sd">            Amplitude for 2-halo term.</span>
+<span class="sd">        l0 : float</span>
+<span class="sd">            Pivot luminosity.</span>
+<span class="sd">        beta : float</span>
+<span class="sd">            Beta parameter.</span>
+<span class="sd">        beta_low : float</span>
+<span class="sd">            Secondary beta parameter.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        float : Integral of the broken power law.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">alignment_ampl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">xlum</span> <span class="o">&gt;</span> <span class="n">l0</span><span class="p">,</span>
+            <span class="n">gamma_2h_lum</span> <span class="o">*</span> <span class="p">(</span><span class="n">xlum</span> <span class="o">/</span> <span class="n">l0</span><span class="p">)</span> <span class="o">**</span> <span class="n">beta</span><span class="p">,</span>
+            <span class="n">gamma_2h_lum</span> <span class="o">*</span> <span class="p">(</span><span class="n">xlum</span> <span class="o">/</span> <span class="n">l0</span><span class="p">)</span> <span class="o">**</span> <span class="n">beta_low</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">simpson</span><span class="p">(</span><span class="n">pdf</span> <span class="o">*</span> <span class="n">alignment_ampl</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">xlum</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AlignmentAmplitudes.compute_luminosity_pdf">
+<a class="viewcode-back" href="../../_autosummary/ia/AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.compute_luminosity_pdf.html#onepower.ia.AlignmentAmplitudes.compute_luminosity_pdf">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_luminosity_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z_loglum_file</span><span class="p">,</span> <span class="n">nlbins</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the luminosity PDF.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        z_loglum_file : str</span>
+<span class="sd">            File path for galaxy luminosity data.</span>
+<span class="sd">        nlbins : int</span>
+<span class="sd">            Number of bins for the histogram.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        tuple : (bincen, pdf)</span>
+<span class="sd">            Bin centers and probability density function values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">galfile</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">z_loglum_file</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">z_gal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">galfile</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">])</span>
+        <span class="n">loglum_gal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">galfile</span><span class="p">[</span><span class="s1">&#39;loglum&#39;</span><span class="p">])</span>
+
+        <span class="n">z_bins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span>
+        <span class="n">dz</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">z_bins</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">z_bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">z_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_bins</span> <span class="o">-</span> <span class="n">dz</span><span class="p">,</span> <span class="n">z_bins</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dz</span><span class="p">)</span>
+
+        <span class="n">bincen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">nlbins</span><span class="p">])</span>
+        <span class="n">pdf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">nlbins</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="n">mask_z</span> <span class="o">=</span> <span class="p">(</span><span class="n">z_gal</span> <span class="o">&gt;=</span> <span class="n">z_edges</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">z_gal</span> <span class="o">&lt;</span> <span class="n">z_edges</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">loglum_bin</span> <span class="o">=</span> <span class="n">loglum_gal</span><span class="p">[</span><span class="n">mask_z</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">loglum_bin</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                <span class="n">lum</span> <span class="o">=</span> <span class="mf">10.0</span><span class="o">**</span><span class="n">loglum_bin</span>
+                <span class="n">pdf_tmp</span><span class="p">,</span> <span class="n">_lum_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">lum</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">nlbins</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">_dbin</span> <span class="o">=</span> <span class="p">(</span><span class="n">_lum_bins</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">_lum_bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">nlbins</span><span class="p">)</span>
+                <span class="n">bincen</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">_lum_bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">_dbin</span>
+                <span class="n">pdf</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_tmp</span>
+
+        <span class="k">return</span> <span class="n">bincen</span><span class="p">,</span> <span class="n">pdf</span></div>
+
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">alignment_gi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the alignment_gi based on the central galaxies&#39; properties.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">central_ia_depends_on</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_2h_amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">central_ia_depends_on</span> <span class="o">==</span> <span class="s1">&#39;luminosity&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lpivot_cen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;You have chosen central luminosity scaling without providing a pivot luminosity parameter. Include lpivot_cen.&#39;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_two</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mean_lscaling</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">broken_powerlaw</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">lum_centrals</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">lum_pdf_z_centrals</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">gamma_2h_amplitude</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">lpivot_cen</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">beta_cen</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">beta_two</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mean_lscaling</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_2h_amplitude</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_l_l0_to_beta</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lum_centrals</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lum_pdf_z_centrals</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lpivot_cen</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">beta_cen</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">mean_lscaling</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">central_ia_depends_on</span> <span class="o">==</span> <span class="s1">&#39;halo_mass&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpivot_cen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;You have chosen central halo-mass scaling without providing a pivot mass parameter. Include mpivot_cen.&#39;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_two</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;A double power law model for the halo mass dependence of centrals has not been implemented.&#39;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_2h_amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="p">)</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">gamma_1h_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the gamma_1h_amplitude based on the satellite galaxies&#39; properties.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">satellite_ia_depends_on</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_1h_amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">satellite_ia_depends_on</span> <span class="o">==</span> <span class="s1">&#39;luminosity&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lpivot_sat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;You have chosen satellite luminosity scaling without providing a pivot luminosity parameter. Include lpivot_sat.&#39;</span>
+                <span class="p">)</span>
+            <span class="n">mean_lscaling</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_l_l0_to_beta</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lum_satellites</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lum_pdf_z_satellites</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lpivot_sat</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">beta_sat</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_1h_amplitude</span> <span class="o">*</span> <span class="n">mean_lscaling</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">satellite_ia_depends_on</span> <span class="o">==</span> <span class="s1">&#39;halo_mass&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpivot_sat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;You have chosen satellite halo-mass scaling without providing a pivot mass parameter. Include mpivot_sat.&#39;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_1h_amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SatelliteAlignment">
+<a class="viewcode-back" href="../../_autosummary/ia/onepower.ia.SatelliteAlignment.html#onepower.ia.SatelliteAlignment">[docs]</a>
+<span class="k">class</span> <span class="nc">SatelliteAlignment</span><span class="p">(</span><span class="n">AlignmentAmplitudes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to compute the alignment properties of satellite galaxies within dark matter halos.</span>
+<span class="sd">    This includes calculating the Hankel transform, radial profiles, and other related quantities.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    mass_in : array_like</span>
+<span class="sd">        Array of halo masses.</span>
+<span class="sd">    c_in : array_like</span>
+<span class="sd">        Concentration parameter.</span>
+<span class="sd">    r_s_in : array_like</span>
+<span class="sd">        Scale radius.</span>
+<span class="sd">    rvir_in : array_like</span>
+<span class="sd">        Virial radius.</span>
+<span class="sd">    n_hankel : int, optional</span>
+<span class="sd">        Number of steps in the Hankel transform integration.</span>
+<span class="sd">    nmass : int, optional</span>
+<span class="sd">        Number of mass bins.</span>
+<span class="sd">    nk : int, optional</span>
+<span class="sd">        Number of k bins.</span>
+<span class="sd">    ell_max : int, optional</span>
+<span class="sd">        Maximum multipole moment.</span>
+<span class="sd">    truncate : bool, optional</span>
+<span class="sd">        Whether to truncate the NFW profile at the virial radius.</span>
+<span class="sd">    method : str, optional</span>
+<span class="sd">        Which method to perform Fourier/Hankel transform to use</span>
+<span class="sd">    amplitude_kwargs : dict</span>
+<span class="sd">        Extra parameters passed to the AlignmentAmplitudes class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SatelliteAlignment.__init__">
+<a class="viewcode-back" href="../../_autosummary/ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.__init__.html#onepower.ia.SatelliteAlignment.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mass_in</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">c_in</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">r_s_in</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">rvir_in</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_hankel</span><span class="o">=</span><span class="mi">350</span><span class="p">,</span>
+        <span class="n">nmass</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">nk</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">ell_max</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s1">&#39;fftlog&#39;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">amplitude_kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="c1"># Call super init MUST BE DONE FIRST.</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">amplitude_kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nmass</span> <span class="o">=</span> <span class="n">nmass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ell_max</span> <span class="o">=</span> <span class="n">ell_max</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">truncate</span> <span class="o">=</span> <span class="n">truncate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nk</span> <span class="o">=</span> <span class="n">nk</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_hankel</span> <span class="o">=</span> <span class="n">n_hankel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mass_in</span> <span class="o">=</span> <span class="n">mass_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_in</span> <span class="o">=</span> <span class="n">c_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r_s_in</span> <span class="o">=</span> <span class="n">r_s_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rvir_in</span> <span class="o">=</span> <span class="n">rvir_in</span>
+
+        <span class="c1"># These are for now hardcoded choices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta_k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phi_k</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mass_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Array of halo masses.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">c_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Concentration parameter.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">r_s_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Scale radius.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">rvir_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Virial radius.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">n_hankel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Number of steps in the Hankel transform integration.</span>
+
+<span class="sd">        :type: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">nmass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Number of mass bins.</span>
+
+<span class="sd">        :type: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">nk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Number of k bins.</span>
+
+<span class="sd">        :type: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">ell_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Maximum multipole moment.</span>
+
+<span class="sd">        :type: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">11</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Please reduce ell_max &lt; 11 or update ia_radial_interface.py&#39;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">truncate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Whether to truncate the NFW profile at the virial radius.</span>
+
+<span class="sd">        :type: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Which method to perform Fourier/Hankel transform to use</span>
+
+<span class="sd">        :type: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">valid_methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;hankel&#39;</span><span class="p">,</span> <span class="s1">&#39;fftlog&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_methods</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;The valid methods to evaluate the fourier tranform of IA shear field are: </span><span class="si">{</span><span class="n">valid_methods</span><span class="si">}</span><span class="s1">. Requested method: </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s1">!&#39;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">ell_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the ell values array.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            ell_values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># CCL and Fortuna use ell_max=6. SB10 uses ell_max = 2.</span>
+        <span class="c1"># Higher/lower increases/decreases accuracy but slows/speeds the code</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ell_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">k_vec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the k vector array.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            k_vec</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nk</span> <span class="o">=</span> <span class="mi">100</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;fftlog&#39;</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mf">1e3</span><span class="p">),</span> <span class="n">nk</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_downsample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantity</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Downsample the halo parameters to reduce computational complexity.</span>
+
+<span class="sd">        Parameter:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        quantity : array_like</span>
+<span class="sd">            An array with a quantity that needs to be downsamples (c, rs, rvir or mass)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array</span>
+<span class="sd">            Downsampled arrays of either halo masses, concentration parameters, scale radii, and virial radii.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">!=</span> <span class="s1">&#39;hankel&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">quantity</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_in</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nmass</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">quantity</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_in</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">nmass</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;The halo mass resolution is too low for the radial IA calculation. &#39;</span>
+                <span class="s1">&#39;Please increase nmass when you run halo_model_ingredients.py&#39;</span>
+            <span class="p">)</span>
+
+        <span class="n">downsample_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_in</span><span class="o">.</span><span class="n">size</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">nmass</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">quantity</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">downsampled_quantity</span> <span class="o">=</span> <span class="n">quantity</span><span class="p">[::</span><span class="n">downsample_factor</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">downsampled_quantity</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">quantity</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">downsampled_quantity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">downsampled_quantity</span><span class="p">,</span> <span class="n">quantity</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">downsampled_quantity</span> <span class="o">=</span> <span class="n">quantity</span><span class="p">[:,</span> <span class="p">::</span><span class="n">downsample_factor</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">downsampled_quantity</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">quantity</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">downsampled_quantity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">downsampled_quantity</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">quantity</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">downsampled_quantity</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Downsampled mass_in if method == hankel, mass_in otherwise.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            mass</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_downsample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_in</span><span class="p">)</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">c</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Downsampled c_in if method == hankel, c_in otherwise.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            c</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_downsample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_in</span><span class="p">)</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">r_s</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Downsampled r_s_in if method == hankel, r_s_in otherwise.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            r_s</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_downsample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r_s_in</span><span class="p">)</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">rvir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Downsampled rvir_in if method == hankel, rvir_in otherwise.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            rvir</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_downsample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rvir_in</span><span class="p">)</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">hankel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize Hankel transform.</span>
+
+<span class="sd">        We&#39;ve used hankel.get_h to set h, N is then h=pi/N, finding best_h = 0.05, best_N=62</span>
+<span class="sd">        If you want perfect agreement with CCL use: N=50000, h=0.00006 (VERY SLOW!!)</span>
+
+<span class="sd">        Ideally we need to find a way to just evaluate this part outside of the class</span>
+<span class="sd">        so it can work nicely with CosmoSIS setup function</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        list</span>
+<span class="sd">            A list of HankelTransform objects for each multipole moment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;hankel&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="n">HankelTransform</span><span class="p">(</span><span class="n">ell</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_hankel</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_hankel</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">ell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ell_values</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="SatelliteAlignment.I_x">
+<a class="viewcode-back" href="../../_autosummary/ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.I_x.html#onepower.ia.SatelliteAlignment.I_x">[docs]</a>
+    <span class="k">def</span> <span class="nf">I_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the integral of (1 - x^2)^(a/2) * x^b from -1 to 1.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        a : float</span>
+<span class="sd">            Exponent for the (1 - x^2) term.</span>
+<span class="sd">        b : float</span>
+<span class="sd">            Exponent for the x term.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        float</span>
+<span class="sd">            The value of the integral.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">**</span> <span class="n">b</span><span class="p">)</span>
+            <span class="o">*</span> <span class="n">gamma</span><span class="p">(</span><span class="n">a</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="o">*</span> <span class="n">gamma</span><span class="p">((</span><span class="n">b</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+            <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">(</span><span class="n">a</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">+</span> <span class="n">b</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">+</span> <span class="mf">3.0</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SatelliteAlignment.calculate_f_ell">
+<a class="viewcode-back" href="../../_autosummary/ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.calculate_f_ell.html#onepower.ia.SatelliteAlignment.calculate_f_ell">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_f_ell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ell</span><span class="p">,</span> <span class="n">gamma_b</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the angular part of the satellite intrinsic shear field.</span>
+
+<span class="sd">        Eq. (C8) in `Fortuna et al. 2021 &lt;https://arxiv.org/abs/2003.02700&gt;`</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        ell : int</span>
+<span class="sd">            Multipole moment.</span>
+<span class="sd">        gamma_b : float</span>
+<span class="sd">            Slope parameter.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        complex</span>
+<span class="sd">            The value of the angular part of the satellite intrinsic shear field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_k</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_k</span><span class="p">)</span>
+
+        <span class="c1"># Follow CCL by hard-coding for most common cases (b=0, b=-2) to gain speed</span>
+        <span class="c1"># (in CCL gain is ~1.3sec - gain here depends on how many times this is called).</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_k</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="ow">and</span> <span class="n">gamma_b</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="n">pre_calc_f_ell</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="mi">0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="mf">2.77582637</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="o">-</span><span class="mf">0.19276603</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="mf">0.04743899</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="o">-</span><span class="mf">0.01779024</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="mf">0.00832446</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="o">-</span><span class="mf">0.00447308</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                    <span class="p">]</span>
+                <span class="p">),</span>
+                <span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="mf">4.71238898</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="o">-</span><span class="mf">2.61799389</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="mf">2.06167032</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="o">-</span><span class="mf">1.76714666</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="mf">1.57488973</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                        <span class="o">-</span><span class="mf">1.43581368</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                    <span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="n">pre_calc_f_ell</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gamma_b</span><span class="p">)[</span><span class="n">ell</span><span class="p">]</span> <span class="o">*</span> <span class="n">phase</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If either of the above expressions are met the return statement is executed and the function ends.</span>
+            <span class="c1"># Otherwise, the function continues to calculate the general case.</span>
+            <span class="n">gj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="mi">15</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">32</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="mi">7</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">16</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="mi">105</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">256</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">sum1</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+                <span class="n">binom</span><span class="p">(</span><span class="n">ell</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">binom</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">ell</span> <span class="o">+</span> <span class="n">m</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">ell</span><span class="p">)</span>
+                <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span>
+                    <span class="n">binom</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+                    <span class="o">*</span> <span class="n">gj</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                    <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta_k</span><span class="p">)</span> <span class="o">**</span> <span class="n">j</span>
+                    <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta_k</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="n">m</span> <span class="o">-</span> <span class="n">j</span><span class="p">)</span>
+                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_x</span><span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="n">gamma_b</span><span class="p">,</span> <span class="n">m</span> <span class="o">-</span> <span class="n">j</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ell</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="mf">2.0</span><span class="o">**</span><span class="n">ell</span> <span class="o">*</span> <span class="n">sum1</span> <span class="o">*</span> <span class="n">phase</span></div>
+
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">wkm_f_ell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Integral of the angular part in eq B8 (SB10) using the Legendre polynomials assuming theta_e=theta, phi_e=phi (perfect radial alignment).</span>
+
+<span class="sd">        Note CCL only calculates the real parts of w(k|m)f_ell and doesn&#39;t take the absolute value....</span>
+<span class="sd">        which means you&#39;ll get negative values for wkm in CCL: they take the absolute value later.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        ndarray</span>
+<span class="sd">            The absolute value of the sum of the radial and angular parts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_uell_gamma_r_hankel</span>
+        <span class="n">nz</span><span class="p">,</span> <span class="n">nm</span><span class="p">,</span> <span class="n">nk</span> <span class="o">=</span> <span class="n">uell</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">uell</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">uell</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">sum_ell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nz</span><span class="p">,</span> <span class="n">nm</span><span class="p">,</span> <span class="n">nk</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ell_values</span><span class="p">:</span>
+            <span class="n">angular</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_f_ell</span><span class="p">(</span><span class="n">ell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_1h_slope</span><span class="p">)</span>
+            <span class="n">radial</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="p">)</span> <span class="o">**</span> <span class="n">ell</span> <span class="o">*</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">ell</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">uell</span><span class="p">[</span><span class="n">ell</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span>
+            <span class="n">sum_ell</span> <span class="o">+=</span> <span class="n">radial</span> <span class="o">*</span> <span class="n">angular</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sum_ell</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SatelliteAlignment.gamma_r_nfw_profile">
+<a class="viewcode-back" href="../../_autosummary/ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_r_nfw_profile.html#onepower.ia.SatelliteAlignment.gamma_r_nfw_profile">[docs]</a>
+    <span class="k">def</span> <span class="nf">gamma_r_nfw_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span> <span class="n">rvir</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rcore</span><span class="o">=</span><span class="mf">0.06</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the radial profile of the NFW (Navarro-Frenk-White) profile with a power-law correction.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        r : float</span>
+<span class="sd">            Radial distance.</span>
+<span class="sd">        rs : float</span>
+<span class="sd">            Scale radius.</span>
+<span class="sd">        rvir : float</span>
+<span class="sd">            Virial radius.</span>
+<span class="sd">        a : float</span>
+<span class="sd">            Amplitude of the power-law correction.</span>
+<span class="sd">        b : float</span>
+<span class="sd">            Slope of the power-law correction.</span>
+<span class="sd">        rcore : float, optional</span>
+<span class="sd">            Core radius.</span>
+<span class="sd">        truncate : bool, optional</span>
+<span class="sd">            Whether to truncate the profile at the virial radius.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        float</span>
+<span class="sd">            The value of the radial profile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span> <span class="o">/</span> <span class="n">rvir</span><span class="p">)</span> <span class="o">**</span> <span class="n">b</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">r</span> <span class="o">&lt;</span> <span class="n">rcore</span><span class="p">,</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">rcore</span> <span class="o">/</span> <span class="n">rvir</span><span class="p">)</span> <span class="o">**</span> <span class="n">b</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+
+        <span class="n">nfw</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">((</span><span class="n">r</span> <span class="o">/</span> <span class="n">rs</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="n">r</span> <span class="o">/</span> <span class="n">rs</span><span class="p">))</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">truncate</span><span class="p">:</span>
+            <span class="n">nfw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">r</span> <span class="o">&gt;=</span> <span class="n">rvir</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">nfw</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">nfw</span></div>
+
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">compute_uell_gamma_r_hankel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes a 4D array containing u_ell as a function of l, z, m, and k. THIS FUNCTION IS THE SLOWEST PART!</span>
+
+<span class="sd">        h_transf = HankelTransform(ell+0.5,N_hankel,pi/N_hankel)</span>
+<span class="sd">        Note even though ell is not used in this function, h_transf depends on ell</span>
+<span class="sd">        We initialize the class in setup as it only depends on predefined ell values</span>
+
+<span class="sd">        Note: I experimented coding the use of Simpson integration for where the Bessel function is flat</span>
+<span class="sd">        and then switching to the Hankel transform for where the Bessel function oscillates.</span>
+<span class="sd">        This is more accurate than using the Hankel transform for all k values with lower accuracy</span>
+<span class="sd">        settings, but it&#39;s slower than using the Hankel transform for all k values.</span>
+<span class="sd">        It&#39;s also difficult to decide how to define the transition between the two methods.</span>
+<span class="sd">        Given that low-k accuracy is unimportant for IA, I&#39;ve decided to use the Hankel transform for all k values.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        ndarray</span>
+<span class="sd">            A 4D array of u_ell values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mnfw</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mf">4.0</span>
+            <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">r_s</span><span class="o">**</span><span class="mf">3.0</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">uk_l</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ell_values</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_vec</span><span class="o">.</span><span class="n">size</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ell</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ell_values</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;hankel&#39;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">jz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">im</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                        <span class="n">nfw_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">gamma_r_nfw_profile</span><span class="p">(</span>
+                                <span class="n">x</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">r_s</span><span class="p">[</span><span class="n">jz</span><span class="p">,</span> <span class="n">im</span><span class="p">],</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">rvir</span><span class="p">[</span><span class="n">im</span><span class="p">],</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">gamma_1h_amp</span><span class="p">[</span><span class="n">jz</span><span class="p">],</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">gamma_1h_slope</span><span class="p">,</span>
+                                <span class="n">truncate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">truncate</span><span class="p">,</span>
+                            <span class="p">)</span>
+                            <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">x</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="n">uk_l</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">jz</span><span class="p">,</span> <span class="n">im</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hankel</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span>
+                            <span class="n">nfw_f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_vec</span>
+                        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k_vec</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">mnfw</span><span class="p">[</span><span class="n">jz</span><span class="p">,</span> <span class="n">im</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;fftlog&#39;</span><span class="p">:</span>
+                <span class="n">mu</span> <span class="o">=</span> <span class="n">ell</span> <span class="o">+</span> <span class="mf">0.5</span>
+                <span class="c1"># Precision settings that seem to be working fine</span>
+                <span class="n">bias</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">2.0</span><span class="p">)</span>
+                <span class="n">low_r</span> <span class="o">=</span> <span class="o">-</span><span class="mi">8</span>
+                <span class="n">high_r</span> <span class="o">=</span> <span class="mi">8</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="n">low_r</span><span class="p">,</span> <span class="n">high_r</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+                <span class="n">dlnr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">offset</span> <span class="o">=</span> <span class="n">fhtoffset</span><span class="p">(</span><span class="n">dlnr</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">initial</span><span class="o">=-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">10.0</span><span class="p">),</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span><span class="p">)</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span> <span class="o">/</span> <span class="n">r</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="n">nfw_f</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">gamma_r_nfw_profile</span><span class="p">(</span>
+                        <span class="n">r</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">r_s</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">rvir</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">gamma_1h_amp</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">gamma_1h_slope</span><span class="p">,</span>
+                        <span class="n">truncate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">truncate</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">r</span><span class="o">**</span><span class="mf">1.5</span>
+                    <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">ft</span> <span class="o">=</span> <span class="n">fht</span><span class="p">(</span><span class="n">nfw_f</span><span class="p">,</span> <span class="n">dlnr</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                    <span class="n">k</span><span class="o">**</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">mnfw</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">uk_l</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
+                    <span class="n">k</span><span class="p">,</span>
+                    <span class="n">ft</span><span class="p">,</span>
+                    <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+                    <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span>
+                    <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">k_vec</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">uk_l</span>
+
+    <span class="nd">@cached_quantity</span>
+    <span class="k">def</span> <span class="nf">wkm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the computed wkm_f_ell values along with the redshift, mass, and k vectors.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            Computed values of wkm_f_ell, array of redshifts, array of halo masses, and array of k values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wkm_f_ell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_vec</span>
+
+<div class="viewcode-block" id="SatelliteAlignment.upsampled_wkm">
+<a class="viewcode-back" href="../../_autosummary/ia/SatelliteAlignment/onepower.ia.SatelliteAlignment.upsampled_wkm.html#onepower.ia.SatelliteAlignment.upsampled_wkm">[docs]</a>
+    <span class="k">def</span> <span class="nf">upsampled_wkm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k_vec_out</span><span class="p">,</span> <span class="n">mass_out</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interpolates the wkm profiles and upsamples back to the original grid.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        k_vec_out : array_like</span>
+<span class="sd">            Output array of k values.</span>
+<span class="sd">        mass_out : array_like</span>
+<span class="sd">            Output array of halo masses.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        ndarray</span>
+<span class="sd">            Upsampled array of wkm values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">wkm_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wkm_f_ell</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;hankel&#39;</span><span class="p">:</span>
+            <span class="n">wkm_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">mass_out</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">k_vec_out</span><span class="o">.</span><span class="n">size</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">jz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                <span class="c1"># Create the interpolator</span>
+                <span class="n">lg_w_interp2d</span> <span class="o">=</span> <span class="n">RegularGridInterpolator</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k_vec</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">wkm_in</span><span class="p">[</span><span class="n">jz</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_vec</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+                    <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">fill_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Prepare the grid for interpolation</span>
+                <span class="n">lgkk</span><span class="p">,</span> <span class="n">lgmm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">k_vec_out</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">mass_out</span><span class="p">),</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Interpolate the values</span>
+                <span class="n">lg_wkm_interpolated</span> <span class="o">=</span> <span class="n">lg_w_interp2d</span><span class="p">((</span><span class="n">lgkk</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">lgmm</span><span class="o">.</span><span class="n">T</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+
+                <span class="c1"># Convert back to original scale</span>
+                <span class="n">wkm_out</span><span class="p">[</span><span class="n">jz</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">lg_wkm_interpolated</span><span class="p">)</span> <span class="o">*</span> <span class="n">k_vec_out</span><span class="o">**</span><span class="mf">2.0</span>
+            <span class="k">return</span> <span class="n">wkm_out</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;fftlog&#39;</span><span class="p">:</span>
+            <span class="c1"># Need to only upsample the k vector!</span>
+            <span class="k">return</span> <span class="n">interp1d</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">k_vec</span><span class="p">,</span>
+                <span class="n">wkm_in</span><span class="p">,</span>
+                <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+                <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span>
+                <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)(</span><span class="n">k_vec_out</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Andrej Dvornik.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.get\_dependencies
+============================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.get_dependencies

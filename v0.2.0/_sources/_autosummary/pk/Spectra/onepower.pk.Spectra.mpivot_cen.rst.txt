@@ -1,0 +1,6 @@
+onepower.pk.Spectra.mpivot\_cen
+===============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.mpivot_cen

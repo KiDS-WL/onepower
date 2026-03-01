@@ -1,0 +1,6 @@
+onepower.pk.Spectra.hod\_model
+==============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.hod_model

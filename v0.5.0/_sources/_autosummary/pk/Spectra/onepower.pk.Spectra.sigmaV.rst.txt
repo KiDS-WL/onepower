@@ -1,0 +1,6 @@
+onepower.pk.Spectra.sigmaV
+==========================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.sigmaV

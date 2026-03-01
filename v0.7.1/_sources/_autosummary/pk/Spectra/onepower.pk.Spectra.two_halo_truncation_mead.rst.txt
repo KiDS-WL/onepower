@@ -1,0 +1,6 @@
+onepower.pk.Spectra.two\_halo\_truncation\_mead
+===============================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.two_halo_truncation_mead

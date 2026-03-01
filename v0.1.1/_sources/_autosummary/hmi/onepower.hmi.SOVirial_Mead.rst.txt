@@ -1,0 +1,38 @@
+onepower.hmi.SOVirial_Mead
+==========================
+
+.. currentmodule:: onepower.hmi
+
+.. autoclass:: SOVirial_Mead
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: SOVirial_Mead
+   
+      ~SOVirial_Mead.__init__
+      ~SOVirial_Mead.change_definition
+      ~SOVirial_Mead.critical_density
+      ~SOVirial_Mead.get_models
+      ~SOVirial_Mead.halo_density
+      ~SOVirial_Mead.halo_overdensity_crit
+      ~SOVirial_Mead.halo_overdensity_mean
+      ~SOVirial_Mead.m_to_r
+      ~SOVirial_Mead.mean_density
+      ~SOVirial_Mead.r_to_m
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: SOVirial_Mead
+   
+      ~SOVirial_Mead.colossus_name
+   
+   

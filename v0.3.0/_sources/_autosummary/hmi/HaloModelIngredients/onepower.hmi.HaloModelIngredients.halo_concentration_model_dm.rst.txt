@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.halo\_concentration\_model\_dm
+================================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.halo_concentration_model_dm

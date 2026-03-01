@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.Mmin
+========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.Mmin

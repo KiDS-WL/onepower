@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.validate
+======================================
+
+.. currentmodule:: onepower.add
+
+.. automethod:: UpsampledSpectra.validate

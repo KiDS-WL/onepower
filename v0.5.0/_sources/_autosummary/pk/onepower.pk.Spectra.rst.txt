@@ -1,0 +1,215 @@
+onepower.pk.Spectra
+===================
+
+.. currentmodule:: onepower.pk
+
+.. autoclass:: Spectra
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: Spectra
+   
+      ~Spectra.I_NL
+      ~Spectra.Tk_cold_ratio
+      ~Spectra.__init__
+      ~Spectra.clone
+      ~Spectra.compute_1h_term
+      ~Spectra.compute_A_term
+      ~Spectra.compute_Ig_term
+      ~Spectra.compute_Im_term
+      ~Spectra.compute_central_galaxy_alignment_profile
+      ~Spectra.compute_matter_profile
+      ~Spectra.compute_matter_profile_with_feedback
+      ~Spectra.compute_matter_profile_with_feedback_stellar_fraction_from_obs
+      ~Spectra.compute_satellite_galaxy_alignment_profile
+      ~Spectra.dewiggle_plin
+      ~Spectra.f_Mead
+      ~Spectra.fg
+      ~Spectra.fg_fit
+      ~Spectra.fs
+      ~Spectra.get_Pk_wiggle
+      ~Spectra.get_all_parameter_defaults
+      ~Spectra.get_all_parameter_names
+      ~Spectra.get_dependencies
+      ~Spectra.get_halo_collapse_redshifts
+      ~Spectra.matter_profile_with_feedback_stellar_fraction_from_obs
+      ~Spectra.one_halo_truncation_mead
+      ~Spectra.parameter_info
+      ~Spectra.prepare_I12_integrand
+      ~Spectra.prepare_I21_integrand
+      ~Spectra.prepare_I22_integrand
+      ~Spectra.quantities_available
+      ~Spectra.sigmaR_cc
+      ~Spectra.sigmaV
+      ~Spectra.transition_smoothing
+      ~Spectra.trapezoidal_integrator
+      ~Spectra.two_halo_truncation_mead
+      ~Spectra.update
+      ~Spectra.validate
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: Spectra
+   
+      ~Spectra.A_term
+      ~Spectra.C1
+      ~Spectra.Dv_Mead
+      ~Spectra.I12
+      ~Spectra.I21
+      ~Spectra.I22
+      ~Spectra.Ic_align_term
+      ~Spectra.Ic_term
+      ~Spectra.Im_term
+      ~Spectra.Is_align_term
+      ~Spectra.Is_term
+      ~Spectra.K
+      ~Spectra.Mmax
+      ~Spectra.Mmin
+      ~Spectra.Neff
+      ~Spectra.Tk_EH_nowiggle_lnt
+      ~Spectra.align_params
+      ~Spectra.alignment_amplitude_2h
+      ~Spectra.alignment_amplitude_2h_II
+      ~Spectra.alignment_class
+      ~Spectra.alignment_gi
+      ~Spectra.beta_cen
+      ~Spectra.beta_nl
+      ~Spectra.beta_sat
+      ~Spectra.bias_model
+      ~Spectra.bnl
+      ~Spectra.calc_bnl
+      ~Spectra.central_alignment_profile
+      ~Spectra.central_galaxy_profile
+      ~Spectra.compute_observable
+      ~Spectra.conc_cen
+      ~Spectra.conc_sat
+      ~Spectra.cosmo_model
+      ~Spectra.dc_Mead
+      ~Spectra.delta_c
+      ~Spectra.dewiggle
+      ~Spectra.disable_mass_conversion
+      ~Spectra.dlnk
+      ~Spectra.dlog10m
+      ~Spectra.dndlnm
+      ~Spectra.eta_cen
+      ~Spectra.eta_sat
+      ~Spectra.fnu
+      ~Spectra.fortuna
+      ~Spectra.fstar
+      ~Spectra.fstar_mm
+      ~Spectra.get_mead_accumulated_growth
+      ~Spectra.get_mead_growth
+      ~Spectra.get_mead_growth_fnc
+      ~Spectra.growth_factor
+      ~Spectra.growth_model
+      ~Spectra.growth_params
+      ~Spectra.h0
+      ~Spectra.halo_bias
+      ~Spectra.halo_concentration_model_dm
+      ~Spectra.halo_concentration_model_sat
+      ~Spectra.halo_overdensity_mean
+      ~Spectra.halo_profile_model_dm
+      ~Spectra.halo_profile_model_sat
+      ~Spectra.halo_profile_params
+      ~Spectra.hmf_model
+      ~Spectra.hod
+      ~Spectra.hod_mm
+      ~Spectra.hod_model
+      ~Spectra.hod_params
+      ~Spectra.hod_settings
+      ~Spectra.hod_settings_mm
+      ~Spectra.k_vec
+      ~Spectra.kh
+      ~Spectra.lnk_max
+      ~Spectra.lnk_min
+      ~Spectra.log10T_AGN
+      ~Spectra.m_nu
+      ~Spectra.mass
+      ~Spectra.mass_avg
+      ~Spectra.matter_power_lin
+      ~Spectra.matter_power_nl
+      ~Spectra.matter_profile
+      ~Spectra.matter_profile_2h
+      ~Spectra.matter_profile_with_feedback
+      ~Spectra.mb
+      ~Spectra.mdef_model
+      ~Spectra.mdef_params
+      ~Spectra.mead_correction
+      ~Spectra.mean_density0
+      ~Spectra.mean_density_z
+      ~Spectra.missing_mass_integral
+      ~Spectra.mpivot_cen
+      ~Spectra.mpivot_sat
+      ~Spectra.n_s
+      ~Spectra.neff
+      ~Spectra.nfw_cen
+      ~Spectra.nfw_sat
+      ~Spectra.nonlinear_power
+      ~Spectra.norm_cen
+      ~Spectra.norm_sat
+      ~Spectra.nu
+      ~Spectra.obs
+      ~Spectra.obs_func
+      ~Spectra.obs_func_cen
+      ~Spectra.obs_func_obs
+      ~Spectra.obs_func_sat
+      ~Spectra.obs_func_z
+      ~Spectra.obs_settings
+      ~Spectra.omega_b
+      ~Spectra.omega_c
+      ~Spectra.omega_m
+      ~Spectra.one_halo_ktrunc
+      ~Spectra.one_halo_ktrunc_ia
+      ~Spectra.one_halo_truncation
+      ~Spectra.one_halo_truncation_ia
+      ~Spectra.overdensity
+      ~Spectra.parameter_values
+      ~Spectra.peff
+      ~Spectra.pointmass
+      ~Spectra.poisson_func
+      ~Spectra.poisson_model
+      ~Spectra.poisson_params
+      ~Spectra.power
+      ~Spectra.power_spectrum_gg
+      ~Spectra.power_spectrum_gi
+      ~Spectra.power_spectrum_gm
+      ~Spectra.power_spectrum_ii
+      ~Spectra.power_spectrum_lin
+      ~Spectra.power_spectrum_mi
+      ~Spectra.power_spectrum_mm
+      ~Spectra.r_s_cen
+      ~Spectra.r_s_sat
+      ~Spectra.response
+      ~Spectra.rho_halo
+      ~Spectra.rvir_cen
+      ~Spectra.rvir_sat
+      ~Spectra.satellite_alignment_profile
+      ~Spectra.satellite_galaxy_profile
+      ~Spectra.scale_factor
+      ~Spectra.sigma8_z
+      ~Spectra.sigma_8
+      ~Spectra.t_eff
+      ~Spectra.tcmb
+      ~Spectra.transfer_model
+      ~Spectra.transfer_params
+      ~Spectra.two_halo_ktrunc
+      ~Spectra.two_halo_ktrunc_ia
+      ~Spectra.two_halo_truncation
+      ~Spectra.two_halo_truncation_ia
+      ~Spectra.u_dm
+      ~Spectra.u_sat
+      ~Spectra.w0
+      ~Spectra.wa
+      ~Spectra.wkm_sat
+      ~Spectra.z_vec
+   
+   

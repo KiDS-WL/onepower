@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.upsampled\_wkm
+=============================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.upsampled_wkm

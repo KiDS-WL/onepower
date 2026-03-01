@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.nobs
+==========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.nobs

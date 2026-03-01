@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.parameter\_info
+==============================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.parameter_info

@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.test\_cosmo
+======================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.test_cosmo

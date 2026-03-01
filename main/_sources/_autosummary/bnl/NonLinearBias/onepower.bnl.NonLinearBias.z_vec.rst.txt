@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.z\_vec
+=================================
+
+.. currentmodule:: onepower.bnl
+
+.. autoproperty:: NonLinearBias.z_vec

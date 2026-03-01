@@ -1,0 +1,1732 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Broad Overview of onepower &#8212; OnePower</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=e6c987b5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/showcase';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://kids-wl.github.io/onepower/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.7.3.dev36+g77b1eabd6';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <link rel="icon" href="https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logo_hex.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Interfacing onepower with CosmosSIS" href="cosmosis_interface.html" />
+    <link rel="prev" title="Dvornik et al. 2023 example" href="dvornik23.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.7.3.dev36+g77b1eabd6" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logo_hex.png" class="logo__image only-light" alt="OnePower - Home"/>
+    <img src="https://raw.githubusercontent.com/KiDS-WL/onepower/main/images/logo_hex.png" class="logo__image only-dark pst-js-only" alt="OnePower - Home"/>
+  
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Usage and Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API Summary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing to OnePower
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../license.html">
+    License
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../changelog.html">
+    Releases
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../contributors.html">
+    Authors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../developing.html">
+    Developing OnePower
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/KiDS-WL/onepower" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Usage and Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API Summary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing to OnePower
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Releases
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributors.html">
+    Authors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../developing.html">
+    Developing OnePower
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/KiDS-WL/onepower" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dvornik23.html">Dvornik et al. 2023 example</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Broad Overview of <code class="docutils literal notranslate"><span class="pre">onepower</span></code></a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="cosmosis_interface.html">Interfacing <code class="docutils literal notranslate"><span class="pre">onepower</span></code> with <code class="docutils literal notranslate"><span class="pre">CosmosSIS</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../tutorials.html" class="nav-link">Usage and Tutorials</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Broad Overview of <code class="docutils literal notranslate"><span class="pre">onepower</span></code></span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Broad-Overview-of-onepower">
+<h1>Broad Overview of <code class="docutils literal notranslate"><span class="pre">onepower</span></code><a class="headerlink" href="#Broad-Overview-of-onepower" title="Link to this heading">#</a></h1>
+<p>In this tutorial/demo, we provide a broad overview of the way <code class="docutils literal notranslate"><span class="pre">onepower</span></code> works, and its features. This tutorial will go into a little more depth (without exploring more advanced niche features).</p>
+<section id="The-Package-Layout">
+<h2>The Package Layout<a class="headerlink" href="#The-Package-Layout" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">onepower</span></code> is quite modular, and contains a number of sub-packages concerning each of the (optional) components that go into defining the resulting power spectra:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">onepower</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">hmi</span><span class="p">,</span>      <span class="c1"># Interacts with hod and halomod and sets the cosmology</span>
+    <span class="n">hod</span><span class="p">,</span>      <span class="c1"># Defines the HODs and returns them to the main class, calculates the observable functions as well (SMF/LF)</span>
+    <span class="n">bnl</span><span class="p">,</span>      <span class="c1"># Returns the non-linear halo bias function calculated from Dark Quest emulator</span>
+    <span class="n">ia</span><span class="p">,</span>       <span class="c1"># Returns the IA amplitudes for 1h and 2h terms and the fourier transform of the intrinsic alingment profile</span>
+    <span class="n">pk</span>        <span class="c1"># Defines routines that combine the above to obtain the resulting power spectra</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>While each of these modules has tools that can be useful for more advanced usage, the primary point of contact with <code class="docutils literal notranslate"><span class="pre">onepower</span></code> is the <code class="docutils literal notranslate"><span class="pre">Spectra</span></code> object, which essentially contains all the working of the full package. This lives in the <code class="docutils literal notranslate"><span class="pre">pk</span></code> submodule, but can be imported from the top level:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">onepower</span> <span class="kn">import</span> <span class="n">Spectra</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Frameworks----Caching-and-Updating">
+<h2>Frameworks – Caching and Updating<a class="headerlink" href="#Frameworks----Caching-and-Updating" title="Link to this heading">#</a></h2>
+<p>Each main entrypoint class in <code class="docutils literal notranslate"><span class="pre">onepower</span></code> (this includes <code class="docutils literal notranslate"><span class="pre">HaloModelIngredients</span></code>, <code class="docutils literal notranslate"><span class="pre">NonLinearHaloBias</span></code>, <code class="docutils literal notranslate"><span class="pre">HOD</span></code>, …) is what we call a <code class="docutils literal notranslate"><span class="pre">Framework</span></code>. This functionality is borrowed from the <code class="docutils literal notranslate"><span class="pre">hmf</span></code> and <code class="docutils literal notranslate"><span class="pre">halomod</span></code> directly by calling the relevant function from those packages. What this allows us is to have each of these objects to offer a number of similar points of functionality. Here, we’ll demonstrate a few of these bits of functionality on the <code class="docutils literal notranslate"><span class="pre">HaloModelIngredients</span></code> class, but it
+should be remembered that they are the same for all of these.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">onepower</span> <span class="kn">import</span> <span class="n">HaloModelIngredients</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hod</span> <span class="o">=</span> <span class="n">HaloModelIngredients</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>The first common point is that each of the frameworks has defaults for all of its parameters, and a reasonable object can be created by passing no parameters, as we just did.</p>
+<p>We can, like any object in Python, get some help with what parameters are available by using <code class="docutils literal notranslate"><span class="pre">help</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">help</span><span class="p">(</span><span class="n">HaloModelIngredients</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Help on class HaloModelIngredients in module onepower.hmi:
+
+class HaloModelIngredients(CosmologyBase)
+ |  HaloModelIngredients(*args, **kwargs)
+ |
+ |  A class to compute various ingredients for the halo model.
+ |  This includes halo mass functions, bias models, halo profiles, and concentration models.
+ |  Based on the hmf and halomod packages.
+ |
+ |  Parameters:
+ |  -----------
+ |  k_vec : array_like, optional
+ |      Array of wavenumbers.
+ |  lnk_min : float, optional
+ |      Minimum natural log of wavenumber (for hmf).
+ |  lnk_max : float, optional
+ |      Maximum natural log of wavenumber (for hmf).
+ |  dlnk : float, optional
+ |      Spacing in natural log of wavenumber (for hmf).
+ |  Mmin : float, optional
+ |      Minimum halo mass (for hmf).
+ |  Mmax : float, optional
+ |      Maximum halo mass (for hmf).
+ |  dlog10m : float, optional
+ |      Spacing in log10 of halo mass (for hmf).
+ |  mdef_model : str, optional
+ |      Mass definition model (for hmf).
+ |  hmf_model : str, optional
+ |      Halo mass function model (for hmf).
+ |  bias_model : str, optional
+ |      Halo bias model (for halomod).
+ |  halo_profile_model_dm : str, optional
+ |      Halo profile model for dark matter / central galaxies (for halomod).
+ |  halo_profile_model_sat : str, optional
+ |      Halo profile model for satellite galaxies (for halomod).
+ |  halo_concentration_model_dm : str, optional
+ |      Halo concentration model for dark matter / central galaxies (for halomod).
+ |  halo_concentration_model_sat : str, optional
+ |      Halo concentration model for satellite galaxies (for halomod).
+ |  transfer_model : str, optional
+ |      Transfer function model (for hmf).
+ |  transfer_params : dict, optional
+ |      Parameters for the transfer function (for hmf).
+ |  growth_model : str, optional
+ |      Growth function model (for hmf).
+ |  growth_params : dict, optional
+ |      Parameters for the growth function (for hmf).
+ |  norm_cen : float, optional
+ |      Normalization of c(M) relation for central galaxies.
+ |  norm_sat : float, optional
+ |      Normalization of c(M) relation for satellite galaxies.
+ |  eta_cen : float, optional
+ |      Bloating parameter for central galaxies.
+ |  eta_sat : float, optional
+ |      Bloating parameter for satellite galaxies.
+ |  overdensity : float, optional
+ |      Overdensity parameter.
+ |  delta_c : float, optional
+ |      Critical density threshold for collapse.
+ |  hmcode_ingredients : str, optional
+ |      Correction model from Mead et al.
+ |
+ |  Method resolution order:
+ |      HaloModelIngredients
+ |      CosmologyBase
+ |      hmf._internals._framework.Framework
+ |      builtins.object
+ |
+ |  Methods defined here:
+ |
+ |  Tk_cold_ratio(self, k, g, ommh2, h, f_nu, N_nu, T_CMB=2.7255)
+ |      Ratio of cold to matter transfer function from Eisenstein &amp; Hu (1999).
+ |      This can be used to get the cold-matter spectrum approximately from the matter spectrum.
+ |      Captures the scale-dependent growth with neutrino free-streaming scale.
+ |
+ |      Parameters:
+ |      -----------
+ |      k : float
+ |          Wavenumber.
+ |      g : float
+ |          Growth factor.
+ |      ommh2 : float
+ |          Omega_m * h^2.
+ |      h : float
+ |          Hubble parameter.
+ |      f_nu : float
+ |          Fraction of neutrino density.
+ |      N_nu : float
+ |          Number of neutrino species.
+ |      T_CMB : float, optional
+ |          Temperature of the CMB.
+ |
+ |      Returns:
+ |      --------
+ |      float
+ |          Ratio of cold to matter transfer function.
+ |
+ |  __init__(self, k_vec=array([1.00000000e-04, 1.20450354e-04, 1.45082878e-04, 1.74752840e-04,
+ |         2.10490414e-04, 2.53536449e-04, 3.05385551e-04, 3.67837977e-04,
+ |         4.43062146e-04, 5.33669923e-04, 6.42807312e-04, 7.74263683e-04,
+ |         9.32603347e-04, 1.12332403e-03, 1.35304777e-03, 1.62975083e-03,
+ |         1.96304065e-03, 2.36448941e-03, 2.84803587e-03, 3.43046929e-03,
+ |         4.13201240e-03, 4.97702356e-03, 5.99484250e-03, 7.22080902e-03,
+ |         8.69749003e-03, 1.04761575e-02, 1.26185688e-02, 1.51991108e-02,
+ |         1.83073828e-02, 2.20513074e-02, 2.65608778e-02, 3.19926714e-02,
+ |         3.85352859e-02, 4.64158883e-02, 5.59081018e-02, 6.73415066e-02,
+ |         8.11130831e-02, 9.77009957e-02, 1.17681195e-01, 1.41747416e-01,
+ |         1.70735265e-01, 2.05651231e-01, 2.47707636e-01, 2.98364724e-01,
+ |         3.59381366e-01, 4.32876128e-01, 5.21400829e-01, 6.28029144e-01,
+ |         7.56463328e-01, 9.11162756e-01, 1.09749877e+00, 1.32194115e+00,
+ |         1.59228279e+00, 1.91791026e+00, 2.31012970e+00, 2.78255940e+00,
+ |         3.35160265e+00, 4.03701726e+00, 4.86260158e+00, 5.85702082e+00,
+ |         7.05480231e+00, 8.49753436e+00, 1.02353102e+01, 1.23284674e+01,
+ |         1.48496826e+01, 1.78864953e+01, 2.15443469e+01, 2.59502421e+01,
+ |         3.12571585e+01, 3.76493581e+01, 4.53487851e+01, 5.46227722e+01,
+ |         6.57933225e+01, 7.92482898e+01, 9.54548457e+01, 1.14975700e+02,
+ |         1.38488637e+02, 1.66810054e+02, 2.00923300e+02, 2.42012826e+02,
+ |         2.91505306e+02, 3.51119173e+02, 4.22924287e+02, 5.09413801e+02,
+ |         6.13590727e+02, 7.39072203e+02, 8.90215085e+02, 1.07226722e+03,
+ |         1.29154967e+03, 1.55567614e+03, 1.87381742e+03, 2.25701972e+03,
+ |         2.71858824e+03, 3.27454916e+03, 3.94420606e+03, 4.75081016e+03,
+ |         5.72236766e+03, 6.89261210e+03, 8.30217568e+03, 1.00000000e+04]), lnk_min=np.float64(-9.210340371976182), lnk_max=np.float64(9.210340371976184), dlnk=np.float64(0.18420680743952367), Mmin=9.0, Mmax=16.0, dlog10m=0.05, mdef_model=&#39;SOMean&#39;, hmf_model=&#39;Tinker10&#39;, bias_model=&#39;Tinker10&#39;, halo_profile_model_dm=&#39;NFW&#39;, halo_concentration_model_dm=&#39;Duffy08&#39;, halo_profile_model_sat=&#39;NFW&#39;, halo_concentration_model_sat=&#39;Duffy08&#39;, transfer_model=&#39;CAMB&#39;, transfer_params=None, growth_model=&#39;CambGrowth&#39;, growth_params=None, norm_cen=1.0, norm_sat=1.0, eta_cen=0.0, eta_sat=0.0, overdensity=200, delta_c=1.686, hmcode_ingredients: str | None = None, mead_correction: str | None = None, **cosmology_kwargs)
+ |      Initialize self.  See help(type(self)) for accurate signature.
+ |
+ |  get_halo_collapse_redshifts(self, M, z, dc, g, cosmo, mf)
+ |      Calculate halo collapse redshifts according to the Bullock et al. (2001) prescription.
+ |
+ |      Parameters:
+ |      -----------
+ |      M : array_like
+ |          Halo mass.
+ |      z : float
+ |          Redshift.
+ |      dc : float
+ |          Critical density threshold for collapse.
+ |      g : float
+ |          Growth factor.
+ |      cosmo : astropy cosmology model
+ |          Cosmology model.
+ |      mf : hmf Mass function object
+ |          Mass function object.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          Collapse redshifts for halos.
+ |
+ |  sigmaR_cc(self, power, k, r)
+ |      Calculate the variance of the cold matter density field smoothed on scale R.
+ |
+ |      Parameters:
+ |      -----------
+ |      power : array_like
+ |          Power spectrum.
+ |      k : array_like
+ |          Wavenumber.
+ |      r : float
+ |          Scale.
+ |
+ |      Returns:
+ |      --------
+ |      float
+ |          Variance of the density field.
+ |
+ |  ----------------------------------------------------------------------
+ |  Readonly properties defined here:
+ |
+ |  K
+ |      Sets the c(M) normalisations to the one used in HMCode.
+ |      Overrides the default passed value in this case.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          normalisation of the Bullock 2001 c(M) relation, if hmcode_ingredients is True
+ |
+ |  conc_cen
+ |      Return the concentration for matter/central galaxies.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          concentration for matter/central galaxies
+ |
+ |  conc_sat
+ |      Return the concentration for satellite galaxies.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          concenctration for satellite galaxies
+ |
+ |  disable_mass_conversion
+ |      Dissables the mass conversion for the mass definitions defined in HMCode.
+ |
+ |      Returns:
+ |      --------
+ |      bool
+ |
+ |  dndlnm
+ |      Return the differential mass function.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          dndlnm
+ |
+ |  fnu
+ |      Return the neutrino density fraction.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          neutrino density fraction
+ |
+ |  growth_factor
+ |      Return the growth factor.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          growth factor at z
+ |
+ |  halo_bias
+ |      Return the halo bias.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          halo bias function
+ |
+ |  halo_overdensity_mean
+ |      Return the mean halo overdensity.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          meah halo overdensity
+ |
+ |  halo_profile_params
+ |      Packs the cosmology to a dictionary to be passed to the hmf.
+ |      Can in principle have more parameters that need to be passed to hmf that are not explicitly set.
+ |
+ |      Returns:
+ |      --------
+ |      dict
+ |          astropy cosmology object for hmf package
+ |
+ |  kh
+ |      Return the k vector defined using lnk in hmf.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          k vector from hmf
+ |
+ |  mass
+ |      Return the masses.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          halo masses
+ |
+ |  mdef_params
+ |      Sets the overdensity parameter to the one used in HMCode or to the one for virial collapse.
+ |      Overrides the default passed value in those two cases.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          array of mass mass definition dictionaries, one for each redshift
+ |
+ |  mean_density0
+ |      Return the mean density at redshift zero.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          mean density at z=0
+ |
+ |  mean_density_z
+ |      Return the mean density at the given redshifts.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          mean density at z
+ |
+ |  neff
+ |      Return the effective spectral index.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          effective spectral index
+ |
+ |  nfw_cen
+ |      Return the density profile for matter/central galaxies.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          density profile for matter/central galaxies.
+ |
+ |  nfw_sat
+ |      Return the density profile for satellite galaxies.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          density profile for satellite galaxies
+ |
+ |  nonlinear_power
+ |      Return the non-linear power spectrum at z (if options passed).
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          non-linear power spectrum at z
+ |
+ |  nu
+ |      Return the peak height parameter.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          peak heights
+ |
+ |  power
+ |      Return the linear power spectrum at z.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          linear power spectrum at z
+ |
+ |  r_s_cen
+ |      Return the scale radius for matter/central galaxies.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          scale radius for matter/central galaxies
+ |
+ |  r_s_sat
+ |      Return the scale radius for satellite galaxies.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          scale radius for satellite galaxies
+ |
+ |  rho_halo
+ |      Return the halo density.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          halo density at z
+ |
+ |  rvir_cen
+ |      Return the virial radius for matter/central galaxies.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          virial radius for matter/central galaxies
+ |
+ |  rvir_sat
+ |      Return the virial radius for satellite galaxies.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          virial radius for satellite galaxies
+ |
+ |  sigma8_z
+ |      Return the amplitude of matter fluctuations on 8 Mpc scales at the given redshifts.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          sigma8(z)
+ |
+ |  u_dm
+ |      Return the normalized density profile for dark matter.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          normalised density profile for matter/central galaxies.
+ |
+ |  u_sat
+ |      Return the normalized density profile for satellite galaxies.
+ |
+ |      Returns:
+ |      --------
+ |      ndarray
+ |          normalised density profile for satellite galaxies
+ |
+ |  ----------------------------------------------------------------------
+ |  Data descriptors defined here:
+ |
+ |  Mmax
+ |      **Parameter**: Maximum halo mass (for hmf).
+ |
+ |      :type: float
+ |
+ |  Mmin
+ |      **Parameter**: Minimum halo mass (for hmf).
+ |
+ |      :type: float
+ |
+ |  bias_model
+ |      **Parameter**: Halo bias model (for halomod).
+ |
+ |      :type: str
+ |
+ |  delta_c
+ |      **Parameter**: Critical density threshold for collapse :math:`\delta_c`.
+ |
+ |      :type: float
+ |
+ |  dlnk
+ |      **Parameter**: Spacing in natural log of wavenumber (for hmf).
+ |
+ |      :type: float
+ |
+ |  dlog10m
+ |      **Parameter**: Spacing in log10 of halo mass (for hmf).
+ |
+ |      :type: float
+ |
+ |  eta_cen
+ |      **Parameter**: Bloating parameter for central galaxies.
+ |
+ |      :type: float
+ |
+ |  eta_sat
+ |      **Parameter**: eta_sat : float
+ |      Bloating parameter for satellite galaxies.
+ |
+ |  growth_model
+ |      **Parameter**: Growth function model (for hmf).
+ |
+ |      :type: str
+ |
+ |  growth_params
+ |      **Parameter**: Parameters for the growth function (for hmf).
+ |
+ |      :type: dict
+ |
+ |  halo_concentration_model_dm
+ |      **Parameter**: Halo concentration model of dark matter / central galaxies (for halomod).
+ |
+ |      :type: str
+ |
+ |  halo_concentration_model_sat
+ |      **Parameter**: Halo concentration model of satellite galaxies (for halomod).
+ |
+ |      :type: str
+ |
+ |  halo_profile_model_dm
+ |      **Parameter**: Halo profile model of dark matter / central galaxies (for halomod).
+ |
+ |      :type: str
+ |
+ |  halo_profile_model_sat
+ |      **Parameter**: Halo profile model of satellite galaxies (for halomod).
+ |
+ |      :type: str
+ |
+ |  hmcode_ingredients
+ |      **Parameter**: Correction model from Mead et al.
+ |
+ |      :type: str
+ |
+ |  hmf_model
+ |      **Parameter**: Halo mass function model (for hmf).
+ |
+ |      :type: str
+ |
+ |  k_vec
+ |      **Parameter**: Array of wavenumbers.
+ |
+ |      :type: array_like
+ |
+ |  lnk_max
+ |      **Parameter**: Maximum natural log of wavenumber (for hmf).
+ |
+ |      :type: float
+ |
+ |  lnk_min
+ |      **Parameter**: Minimum natural log of wavenumber (for hmf).
+ |
+ |      :type: float
+ |
+ |  mdef_model
+ |      **Parameter**: Mass definition model (for hmf).
+ |
+ |      :type: str
+ |
+ |  norm_cen
+ |      **Parameter**: Normalization of c(M) relation for central galaxies.
+ |
+ |      :type: float
+ |
+ |  norm_sat
+ |      **Parameter**: Normalization of c(M) relation for satellite galaxies.
+ |
+ |      :type: float
+ |
+ |  overdensity
+ |      **Parameter**: Overdensity parameter.
+ |
+ |      :type: float
+ |
+ |  transfer_model
+ |      **Parameter**: Transfer function model (for hmf).
+ |
+ |      :type: str
+ |
+ |  transfer_params
+ |      **Parameter**: Parameters for the transfer function (for hmf).
+ |
+ |      :type: dict
+ |
+ |  ----------------------------------------------------------------------
+ |  Methods inherited from CosmologyBase:
+ |
+ |  f_Mead(self, x, y, p0, p1, p2, p3)
+ |      Fitting function from Mead et al. 2021 (2009.01858), eq A3,
+ |      used in :math:`\delta_c` and :math:`\Delta_{\rm v}` calculations.
+ |
+ |      Parameters:
+ |      -----------
+ |      x : float
+ |          First variable.
+ |      y : float
+ |          Second variable.
+ |      p0, p1, p2, p3 : float
+ |          Fitting parameters.
+ |
+ |      Returns:
+ |      --------
+ |      float
+ |          Value of the fitting function.
+ |
+ |  omega_m = &lt;functools.cached_property object&gt;
+ |      Matter density parameter.
+ |
+ |  ----------------------------------------------------------------------
+ |  Readonly properties inherited from CosmologyBase:
+ |
+ |  Dv_Mead
+ |      Overdensity :math:`\Delta_{\rm v}` fitting function from Mead et al. 2021 (2009.01858), eq A.2.
+ |      All input parameters should be evaluated as functions of a/z.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          Overdensities at given redshifs
+ |
+ |  cosmo_model
+ |      Return the astropy cosmology object assuming Flatw0waCDM model.
+ |
+ |      Returns:
+ |      --------
+ |      object
+ |          astropy cosmology object
+ |
+ |  dc_Mead
+ |      The critical overdensity for collapse :math:`\delta_c`
+ |      fitting function from Mead et al. 2021 (2009.01858).
+ |      All input parameters should be evaluated as functions of a/z.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          Delta_c at redshifrs z
+ |
+ |  get_mead_accumulated_growth
+ |      Calculates the accumulated growth at scale factor &#39;a&#39;.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          accumulated growth at scale factor &#39;a&#39;
+ |
+ |  get_mead_growth
+ |      Return the Mead growth factor at the scale factors.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          Mead 2020 growth factor as a function of scale factor &#39;a&#39;
+ |
+ |  get_mead_growth_fnc
+ |      Solve the linear growth ODE and returns an interpolating function for the solution.
+ |      TODO: w dependence for initial conditions; f here is correct for w=0 only.
+ |      TODO: Could use d_init = a(1+(w-1)/(w(6w-5))*(Om_w/Om_m)*a**-3w) at early times with w = w(a&lt;&lt;1).
+ |
+ |      Returns:
+ |      --------
+ |      object
+ |          interpolating function g(a)
+ |
+ |  scale_factor
+ |      Return the scale factor.
+ |
+ |      Returns:
+ |      --------
+ |      array_like
+ |          scale factor array
+ |
+ |  ----------------------------------------------------------------------
+ |  Data descriptors inherited from CosmologyBase:
+ |
+ |  Neff
+ |      **Parameter**: Effective number of neutrino species.
+ |
+ |      :type: float
+ |
+ |  h0
+ |      **Parameter**: Hubble parameter (small h).
+ |
+ |      :type: float
+ |
+ |  log10T_AGN
+ |      **Parameter**: Log10 of AGN temperature.
+ |
+ |      :type: float
+ |
+ |  m_nu
+ |      **Parameter**: Neutrino mass.
+ |
+ |      :type: float
+ |
+ |  n_s
+ |      **Parameter**: Spectral index.
+ |
+ |      :type: float
+ |
+ |  omega_b
+ |      **Parameter**: Baryon density parameter.
+ |
+ |      :type: float
+ |
+ |  omega_c
+ |      **Parameter**: Cold dark matter density parameter.
+ |
+ |      :type: float
+ |
+ |  sigma_8
+ |      **Parameter**: Amplitude of matter fluctuations on 8 Mpc scales.
+ |
+ |      :type: float
+ |
+ |  tcmb
+ |      **Parameter**: Temperature of the CMB.
+ |
+ |      :type: float
+ |
+ |  w0
+ |      **Parameter**: Dark energy equation of state parameter.
+ |
+ |      :type: float
+ |
+ |  wa
+ |      **Parameter**: Dark energy equation of state parameter.
+ |
+ |      :type: float
+ |
+ |  z_vec
+ |      **Parameter**: Array of redshifts.
+ |
+ |      :type: array_like
+ |
+ |  ----------------------------------------------------------------------
+ |  Methods inherited from hmf._internals._framework.Framework:
+ |
+ |  clone(self, **kwargs)
+ |      Create and return an updated clone of the current object.
+ |
+ |  get_dependencies(self, *q)
+ |      Determine all parameter dependencies of the quantities in q.
+ |
+ |      Parameters
+ |      ----------
+ |      q : str
+ |          String(s) labelling a quantity
+ |
+ |      Returns
+ |      -------
+ |      deps : set
+ |          A set containing all parameters on which quantities in q are dependent.
+ |
+ |  update(self, **kwargs)
+ |      Update parameters of the framework with kwargs.
+ |
+ |  validate(self)
+ |      Perform validation of the input parameters as they relate to each other.
+ |
+ |  ----------------------------------------------------------------------
+ |  Class methods inherited from hmf._internals._framework.Framework:
+ |
+ |  get_all_parameter_defaults(recursive=True)
+ |      Dictionary of all parameters and defaults.
+ |
+ |  get_all_parameter_names()
+ |      Yield all parameter names in the class.
+ |
+ |  parameter_info(names=None)
+ |      Prints information about each parameter in the class.
+ |
+ |      Optionally, restrict printed parameters to those found in the list of names
+ |      provided.
+ |
+ |  quantities_available()
+ |      Obtain a list of all available output quantities.
+ |
+ |  ----------------------------------------------------------------------
+ |  Readonly properties inherited from hmf._internals._framework.Framework:
+ |
+ |  parameter_values
+ |      Dictionary of all parameters and their current values
+ |
+ |  ----------------------------------------------------------------------
+ |  Data descriptors inherited from hmf._internals._framework.Framework:
+ |
+ |  __dict__
+ |      dictionary for instance variables
+ |
+ |  __weakref__
+ |      list of weak references to the object
+
+</pre></div></div>
+</div>
+<p>That’s a lot of help! You can also consult the API documentation. However, since many of the parameters to <code class="docutils literal notranslate"><span class="pre">HaloModelIngredients</span></code> merely get passed through to <code class="docutils literal notranslate"><span class="pre">CosmologyBase</span></code> and to the <code class="docutils literal notranslate"><span class="pre">hmf</span></code> / <code class="docutils literal notranslate"><span class="pre">halomod</span></code>, they get lost in this documentation. You can get a list of all possible parameters for a framework like this:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">HaloModelIngredients</span><span class="o">.</span><span class="n">get_all_parameter_defaults</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;z_vec&#39;: array([0.        , 0.21428571, 0.42857143, 0.64285714, 0.85714286,
+        1.07142857, 1.28571429, 1.5       , 1.71428571, 1.92857143,
+        2.14285714, 2.35714286, 2.57142857, 2.78571429, 3.        ]),
+ &#39;h0&#39;: 0.7,
+ &#39;omega_c&#39;: 0.25,
+ &#39;omega_b&#39;: 0.05,
+ &#39;w0&#39;: -1.0,
+ &#39;wa&#39;: 0.0,
+ &#39;n_s&#39;: 0.9,
+ &#39;tcmb&#39;: 2.7255,
+ &#39;Neff&#39;: 3.044,
+ &#39;m_nu&#39;: 0.06,
+ &#39;sigma_8&#39;: 0.8,
+ &#39;log10T_AGN&#39;: 7.8,
+ &#39;hmcode_ingredients&#39;: None,
+ &#39;k_vec&#39;: array([1.00000000e-04, 1.20450354e-04, 1.45082878e-04, 1.74752840e-04,
+        2.10490414e-04, 2.53536449e-04, 3.05385551e-04, 3.67837977e-04,
+        4.43062146e-04, 5.33669923e-04, 6.42807312e-04, 7.74263683e-04,
+        9.32603347e-04, 1.12332403e-03, 1.35304777e-03, 1.62975083e-03,
+        1.96304065e-03, 2.36448941e-03, 2.84803587e-03, 3.43046929e-03,
+        4.13201240e-03, 4.97702356e-03, 5.99484250e-03, 7.22080902e-03,
+        8.69749003e-03, 1.04761575e-02, 1.26185688e-02, 1.51991108e-02,
+        1.83073828e-02, 2.20513074e-02, 2.65608778e-02, 3.19926714e-02,
+        3.85352859e-02, 4.64158883e-02, 5.59081018e-02, 6.73415066e-02,
+        8.11130831e-02, 9.77009957e-02, 1.17681195e-01, 1.41747416e-01,
+        1.70735265e-01, 2.05651231e-01, 2.47707636e-01, 2.98364724e-01,
+        3.59381366e-01, 4.32876128e-01, 5.21400829e-01, 6.28029144e-01,
+        7.56463328e-01, 9.11162756e-01, 1.09749877e+00, 1.32194115e+00,
+        1.59228279e+00, 1.91791026e+00, 2.31012970e+00, 2.78255940e+00,
+        3.35160265e+00, 4.03701726e+00, 4.86260158e+00, 5.85702082e+00,
+        7.05480231e+00, 8.49753436e+00, 1.02353102e+01, 1.23284674e+01,
+        1.48496826e+01, 1.78864953e+01, 2.15443469e+01, 2.59502421e+01,
+        3.12571585e+01, 3.76493581e+01, 4.53487851e+01, 5.46227722e+01,
+        6.57933225e+01, 7.92482898e+01, 9.54548457e+01, 1.14975700e+02,
+        1.38488637e+02, 1.66810054e+02, 2.00923300e+02, 2.42012826e+02,
+        2.91505306e+02, 3.51119173e+02, 4.22924287e+02, 5.09413801e+02,
+        6.13590727e+02, 7.39072203e+02, 8.90215085e+02, 1.07226722e+03,
+        1.29154967e+03, 1.55567614e+03, 1.87381742e+03, 2.25701972e+03,
+        2.71858824e+03, 3.27454916e+03, 3.94420606e+03, 4.75081016e+03,
+        5.72236766e+03, 6.89261210e+03, 8.30217568e+03, 1.00000000e+04]),
+ &#39;lnk_min&#39;: np.float64(-9.210340371976182),
+ &#39;lnk_max&#39;: np.float64(9.210340371976184),
+ &#39;dlnk&#39;: np.float64(0.18420680743952367),
+ &#39;Mmin&#39;: 9.0,
+ &#39;Mmax&#39;: 16.0,
+ &#39;dlog10m&#39;: 0.05,
+ &#39;mdef_model&#39;: &#39;SOMean&#39;,
+ &#39;hmf_model&#39;: &#39;Tinker10&#39;,
+ &#39;bias_model&#39;: &#39;Tinker10&#39;,
+ &#39;halo_concentration_model_dm&#39;: &#39;Duffy08&#39;,
+ &#39;halo_concentration_model_sat&#39;: &#39;Duffy08&#39;,
+ &#39;halo_profile_model_dm&#39;: &#39;NFW&#39;,
+ &#39;halo_profile_model_sat&#39;: &#39;NFW&#39;,
+ &#39;transfer_model&#39;: &#39;CAMB&#39;,
+ &#39;transfer_params&#39;: {},
+ &#39;growth_model&#39;: &#39;CambGrowth&#39;,
+ &#39;growth_params&#39;: {},
+ &#39;norm_cen&#39;: array([1.]),
+ &#39;norm_sat&#39;: array([1.]),
+ &#39;eta_cen&#39;: array([0.]),
+ &#39;eta_sat&#39;: array([0.]),
+ &#39;overdensity&#39;: 200,
+ &#39;delta_c&#39;: 1.686}
+</pre></div></div>
+</div>
+<p>Again, you can consult the API docs for information on each one, bu you can also use this special function:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">HaloModelIngredients</span><span class="o">.</span><span class="n">parameter_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+z_vec : array_like
+    Array of redshifts.
+
+h0 : float
+    Hubble parameter (small h).
+
+omega_c : float
+    Cold dark matter density parameter.
+
+omega_b : float
+    Baryon density parameter.
+
+w0 : float
+    Dark energy equation of state parameter.
+
+wa : float
+    Dark energy equation of state parameter.
+
+n_s : float
+    Spectral index.
+
+tcmb : float
+    Temperature of the CMB.
+
+Neff : float
+    Effective number of neutrino species.
+
+m_nu : float
+    Neutrino mass.
+
+sigma_8 : float
+    Amplitude of matter fluctuations on 8 Mpc scales.
+
+log10T_AGN : float
+    Log10 of AGN temperature.
+
+hmcode_ingredients : str
+    Correction model from Mead et al.
+
+k_vec : array_like
+    Array of wavenumbers.
+
+lnk_min : float
+    Minimum natural log of wavenumber (for hmf).
+
+lnk_max : float
+    Maximum natural log of wavenumber (for hmf).
+
+dlnk : float
+    Spacing in natural log of wavenumber (for hmf).
+
+Mmin : float
+    Minimum halo mass (for hmf).
+
+Mmax : float
+    Maximum halo mass (for hmf).
+
+dlog10m : float
+    Spacing in log10 of halo mass (for hmf).
+
+mdef_model : str
+    Mass definition model (for hmf).
+
+hmf_model : str
+    Halo mass function model (for hmf).
+
+bias_model : str
+    Halo bias model (for halomod).
+
+halo_concentration_model_dm : str
+    Halo concentration model of dark matter / central galaxies (for halomod).
+
+halo_concentration_model_sat : str
+    Halo concentration model of satellite galaxies (for halomod).
+
+halo_profile_model_dm : str
+    Halo profile model of dark matter / central galaxies (for halomod).
+
+halo_profile_model_sat : str
+    Halo profile model of satellite galaxies (for halomod).
+
+transfer_model : str
+    Transfer function model (for hmf).
+
+transfer_params : dict
+    Parameters for the transfer function (for hmf).
+
+growth_model : str
+    Growth function model (for hmf).
+
+growth_params : dict
+    Parameters for the growth function (for hmf).
+
+norm_cen : float
+    Normalization of c(M) relation for central galaxies.
+
+norm_sat : float
+    Normalization of c(M) relation for satellite galaxies.
+
+eta_cen : float
+    Bloating parameter for central galaxies.
+
+eta_sat : eta_sat : float
+    Bloating parameter for satellite galaxies.
+
+overdensity : float
+    Overdensity parameter.
+
+delta_c : float
+    Critical density threshold for collapse :math:`\delta_c`.
+
+</pre></div></div>
+</div>
+<p>Almost all of the things that a framework can calculate – whether they be transfer functions, growth factors or mass functions – will appear to be attributes of the object. That is, you don’t “call” them like functions, but instead just access them like data. In fact, they are lazily calculated as needed, and then stored in memory once calculated. So, for example, let’s calculate the matter power spectrum:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">power</span> <span class="o">=</span> <span class="n">Spectra</span><span class="p">()</span>
+<span class="o">%</span><span class="k">time</span> power.power_spectrum_mm
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CPU times: user 4min 42s, sys: 4.43 s, total: 4min 46s
+Wall time: 1.94 s
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;onepower.pk.PowerSpectrumResult at 0x7f22edd5ed10&gt;
+</pre></div></div>
+</div>
+<p>This took almost 6 seconds on this system, as it called CAMB in the background to calculate the power spectrum, and DarkQuest Emulator to calculate the non-linear halo bias. However, it is now cached, and if we call it again:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">time</span> power.power_spectrum_mm
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CPU times: user 29 μs, sys: 1 μs, total: 30 μs
+Wall time: 46.3 μs
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;onepower.pk.PowerSpectrumResult at 0x7f22edd5ed10&gt;
+</pre></div></div>
+</div>
+<p>It takes less than 1/1000 of a second, as its just accessing memory. More than that, each (non-trivial) quantity that the power spectrum depends on is also cached, so to access the halo mass function:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">time</span> power.dndlnm.max()
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CPU times: user 58 μs, sys: 1 μs, total: 59 μs
+Wall time: 71.5 μs
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+np.float64(2.009046249720673)
+</pre></div></div>
+</div>
+<p>Also returns the desired result instanty.</p>
+</section>
+</section>
+<section id="Updating-parameters">
+<h1>Updating parameters<a class="headerlink" href="#Updating-parameters" title="Link to this heading">#</a></h1>
+<p>Similarly as in <code class="docutils literal notranslate"><span class="pre">hmf</span></code> and <code class="docutils literal notranslate"><span class="pre">halomod</span></code> on which we have based most of functionality, we can update the parameters with the <code class="docutils literal notranslate"><span class="pre">.update()</span></code> method. For more information on this consult the documentation of those packages. For instance, we can update the HOD model by:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">power</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hod_model</span> <span class="o">=</span> <span class="s1">&#39;Zheng&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Which will update the model and recalculate all the quantities that depend on it. In other words, it will not recalculate the cosmology or halo mass functions, but the HOD and power spectra will be recomputed. If we would to update the cosmological parameters, then a lot of quantities will be recomputed:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">power</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">omega_m</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We relly on this functionality to vectorize the <code class="docutils literal notranslate"><span class="pre">hmf</span></code> and <code class="docutils literal notranslate"><span class="pre">halomod</span></code> so that the <code class="docutils literal notranslate"><span class="pre">onepower</span></code> can predict all quantities for an array of redshifts as well.</p>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="dvornik23.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Dvornik et al. 2023 example</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="cosmosis_interface.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Interfacing <code class="docutils literal notranslate"><span class="pre">onepower</span></code> with <code class="docutils literal notranslate"><span class="pre">CosmosSIS</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Broad Overview of <code class="docutils literal notranslate"><span class="pre">onepower</span></code></a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#The-Package-Layout">The Package Layout</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Frameworks----Caching-and-Updating">Frameworks – Caching and Updating</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#Updating-parameters">Updating parameters</a></li>
+</ul>
+
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/KiDs-WL/onepower/edit/main/docs/examples/showcase.ipynb">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Andrej Dvornik.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

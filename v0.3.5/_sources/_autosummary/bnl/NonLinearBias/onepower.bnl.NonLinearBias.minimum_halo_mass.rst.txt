@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.minimum\_halo\_mass
+==============================================
+
+.. currentmodule:: onepower.bnl
+
+.. autoproperty:: NonLinearBias.minimum_halo_mass

@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.parameter\_info
+=================================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: HaloModelIngredients.parameter_info

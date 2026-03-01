@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.dndlnm\_int
+===================================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HaloOccupationDistribution.dndlnm_int

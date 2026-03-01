@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.COF\_cen
+==============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.COF_cen

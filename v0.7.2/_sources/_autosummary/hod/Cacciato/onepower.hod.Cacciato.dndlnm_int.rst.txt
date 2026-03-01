@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.dndlnm\_int
+=================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.dndlnm_int

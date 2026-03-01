@@ -1,0 +1,6 @@
+onepower.pk.Spectra.halo\_concentration\_model\_sat
+===================================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.halo_concentration_model_sat

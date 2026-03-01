@@ -1,0 +1,6 @@
+onepower.hod.Zhai.nz
+====================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.nz

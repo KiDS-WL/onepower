@@ -1,0 +1,6 @@
+onepower.pk.Spectra.matter\_power\_lin
+======================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.matter_power_lin

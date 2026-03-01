@@ -1,0 +1,6 @@
+onepower.hod.Zhai.log\_obs\_min
+===============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.log_obs_min

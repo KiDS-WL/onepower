@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.get\_dependencies
+=================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: AlignmentAmplitudes.get_dependencies

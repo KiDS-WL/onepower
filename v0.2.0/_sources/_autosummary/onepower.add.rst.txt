@@ -1,0 +1,25 @@
+onepower.add
+============
+
+.. automodule:: onepower.add
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree: add
+      :template: class.rst
+   
+      
+       UpsampledSpectra
+   
+   
+
+   
+   
+   

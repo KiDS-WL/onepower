@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.w0
+====================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.w0

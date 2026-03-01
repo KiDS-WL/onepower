@@ -1,0 +1,6 @@
+onepower.pk.Spectra.poisson\_params
+===================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.poisson_params

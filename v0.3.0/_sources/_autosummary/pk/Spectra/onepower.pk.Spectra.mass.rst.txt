@@ -1,0 +1,6 @@
+onepower.pk.Spectra.mass
+========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.mass

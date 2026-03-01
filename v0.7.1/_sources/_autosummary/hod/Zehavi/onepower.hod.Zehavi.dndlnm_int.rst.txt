@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.dndlnm\_int
+===============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.dndlnm_int

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.hmcode\_ingredients
+=======================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.hmcode_ingredients

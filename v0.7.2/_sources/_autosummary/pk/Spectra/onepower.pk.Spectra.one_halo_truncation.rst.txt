@@ -1,0 +1,6 @@
+onepower.pk.Spectra.one\_halo\_truncation
+=========================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.one_halo_truncation

@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.gamma\_1h\_amp
+==============================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.gamma_1h_amp

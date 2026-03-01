@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.beta\_sat
+========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.beta_sat

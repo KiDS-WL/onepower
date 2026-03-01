@@ -1,0 +1,6 @@
+onepower.pk.Spectra.get\_mead\_growth
+=====================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.get_mead_growth

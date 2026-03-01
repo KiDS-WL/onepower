@@ -1,0 +1,6 @@
+onepower.hod.HOD.log\_obs\_max
+==============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HOD.log_obs_max

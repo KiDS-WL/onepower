@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.ell\_max
+=======================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.ell_max

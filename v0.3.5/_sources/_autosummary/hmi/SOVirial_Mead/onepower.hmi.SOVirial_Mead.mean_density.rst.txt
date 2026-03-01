@@ -1,0 +1,6 @@
+onepower.hmi.SOVirial\_Mead.mean\_density
+=========================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: SOVirial_Mead.mean_density

@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.tcmb
+======================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.tcmb

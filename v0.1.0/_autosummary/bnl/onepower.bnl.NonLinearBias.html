@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>onepower.bnl.NonLinearBias &mdash; onepower 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="onepower.bnl.NonLinearBias.__init__" href="NonLinearBias/onepower.bnl.NonLinearBias.__init__.html" />
+    <link rel="prev" title="onepower.bnl" href="../onepower.bnl.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            onepower
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Usage and Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../api.html">API Summary</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../onepower.pk.html">onepower.pk</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.ia.html">onepower.ia</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../onepower.bnl.html">onepower.bnl</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">onepower.bnl.NonLinearBias</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#onepower.bnl.NonLinearBias"><code class="docutils literal notranslate"><span class="pre">NonLinearBias</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.__init__.html">onepower.bnl.NonLinearBias.__init__</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.clone.html">onepower.bnl.NonLinearBias.clone</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.compute_bnl_darkquest.html">onepower.bnl.NonLinearBias.compute_bnl_darkquest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.get_all_parameter_defaults.html">onepower.bnl.NonLinearBias.get_all_parameter_defaults</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.get_all_parameter_names.html">onepower.bnl.NonLinearBias.get_all_parameter_names</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.get_dependencies.html">onepower.bnl.NonLinearBias.get_dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.high_k_truncation.html">onepower.bnl.NonLinearBias.high_k_truncation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.hl_envelopes_idx.html">onepower.bnl.NonLinearBias.hl_envelopes_idx</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.low_k_truncation.html">onepower.bnl.NonLinearBias.low_k_truncation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.parameter_info.html">onepower.bnl.NonLinearBias.parameter_info</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.quantities_available.html">onepower.bnl.NonLinearBias.quantities_available</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.rvir.html">onepower.bnl.NonLinearBias.rvir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.test_cosmo.html">onepower.bnl.NonLinearBias.test_cosmo</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.update.html">onepower.bnl.NonLinearBias.update</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.validate.html">onepower.bnl.NonLinearBias.validate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.A_s.html">onepower.bnl.NonLinearBias.A_s</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.bnl.html">onepower.bnl.NonLinearBias.bnl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.create_bnl_interpolation_function.html">onepower.bnl.NonLinearBias.create_bnl_interpolation_function</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.emulator.html">onepower.bnl.NonLinearBias.emulator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.h0.html">onepower.bnl.NonLinearBias.h0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.k_vec.html">onepower.bnl.NonLinearBias.k_vec</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.mass.html">onepower.bnl.NonLinearBias.mass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.minimum_halo_mass.html">onepower.bnl.NonLinearBias.minimum_halo_mass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.n_s.html">onepower.bnl.NonLinearBias.n_s</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.ombh2.html">onepower.bnl.NonLinearBias.ombh2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.omch2.html">onepower.bnl.NonLinearBias.omch2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.omega_b.html">onepower.bnl.NonLinearBias.omega_b</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.omega_c.html">onepower.bnl.NonLinearBias.omega_c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.omega_lambda.html">onepower.bnl.NonLinearBias.omega_lambda</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.parameter_values.html">onepower.bnl.NonLinearBias.parameter_values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.sigma_8.html">onepower.bnl.NonLinearBias.sigma_8</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.w0.html">onepower.bnl.NonLinearBias.w0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.z_dep.html">onepower.bnl.NonLinearBias.z_dep</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.z_vec.html">onepower.bnl.NonLinearBias.z_vec</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.hod.html">onepower.hod</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.hmi.html">onepower.hmi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.add.html">onepower.add</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developing.html">Developing OnePower</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">onepower</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../api.html">API Summary</a></li>
+          <li class="breadcrumb-item"><a href="../onepower.bnl.html">onepower.bnl</a></li>
+      <li class="breadcrumb-item active">onepower.bnl.NonLinearBias</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_autosummary/bnl/onepower.bnl.NonLinearBias.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="onepower-bnl-nonlinearbias">
+<h1>onepower.bnl.NonLinearBias<a class="headerlink" href="#onepower-bnl-nonlinearbias" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="onepower.bnl.NonLinearBias">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">onepower.bnl.</span></span><span class="sig-name descname"><span class="pre">NonLinearBias</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/onepower/bnl.html#NonLinearBias"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#onepower.bnl.NonLinearBias" title="Link to this definition"></a></dt>
+<dd><p>A class to compute the non-linear bias using the Dark Emulator.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.__init__.html#onepower.bnl.NonLinearBias.__init__" title="onepower.bnl.NonLinearBias.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([mass, z_vec, k_vec, h0, sigma_8, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.clone.html#onepower.bnl.NonLinearBias.clone" title="onepower.bnl.NonLinearBias.clone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clone</span></code></a>(**kwargs)</p></td>
+<td><p>Create and return an updated clone of the current object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.compute_bnl_darkquest.html#onepower.bnl.NonLinearBias.compute_bnl_darkquest" title="onepower.bnl.NonLinearBias.compute_bnl_darkquest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_bnl_darkquest</span></code></a>(z, log10M1, log10M2, ...)</p></td>
+<td><p>Compute the non-linear bias using the Dark Emulator.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.get_all_parameter_defaults.html#onepower.bnl.NonLinearBias.get_all_parameter_defaults" title="onepower.bnl.NonLinearBias.get_all_parameter_defaults"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_parameter_defaults</span></code></a>([recursive])</p></td>
+<td><p>Dictionary of all parameters and defaults.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.get_all_parameter_names.html#onepower.bnl.NonLinearBias.get_all_parameter_names" title="onepower.bnl.NonLinearBias.get_all_parameter_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_parameter_names</span></code></a>()</p></td>
+<td><p>Yield all parameter names in the class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.get_dependencies.html#onepower.bnl.NonLinearBias.get_dependencies" title="onepower.bnl.NonLinearBias.get_dependencies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_dependencies</span></code></a>(*q)</p></td>
+<td><p>Determine all parameter dependencies of the quantities in q.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.high_k_truncation.html#onepower.bnl.NonLinearBias.high_k_truncation" title="onepower.bnl.NonLinearBias.high_k_truncation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">high_k_truncation</span></code></a>(k, k_trunc)</p></td>
+<td><p>Apply high-k truncation to the non-linear bias.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.hl_envelopes_idx.html#onepower.bnl.NonLinearBias.hl_envelopes_idx" title="onepower.bnl.NonLinearBias.hl_envelopes_idx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hl_envelopes_idx</span></code></a>(data[, dmin, dmax])</p></td>
+<td><p>Extract high and low envelope indices from a 1D data signal.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.low_k_truncation.html#onepower.bnl.NonLinearBias.low_k_truncation" title="onepower.bnl.NonLinearBias.low_k_truncation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">low_k_truncation</span></code></a>(k, k_trunc)</p></td>
+<td><p>Apply low-k truncation to the non-linear bias.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.parameter_info.html#onepower.bnl.NonLinearBias.parameter_info" title="onepower.bnl.NonLinearBias.parameter_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameter_info</span></code></a>([names])</p></td>
+<td><p>Prints information about each parameter in the class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.quantities_available.html#onepower.bnl.NonLinearBias.quantities_available" title="onepower.bnl.NonLinearBias.quantities_available"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantities_available</span></code></a>()</p></td>
+<td><p>Obtain a list of all available output quantities.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.rvir.html#onepower.bnl.NonLinearBias.rvir" title="onepower.bnl.NonLinearBias.rvir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rvir</span></code></a>(mass)</p></td>
+<td><p>Compute the virial radius for a given halo mass.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.test_cosmo.html#onepower.bnl.NonLinearBias.test_cosmo" title="onepower.bnl.NonLinearBias.test_cosmo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">test_cosmo</span></code></a>(cparam_in)</p></td>
+<td><p>Adjust cosmological parameters to be within the range of the Dark Emulator.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.update.html#onepower.bnl.NonLinearBias.update" title="onepower.bnl.NonLinearBias.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(**kwargs)</p></td>
+<td><p>Update parameters of the framework with kwargs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.validate.html#onepower.bnl.NonLinearBias.validate" title="onepower.bnl.NonLinearBias.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>()</p></td>
+<td><p>Perform validation of the input parameters as they relate to each other.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.A_s.html#onepower.bnl.NonLinearBias.A_s" title="onepower.bnl.NonLinearBias.A_s"><code class="xref py py-obj docutils literal notranslate"><span class="pre">A_s</span></code></a></p></td>
+<td><p>Amplitude of the primordial power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.bnl.html#onepower.bnl.NonLinearBias.bnl" title="onepower.bnl.NonLinearBias.bnl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bnl</span></code></a></p></td>
+<td><p>Compute the non-linear bias interpolation function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.create_bnl_interpolation_function.html#onepower.bnl.NonLinearBias.create_bnl_interpolation_function" title="onepower.bnl.NonLinearBias.create_bnl_interpolation_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_bnl_interpolation_function</span></code></a></p></td>
+<td><p>Create an interpolation function for the non-linear bias.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.emulator.html#onepower.bnl.NonLinearBias.emulator" title="onepower.bnl.NonLinearBias.emulator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">emulator</span></code></a></p></td>
+<td><p>Initialize the Dark Emulator with the given cosmological parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.h0.html#onepower.bnl.NonLinearBias.h0" title="onepower.bnl.NonLinearBias.h0"><code class="xref py py-obj docutils literal notranslate"><span class="pre">h0</span></code></a></p></td>
+<td><p>Hubble parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.k_vec.html#onepower.bnl.NonLinearBias.k_vec" title="onepower.bnl.NonLinearBias.k_vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">k_vec</span></code></a></p></td>
+<td><p>Array of wavenumbers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.mass.html#onepower.bnl.NonLinearBias.mass" title="onepower.bnl.NonLinearBias.mass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mass</span></code></a></p></td>
+<td><p>Array of halo masses.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.minimum_halo_mass.html#onepower.bnl.NonLinearBias.minimum_halo_mass" title="onepower.bnl.NonLinearBias.minimum_halo_mass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum_halo_mass</span></code></a></p></td>
+<td><p>Compute the minimum halo mass for the set of cosmological parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.n_s.html#onepower.bnl.NonLinearBias.n_s" title="onepower.bnl.NonLinearBias.n_s"><code class="xref py py-obj docutils literal notranslate"><span class="pre">n_s</span></code></a></p></td>
+<td><p>Spectral index.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.ombh2.html#onepower.bnl.NonLinearBias.ombh2" title="onepower.bnl.NonLinearBias.ombh2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ombh2</span></code></a></p></td>
+<td><p>Return the physical baryon density parameter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.omch2.html#onepower.bnl.NonLinearBias.omch2" title="onepower.bnl.NonLinearBias.omch2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">omch2</span></code></a></p></td>
+<td><p>Return the physical cold dark matter density parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.omega_b.html#onepower.bnl.NonLinearBias.omega_b" title="onepower.bnl.NonLinearBias.omega_b"><code class="xref py py-obj docutils literal notranslate"><span class="pre">omega_b</span></code></a></p></td>
+<td><p>Baryon density parameter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.omega_c.html#onepower.bnl.NonLinearBias.omega_c" title="onepower.bnl.NonLinearBias.omega_c"><code class="xref py py-obj docutils literal notranslate"><span class="pre">omega_c</span></code></a></p></td>
+<td><p>Cold dark matter density parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.omega_lambda.html#onepower.bnl.NonLinearBias.omega_lambda" title="onepower.bnl.NonLinearBias.omega_lambda"><code class="xref py py-obj docutils literal notranslate"><span class="pre">omega_lambda</span></code></a></p></td>
+<td><p>Dark energy density parameter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.parameter_values.html#onepower.bnl.NonLinearBias.parameter_values" title="onepower.bnl.NonLinearBias.parameter_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameter_values</span></code></a></p></td>
+<td><p>Dictionary of all parameters and their current values</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.sigma_8.html#onepower.bnl.NonLinearBias.sigma_8" title="onepower.bnl.NonLinearBias.sigma_8"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sigma_8</span></code></a></p></td>
+<td><p>Amplitude of matter fluctuations on 8 Mpc scales.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.w0.html#onepower.bnl.NonLinearBias.w0" title="onepower.bnl.NonLinearBias.w0"><code class="xref py py-obj docutils literal notranslate"><span class="pre">w0</span></code></a></p></td>
+<td><p>Dark energy equation of state parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.z_dep.html#onepower.bnl.NonLinearBias.z_dep" title="onepower.bnl.NonLinearBias.z_dep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_dep</span></code></a></p></td>
+<td><p>If redshift dependence is to be evaluated in Bnl</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="NonLinearBias/onepower.bnl.NonLinearBias.z_vec.html#onepower.bnl.NonLinearBias.z_vec" title="onepower.bnl.NonLinearBias.z_vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_vec</span></code></a></p></td>
+<td><p>Array of redshifts.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../onepower.bnl.html" class="btn btn-neutral float-left" title="onepower.bnl" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NonLinearBias/onepower.bnl.NonLinearBias.__init__.html" class="btn btn-neutral float-right" title="onepower.bnl.NonLinearBias.__init__" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Andrej Dvornik.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

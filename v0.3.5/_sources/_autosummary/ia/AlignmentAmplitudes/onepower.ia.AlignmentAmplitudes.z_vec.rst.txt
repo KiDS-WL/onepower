@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.z\_vec
+======================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.z_vec

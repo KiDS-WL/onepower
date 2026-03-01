@@ -1,0 +1,6 @@
+onepower.pk.Spectra.validate
+============================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.validate

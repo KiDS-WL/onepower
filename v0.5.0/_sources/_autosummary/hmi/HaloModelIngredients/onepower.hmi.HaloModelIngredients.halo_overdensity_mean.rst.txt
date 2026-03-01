@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.halo\_overdensity\_mean
+=========================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.halo_overdensity_mean

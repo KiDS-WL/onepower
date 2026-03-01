@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.transfer\_model
+=================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.transfer_model

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.hod\_settings\_mm
+=====================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.hod_settings_mm
