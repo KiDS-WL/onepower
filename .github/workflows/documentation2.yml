@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload artifacts
         if: steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: html-docs-${{ matrix.ref }}
           path: docs/_build/html/
