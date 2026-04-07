@@ -40,7 +40,7 @@ Alternatively, for the very bleeding edge, install from the main branch of the r
 
 .. code-block:: bash
 
-    pip install onepower@git+git://github.com/KiDS-WL/onepower.git
+    pip install onepower@git+https://github.com/KiDS-WL/onepower.git
 
 Developer Install
 -----------------
