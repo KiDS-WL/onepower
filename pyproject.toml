@@ -36,7 +36,6 @@ dependencies = [
     "halomod>=2.2.3",
     "numpy>=2.0",
     "astropy>=6.0.0",
-    "dark_emulator==1.1.2",
     "scipy>=1.13.1",
     "camb>=1.4.0",
     "numexpr>=2.8.7",
