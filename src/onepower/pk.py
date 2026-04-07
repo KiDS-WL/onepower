@@ -538,7 +538,7 @@ class Spectra(HaloModelIngredients):
             )
             return np.ascontiguousarray(bnl.bnl)
         else:
-            raise ValueError(
+            raise ImportError(
                 'Dark Emulator is not available! Install the Dark Emulator first and re-install the OnePower to enable it.'
             )
 
