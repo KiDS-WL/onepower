@@ -12,9 +12,9 @@ them yourself, except in some circumstances.
 
 The list of major dependencies used by ``onepower`` is:
 
-1. The `halo mass function calculator, hmf <https://hmf.readthedocs.io/en/3.3.4/>`_
+1. The `halo mass function calculator, hmf <https://hmf.readthedocs.io/en/latest>`_
 2. The `halomod <https://github.com/halomod/halomod>`_.
-3. The `Dark Emulator <https://dark-emulator.readthedocs.io/en/latest/>`_
+3. (Optionally) The `Dark Emulator <https://dark-emulator.readthedocs.io/en/latest/>`_
 
 The optional input fits files as used in Fortuna et al. 2021 are available here: `Luminosity_redshift <https://ruhr-uni-bochum.sciebo.de/s/ZdAE6nTf0OPyV6S>`_.
 Those are required for the IA predictions to agree, as they provide sample properties and fractions of red and blue galaxies.
@@ -23,14 +23,19 @@ Similar data is required for any luminosity based IA predictions are to be used.
 
 User Install
 ------------
-You may install the latest release of ``onepower`` using ``pip``. Note that until the ``halomod`` is released with a new version, ``onepower`` requires the manual install of the main branch of ``halomod``.
+You may install the latest release of ``onepower`` using ``pip``.
 
 .. code-block:: bash
 
-    pip install halomod@git+https://github.com/halomod/halomod.git@main
     pip install onepower
 
-This will install all uninstalled dependencies (see previous section).
+This will install all uninstalled dependencies (see previous section). Note that this will not install Dark Emulator by default, due to its optional nature.
+To install the  ``onepower`` with the Dark Emulator, you can do so by runnning:
+
+.. code-block:: bash
+
+    pip install onepower[bnl]
+
 Alternatively, for the very bleeding edge, install from the main branch of the repo
 
 .. code-block:: bash
