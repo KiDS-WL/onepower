@@ -51,7 +51,8 @@ dynamic = ["version"]
 [project.optional-dependencies]
 bnl = [
     "dark_emulator==1.1.2 ; python_version <= '3.12'",
-    "scipy<1.14.0 ; python_version <= '3.12'",
+    "scipy==1.13.1 ; python_version <= '3.12'",
+    "bnl-not-supported-on-python-gt-3-12 ; python_version > '3.12'",
 ]
 docs = [
 	"sphinx>=6.1.3",
