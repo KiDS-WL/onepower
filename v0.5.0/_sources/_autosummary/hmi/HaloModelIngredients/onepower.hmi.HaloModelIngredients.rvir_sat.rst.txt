@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.rvir\_sat
+===========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.rvir_sat

@@ -1,0 +1,6 @@
+onepower.hod.HOD.get\_models
+============================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: HOD.get_models

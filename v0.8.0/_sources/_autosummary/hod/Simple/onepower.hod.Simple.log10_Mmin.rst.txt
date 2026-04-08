@@ -1,0 +1,6 @@
+onepower.hod.Simple.log10\_Mmin
+===============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.log10_Mmin

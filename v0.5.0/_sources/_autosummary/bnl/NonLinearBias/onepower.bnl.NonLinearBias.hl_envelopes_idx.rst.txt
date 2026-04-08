@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.hl\_envelopes\_idx
+=============================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.hl_envelopes_idx

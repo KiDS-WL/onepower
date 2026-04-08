@@ -1,0 +1,6 @@
+onepower.pk.Spectra.tcmb
+========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.tcmb

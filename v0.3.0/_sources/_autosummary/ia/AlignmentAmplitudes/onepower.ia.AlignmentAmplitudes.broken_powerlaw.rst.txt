@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.broken\_powerlaw
+================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: AlignmentAmplitudes.broken_powerlaw

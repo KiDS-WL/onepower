@@ -1,0 +1,1728 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>onepower.hod &mdash; onepower 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            onepower
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Usage and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Summary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developing.html">Developing OnePower</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">onepower</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">onepower.hod</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for onepower.hod</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A module for computing Halo Occupation Distribution (HOD) models.</span>
+<span class="sd">This module provides classes and functions to calculate properties of galaxies within dark matter halos,</span>
+<span class="sd">using various HOD models and conditional observable functions (COFs).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">cached_property</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">simpson</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">erf</span>
+
+<span class="kn">from</span> <span class="nn">hmf._internals._framework</span> <span class="kn">import</span> <span class="n">Component</span><span class="p">,</span> <span class="n">pluggable</span>
+
+<span class="n">valid_units</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;1/h&#39;</span><span class="p">,</span> <span class="s1">&#39;1/h^2&#39;</span><span class="p">]</span>
+<span class="n">hod_settings_defaults</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;observables_file&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;obs_min&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="mf">8.0</span><span class="p">),</span>
+    <span class="s1">&#39;obs_max&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="mf">12.0</span><span class="p">),</span>
+    <span class="s1">&#39;zmin&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+    <span class="s1">&#39;zmax&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="mf">0.2</span><span class="p">),</span>
+    <span class="s1">&#39;nz&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+    <span class="s1">&#39;nobs&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="s1">&#39;observable_h_unit&#39;</span><span class="p">:</span> <span class="s1">&#39;1/h^2&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="load_data">
+<a class="viewcode-back" href="../../_autosummary/hod/onepower.hod.load_data.html#onepower.hod.load_data">[docs]</a>
+<span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load data from a file.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    file_name : str</span>
+<span class="sd">        Path to the file to load data from.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    --------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Redshift data, minimum observable data, and maximum observable data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">z_data</span><span class="p">,</span> <span class="n">obs_min</span><span class="p">,</span> <span class="n">obs_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span>
+        <span class="n">file_name</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">z_data</span><span class="p">,</span> <span class="n">obs_min</span><span class="p">,</span> <span class="n">obs_max</span></div>
+
+
+
+<div class="viewcode-block" id="HOD">
+<a class="viewcode-back" href="../../_autosummary/hod/onepower.hod.HOD.html#onepower.hod.HOD">[docs]</a>
+<span class="nd">@pluggable</span>
+<span class="k">class</span> <span class="nc">HOD</span><span class="p">(</span><span class="n">Component</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for Halo Occupation Distribution (HOD) models.</span>
+<span class="sd">    This class provides the framework for computing various properties of galaxies within dark matter halos.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    cosmo : object</span>
+<span class="sd">        Astropy model object.</span>
+<span class="sd">    mass : array_like</span>
+<span class="sd">        Array of halo masses.</span>
+<span class="sd">    dndlnm : array_like</span>
+<span class="sd">        Halo mass function.</span>
+<span class="sd">    halo_bias : array_like</span>
+<span class="sd">        Halo bias.</span>
+<span class="sd">    z_vec : array_like</span>
+<span class="sd">        Array of redshifts.</span>
+<span class="sd">    hod_settings : dict</span>
+<span class="sd">        Dictionary of HOD settings.</span>
+<span class="sd">    \*\*model_parameters :</span>
+<span class="sd">        These parameters are model-specific. For any model, list the available</span>
+<span class="sd">        parameters (and their defaults) using ``&lt;model&gt;._defaults``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_defaults</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="HOD.__init__">
+<a class="viewcode-back" href="../../_autosummary/hod/HOD/onepower.hod.HOD.__init__.html#onepower.hod.HOD.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">cosmo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">mass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dndlnm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">halo_bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">z_vec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">hod_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">model_parameters</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cosmo</span> <span class="o">=</span> <span class="n">cosmo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="n">mass</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span> <span class="o">=</span> <span class="n">z_vec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span> <span class="o">=</span> <span class="n">hod_settings</span> <span class="ow">or</span> <span class="n">hod_settings_defaults</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dndlnm</span> <span class="o">=</span> <span class="n">dndlnm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">halo_bias</span> <span class="o">=</span> <span class="n">halo_bias</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">model_parameters</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">obs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the array of observables at which to calculate the CSMF/CLF and integrate over to get the HOD</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            array of observables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">[</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log_obs_min</span><span class="p">[</span><span class="n">nb</span><span class="p">,</span> <span class="n">jz</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_obs_max</span><span class="p">[</span><span class="n">nb</span><span class="p">,</span> <span class="n">jz</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">nobs</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">jz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">)</span>
+                <span class="p">]</span>
+                <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="c1"># With newaxis we make sure the COF shape is (nb, nz, nmass, nobs)</span>
+        <span class="k">return</span> <span class="n">obs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dndlnm_int</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the interpolated halo mass function at HOD specific redshifts.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            interpolated halo mass function at self.z</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dndlnm_fnc</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dndlnm</span><span class="p">,</span>
+            <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span>
+            <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">dndlnm_fnc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">halo_bias_int</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the interpolated halo bias function at HOD specific redshifts.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            interpolated halo bias function at self.z</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">halo_bias_fnc</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">halo_bias</span><span class="p">,</span>
+            <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span>
+            <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">halo_bias_fnc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the z_bins, obs_min and obs_max quantities from tabulated observables file.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        tupple or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;observables_file&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">z_bins</span><span class="p">,</span> <span class="n">obs_min</span><span class="p">,</span> <span class="n">obs_max</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;observables_file&#39;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">z_bins</span><span class="p">,</span> <span class="n">obs_min</span><span class="p">,</span> <span class="n">obs_max</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nobs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the number of observables in the observable array.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            number of obserables in the observable array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;nobs&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nbins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the number of HOD bins.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        int</span>
+<span class="sd">            number of HOD bins</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;observables_file&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;obs_min&#39;</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the number of redshift bins.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        int</span>
+<span class="sd">            number of redshift bins</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;observables_file&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;nz&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">z</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the HOD specific redshift array.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            HOD specific redshifts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;observables_file&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">zmin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;zmin&#39;</span><span class="p">]</span>
+            <span class="n">zmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;zmax&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">zmin_i</span><span class="p">,</span> <span class="n">zmax_i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">zmin_i</span><span class="p">,</span> <span class="n">zmax_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">zmin</span><span class="p">,</span> <span class="n">zmax</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log_obs_min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the min observable limits.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            min observable limits</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;observables_file&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">obs_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;obs_min&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">obs_min_i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">)</span> <span class="k">for</span> <span class="n">obs_min_i</span> <span class="ow">in</span> <span class="n">obs_min</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log_obs_max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the max observable limits.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            max observable limits</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;observables_file&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">])[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">obs_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;obs_max&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">obs_max_i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">)</span> <span class="k">for</span> <span class="n">obs_max_i</span> <span class="ow">in</span> <span class="n">obs_max</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_mass_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hod</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the mass integral for a given HOD.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        hod : array_like</span>
+<span class="sd">            Halo Occupation Distribution.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Integral of the HOD weighted by the halo mass function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">integrand</span> <span class="o">=</span> <span class="n">hod</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dndlnm_int</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span>
+        <span class="k">return</span> <span class="n">simpson</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_mean_mass_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hod</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the mean mass integral for a given HOD.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        hod : array_like</span>
+<span class="sd">            Halo Occupation Distribution.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Integral of the HOD weighted by the halo mass function and halo mass.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">integrand</span> <span class="o">=</span> <span class="n">hod</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dndlnm_int</span>
+        <span class="k">return</span> <span class="n">simpson</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_bias_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hod</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the bias integral for a given HOD.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        hod : array_like</span>
+<span class="sd">            Halo Occupation Distribution.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Integral of the HOD weighted by the halo bias and halo mass function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bg_integrand</span> <span class="o">=</span> <span class="n">hod</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">halo_bias_int</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dndlnm_int</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span>
+        <span class="k">return</span> <span class="n">simpson</span><span class="p">(</span><span class="n">bg_integrand</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ntot</span>
+
+    <span class="k">def</span> <span class="nf">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to interpolate data along a given axis in an array.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        data : array_like</span>
+<span class="sd">            Data to interpolate.</span>
+<span class="sd">        fill_value : str, optional</span>
+<span class="sd">            Value to use for points outside the data range.</span>
+<span class="sd">        axis : int, optional</span>
+<span class="sd">            Axis along which to interpolate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Interpolated data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_int</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">interp1d</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">n_int</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_ncen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Total number density of central galaxies with the given HOD.</span>
+<span class="sd">        This is an integral over the HOD and the halo mass function to remove the halo mass dependence.</span>
+
+<span class="sd">        :math:`N_{\rm x} = \int ⟨N_{rm x}|M⟩ n(M) {\rm d}M`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mass_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_cen</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_nsat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Total number density of satellite galaxies with the given HOD.</span>
+<span class="sd">        This is an integral over the HOD and the halo mass function to remove the halo mass dependence.</span>
+
+<span class="sd">        :math:`N_{\rm x} = \int ⟨N_{rm x}|M⟩ n(M) {\rm d}M`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mass_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_sat</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_ntot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Total number density of galaxies with the given HOD.</span>
+<span class="sd">        This is an integral over the HOD and the halo mass function to remove the halo mass dependence.</span>
+
+<span class="sd">        :math:`N_{\rm x} = \int ⟨N_{rm x}|M⟩ n(M) {\rm d}M`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mass_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_mass_avg_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies.</span>
+
+<span class="sd">        :math:`M_{\rm mean} = \int ⟨N_{_rm x}|M⟩ M n(M) {\rm d}M`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_mass_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_cen</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_mass_avg_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies.</span>
+
+<span class="sd">        :math:`M_{\rm mean} = \int ⟨N_{_rm x}|M⟩ M n(M) {\rm d}M`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_mass_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_sat</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_mass_avg_tot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The mean halo mass for the given population of galaxies, e.g. central and satellite galaxies.</span>
+
+<span class="sd">        :math:`M_{\rm mean} = \int ⟨N_{_rm x}|M⟩ M n(M) {\rm d}M`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_mass_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_bg_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Mean linear halo bias for the given population of galaxies.</span>
+
+<span class="sd">        :math:`b_{\rm lin, x} = \int ⟨N_{\rm x}|M⟩ b_h(M) n(M) {\rm d}M`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bias_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_cen</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_bg_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Mean linear halo bias for the given population of galaxies.</span>
+
+<span class="sd">        :math:`b_{\rm lin, x} = \int ⟨N_{\rm x}|M⟩ b_h(M) n(M) {\rm d}M`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bias_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_sat</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_bg_tot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Mean linear halo bias for the given population of galaxies.</span>
+
+<span class="sd">        :math:`b_{\rm lin, x} = \int ⟨N_{\rm x}|M⟩ b_h(M) n(M) {\rm d}M`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bias_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">number_density_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the number density of central galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            number density of central galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncen</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">number_density_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the number density of satellite galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            number density of satellite galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nsat</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">number_density</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the number density of galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            number density of all galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ntot</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">f_c</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fraction of central galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            fraction of central galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncen</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ntot</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="n">f_c</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">f_s</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fraction of satellite galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            fraction of satellite galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsat</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ntot</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="n">f_s</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">avg_halo_mass_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the average halo mass for central galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            average halo mass for central galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mass_avg_cen</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">avg_halo_mass_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the average halo mass for satellite galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            average halo mass for satellite galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mass_avg_sat</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">avg_halo_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the average halo mass for galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            average halo mass for all galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mass_avg_tot</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">galaxy_linear_bias_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the galaxy linear bias for central galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            galaxy linear bias for central galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bg_cen</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">galaxy_linear_bias_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the galaxy linear bias for satellite galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            galaxy linear bias for satellite galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bg_sat</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">galaxy_linear_bias</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the galaxy linear bias for galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            galaxy linear bias for all galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bg_tot</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hod_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for central galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            HOD of central galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_cen</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hod_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for satellite galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            HOD of satellite galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_sat</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            HOD of all galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stellar_fraction_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the stellar fraction for central galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            stellar fraction of central galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_stellar_fraction_cen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fstar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_stellar_fraction_cen</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;observable_h_unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">valid_units</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">fstar</span> <span class="o">=</span> <span class="n">fstar</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cosmo</span><span class="o">.</span><span class="n">h</span>
+            <span class="k">return</span> <span class="n">fstar</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stellar_fraction_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the stellar fraction for satellite galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            stellar fraction of satellite galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_stellar_fraction_sat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fstar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_stellar_fraction_sat</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;observable_h_unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">valid_units</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">fstar</span> <span class="o">=</span> <span class="n">fstar</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cosmo</span><span class="o">.</span><span class="n">h</span>
+            <span class="k">return</span> <span class="n">fstar</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stellar_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the stellar fraction for galaxies.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            stellar fraction of all galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_stellar_fraction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_vec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fstar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_stellar_fraction</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hod_settings</span><span class="p">[</span><span class="s1">&#39;observable_h_unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">valid_units</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">fstar</span> <span class="o">=</span> <span class="n">fstar</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cosmo</span><span class="o">.</span><span class="n">h</span>
+            <span class="k">return</span> <span class="n">fstar</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for central galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for satellite galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the total HOD by summing central and satellite HODs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_cen</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_sat</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_stellar_fraction_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_stellar_fraction_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_stellar_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="Cacciato">
+<a class="viewcode-back" href="../../_autosummary/hod/onepower.hod.Cacciato.html#onepower.hod.Cacciato">[docs]</a>
+<span class="k">class</span> <span class="nc">Cacciato</span><span class="p">(</span><span class="n">HOD</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CSMF/CLF model from Cacciato et al. (2013) [1]_.</span>
+
+<span class="sd">    The conditional observable functions (COFs) tell us how many galaxies with the observed property O,</span>
+<span class="sd">    exist in haloes of mass M: :math:`\Phi(O|M)`.</span>
+
+<span class="sd">    Integrating over the observable will give us the total number of galaxies in haloes of a given mass,</span>
+<span class="sd">    the so-called Halo Occupation Distribution (HOD).</span>
+
+<span class="sd">    The observable can be galaxy stellar mass or galaxy luminosity or possibly other properties of galaxies.</span>
+<span class="sd">    Note that the general mathematical form of the COFs might not hold for other observables.</span>
+
+<span class="sd">    COF is different for central and satellite galaxies. The total COF can be written as the sum of the two:</span>
+
+<span class="sd">    :math:`\Phi(O|M) = \Phi_{\rm c}(O|M) + \Phi_{\rm s}(O|M)`</span>
+
+<span class="sd">    The halo mass dependence comes in through pivot observable values denoted by :math:`\star`, e.g. :math:`O_{\star, {\rm c}}`, :math:`O_{\star, {\rm s}}`</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    log10_obs_norm_c : float</span>
+<span class="sd">        Log10 of the normalization for central galaxies.</span>
+<span class="sd">    log10_m_ch : float</span>
+<span class="sd">        Log10 of the characteristic mass.</span>
+<span class="sd">    g1 : float</span>
+<span class="sd">        Low mass slope parameter for central galaxies.</span>
+<span class="sd">    g2 : float</span>
+<span class="sd">        High mass slope parameter for central galaxies.</span>
+<span class="sd">    sigma_log10_O_c : float</span>
+<span class="sd">        Scatter in log10 of the observable for central galaxies.</span>
+<span class="sd">    norm_s : float</span>
+<span class="sd">        Normalization for satellite galaxies.</span>
+<span class="sd">    pivot : float</span>
+<span class="sd">        Pivot mass for the normalization of the stellar mass function.</span>
+<span class="sd">    alpha_s : float</span>
+<span class="sd">        Slope parameter for satellite galaxies.</span>
+<span class="sd">    beta_s : float</span>
+<span class="sd">        Exponent parameter for satellite galaxies.</span>
+<span class="sd">    b0 : float</span>
+<span class="sd">        Parameter for the conditional stellar mass function.</span>
+<span class="sd">    b1 : float</span>
+<span class="sd">        Parameter for the conditional stellar mass function.</span>
+<span class="sd">    b2 : float</span>
+<span class="sd">        Parameter for the conditional stellar mass function.</span>
+<span class="sd">    A_cen : float, optional</span>
+<span class="sd">        Decorated HOD assembly bias parameter for central galaxies.</span>
+<span class="sd">    A_sat : float, optional</span>
+<span class="sd">        Decorated HOD assembly bias parameter for satellite galaxies.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1]  Cacciato, M. et al., &quot;Cosmological constraints from a combination of galaxy clustering and lensing - III. Application to SDSS data&quot;,</span>
+<span class="sd">            https://academic.oup.com/mnras/article/430/2/767/2891826.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># all observable masses in units of log10(M_sun h^-2)</span>
+    <span class="n">_defaults</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;log10_obs_norm_c&#39;</span><span class="p">:</span> <span class="mf">9.95</span><span class="p">,</span>  <span class="c1"># O_0, O_norm_c</span>
+        <span class="s1">&#39;log10_m_ch&#39;</span><span class="p">:</span> <span class="mf">11.24</span><span class="p">,</span>  <span class="c1"># log10_m_ch</span>
+        <span class="s1">&#39;g1&#39;</span><span class="p">:</span> <span class="mf">3.18</span><span class="p">,</span>  <span class="c1"># gamma_1</span>
+        <span class="s1">&#39;g2&#39;</span><span class="p">:</span> <span class="mf">0.245</span><span class="p">,</span>  <span class="c1"># gamma_2</span>
+        <span class="s1">&#39;sigma_log10_O_c&#39;</span><span class="p">:</span> <span class="mf">0.157</span><span class="p">,</span>  <span class="c1"># sigma_log10_O_c</span>
+        <span class="s1">&#39;norm_s&#39;</span><span class="p">:</span> <span class="mf">0.562</span><span class="p">,</span>  <span class="c1"># extra normalisation factor for satellites</span>
+        <span class="s1">&#39;pivot&#39;</span><span class="p">:</span> <span class="mf">12.0</span><span class="p">,</span>  <span class="c1"># pivot mass for the normalisation of the stellar mass function: ϕ∗s</span>
+        <span class="s1">&#39;alpha_s&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.18</span><span class="p">,</span>  <span class="c1"># goes into the conditional stellar mass function COF_sat(M*|M)</span>
+        <span class="s1">&#39;beta_s&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>  <span class="c1"># goes into the conditional stellar mass function COF_sat(M*|M)</span>
+        <span class="s1">&#39;b0&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.17</span><span class="p">,</span>  <span class="c1"># log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot</span>
+        <span class="s1">&#39;b1&#39;</span><span class="p">:</span> <span class="mf">1.53</span><span class="p">,</span>  <span class="c1"># log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot</span>
+        <span class="s1">&#39;b2&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.217</span><span class="p">,</span>  <span class="c1"># log10[ϕ∗s(M)] = b0 + b1(log10 m_p)+ b2(log10 m_p)^2, m_p = M/pivot</span>
+        <span class="s1">&#39;A_cen&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Decorated HOD assembly bias parameters</span>
+        <span class="s1">&#39;A_sat&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Decorated HOD assembly bias parameters</span>
+    <span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">M_char</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the 10.**log10_m_ch</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            10.**log10_m_ch</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_m_ch&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Obs_norm_c</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the 10.**log10_obs_norm_c</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            10.**log10_obs_norm_c</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_obs_norm_c&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">COF_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        COF for Central galaxies (eq 17 of D23: 2210.03110):</span>
+
+<span class="sd">        :math:`\Phi_{\rm c}(O|M) = 1/[\sqrt{(2\pi)} \ln(10) \sigma_{\rm c} O] \exp[-\log(O/O_{\star, {\rm c}})^{2}/ (2 \sigma_{\rm c}^{2})]`</span>
+
+<span class="sd">        Note  :math:`\Phi_{\rm c}(O|M)` is unitless.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            COF of central galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mean_obs_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cal_mean_obs_c</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>  <span class="c1"># O∗c</span>
+        <span class="n">COF_c</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mf">1.0</span>
+            <span class="o">/</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span>
+                <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;sigma_log10_O_c&#39;</span><span class="p">]</span>
+                <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs</span>
+            <span class="p">)</span>
+            <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+                <span class="o">-</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs</span> <span class="o">/</span> <span class="n">mean_obs_c</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;sigma_log10_O_c&#39;</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">COF_c</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">COF_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        COF for satellite galaxies (eq 18 of D23: 2210.03110):</span>
+
+<span class="sd">        :math:`\Phi_{\rm s}(O|M) = \phi_{\star, {\rm s}}/O_{\star, {\rm s}} (O/O_{\star, {\rm s}})^{\alpha_{\rm s}} \exp [-(O/O_{\star, {\rm s}})^{2}]`,</span>
+
+<span class="sd">        :math:`O_{\star, {\rm s}}` is :math:`O_{\star, {\rm s}}(M) = 0.56 O_{\star, {\rm c}}(M)`</span>
+<span class="sd">        Note :math:`\Phi_{\rm s}(O|M)` is unitless.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            COF of satellite galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs_s_star</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;norm_s&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cal_mean_obs_c</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">obs_tilde</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs</span> <span class="o">/</span> <span class="n">obs_s_star</span>
+        <span class="n">phi_star_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_star_s</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">COF_s</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">phi_star_val</span> <span class="o">/</span> <span class="n">obs_s_star</span><span class="p">)</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">obs_tilde</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alpha_s&#39;</span><span class="p">])</span>
+            <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">obs_tilde</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;beta_s&#39;</span><span class="p">]))</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">COF_s</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">COF</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Total COF, sum of central and satellite COFs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            COF of all galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">COF_cen</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">COF_sat</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">obs_func_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The observable function (SMF/LF) for central galaxies.</span>
+<span class="sd">        Defined as: :math:`\Phi_{\rm c}(O|M)`, :math:`\Phi_{\rm s}(O|M)` integrated over the halo mass weighted</span>
+<span class="sd">        with the Halo Mass Function (HMF) to give:  :math:`\Phi_{\rm c}(O)`, :math:`\Phi_{\rm c}(O)`</span>
+
+<span class="sd">        :math:`\Phi_{\rm x}(O) = \int \Phi_{\rm x}(O|M) n(M) {\rm d}M`,</span>
+
+<span class="sd">        dndlnm is basically n(M) x mass, it is the output of hmf</span>
+<span class="sd">        The differential mass function in terms of natural log of m,</span>
+<span class="sd">        len=len(m) [units \(h^3 Mpc^{-3}\)]</span>
+
+<span class="sd">        dn(m)/ dln m eq1 of 1306.6721</span>
+
+<span class="sd">        obs_func unit is h^3 Mpc^{-3} dex^-1</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            observable function of central galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">integrand</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">COF_cen</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dndlnm_int</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">obs_function</span> <span class="o">=</span> <span class="n">simpson</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obs_function</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">obs_func_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The observable function (SMF/LF) for satellite galaxies.</span>
+<span class="sd">        Defined as: :math:`\Phi_{\rm c}(O|M)`, :math:`\Phi_{\rm s}(O|M)` integrated over the halo mass weighted</span>
+<span class="sd">        with the Halo Mass Function (HMF) to give:  :math:`\Phi_{\rm c}(O)`, :math:`\Phi_{\rm c}(O)`</span>
+
+<span class="sd">        :math:`\Phi_{\rm x}(O) = \int \Phi_{\rm x}(O|M) n(M) {\rm d}M`,</span>
+
+<span class="sd">        dndlnm is basically n(M) x mass, it is the output of hmf</span>
+<span class="sd">        The differential mass function in terms of natural log of m,</span>
+<span class="sd">        len=len(m) [units \(h^3 Mpc^{-3}\)]</span>
+
+<span class="sd">        dn(m)/ dln m eq1 of 1306.6721</span>
+
+<span class="sd">        obs_func unit is h^3 Mpc^{-3} dex^-1</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            observable function of satellite galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">integrand</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">COF_sat</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dndlnm_int</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">obs_function</span> <span class="o">=</span> <span class="n">simpson</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obs_function</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">obs_func</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The observable function (SMF/LF).</span>
+<span class="sd">        Defined as: :math:`\Phi_{\rm c}(O|M)`, :math:`\Phi_{\rm s}(O|M)` integrated over the halo mass weighted</span>
+<span class="sd">        with the Halo Mass Function (HMF) to give:  :math:`\Phi_{\rm c}(O)`, :math:`\Phi_{\rm c}(O)`</span>
+
+<span class="sd">        :math:`\Phi_{\rm x}(O) = \int \Phi_{\rm x}(O|M) n(M) {\rm d}M`,</span>
+
+<span class="sd">        dndlnm is basically n(M) x mass, it is the output of hmf</span>
+<span class="sd">        The differential mass function in terms of natural log of m,</span>
+<span class="sd">        len=len(m) [units \(h^3 Mpc^{-3}\)]</span>
+
+<span class="sd">        dn(m)/ dln m eq1 of 1306.6721</span>
+
+<span class="sd">        obs_func unit is h^3 Mpc^{-3} dex^-1</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            observable function of all galaxies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">integrand</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">COF</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dndlnm_int</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">obs_function</span> <span class="o">=</span> <span class="n">simpson</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obs_function</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cal_mean_obs_c</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stellar to halo mass relation (observable to halo mass relation).</span>
+<span class="sd">        Eqs 19 of D23: 2210.03110</span>
+
+<span class="sd">        :math:`O_{\star, {\rm c}}(M)` = O_0 (M/M_{1})^{\gamma_{1}} / [1 + (M/M_{1})]^{(\gamma_{1} - \gamma_{2})}`</span>
+
+<span class="sd">        To get the values for the satellite call this * hod_par.norm_s</span>
+
+<span class="sd">        :math:`O_{\star, {\rm s}}(M)` = 0.56 O_{\star, {\rm c}}(M)`</span>
+
+<span class="sd">        Here  :math:`M_1` is a characteristic mass scale, and :math:`O_0` is the normalization.</span>
+
+<span class="sd">        (observable can be galaxy luminosity or stellar mass)</span>
+<span class="sd">        returns the observable given halo mass.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            observable given halo mass - SMHM relation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mean_obs_c</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Obs_norm_c</span>
+            <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">M_char</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;g1&#39;</span><span class="p">]</span>
+            <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">M_char</span><span class="p">))</span>
+            <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;g1&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;g2&#39;</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">mean_obs_c</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phi_star_s</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Normalisation of satellite COF function.</span>
+<span class="sd">        Eqs 21 and 22 of D23: 2210.03110</span>
+
+<span class="sd">        :math:`log[\phi_{\star, {\rm s}}(M)] = b_0 + b_1(\log M_{13})` , :math:`M_{13} = M/({\rm pivot})`</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            normalisation of satellite COF function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logM_pivot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;pivot&#39;</span><span class="p">]</span>
+        <span class="n">log_phi_s</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;b0&#39;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;b1&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">logM_pivot</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;b2&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">logM_pivot</span><span class="o">**</span><span class="mf">2.0</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="mf">10.0</span><span class="o">**</span><span class="n">log_phi_s</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Eq 23 of D23: 2210.03110</span>
+
+<span class="sd">        :math:`\langle N_{\rm x}|M \rangle = \int_{O_{\rm low}}^{O_{\rm high}} \Phi_{\rm x}(O|M) {\rm d}O`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">N_cen</span> <span class="o">=</span> <span class="n">simpson</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COF_cen</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_cen&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_pop_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_cen&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="n">N_cen</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">N_cen</span><span class="p">)</span>
+            <span class="n">N_cen</span> <span class="o">=</span> <span class="n">N_cen</span> <span class="o">+</span> <span class="n">delta_pop_c</span>
+        <span class="k">return</span> <span class="n">N_cen</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Eq 23 of D23: 2210.03110</span>
+
+<span class="sd">        :math:`\\langle N_{\rm x}|M \rangle = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) {\rm d}O`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">N_sat</span> <span class="o">=</span> <span class="n">simpson</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COF_sat</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_sat&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_pop_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_sat&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">N_sat</span>
+            <span class="n">N_sat</span> <span class="o">=</span> <span class="n">N_sat</span> <span class="o">+</span> <span class="n">delta_pop_s</span>
+        <span class="k">return</span> <span class="n">N_sat</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_stellar_fraction_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The mean value of the observable for the given galaxy population for a given halo mass.</span>
+<span class="sd">        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\\Phi_{\rm x}(O|M)`</span>
+
+<span class="sd">        :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">simpson</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COF_cen</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_stellar_fraction_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The mean value of the observable for the given galaxy population for a given halo mass.</span>
+<span class="sd">        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\\Phi_{\rm x}(O|M)`</span>
+
+<span class="sd">        :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">simpson</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COF_sat</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_stellar_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The mean value of the observable for the given galaxy population for a given halo mass.</span>
+<span class="sd">        O is weighted by the number of galaxies with the property O for each halo mass: :math:`\\Phi_{\rm x}(O|M)`</span>
+
+<span class="sd">        :math:`f_{\\star} = \\int_{O_{\rm low}}^{O_{\rm high}} \\Phi_{\rm x}(O|M) O {\rm d}O`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">simpson</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COF</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span></div>
+
+
+
+<div class="viewcode-block" id="Simple">
+<a class="viewcode-back" href="../../_autosummary/hod/onepower.hod.Simple.html#onepower.hod.Simple">[docs]</a>
+<span class="k">class</span> <span class="nc">Simple</span><span class="p">(</span><span class="n">HOD</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple HOD model</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    log10_Mmin : array_like</span>
+<span class="sd">        Log10 of the minimum mass for central galaxies.</span>
+<span class="sd">    log10_Msat : array_like</span>
+<span class="sd">        Log10 of the minimum mass for satellite galaxies.</span>
+<span class="sd">    alpha : array_like</span>
+<span class="sd">        Slope parameter for satellite galaxies.</span>
+<span class="sd">    A_cen : float, optional</span>
+<span class="sd">        Decorated HOD assembly bias parameter for central galaxies.</span>
+<span class="sd">    A_sat : float, optional</span>
+<span class="sd">        Decorated HOD assembly bias parameter for satellite galaxies.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_defaults</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;log10_Mmin&#39;</span><span class="p">:</span> <span class="mf">12.0</span><span class="p">,</span>
+        <span class="s1">&#39;log10_Msat&#39;</span><span class="p">:</span> <span class="mf">13.0</span><span class="p">,</span>
+        <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="s1">&#39;A_cen&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;A_sat&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log10_Mmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log10 of the minimum mass for central galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_Mmin&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log10_Msat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log10 of the minimum mass for satellite galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_Msat&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">alpha</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Slope parameter for satellite galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Mmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Mmin parameter in the correct shape and units.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Mmin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">log10_Mmin</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Msat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Msat parameter in the correct shape and units.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Msat</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">log10_Msat</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for central galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">N_cen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">heaviside</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mmin</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_cen&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_pop_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_cen&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="n">N_cen</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">N_cen</span><span class="p">)</span>
+            <span class="n">N_cen</span> <span class="o">=</span> <span class="n">N_cen</span> <span class="o">+</span> <span class="n">delta_pop_c</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">N_cen</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for satellite galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">N_sat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_hod_cen</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Msat</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_sat&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_pop_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_sat&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">N_sat</span>
+            <span class="n">N_sat</span> <span class="o">=</span> <span class="n">N_sat</span> <span class="o">+</span> <span class="n">delta_pop_s</span>
+        <span class="k">return</span> <span class="n">N_sat</span></div>
+
+
+
+<div class="viewcode-block" id="Zehavi">
+<a class="viewcode-back" href="../../_autosummary/hod/onepower.hod.Zehavi.html#onepower.hod.Zehavi">[docs]</a>
+<span class="k">class</span> <span class="nc">Zehavi</span><span class="p">(</span><span class="n">HOD</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    HOD model from Zehavi et al. (2004) [1]_.</span>
+
+<span class="sd">    Same as Zheng model in the limit that sigma=0 and M0=0</span>
+<span class="sd">    Mean number of central galaxies is only ever 0 or 1 in this HOD</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    log10_Mmin : array_like</span>
+<span class="sd">        Log10 of the minimum mass for central galaxies.</span>
+<span class="sd">    log10_Msat : array_like</span>
+<span class="sd">        Log10 of the minimum mass for satellite galaxies.</span>
+<span class="sd">    alpha : array_like</span>
+<span class="sd">        Slope parameter for satellite galaxies.</span>
+<span class="sd">    A_cen : float, optional</span>
+<span class="sd">        Decorated HOD assembly bias parameter for central galaxies.</span>
+<span class="sd">    A_sat : float, optional</span>
+<span class="sd">        Decorated HOD assembly bias parameter for satellite galaxies.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1]  Zheng, Z. et al., &quot;Galaxy Evolution from Halo Occupation Distribution Modeling of DEEP2 and SDSS Galaxy Clustering&quot;,</span>
+<span class="sd">            https://iopscience.iop.org/article/10.1086/521074.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_defaults</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;log10_Mmin&#39;</span><span class="p">:</span> <span class="mf">12.0</span><span class="p">,</span>
+        <span class="s1">&#39;log10_Msat&#39;</span><span class="p">:</span> <span class="mf">13.0</span><span class="p">,</span>
+        <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="s1">&#39;A_cen&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;A_sat&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log10_Mmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log10 of the minimum mass for central galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_Mmin&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log10_Msat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log10 of the minimum mass for satellite galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_Msat&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">alpha</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Slope parameter for satellite galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Mmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Mmin parameter in the correct shape and units.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Mmin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">log10_Mmin</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Msat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Msat parameter in the correct shape and units.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Msat</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">log10_Msat</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for central galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">N_cen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">heaviside</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mmin</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_cen&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_pop_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_cen&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="n">N_cen</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">N_cen</span><span class="p">)</span>
+            <span class="n">N_cen</span> <span class="o">=</span> <span class="n">N_cen</span> <span class="o">+</span> <span class="n">delta_pop_c</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">N_cen</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for satellite galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">N_sat</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Msat</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_sat&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_pop_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_sat&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">N_sat</span>
+            <span class="n">N_sat</span> <span class="o">=</span> <span class="n">N_sat</span> <span class="o">+</span> <span class="n">delta_pop_s</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">N_sat</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="Zheng">
+<a class="viewcode-back" href="../../_autosummary/hod/onepower.hod.Zheng.html#onepower.hod.Zheng">[docs]</a>
+<span class="k">class</span> <span class="nc">Zheng</span><span class="p">(</span><span class="n">HOD</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    HOD model from Zheng et al. (2005) [1]_.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    log10_Mmin : array_like</span>
+<span class="sd">        Log10 of the minimum mass for central galaxies.</span>
+<span class="sd">    log10_M0 : array_like</span>
+<span class="sd">        Log10 of the cutoff mass for satellite galaxies.</span>
+<span class="sd">    log10_M1 : array_like</span>
+<span class="sd">        Log10 of the normalization mass for satellite galaxies.</span>
+<span class="sd">    sigma : array_like</span>
+<span class="sd">        Scatter in the central galaxy occupation.</span>
+<span class="sd">    alpha : array_like</span>
+<span class="sd">        Slope parameter for satellite galaxies.</span>
+<span class="sd">    A_cen : float, optional</span>
+<span class="sd">        Decorated HOD assembly bias parameter for central galaxies.</span>
+<span class="sd">    A_sat : float, optional</span>
+<span class="sd">        Decorated HOD assembly bias parameter for satellite galaxies.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1]  Zheng, Z. et al., &quot;Theoretical Models of the Halo Occupation Distribution: Separating Central and Satellite Galaxies&quot;,</span>
+<span class="sd">            https://iopscience.iop.org/article/10.1086/466510.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_defaults</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;log10_Mmin&#39;</span><span class="p">:</span> <span class="mf">12.0</span><span class="p">,</span>
+        <span class="s1">&#39;log10_M0&#39;</span><span class="p">:</span> <span class="mf">12.0</span><span class="p">,</span>
+        <span class="s1">&#39;log10_M1&#39;</span><span class="p">:</span> <span class="mf">13.0</span><span class="p">,</span>
+        <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>
+        <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="s1">&#39;A_cen&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;A_sat&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log10_Mmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log10 of the minimum mass for central galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_Mmin&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log10_M0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log10 of the cutoff mass for satellite galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_M0&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log10_M1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log10 of the normalization mass for satellite galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_M1&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">alpha</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Slope parameter for satellite galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Scatter in the central galaxy occupation.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Mmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Mmin parameter in the correct shape and units.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Mmin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">log10_Mmin</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">M0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the M0 parameter in the correct shape and units.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            M0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">log10_M0</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">M1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the M1 parameter in the correct shape and units.ž</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            M1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">log10_M1</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for central galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">N_cen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">heaviside</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mmin</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+            <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">erf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mmin</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_cen&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_pop_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_cen&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="n">N_cen</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">N_cen</span><span class="p">)</span>
+            <span class="n">N_cen</span> <span class="o">=</span> <span class="n">N_cen</span> <span class="o">+</span> <span class="n">delta_pop_c</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">N_cen</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for satellite galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">N_sat</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">heaviside</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">M0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">M0</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">M1</span>
+        <span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_sat&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_pop_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_sat&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">N_sat</span>
+            <span class="n">N_sat</span> <span class="o">=</span> <span class="n">N_sat</span> <span class="o">+</span> <span class="n">delta_pop_s</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">N_sat</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="Zhai">
+<a class="viewcode-back" href="../../_autosummary/hod/onepower.hod.Zhai.html#onepower.hod.Zhai">[docs]</a>
+<span class="k">class</span> <span class="nc">Zhai</span><span class="p">(</span><span class="n">HOD</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    HOD model from Zhai et al. (2017) [1]_.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    log10_Mmin : array_like</span>
+<span class="sd">        Log10 of the minimum mass for central galaxies.</span>
+<span class="sd">    log10_Msat : array_like</span>
+<span class="sd">        Log10 of the minimum mass for satellite galaxies.</span>
+<span class="sd">    log10_Mcut : array_like</span>
+<span class="sd">        Log10 of the cutoff mass for satellite galaxies.</span>
+<span class="sd">    sigma : array_like</span>
+<span class="sd">        Scatter in the central galaxy occupation.</span>
+<span class="sd">    alpha : array_like</span>
+<span class="sd">        Slope parameter for satellite galaxies.</span>
+<span class="sd">    A_cen : float, optional</span>
+<span class="sd">        Decorated HOD assembly bias parameter for central galaxies.</span>
+<span class="sd">    A_sat : float, optional</span>
+<span class="sd">        Decorated HOD assembly bias parameter for satellite galaxies.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1]  Zhai, Z. et al., &quot;The clustering of luminous red galaxies at z ~ 0.7 from eBOSS and BOSS data&quot;,</span>
+<span class="sd">            https://iopscience.iop.org/article/10.3847/1538-4357aa8eee.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_defaults</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;log10_Mmin&#39;</span><span class="p">:</span> <span class="mf">13.68</span><span class="p">,</span>
+        <span class="s1">&#39;log10_Msat&#39;</span><span class="p">:</span> <span class="mf">14.87</span><span class="p">,</span>
+        <span class="s1">&#39;log10_Mcut&#39;</span><span class="p">:</span> <span class="mf">12.32</span><span class="p">,</span>
+        <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">0.82</span><span class="p">,</span>
+        <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">0.41</span><span class="p">,</span>
+        <span class="s1">&#39;A_cen&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;A_sat&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log10_Mmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log10 of the minimum mass for central galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_Mmin&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log10_Msat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log10 of the minimum mass for satellite galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_Msat&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log10_Mcut</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log10 of the cutoff mass for satellite galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;log10_Mcut&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">alpha</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Slope parameter for satellite galaxies.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Scatter in the central galaxy occupation.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Mmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Mmin parameter in the correct shape and units.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Mmin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">log10_Mmin</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Msat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Msat parameter in the correct shape and units.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Msat</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">log10_Msat</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Mcut</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Mcut parameter in the correct shape and units.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        array_like</span>
+<span class="sd">            Mcut</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">log10_Mcut</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_cen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for central galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">N_cen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">heaviside</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mmin</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+            <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">erf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mmin</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_cen&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_pop_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_cen&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="n">N_cen</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">N_cen</span><span class="p">)</span>
+            <span class="n">N_cen</span> <span class="o">=</span> <span class="n">N_cen</span> <span class="o">+</span> <span class="n">delta_pop_c</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">N_cen</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_compute_hod_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the HOD for satellite galaxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Paper has a Nc(M) multiplication, but I think the central condition covers this</span>
+        <span class="n">N_sat</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Msat</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Mcut</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_sat&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_pop_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;A_sat&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">N_sat</span>
+            <span class="n">N_sat</span> <span class="o">=</span> <span class="n">N_sat</span> <span class="o">+</span> <span class="n">delta_pop_s</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">N_sat</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Andrej Dvornik.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

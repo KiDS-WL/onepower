@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.update
+======================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: AlignmentAmplitudes.update

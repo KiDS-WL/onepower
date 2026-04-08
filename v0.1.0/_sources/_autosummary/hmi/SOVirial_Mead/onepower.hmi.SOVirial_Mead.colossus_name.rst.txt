@@ -1,0 +1,6 @@
+onepower.hmi.SOVirial\_Mead.colossus\_name
+==========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: SOVirial_Mead.colossus_name

@@ -1,0 +1,6 @@
+onepower.hod.HOD.avg\_halo\_mass\_sat
+=====================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HOD.avg_halo_mass_sat

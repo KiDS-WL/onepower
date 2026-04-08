@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.validate
+===================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: CosmologyBase.validate

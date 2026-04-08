@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.lpivot\_cen
+==========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.lpivot_cen

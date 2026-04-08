@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.get\_dependencies
+===================================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: HaloModelIngredients.get_dependencies

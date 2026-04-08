@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.emulator
+===================================
+
+.. currentmodule:: onepower.bnl
+
+.. autoproperty:: NonLinearBias.emulator

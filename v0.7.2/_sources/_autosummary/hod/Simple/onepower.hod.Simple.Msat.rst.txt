@@ -1,0 +1,6 @@
+onepower.hod.Simple.Msat
+========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.Msat

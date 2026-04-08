@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.central\_ia\_depends\_on
+========================================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.central_ia_depends_on

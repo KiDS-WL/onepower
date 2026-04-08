@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.\_\_init\_\_
+============================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: AlignmentAmplitudes.__init__

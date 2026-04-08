@@ -1,0 +1,6 @@
+onepower.hod.Zhai.avg\_halo\_mass\_cen
+======================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.avg_halo_mass_cen

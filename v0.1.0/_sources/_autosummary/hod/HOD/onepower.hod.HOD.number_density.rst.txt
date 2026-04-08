@@ -1,0 +1,6 @@
+onepower.hod.HOD.number\_density
+================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HOD.number_density

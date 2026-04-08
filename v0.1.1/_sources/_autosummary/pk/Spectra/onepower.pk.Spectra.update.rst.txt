@@ -1,0 +1,6 @@
+onepower.pk.Spectra.update
+==========================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.update

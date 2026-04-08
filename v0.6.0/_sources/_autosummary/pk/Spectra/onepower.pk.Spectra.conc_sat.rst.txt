@@ -1,0 +1,6 @@
+onepower.pk.Spectra.conc\_sat
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.conc_sat

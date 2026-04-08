@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.get\_models
+=================================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: Cacciato.get_models

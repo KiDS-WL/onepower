@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.Neff
+===============================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: CosmologyBase.Neff

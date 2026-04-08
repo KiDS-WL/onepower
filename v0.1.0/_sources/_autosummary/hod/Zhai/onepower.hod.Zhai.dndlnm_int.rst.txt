@@ -1,0 +1,6 @@
+onepower.hod.Zhai.dndlnm\_int
+=============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.dndlnm_int

@@ -1,0 +1,6 @@
+onepower.hod.Zhai.\_\_init\_\_
+==============================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: Zhai.__init__

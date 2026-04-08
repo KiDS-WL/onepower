@@ -1,0 +1,6 @@
+onepower.hod.Simple.nbins
+=========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.nbins

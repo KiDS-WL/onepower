@@ -1,0 +1,6 @@
+onepower.pk.PowerSpectrumResult.\_\_init\_\_
+============================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: PowerSpectrumResult.__init__

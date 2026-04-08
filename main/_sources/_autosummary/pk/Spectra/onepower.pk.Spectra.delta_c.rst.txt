@@ -1,0 +1,6 @@
+onepower.pk.Spectra.delta\_c
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.delta_c

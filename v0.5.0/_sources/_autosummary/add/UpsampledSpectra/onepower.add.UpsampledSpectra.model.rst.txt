@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.model
+===================================
+
+.. currentmodule:: onepower.add
+
+.. autoproperty:: UpsampledSpectra.model

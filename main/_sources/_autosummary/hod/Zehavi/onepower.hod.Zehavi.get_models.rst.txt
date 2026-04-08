@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.get\_models
+===============================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: Zehavi.get_models

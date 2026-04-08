@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.dc\_Mead
+==========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.dc_Mead

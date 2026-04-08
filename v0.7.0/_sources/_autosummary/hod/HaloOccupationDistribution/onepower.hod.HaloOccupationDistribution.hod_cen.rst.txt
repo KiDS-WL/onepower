@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.hod\_cen
+================================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HaloOccupationDistribution.hod_cen

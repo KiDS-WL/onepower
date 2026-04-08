@@ -1,0 +1,6 @@
+onepower.pk.Spectra.rvir\_cen
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.rvir_cen
