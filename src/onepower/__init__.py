@@ -7,7 +7,10 @@ with contextlib.suppress(PackageNotFoundError):
     __version__ = version(__name__)
 
 from .add import UpsampledSpectra
-from .bnl import NonLinearBias
+from .bnl import HAVE_DARKEMU
+
+if HAVE_DARKEMU:
+    from .bnl import NonLinearBias
 from .hmi import CosmologyBase, HaloModelIngredients
 from .hod import (
     HaloOccupationDistribution,

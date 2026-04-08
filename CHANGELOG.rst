@@ -4,11 +4,16 @@ Releases
 dev-version
 -----------
 
+v0.8.0 [7 Apr 2026]
+--------------------
+
 **Changes**
 
 * Performance improvements in Bnl non-linear corrections.
 * Added more defaults in CosmosSIS interface, so the Pmm case can be run without any HOD parameters needed.
 * Deprecated Python 3.10, planning to drop support for 3.11 when ``hmf/halomod`` does the same.
+* Updated code to reflect the API changes in ``hmf/halomod``, and updated the depenencies to reflect the newest versions support.
+* Updated the code to use the DarkQuest emulator as optional dependency.
 
 **Fixes**
 

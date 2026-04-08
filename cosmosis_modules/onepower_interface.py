@@ -4,7 +4,10 @@ from cosmosis.datablock import names, option_section
 from scipy.interpolate import interp1d
 
 from onepower.add import UpsampledSpectra
-from onepower.bnl import NonLinearBias
+from onepower.bnl import HAVE_DARKEMU
+
+if HAVE_DARKEMU:
+    from onepower.bnl import NonLinearBias
 from onepower.pk import Spectra
 
 cosmo_params = names.cosmological_parameters
@@ -621,6 +624,9 @@ def setup(options):
 
     # hmf config
     config_hmf = setup_hmf_config(options)
+
+    if nonlinear_mode == 'bnl' and not HAVE_DARKEMU:
+        raise ImportError('Dark Emulator is required for BNL mode!')
 
     if nonlinear_mode == 'bnl':
         cached_bnl = {

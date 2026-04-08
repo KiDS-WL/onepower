@@ -45,7 +45,10 @@ from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import get_mdl
 from hmf.density_field.transfer_models import EH_NoBAO as Tk_EH_nowiggle
 
-from .bnl import NonLinearBias
+from .bnl import HAVE_DARKEMU
+
+if HAVE_DARKEMU:
+    from .bnl import NonLinearBias
 from .hmi import HaloModelIngredients
 from .ia import SatelliteAlignment
 from .utils import poisson
@@ -520,19 +523,24 @@ class Spectra(HaloModelIngredients):
         ndarray
             The non-linear bias.
         """
-        bnl = NonLinearBias(
-            mass=self.mass,
-            z_vec=self.z_vec,
-            k_vec=self.k_vec,
-            h0=self.h0,
-            sigma_8=self.sigma_8,
-            omega_b=self.omega_b,
-            omega_c=self.omega_c,
-            omega_lambda=1.0 - self.omega_m,
-            n_s=self.n_s,
-            w0=self.w0,
-        )
-        return np.ascontiguousarray(bnl.bnl)
+        if HAVE_DARKEMU:
+            bnl = NonLinearBias(
+                mass=self.mass,
+                z_vec=self.z_vec,
+                k_vec=self.k_vec,
+                h0=self.h0,
+                sigma_8=self.sigma_8,
+                omega_b=self.omega_b,
+                omega_c=self.omega_c,
+                omega_lambda=1.0 - self.omega_m,
+                n_s=self.n_s,
+                w0=self.w0,
+            )
+            return np.ascontiguousarray(bnl.bnl)
+        else:
+            raise ImportError(
+                'Dark Emulator is not available! Install the Dark Emulator first and re-install the OnePower to enable it.'
+            )
 
     @cached_quantity
     def I12(self):

@@ -16,7 +16,7 @@ authors = [
 license = "MIT"
 license-files = ["LICEN[CS]E*"]
 
-requires-python = ">=3.11, <3.13"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
@@ -24,20 +24,20 @@ classifiers = [
     "Operating System :: Unix",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "Natural Language :: English",
 	"Topic :: Scientific/Engineering :: Physics",
 	"Topic :: Scientific/Engineering :: Astronomy",
 ]
 dependencies = [
-    "hmf>=3.5.2",
-    #"halomod @ git+https://github.com/halomod/halomod.git@main",
+    "hmf>=3.6.0",
+    "halomod>=2.2.3",
     "numpy>=2.0",
     "astropy>=6.0.0",
-    "dark_emulator==1.1.2",
-    "scipy<1.14.0",
+    "scipy>=1.13.1",
     "camb>=1.4.0",
     "numexpr>=2.8.7",
     "colossus>=1.3.5",
@@ -50,6 +50,11 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
+bnl = [
+    "dark_emulator==1.1.2 ; python_version == '3.12'",
+    "scipy==1.13.1 ; python_version == '3.12'",
+    "bnl-not-supported-on-python-gt-3-12 ; python_version > '3.12'",
+]
 docs = [
 	"sphinx>=6.1.3",
 	"numpydoc>=0.8.0",
@@ -73,7 +78,7 @@ tests = [
 	"numba",
 ]
 dev = [
-    "onepower[docs,tests]"
+    "onepower[docs,tests,bnl]"
 ]
 all = [
     "onepower[dev]"

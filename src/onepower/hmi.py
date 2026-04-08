@@ -1534,7 +1534,7 @@ class HaloModelIngredients(CosmologyBase):
         array_like
             growth factor at z
         """
-        return self._hmf_cen[0]._growth_factor_fn(self.z_vec)
+        return self._hmf_cen[0].growth.growth_factor(self.z_vec)
 
     # Maybe implement at some point?
     # Rnl = DM_hmf.filter.mass_to_radius(DM_hmf.mass_nonlinear, DM_hmf.mean_density0)
