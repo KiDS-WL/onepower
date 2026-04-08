@@ -112,6 +112,8 @@ jobs:
 
       - uses: actions/setup-python@v5
         if: steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false'
+        with:
+          python-version: "3.12"
 
       - name: Install pandoc
         if: steps.vars.outputs.always_build == 'true' || steps.check.outputs.exists == 'false'
