@@ -92,6 +92,18 @@ Issues = "https://github.com/KiDS-WL/onepower/issues"
 Changelog = "https://github.com/KiDS-WL/onepower/blob/main/CHANGELOG.rst"
 
 
+[tool.cibuildwheel]
+build = "cp313-*"
+skip = "*-win32 *-manylinux_i686"
+wheel-dir = "wheelhouse"
+
+[tool.cibuildwheel.macos]
+archs = ["universal2"]
+
+[tool.cibuildwheel.ios]
+archs = ["arm64", "simulator_arm64", "x86_64"]
+
+
 [tool.pytest.ini_options]
 addopts = "--cov onepower --cov-report term-missing --verbose"
 norecursedirs = [
