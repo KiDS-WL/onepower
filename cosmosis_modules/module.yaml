@@ -1,16 +1,17 @@
 name: onepower_interface
 version: Jul2025
-purpose: "Calculates power spectra using halo model. "
-url: ""
+purpose: Calculates power spectra using halo model.
+url: "https://kids-wl.github.io/onepower/"
 interface: onepower_interface.py
 attribution: [Andrej Dvornik, Marika Asgari, Maria-Cristina Fortuna]
 rules:
-    "If you use this module then please cite the papers below"
+    If you use this module then please cite the papers below
 cite:
-    - ""
+    - "https://arxiv.org/abs/2003.02700"
+    - "https://arxiv.org/abs/2210.03110"
 
 assumptions:
-    - ""
+    -
 
 explanation: |
   This module has two modes: response and direct
@@ -55,7 +56,7 @@ explanation: |
 # List of parameters that can go in the params.ini file in the section for this module
 params:
       p_mm:
-          meaning: "if True calculates matter-matter power spectrum. If you want the non-linear matter power spectrum not to be calculated using halo model, use CAMB with the desired non-linear model before this module and set p_mm = False."
+          meaning: "if True calculates matter-matter power spectrum. If you want the non-linear matter power spectrum not to be calculated using halo model, use CAMB with the desired non-linear model before this module and set p_mm to False."
           type: bool
           default: False
       p_gm:
@@ -121,35 +122,39 @@ params:
       hod_section_name:
           meaning: "Section name for HOD outputs."
           type: str
-          default:
+          default: 'hod'
       hod_section_name_ia:
           meaning: "Section name for IA HOD outputs."
           type: str
-          default:
+          default: 'ia'
       hod_section_name_ia_1:
           meaning: "Section name for IA HOD outputs, if split_ia == True."
           type: str
-          default:
+          default: 'ia_1'
       hod_section_name_ia_2:
           meaning: "Section name for IA HOD outputs, if split_ia == True."
           type: str
-          default:
+          default: 'ia_2'
+      output_suffix:
+          meaning: "Suffix for hod parameters and HOD outputs."
+          type: str
+          default: ''
       output_suffix_ia:
           meaning: "Suffix for IA parameters and IA HOD outputs."
           type: str
-          default:
+          default: ''
       output_suffix_ia_1:
           meaning: "Suffix for IA parameters and IA HOD outputs, if split_ia == True."
           type: str
-          default:
+          default: ''
       output_suffix_ia_2:
           meaning: "Suffix for IA parameters and IA HOD outputs, if split_ia == True."
           type: str
-          default:
+          default: ''
       values_name:
           meaning: "Section name for hod values."
           type: str
-          default:
+          default: 'hod_parameters'
       hmcode_ingredients:
           meaning: "Choose from mead2020, mead2020_feedback, fit_feedback and None. If not None or fit sets the ingredients to match Mead+ 2021, HMCode2020 paper. fit uses input HOD to apply baryonic feedback to the P_mm, linking the P_mm to P_gg and P_gm in a self-consistent way"
           type: str
@@ -161,7 +166,7 @@ params:
       save_observable:
           meaning: If true predicts the SMF/LF functions
           type: bool
-          default: True
+          default: False
       observable_section_name:
           meaning: output section name for the observable related quantities.
           type: str
@@ -169,36 +174,36 @@ params:
       observable_h_unit:
           meaning: units of h for the observable, valid_units are 1/h and 1/h^2
           type: str
-          default: 1/h^2
+          default: '1/h^2'
       # The observables_file, nobs, zmin, zmax, nz, log10_obs_min and log10_obs_max should be provided with the _hod suffix for general HOD, _ia for single IA sample, or _ia_1 and _ia_2 for split IA sample
       observables_file:
           meaning: "(optional) text file containing the observable values, should contain 3 columns: z_bins, obs_min, obs_max"
           type: str
-          default:
+          default: ''
       nobs:
           meaning: Number of observable bins within each observable-redshift bin
                 for calculating variables in terms of the observables. Use at least 100
                 to avoid numerical issue when integrating.
           type: int
-          default: 200
+          default: 100
       zmin:
-          meaning: "(optional) if observables_file not given, but we use the observable files then look for a scalar zmin. if no observable files are given, look for the minimum values for the redshift of each observable bin. zmin should have the same number of values as obs_min and obs_max. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space)."
+          meaning: "(optional) If no observable files are given, look for the minimum values for the redshift of each observable bin. zmin should have the same number of values as obs_min and obs_max. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space)."
           type: real or real 1D
           default:
       zmax:
-          meaning: "(optional) if observables_file not given, but we use the observable files then look for a scalar zmax. If no observable files are given, look for the maximum values for the redshift of each observable bin. zmax should have the same number of values as obs_min and obs_max. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space)."
+          meaning: "(optional) If no observable files are given, look for the maximum values for the redshift of each observable bin. zmax should have the same number of values as obs_min and obs_max. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space)."
           type: real or real 1D
           default:
       nz:
-          meaning: "(optional) if observables_file not given, then look for nz, with zmin and zmax make the number of redshift bins for which the observable is caluclated at. If we have bin edges defined the nz is the number of redshift bins in each redshift-observable box."
+          meaning: "(optional) If no observable files are given, look for nz, with zmin and zmax make the number of redshift bins for which the observable is calculated at. If we have bin edges defined the nz is the number of redshift bins in each redshift-observable box."
           type: integer
           default:
       log10_obs_min:
-          meaning: "(optional) if no observable files are given, look for the minimum values for observables. If using multiple bins for the observable then provide the minimum value for each bin. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space). Note this is in log10 format."
+          meaning: "(optional) If no observable files are given, look for the minimum values for observables. If using multiple bins for the observable then provide the minimum value for each bin. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space). Note this is in log10 format."
           type: real 1D
           default:
       log10_obs_max:
-          meaning: "(optional) if no observable files are given, look for the maximum values for observables. If using multiple bins for the observable then provide the maximum value for each bin. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space). Note this is in log10 format."
+          meaning: "(optional) If no observable files are given, look for the maximum values for observables. If using multiple bins for the observable then provide the maximum value for each bin. We assume that these are bins in both redshift and observable (boxed shaped bins in observable-redshift space). Note this is in log10 format."
           type: real 1D
           default:
       central_IA_depends_on:
@@ -212,27 +217,27 @@ params:
       log_mass_min:
           meaning: "Minimum halo mass in log10(M_sun h^-1)."
           type: real
-          default:
+          default: 9.0
       log_mass_max:
           meaning: "Maximum halo mass in log10(M_sun h^-1)."
           type: real
-          default:
+          default: 16.0
       nmass:
           meaning: "Number of log10 binned halo masses."
           type: integer
-          default:
+          default: 200
       zmin_hmf:
           meaning: "Minimum redshift used to calculate ingredients."
           type: real
-          default:
+          default: 0.0
       zmax_hmf:
           meaning: "Maximum redshift used to calculate ingredients."
           type: real
-          default:
+          default: 3.0
       nz_hmf:
           meaning: "Number of redshift bins."
           type: integer
-          default:
+          default: 15
       profile_cen:
           meaning: "type of dark matter / central galaxy profile, choose from: NFW, CoredNFW, Einasto, ... see full list:
           https://halomod.readthedocs.io/en/latest/_autosummary/halomod.profiles.html"
@@ -246,58 +251,60 @@ params:
       nk:
           meaning: "Number of k-modes for fourier transform of the profile."
           type: integer
-          default:
+          default: 100
       profile_value_name:
           meaning: "Section name in values.ini for profile inputs."
           type: str
           default: profile_parameters
       hmf_model:
-          meaning: "Model name for halo mass function, choose from options available in hmf"
+          meaning: "Model name for halo mass function, choose from options available in hmf package. See full list:
+          https://hmf.readthedocs.io/en/latest/_autosummary/hmf.mass_function.fitting_functions.html"
           type: str
-          default:
+          default: Tinker10
       mdef_model:
-          meaning: "Halo mass definition, choose from options availalbe in hmf"
+          meaning: "Halo mass definition, choose from options availalbe in hmf package. See full list:
+          https://hmf.readthedocs.io/en/latest/_autosummary/hmf.halos.mass_definitions.html"
           type: str
-          default:
+          default: SOMean
       overdensity:
           meaning: Over density threshold, only used if mdef_model!=SOVirial
           type: float
-          default:
+          default: 200.0
       cm_model_cen:
-          meaning: "Desired c(M) relation for dark matter / central galaxies, choose from option availalbe in hmf"
+          meaning: "Desired c(M) relation for dark matter / central galaxies, choose from option availalbe in halomod package."
           type: str
-          default:
+          default: Duffy08
       cm_model_sat:
-          meaning: "Desired c(M) relation for satellite galaxies, choose from option availalbe in hmf"
+          meaning: "Desired c(M) relation for satellite galaxies, choose from option availalbe in halomod package."
           type: str
-          default:
+          default: Duffy08
       bias_model:
-          meaning: "Model name for halo bias function, choose from options available in hmf"
+          meaning: "Model name for halo bias function, choose from options available in halomod package."
           type: str
-          default:
+          default: Tinker10
       delta_c:
           meaning: Critical density threshold for collapse.
           type: float
-          default:
+          default: 1.686
 
 inputs:
     profile_value_name:
         norm_cen:
             meaning: Normalisation of c(M) relation for central galaxies / matter
             type: real
-            default:
+            default: 1.0
         norm_sat:
             meaning: Normalisation of c(M) relation for satellite galaxies
             type: real
-            default:
+            default: 1.0
         eta_cen:
             meaning: Halo bloating for central galaxies / matter
             type: real
-            default:
+            default: 0.0
         eta_sat:
             meaning: Halo bloating for satellite galaxies
             type: real
-            default:
+            default: 0.0
     matter_power_transfer_func:
         k_h:
           meaning: Wavenumbers k of samples in Mpc/h.
@@ -380,33 +387,33 @@ inputs:
           meaning:
           type: real
     intrinsic_alignment_parameters{_suffix}:
-        beta:
-          meaning:
-          type:
+        beta_cen:
+          meaning: "Intrinsic alignment slope parameter for central galaxies"
+          type: real
         beta_sat:
-          meaning:
-          type:
+          meaning: "Intrinsic alignment slope parameter for satellite galaxies"
+          type: real
         M_pivot:
-          meaning:
-          type:
-        gamma_1h_radial_slope:
-          meaning:
-          type:
+          meaning: "Pivot mass or luminosity for intrinsic alignment"
+          type: real
+        gamma_1h_slope:
+          meaning: "Intrinsic alignment slope parameter for 1-halo term"
+          type: real
         gamma_1h_amplitude:
-          meaning:
-          type:
+          meaning: "Intrinsic alignment amplitude parameter for 1-halo term"
+          type: real
         gamma_2h_amplitude:
-          meaning:
-          type:
+          meaning: "Intrinsic alignment amplitude parameter for 2-halo term"
+          type: real
     pk_parameters:
         poisson:
-          meaning:
+          meaning: "Poisson function normalisation or number if function is scalar"
           type: real
         M_0:
-          meaning:
+          meaning: "Characteristic mass scale"
           type: real
         slope:
-          meaning:
+          meaning: "Slope of the mass dependent Poisson function"
           type: real
         linear_fraction_fortuna:
           meaning: if linear_fraction_fortuna is t_eff then pk_eff = (1.-t_eff)*pnl + t_eff*plin
