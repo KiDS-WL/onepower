@@ -14,18 +14,7 @@ assumptions:
     -
 
 explanation: |
-  This module has two modes: response and direct
-  If in direct mode it will directly calculate the power spectra
-  If in response mode it will calcualte the reponse of the hm to different power spectra with respect to P_mm
-  and multiply that to an input P_mm to estimate the desired power, for example:
-  res_gg = P^hm_gg/P^hm_mm
-  res_gm = P^hm_gm/P^hm_mm
-  Then uses these in combination with input matter power spectra, P_mm, to create 3D power for P_gg and P_gm
-  P_gg = res_gg P_mm
-  P_gm = res_gm P_mm
-
-  The following exaplains how P^hm_xy are calculated.
-  Calculates 3D power spectra using the halo model approach:
+  A module for calculating 3D power spectra using the halo model approach:
   See section 2 of https://arxiv.org/pdf/2303.08752.pdf for details
 
   P_uv = P^2h_uv + P^1h_uv  (1)
@@ -52,6 +41,16 @@ explanation: |
   II: intrinsic-intrinsic alignments
   gI: galaxy-intrinsic alignment
   mI: matter-intrinsic alignment
+
+  This module has two modes: response and direct
+  If in direct mode it will directly calculate the power spectra
+  If in response mode it will calcualte the reponse of the hm to different power spectra with respect to P_mm
+  and multiply that to an input P_mm to estimate the desired power, for example:
+  res_gg = P^hm_gg/P^hm_mm
+  res_gm = P^hm_gm/P^hm_mm
+  Then uses these in combination with input matter power spectra, P_mm, to create 3D power for P_gg and P_gm
+  P_gg = res_gg P_mm
+  P_gm = res_gm P_mm
 
 # List of parameters that can go in the params.ini file in the section for this module
 params:
