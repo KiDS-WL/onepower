@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.beta\_cen
+=========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.beta_cen

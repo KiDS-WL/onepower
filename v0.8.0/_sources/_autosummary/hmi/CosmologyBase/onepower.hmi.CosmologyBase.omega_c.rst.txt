@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.omega\_c
+===================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: CosmologyBase.omega_c

@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.lnk\_max
+==========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.lnk_max

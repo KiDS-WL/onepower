@@ -1,0 +1,6 @@
+onepower.pk.Spectra.dewiggle
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.dewiggle

@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.Tk\_cold\_ratio
+=================================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: HaloModelIngredients.Tk_cold_ratio

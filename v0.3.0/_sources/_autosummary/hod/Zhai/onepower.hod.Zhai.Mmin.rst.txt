@@ -1,0 +1,6 @@
+onepower.hod.Zhai.Mmin
+======================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.Mmin

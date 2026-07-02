@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.disable\_mass\_conversion
+===========================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.disable_mass_conversion

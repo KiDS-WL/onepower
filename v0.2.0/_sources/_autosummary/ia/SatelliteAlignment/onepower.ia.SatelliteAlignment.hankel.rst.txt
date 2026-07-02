@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.hankel
+=====================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.hankel

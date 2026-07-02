@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.phi\_star\_s
+==================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.phi_star_s

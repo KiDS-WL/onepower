@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.create\_bnl\_interpolation\_function
+===============================================================
+
+.. currentmodule:: onepower.bnl
+
+.. autoproperty:: NonLinearBias.create_bnl_interpolation_function

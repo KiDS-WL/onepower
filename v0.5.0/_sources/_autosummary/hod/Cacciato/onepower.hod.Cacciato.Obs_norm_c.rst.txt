@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.Obs\_norm\_c
+==================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.Obs_norm_c

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.lnk\_max
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.lnk_max

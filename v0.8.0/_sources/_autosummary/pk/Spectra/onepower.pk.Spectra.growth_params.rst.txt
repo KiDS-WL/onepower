@@ -1,0 +1,6 @@
+onepower.pk.Spectra.growth\_params
+==================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.growth_params

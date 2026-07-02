@@ -1,0 +1,6 @@
+onepower.pk.Spectra.Tk\_cold\_ratio
+===================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.Tk_cold_ratio

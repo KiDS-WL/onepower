@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.w0
+=============================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: CosmologyBase.w0

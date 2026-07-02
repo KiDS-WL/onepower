@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.lpivot\_cen
+===========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.lpivot_cen

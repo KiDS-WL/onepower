@@ -1,0 +1,6 @@
+onepower.hod.Zheng.sigma
+========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zheng.sigma

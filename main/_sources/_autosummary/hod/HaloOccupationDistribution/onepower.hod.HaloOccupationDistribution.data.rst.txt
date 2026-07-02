@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.data
+============================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HaloOccupationDistribution.data

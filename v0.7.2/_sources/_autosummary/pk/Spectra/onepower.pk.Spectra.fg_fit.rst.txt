@@ -1,0 +1,6 @@
+onepower.pk.Spectra.fg\_fit
+===========================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.fg_fit

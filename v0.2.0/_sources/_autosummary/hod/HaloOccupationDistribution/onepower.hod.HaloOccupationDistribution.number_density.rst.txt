@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.number\_density
+=======================================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HaloOccupationDistribution.number_density

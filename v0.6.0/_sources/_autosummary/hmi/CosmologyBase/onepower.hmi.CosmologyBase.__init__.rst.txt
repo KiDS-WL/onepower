@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.\_\_init\_\_
+=======================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: CosmologyBase.__init__

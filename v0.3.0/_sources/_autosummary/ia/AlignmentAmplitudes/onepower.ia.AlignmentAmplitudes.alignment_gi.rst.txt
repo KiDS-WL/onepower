@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.alignment\_gi
+=============================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.alignment_gi

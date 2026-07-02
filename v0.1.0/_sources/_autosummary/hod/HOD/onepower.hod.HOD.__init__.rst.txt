@@ -1,0 +1,6 @@
+onepower.hod.HOD.\_\_init\_\_
+=============================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: HOD.__init__

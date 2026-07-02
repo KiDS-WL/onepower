@@ -1,0 +1,6 @@
+onepower.pk.Spectra.pointmass
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.pointmass

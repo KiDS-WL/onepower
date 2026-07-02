@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.hod\_cen
+============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.hod_cen

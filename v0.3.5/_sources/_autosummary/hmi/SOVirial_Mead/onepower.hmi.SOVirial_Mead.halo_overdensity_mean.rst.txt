@@ -1,0 +1,6 @@
+onepower.hmi.SOVirial\_Mead.halo\_overdensity\_mean
+===================================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: SOVirial_Mead.halo_overdensity_mean

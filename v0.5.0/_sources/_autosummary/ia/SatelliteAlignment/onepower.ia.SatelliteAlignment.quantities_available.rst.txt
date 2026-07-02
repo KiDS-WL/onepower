@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.quantities\_available
+====================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.quantities_available

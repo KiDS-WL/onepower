@@ -1,0 +1,6 @@
+onepower.pk.Spectra.matter\_profile\_2h
+=======================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.matter_profile_2h

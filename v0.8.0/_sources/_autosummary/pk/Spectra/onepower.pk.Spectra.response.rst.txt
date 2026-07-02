@@ -1,0 +1,6 @@
+onepower.pk.Spectra.response
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.response

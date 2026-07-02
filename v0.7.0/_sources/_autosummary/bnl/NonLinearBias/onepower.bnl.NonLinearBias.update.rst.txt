@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.update
+=================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.update

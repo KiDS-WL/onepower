@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.obs\_func\_sat
+====================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.obs_func_sat

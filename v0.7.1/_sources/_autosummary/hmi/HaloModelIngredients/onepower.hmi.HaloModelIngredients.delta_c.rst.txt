@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.delta\_c
+==========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.delta_c

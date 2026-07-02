@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.stellar\_fraction\_sat
+==========================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.stellar_fraction_sat

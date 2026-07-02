@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.parameter\_values
+===============================================
+
+.. currentmodule:: onepower.add
+
+.. autoproperty:: UpsampledSpectra.parameter_values

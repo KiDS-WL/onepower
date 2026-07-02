@@ -1,0 +1,6 @@
+onepower.pk.Spectra.rvir\_sat
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.rvir_sat

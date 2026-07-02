@@ -1,0 +1,6 @@
+onepower.pk.Spectra.missing\_mass\_integral
+===========================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.missing_mass_integral
