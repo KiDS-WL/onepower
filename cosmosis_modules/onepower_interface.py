@@ -867,7 +867,7 @@ def execute(block, config):
             else None
         )
         hod_parameters = parameters_models[hod_model]
-        # Dinamically load required HOD parameters givent the model and number of bins!
+        # Dinamically load required HOD parameters given the model and number of bins!
         for param in hod_parameters:
             if hod_model == 'Cacciato':
                 param_bin = param
