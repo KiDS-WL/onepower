@@ -9,6 +9,7 @@ def setup(options):
     output_parameters = options.get_string(option_section, "output_parameters").split()
     output_parameters = [p.strip().split("/") for p in output_parameters]
     covariance_file = options[option_section, "covariance"]
+    
 
     cov = np.loadtxt(covariance_file)
     L = np.linalg.cholesky(cov) 

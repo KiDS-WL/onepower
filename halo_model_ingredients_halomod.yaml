@@ -219,7 +219,6 @@ outputs:
           meaning: Fraction of neutrinos to total matter,  f_nu = Ω_nu /Ω_m
           type: real
         
-        
 
 
 
