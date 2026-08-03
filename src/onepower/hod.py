@@ -5,11 +5,11 @@ using various HOD models and conditional observable functions (COFs).
 """
 
 import numpy as np
+from hmf._internals._framework import Component, pluggable
 from scipy.integrate import simpson
 from scipy.interpolate import interp1d
 from scipy.special import erf
 
-from hmf._internals._framework import Component, pluggable
 
 valid_units = ['1/h', '1/h^2']
 hod_settings_defaults = {

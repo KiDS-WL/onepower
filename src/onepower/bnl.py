@@ -5,12 +5,13 @@ In future we might want to include other prescription of calculating the said qu
 an analytic prescription from Flamingo sims.
 """
 
-import numpy as np
 from collections import OrderedDict
-from scipy.interpolate import RegularGridInterpolator, interp1d
 
+import numpy as np
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework
+from scipy.interpolate import RegularGridInterpolator, interp1d
+
 
 try:
     from dark_emulator import darkemu
@@ -358,7 +359,7 @@ if HAVE_DARKEMU:
             npart = 2048.0  # Cube root of number of simulation particles
             Lbox_HR = 1000.0  # Box size for high-resolution simulations [Mpc/h]
             # Lbox_LR = (
-            #     2000.0  # Box size for low-resolution simulations [Mpc/h] # noqa: F841
+            #     2000.0  # Box size for low-resolution simulations [Mpc/h]
             # )
 
             Om_m = self.emulator.cosmo.get_Omega0()

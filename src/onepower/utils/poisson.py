@@ -1,7 +1,8 @@
-import numpy as np
 from abc import ABCMeta, abstractmethod
 
+import numpy as np
 from hmf._internals._framework import Component, pluggable
+
 
 # We name the classes here with lowercase in order to keep it simpler for the user.
 

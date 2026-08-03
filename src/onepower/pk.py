@@ -35,24 +35,26 @@ and the integral over beta_nl is
 
 """
 
-import numpy as np
 import warnings
+
+import numpy as np
+from hmf._internals._cache import cached_quantity, parameter
+from hmf._internals._framework import get_mdl
+from hmf.density_field.transfer_models import EH_NoBAO as Tk_EH_nowiggle
 from scipy.integrate import simpson
 from scipy.interpolate import interp1d
 from scipy.ndimage import gaussian_filter1d
 
-from hmf._internals._cache import cached_quantity, parameter
-from hmf._internals._framework import get_mdl
-from hmf.density_field.transfer_models import EH_NoBAO as Tk_EH_nowiggle
-
 from .bnl import HAVE_DARKEMU
+
 
 if HAVE_DARKEMU:
     from .bnl import NonLinearBias
+from . import hod
 from .hmi import HaloModelIngredients
 from .ia import SatelliteAlignment
 from .utils import poisson
-from . import hod
+
 
 NONLINEAR_MODES = ['bnl', 'hmcode', 'fortuna', None]
 
