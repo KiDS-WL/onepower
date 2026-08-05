@@ -1,0 +1,6 @@
+onepower.pk.Spectra.power\_spectrum\_mm
+=======================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.power_spectrum_mm

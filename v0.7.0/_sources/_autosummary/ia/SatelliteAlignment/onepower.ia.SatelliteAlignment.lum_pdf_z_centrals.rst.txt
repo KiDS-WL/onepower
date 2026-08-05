@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.lum\_pdf\_z\_centrals
+====================================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.lum_pdf_z_centrals

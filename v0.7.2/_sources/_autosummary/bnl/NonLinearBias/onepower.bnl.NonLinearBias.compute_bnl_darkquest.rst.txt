@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.compute\_bnl\_darkquest
+==================================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.compute_bnl_darkquest

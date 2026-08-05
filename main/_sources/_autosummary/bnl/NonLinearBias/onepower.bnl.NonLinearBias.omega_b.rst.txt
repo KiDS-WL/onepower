@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.omega\_b
+===================================
+
+.. currentmodule:: onepower.bnl
+
+.. autoproperty:: NonLinearBias.omega_b

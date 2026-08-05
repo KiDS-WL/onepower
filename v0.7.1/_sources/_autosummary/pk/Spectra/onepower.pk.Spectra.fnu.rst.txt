@@ -1,0 +1,6 @@
+onepower.pk.Spectra.fnu
+=======================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.fnu

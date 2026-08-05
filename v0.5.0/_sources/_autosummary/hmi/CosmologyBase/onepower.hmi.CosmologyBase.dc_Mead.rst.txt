@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.dc\_Mead
+===================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: CosmologyBase.dc_Mead

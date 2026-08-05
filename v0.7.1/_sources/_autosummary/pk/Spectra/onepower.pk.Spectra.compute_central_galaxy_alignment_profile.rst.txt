@@ -1,0 +1,6 @@
+onepower.pk.Spectra.compute\_central\_galaxy\_alignment\_profile
+================================================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.compute_central_galaxy_alignment_profile

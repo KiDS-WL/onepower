@@ -1,0 +1,6 @@
+onepower.pk.Spectra.clone
+=========================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.clone

@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.update
+=====================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.update

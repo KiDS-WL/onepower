@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.z\_loglum\_file\_centrals
+========================================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.z_loglum_file_centrals

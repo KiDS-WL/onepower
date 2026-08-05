@@ -1,0 +1,6 @@
+onepower.pk.Spectra.mass\_avg
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.mass_avg

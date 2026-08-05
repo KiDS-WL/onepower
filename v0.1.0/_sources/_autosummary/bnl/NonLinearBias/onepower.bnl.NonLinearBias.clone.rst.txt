@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.clone
+================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.clone

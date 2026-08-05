@@ -1,0 +1,6 @@
+onepower.hmi.SOVirial\_Mead.halo\_density
+=========================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: SOVirial_Mead.halo_density

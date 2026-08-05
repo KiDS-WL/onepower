@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.number\_density
+===================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.number_density

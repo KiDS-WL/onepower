@@ -1,0 +1,6 @@
+onepower.pk.Spectra.norm\_cen
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.norm_cen

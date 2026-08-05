@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.galaxy\_linear\_bias
+==========================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.galaxy_linear_bias

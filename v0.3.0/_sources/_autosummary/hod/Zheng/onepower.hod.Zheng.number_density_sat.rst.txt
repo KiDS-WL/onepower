@@ -1,0 +1,6 @@
+onepower.hod.Zheng.number\_density\_sat
+=======================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zheng.number_density_sat

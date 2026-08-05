@@ -1,0 +1,6 @@
+onepower.pk.Spectra.compute\_observable
+=======================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.compute_observable

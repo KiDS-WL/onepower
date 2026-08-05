@@ -1,0 +1,6 @@
+onepower.pk.Spectra.align\_params
+=================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.align_params

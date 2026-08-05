@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.f\_Mead
+==================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: CosmologyBase.f_Mead

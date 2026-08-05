@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.lpivot\_sat
+==========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.lpivot_sat

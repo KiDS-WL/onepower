@@ -1,0 +1,6 @@
+onepower.pk.Spectra.transfer\_params
+====================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.transfer_params

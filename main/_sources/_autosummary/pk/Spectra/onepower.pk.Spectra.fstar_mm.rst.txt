@@ -1,0 +1,6 @@
+onepower.pk.Spectra.fstar\_mm
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.fstar_mm

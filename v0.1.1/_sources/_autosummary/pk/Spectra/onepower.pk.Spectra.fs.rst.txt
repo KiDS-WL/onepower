@@ -1,0 +1,6 @@
+onepower.pk.Spectra.fs
+======================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.fs

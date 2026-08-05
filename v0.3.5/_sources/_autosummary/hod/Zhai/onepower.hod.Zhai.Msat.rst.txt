@@ -1,0 +1,6 @@
+onepower.hod.Zhai.Msat
+======================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.Msat

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.disable\_mass\_conversion
+=============================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.disable_mass_conversion

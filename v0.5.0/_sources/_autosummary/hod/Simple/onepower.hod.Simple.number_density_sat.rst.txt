@@ -1,0 +1,6 @@
+onepower.hod.Simple.number\_density\_sat
+========================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.number_density_sat

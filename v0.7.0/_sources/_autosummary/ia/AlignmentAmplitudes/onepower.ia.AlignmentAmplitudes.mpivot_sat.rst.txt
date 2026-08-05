@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.mpivot\_sat
+===========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.mpivot_sat

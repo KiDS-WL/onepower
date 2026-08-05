@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.compute\_uell\_gamma\_r\_hankel
+==============================================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.compute_uell_gamma_r_hankel

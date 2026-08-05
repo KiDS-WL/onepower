@@ -1,0 +1,6 @@
+onepower.hod.Simple.log10\_Msat
+===============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.log10_Msat

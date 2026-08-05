@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.wkm\_f\_ell
+==========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.wkm_f_ell

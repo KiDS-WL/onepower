@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.f\_s
+==========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.f_s

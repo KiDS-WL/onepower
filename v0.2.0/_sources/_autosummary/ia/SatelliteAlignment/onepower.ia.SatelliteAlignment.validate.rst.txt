@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.validate
+=======================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.validate

@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.mpivot\_cen
+===========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.mpivot_cen

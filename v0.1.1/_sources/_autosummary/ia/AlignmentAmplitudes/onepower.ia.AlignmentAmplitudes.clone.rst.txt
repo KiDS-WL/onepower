@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.clone
+=====================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: AlignmentAmplitudes.clone

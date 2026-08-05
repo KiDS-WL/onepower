@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.beta\_sat
+=========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.beta_sat

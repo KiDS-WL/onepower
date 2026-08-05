@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.nbins
+===========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.nbins

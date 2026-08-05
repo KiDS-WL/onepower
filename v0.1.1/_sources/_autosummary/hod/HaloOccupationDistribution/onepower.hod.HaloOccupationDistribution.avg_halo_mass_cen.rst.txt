@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.avg\_halo\_mass\_cen
+============================================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HaloOccupationDistribution.avg_halo_mass_cen

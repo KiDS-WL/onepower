@@ -1,0 +1,6 @@
+onepower.hod.Zhai.halo\_bias\_int
+=================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.halo_bias_int

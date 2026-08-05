@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.Msat
+========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.Msat

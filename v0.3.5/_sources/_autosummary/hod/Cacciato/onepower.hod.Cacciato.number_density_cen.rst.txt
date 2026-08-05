@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.number\_density\_cen
+==========================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.number_density_cen

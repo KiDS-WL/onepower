@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.get\_all\_parameter\_defaults
+============================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.get_all_parameter_defaults

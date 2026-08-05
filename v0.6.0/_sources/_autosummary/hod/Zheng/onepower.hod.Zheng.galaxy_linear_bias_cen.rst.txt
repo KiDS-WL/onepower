@@ -1,0 +1,6 @@
+onepower.hod.Zheng.galaxy\_linear\_bias\_cen
+============================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zheng.galaxy_linear_bias_cen

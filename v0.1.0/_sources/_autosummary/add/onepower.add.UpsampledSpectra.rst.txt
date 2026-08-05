@@ -1,0 +1,50 @@
+onepower.add.UpsampledSpectra
+=============================
+
+.. currentmodule:: onepower.add
+
+.. autoclass:: UpsampledSpectra
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: UpsampledSpectra
+   
+      ~UpsampledSpectra.__init__
+      ~UpsampledSpectra.add_spectra
+      ~UpsampledSpectra.clone
+      ~UpsampledSpectra.extrapolate_spectra
+      ~UpsampledSpectra.get_all_parameter_defaults
+      ~UpsampledSpectra.get_all_parameter_names
+      ~UpsampledSpectra.get_dependencies
+      ~UpsampledSpectra.parameter_info
+      ~UpsampledSpectra.quantities_available
+      ~UpsampledSpectra.results
+      ~UpsampledSpectra.update
+      ~UpsampledSpectra.validate
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: UpsampledSpectra
+   
+      ~UpsampledSpectra.extrapolate_option
+      ~UpsampledSpectra.frac_1
+      ~UpsampledSpectra.frac_2
+      ~UpsampledSpectra.fraction
+      ~UpsampledSpectra.fraction_z
+      ~UpsampledSpectra.k
+      ~UpsampledSpectra.model
+      ~UpsampledSpectra.parameter_values
+      ~UpsampledSpectra.power_1
+      ~UpsampledSpectra.power_2
+      ~UpsampledSpectra.z
+   
+   

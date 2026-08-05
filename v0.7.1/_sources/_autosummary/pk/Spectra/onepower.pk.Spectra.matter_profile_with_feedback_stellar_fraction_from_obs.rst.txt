@@ -1,0 +1,6 @@
+onepower.pk.Spectra.matter\_profile\_with\_feedback\_stellar\_fraction\_from\_obs
+=================================================================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.matter_profile_with_feedback_stellar_fraction_from_obs

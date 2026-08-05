@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.lnk\_min
+==========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.lnk_min

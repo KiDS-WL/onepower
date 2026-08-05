@@ -1,0 +1,876 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>onepower.add &#8212; OnePower</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/documentation_options.js?v=1dd76d02"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/onepower/add';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://kids-wl.github.io/onepower/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.5.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <link rel="icon" href="https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logo_hex.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.5.0" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logo_hex.png" class="logo__image only-light" alt="OnePower - Home"/>
+    <img src="https://andrej.dvrnk.si/page/wp-content/uploads/2025/08/logo_hex.png" class="logo__image only-dark pst-js-only" alt="OnePower - Home"/>
+  
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tutorials.html">
+    Usage and Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Summary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing to OnePower
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../license.html">
+    License
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../changelog.html">
+    Releases
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../contributors.html">
+    Authors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../developing.html">
+    Developing OnePower
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/KiDS-WL/onepower" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tutorials.html">
+    Usage and Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Summary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing to OnePower
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Releases
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributors.html">
+    Authors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developing.html">
+    Developing OnePower
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/KiDS-WL/onepower" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">onepower.add</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for onepower.add</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">cached_property</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
+
+<span class="kn">from</span> <span class="nn">hmf._internals._cache</span> <span class="kn">import</span> <span class="n">parameter</span>
+<span class="kn">from</span> <span class="nn">hmf._internals._framework</span> <span class="kn">import</span> <span class="n">Framework</span>
+
+<span class="kn">from</span> <span class="nn">.pk</span> <span class="kn">import</span> <span class="n">PowerSpectrumResult</span><span class="p">,</span> <span class="n">Spectra</span>
+
+
+<div class="viewcode-block" id="UpsampledSpectra">
+<a class="viewcode-back" href="../../_autosummary/add/onepower.add.UpsampledSpectra.html#onepower.add.UpsampledSpectra">[docs]</a>
+<span class="k">class</span> <span class="nc">UpsampledSpectra</span><span class="p">(</span><span class="n">Framework</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class generates one or two :class:`~halomodel.pk.Spectra`,</span>
+<span class="sd">    extrapolates them to the desired output grid and adds them if requested.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    z : array_like</span>
+<span class="sd">        Output redshifts to which to interpolate and optionally extrapolate power spectra.</span>
+<span class="sd">    k : array_like</span>
+<span class="sd">        Output k-vector to which to interpolate and optionally extrapolate power spectra.</span>
+<span class="sd">    fraction_z : array_like</span>
+<span class="sd">        Redshifts of the red/blue fraction of galaxies in sample.</span>
+<span class="sd">    fraciton : array_like</span>
+<span class="sd">        Red/blue fraction of galaxies in sample as a function of redshift.</span>
+<span class="sd">    model_1_params : dict</span>
+<span class="sd">        Parameters for the first halo model.</span>
+<span class="sd">    model_2_params : dict</span>
+<span class="sd">        Parameters for the second halo model.</span>
+<span class="sd">    extrapolate_option : str or float</span>
+<span class="sd">        Extrapolation option to pass to interp1d.</span>
+<span class="sd">    model : object</span>
+<span class="sd">        Instance of Spectra(), pre-initialised for saving computing resources.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="UpsampledSpectra.__init__">
+<a class="viewcode-back" href="../../_autosummary/add/UpsampledSpectra/onepower.add.UpsampledSpectra.__init__.html#onepower.add.UpsampledSpectra.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">k</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">fraction_z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">model_1_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model_2_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">extrapolate_option</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fraction_z</span> <span class="o">=</span> <span class="n">fraction_z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="o">=</span> <span class="n">fraction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model_1_params</span> <span class="o">=</span> <span class="n">model_1_params</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model_2_params</span> <span class="o">=</span> <span class="n">model_2_params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extrapolate_option</span> <span class="o">=</span> <span class="n">extrapolate_option</span></div>
+
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instance of Spectra(), pre-initialised for saving computing resources.</span>
+
+<span class="sd">        :type: object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_model_1_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters for the first halo model, will not update the model if they are the same as the pre-initialised model.</span>
+
+<span class="sd">        :type: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_model_2_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters for the second halo model.</span>
+
+<span class="sd">        :type: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">fraction_z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Redshifts of the red/blue fraction of galaxies in sample.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Red/blue fraction of galaxies in sample as a function of redshift.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Output redshifts to which to interpolate and optionally extrapolate power spectra.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">k</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Output k-vector to which to interpolate and optionally extrapolate power spectra.</span>
+
+<span class="sd">        :type: array_like</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@parameter</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">extrapolate_option</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extrapolation option to pass to interp1d.</span>
+
+<span class="sd">        :type: str or float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">frac_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the fraction for the first model.</span>
+
+<span class="sd">        If no fraction is given, it assumes the first model is 100% and the second is 0%.</span>
+<span class="sd">        This is useful for cases where only one model is used.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray</span>
+<span class="sd">            Fraction for the first model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fraction_z</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span><span class="p">,</span>
+            <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span>
+            <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">frac_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the fraction for the second model.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray</span>
+<span class="sd">            Fraction for the second model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">frac_1</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">power_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        First Halo Model.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Spectra</span>
+<span class="sd">            Instance of Spectra for the first halo model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Spectra</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_model_1_params</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">power_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Second Halo Model.</span>
+
+<span class="sd">        We use the update method so that the second model does not have to recalculate</span>
+<span class="sd">        all the methods if they are the same as the first one.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Spectra or None</span>
+<span class="sd">            Instance of Spectra for the second halo model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_2_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">spectra2</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">spectra2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_1</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="n">spectra2</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_model_2_params</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">spectra2</span>
+
+<div class="viewcode-block" id="UpsampledSpectra.results">
+<a class="viewcode-back" href="../../_autosummary/add/UpsampledSpectra/onepower.add.UpsampledSpectra.results.html#onepower.add.UpsampledSpectra.results">[docs]</a>
+    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_spectra</span><span class="p">,</span> <span class="n">requested_components</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate and store the results for the requested spectra and components.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        requested_spectra : list</span>
+<span class="sd">            List of spectra modes to calculate.</span>
+<span class="sd">        requested_components : list</span>
+<span class="sd">            List of components to calculate for each spectrum.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        PowerSpectrumResults</span>
+<span class="sd">            PowerSpectrumResults atributes attached to parent class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">requested_spectra</span><span class="p">:</span>
+            <span class="n">collected_spectra</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">requested_components</span><span class="p">:</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">power_1</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;power_spectrum_</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">p1_component</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;pk_</span><span class="si">{</span><span class="n">component</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">extrapolated_p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrapolate_spectra</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">power_1</span><span class="o">.</span><span class="n">z_vec</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">power_1</span><span class="o">.</span><span class="n">k_vec</span><span class="p">,</span>
+                    <span class="n">p1_component</span><span class="p">,</span>
+                    <span class="n">extrapolate_option</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">extrapolate_option</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">p2</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">power_2</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;power_spectrum_</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">p2_component</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;pk_</span><span class="si">{</span><span class="n">component</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">extrapolated_p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrapolate_spectra</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">power_2</span><span class="o">.</span><span class="n">z_vec</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">power_2</span><span class="o">.</span><span class="n">k_vec</span><span class="p">,</span>
+                        <span class="n">p2_component</span><span class="p">,</span>
+                        <span class="n">extrapolate_option</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">extrapolate_option</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">extrapolated_p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">extrapolated_p1</span><span class="p">)</span>
+                <span class="n">added_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_spectra</span><span class="p">(</span><span class="n">extrapolated_p1</span><span class="p">,</span> <span class="n">extrapolated_p2</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+                <span class="n">collected_spectra</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;pk_</span><span class="si">{</span><span class="n">component</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">added_power</span>
+            <span class="c1"># Create a PowerSpectrumResult object to hold the results</span>
+            <span class="n">power_spectrum_result</span> <span class="o">=</span> <span class="n">PowerSpectrumResult</span><span class="p">(</span><span class="o">**</span><span class="n">collected_spectra</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;power_spectrum_</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">power_spectrum_result</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="UpsampledSpectra.extrapolate_spectra">
+<a class="viewcode-back" href="../../_autosummary/add/UpsampledSpectra/onepower.add.UpsampledSpectra.extrapolate_spectra.html#onepower.add.UpsampledSpectra.extrapolate_spectra">[docs]</a>
+    <span class="k">def</span> <span class="nf">extrapolate_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z_ext</span><span class="p">,</span> <span class="n">k_ext</span><span class="p">,</span> <span class="n">z_in</span><span class="p">,</span> <span class="n">k_in</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">extrapolate_option</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extrapolate the power spectra to the desired output grid.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        z_ext : array_like</span>
+<span class="sd">            Output redshifts.</span>
+<span class="sd">        k_ext : array_like</span>
+<span class="sd">            Output k-vector.</span>
+<span class="sd">        z_in : array_like</span>
+<span class="sd">            Input redshifts.</span>
+<span class="sd">        k_in : array_like</span>
+<span class="sd">            Input k-vector.</span>
+<span class="sd">        power : array_like</span>
+<span class="sd">            Power spectra to extrapolate.</span>
+<span class="sd">        extrapolate_option : str or float</span>
+<span class="sd">            Extrapolation option to pass to interp1d.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray</span>
+<span class="sd">            Extrapolated power spectra.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inter_func_z</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
+            <span class="n">z_in</span><span class="p">,</span>
+            <span class="n">power</span><span class="p">,</span>
+            <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="n">extrapolate_option</span><span class="p">,</span>
+            <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pk_tot_ext_z</span> <span class="o">=</span> <span class="n">inter_func_z</span><span class="p">(</span><span class="n">z_ext</span><span class="p">)</span>
+
+        <span class="n">inter_func_k</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">k_in</span><span class="p">),</span>
+            <span class="n">pk_tot_ext_z</span><span class="p">,</span>
+            <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span>
+            <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pk_tot_ext</span> <span class="o">=</span> <span class="n">inter_func_k</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">k_ext</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pk_tot_ext</span></div>
+
+
+<div class="viewcode-block" id="UpsampledSpectra.add_spectra">
+<a class="viewcode-back" href="../../_autosummary/add/UpsampledSpectra/onepower.add.UpsampledSpectra.add_spectra.html#onepower.add.UpsampledSpectra.add_spectra">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pk_1</span><span class="p">,</span> <span class="n">pk_2</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add the power spectra of the two models.</span>
+
+<span class="sd">        TODO: Add the cross terms</span>
+<span class="sd">        Not valid / implemented for matter-intrinsic, matter-matter</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pk_1 : array_like</span>
+<span class="sd">            Power spectrum of the first model.</span>
+<span class="sd">        pk_2 : array_like</span>
+<span class="sd">            Power spectrum of the second model.</span>
+<span class="sd">        mode : str</span>
+<span class="sd">            Mode of the power spectrum.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray</span>
+<span class="sd">            Combined power spectrum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;mm&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pk_1</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;gm&#39;</span><span class="p">,</span> <span class="s1">&#39;mi&#39;</span><span class="p">]:</span>
+            <span class="n">pk_tot</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">frac_1</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">pk_1</span>
+                <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">frac_1</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])</span> <span class="o">*</span> <span class="n">pk_2</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pk_tot</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">frac_1</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">**</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">pk_1</span>
+                <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">frac_1</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])</span> <span class="o">**</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">pk_2</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">pk_tot</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, Andrej Dvornik.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

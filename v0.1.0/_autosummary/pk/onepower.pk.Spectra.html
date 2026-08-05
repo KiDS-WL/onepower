@@ -1,0 +1,894 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>onepower.pk.Spectra &mdash; onepower 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="onepower.pk.Spectra.I_NL" href="Spectra/onepower.pk.Spectra.I_NL.html" />
+    <link rel="prev" title="onepower.pk.PowerSpectrumResult.__init__" href="PowerSpectrumResult/onepower.pk.PowerSpectrumResult.__init__.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            onepower
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Usage and Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../api.html">API Summary</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../onepower.pk.html">onepower.pk</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="onepower.pk.PowerSpectrumResult.html">onepower.pk.PowerSpectrumResult</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">onepower.pk.Spectra</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#onepower.pk.Spectra"><code class="docutils literal notranslate"><span class="pre">Spectra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.I_NL.html">onepower.pk.Spectra.I_NL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.Tk_EH_nowiggle.html">onepower.pk.Spectra.Tk_EH_nowiggle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.Tk_cold_ratio.html">onepower.pk.Spectra.Tk_cold_ratio</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.__init__.html">onepower.pk.Spectra.__init__</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.clone.html">onepower.pk.Spectra.clone</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_1h_term.html">onepower.pk.Spectra.compute_1h_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_A_term.html">onepower.pk.Spectra.compute_A_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_Ig_term.html">onepower.pk.Spectra.compute_Ig_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_Im_term.html">onepower.pk.Spectra.compute_Im_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_central_galaxy_alignment_profile.html">onepower.pk.Spectra.compute_central_galaxy_alignment_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_matter_profile.html">onepower.pk.Spectra.compute_matter_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_matter_profile_with_feedback.html">onepower.pk.Spectra.compute_matter_profile_with_feedback</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_matter_profile_with_feedback_stellar_fraction_from_obs.html">onepower.pk.Spectra.compute_matter_profile_with_feedback_stellar_fraction_from_obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_satellite_galaxy_alignment_profile.html">onepower.pk.Spectra.compute_satellite_galaxy_alignment_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.dewiggle_plin.html">onepower.pk.Spectra.dewiggle_plin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.f_Mead.html">onepower.pk.Spectra.f_Mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.fg.html">onepower.pk.Spectra.fg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.fg_fit.html">onepower.pk.Spectra.fg_fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.fs.html">onepower.pk.Spectra.fs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_Pk_wiggle.html">onepower.pk.Spectra.get_Pk_wiggle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_all_parameter_defaults.html">onepower.pk.Spectra.get_all_parameter_defaults</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_all_parameter_names.html">onepower.pk.Spectra.get_all_parameter_names</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_dependencies.html">onepower.pk.Spectra.get_dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_halo_collapse_redshifts.html">onepower.pk.Spectra.get_halo_collapse_redshifts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_profile_with_feedback_stellar_fraction_from_obs.html">onepower.pk.Spectra.matter_profile_with_feedback_stellar_fraction_from_obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.one_halo_truncation_mead.html">onepower.pk.Spectra.one_halo_truncation_mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.parameter_info.html">onepower.pk.Spectra.parameter_info</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.prepare_I12_integrand.html">onepower.pk.Spectra.prepare_I12_integrand</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.prepare_I21_integrand.html">onepower.pk.Spectra.prepare_I21_integrand</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.prepare_I22_integrand.html">onepower.pk.Spectra.prepare_I22_integrand</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.quantities_available.html">onepower.pk.Spectra.quantities_available</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.sigmaR_cc.html">onepower.pk.Spectra.sigmaR_cc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.sigmaV.html">onepower.pk.Spectra.sigmaV</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.transition_smoothing.html">onepower.pk.Spectra.transition_smoothing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.two_halo_truncation_mead.html">onepower.pk.Spectra.two_halo_truncation_mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.update.html">onepower.pk.Spectra.update</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.validate.html">onepower.pk.Spectra.validate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.A_term.html">onepower.pk.Spectra.A_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.C1.html">onepower.pk.Spectra.C1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.Dv_Mead.html">onepower.pk.Spectra.Dv_Mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.I12.html">onepower.pk.Spectra.I12</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.I21.html">onepower.pk.Spectra.I21</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.I22.html">onepower.pk.Spectra.I22</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.Ic_align_term.html">onepower.pk.Spectra.Ic_align_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.Ic_term.html">onepower.pk.Spectra.Ic_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.Im_term.html">onepower.pk.Spectra.Im_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.Is_align_term.html">onepower.pk.Spectra.Is_align_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.Is_term.html">onepower.pk.Spectra.Is_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.K.html">onepower.pk.Spectra.K</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.Mmax.html">onepower.pk.Spectra.Mmax</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.Mmin.html">onepower.pk.Spectra.Mmin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.align_params.html">onepower.pk.Spectra.align_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.alignment_amplitude_2h.html">onepower.pk.Spectra.alignment_amplitude_2h</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.alignment_amplitude_2h_II.html">onepower.pk.Spectra.alignment_amplitude_2h_II</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.alignment_class.html">onepower.pk.Spectra.alignment_class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.alignment_gi.html">onepower.pk.Spectra.alignment_gi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.beta_cen.html">onepower.pk.Spectra.beta_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.beta_nl.html">onepower.pk.Spectra.beta_nl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.beta_sat.html">onepower.pk.Spectra.beta_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.bias_model.html">onepower.pk.Spectra.bias_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.bnl.html">onepower.pk.Spectra.bnl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.calc_bnl.html">onepower.pk.Spectra.calc_bnl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.central_alignment_profile.html">onepower.pk.Spectra.central_alignment_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.central_galaxy_profile.html">onepower.pk.Spectra.central_galaxy_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_observable.html">onepower.pk.Spectra.compute_observable</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.conc_cen.html">onepower.pk.Spectra.conc_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.conc_sat.html">onepower.pk.Spectra.conc_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.cosmo_model.html">onepower.pk.Spectra.cosmo_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.dc_Mead.html">onepower.pk.Spectra.dc_Mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.delta_c.html">onepower.pk.Spectra.delta_c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.dewiggle.html">onepower.pk.Spectra.dewiggle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.disable_mass_conversion.html">onepower.pk.Spectra.disable_mass_conversion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.dlnk.html">onepower.pk.Spectra.dlnk</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.dlog10m.html">onepower.pk.Spectra.dlog10m</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.dndlnm.html">onepower.pk.Spectra.dndlnm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.eta_cen.html">onepower.pk.Spectra.eta_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.eta_sat.html">onepower.pk.Spectra.eta_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.fnu.html">onepower.pk.Spectra.fnu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.fortuna.html">onepower.pk.Spectra.fortuna</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.fstar.html">onepower.pk.Spectra.fstar</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.fstar_mm.html">onepower.pk.Spectra.fstar_mm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_mead_accumulated_growth.html">onepower.pk.Spectra.get_mead_accumulated_growth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_mead_growth.html">onepower.pk.Spectra.get_mead_growth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_mead_growth_fnc.html">onepower.pk.Spectra.get_mead_growth_fnc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.growth_factor.html">onepower.pk.Spectra.growth_factor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.growth_model.html">onepower.pk.Spectra.growth_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.growth_params.html">onepower.pk.Spectra.growth_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.h0.html">onepower.pk.Spectra.h0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_bias.html">onepower.pk.Spectra.halo_bias</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_concentration_model_dm.html">onepower.pk.Spectra.halo_concentration_model_dm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_concentration_model_sat.html">onepower.pk.Spectra.halo_concentration_model_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_overdensity_mean.html">onepower.pk.Spectra.halo_overdensity_mean</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_profile_model_dm.html">onepower.pk.Spectra.halo_profile_model_dm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_profile_model_sat.html">onepower.pk.Spectra.halo_profile_model_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_profile_params.html">onepower.pk.Spectra.halo_profile_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.hmf_model.html">onepower.pk.Spectra.hmf_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod.html">onepower.pk.Spectra.hod</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod_mm.html">onepower.pk.Spectra.hod_mm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod_model.html">onepower.pk.Spectra.hod_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod_params.html">onepower.pk.Spectra.hod_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod_settings.html">onepower.pk.Spectra.hod_settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod_settings_mm.html">onepower.pk.Spectra.hod_settings_mm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.k_vec.html">onepower.pk.Spectra.k_vec</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.kh.html">onepower.pk.Spectra.kh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.lnk_max.html">onepower.pk.Spectra.lnk_max</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.lnk_min.html">onepower.pk.Spectra.lnk_min</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.log10T_AGN.html">onepower.pk.Spectra.log10T_AGN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.m_nu.html">onepower.pk.Spectra.m_nu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.mass.html">onepower.pk.Spectra.mass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.mass_avg.html">onepower.pk.Spectra.mass_avg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_power_lin.html">onepower.pk.Spectra.matter_power_lin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_power_nl.html">onepower.pk.Spectra.matter_power_nl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_profile.html">onepower.pk.Spectra.matter_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_profile_2h.html">onepower.pk.Spectra.matter_profile_2h</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_profile_with_feedback.html">onepower.pk.Spectra.matter_profile_with_feedback</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.mb.html">onepower.pk.Spectra.mb</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.mdef_model.html">onepower.pk.Spectra.mdef_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.mdef_params.html">onepower.pk.Spectra.mdef_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.mead_correction.html">onepower.pk.Spectra.mead_correction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.mean_density0.html">onepower.pk.Spectra.mean_density0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.mean_density_z.html">onepower.pk.Spectra.mean_density_z</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.missing_mass_integral.html">onepower.pk.Spectra.missing_mass_integral</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.mpivot_cen.html">onepower.pk.Spectra.mpivot_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.mpivot_sat.html">onepower.pk.Spectra.mpivot_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.n_s.html">onepower.pk.Spectra.n_s</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.neff.html">onepower.pk.Spectra.neff</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.nfw_cen.html">onepower.pk.Spectra.nfw_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.nfw_sat.html">onepower.pk.Spectra.nfw_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.nonlinear_power.html">onepower.pk.Spectra.nonlinear_power</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.norm_cen.html">onepower.pk.Spectra.norm_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.norm_sat.html">onepower.pk.Spectra.norm_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.nu.html">onepower.pk.Spectra.nu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs.html">onepower.pk.Spectra.obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_func.html">onepower.pk.Spectra.obs_func</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_func_cen.html">onepower.pk.Spectra.obs_func_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_func_obs.html">onepower.pk.Spectra.obs_func_obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_func_sat.html">onepower.pk.Spectra.obs_func_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_func_z.html">onepower.pk.Spectra.obs_func_z</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_settings.html">onepower.pk.Spectra.obs_settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.omega_b.html">onepower.pk.Spectra.omega_b</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.omega_c.html">onepower.pk.Spectra.omega_c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.omega_m.html">onepower.pk.Spectra.omega_m</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.one_halo_ktrunc.html">onepower.pk.Spectra.one_halo_ktrunc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.one_halo_ktrunc_ia.html">onepower.pk.Spectra.one_halo_ktrunc_ia</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.one_halo_truncation.html">onepower.pk.Spectra.one_halo_truncation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.one_halo_truncation_ia.html">onepower.pk.Spectra.one_halo_truncation_ia</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.overdensity.html">onepower.pk.Spectra.overdensity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.parameter_values.html">onepower.pk.Spectra.parameter_values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.peff.html">onepower.pk.Spectra.peff</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.pointmass.html">onepower.pk.Spectra.pointmass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.poisson_func.html">onepower.pk.Spectra.poisson_func</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.poisson_model.html">onepower.pk.Spectra.poisson_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.poisson_params.html">onepower.pk.Spectra.poisson_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.power.html">onepower.pk.Spectra.power</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_gg.html">onepower.pk.Spectra.power_spectrum_gg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_gi.html">onepower.pk.Spectra.power_spectrum_gi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_gm.html">onepower.pk.Spectra.power_spectrum_gm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_ii.html">onepower.pk.Spectra.power_spectrum_ii</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_lin.html">onepower.pk.Spectra.power_spectrum_lin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_mi.html">onepower.pk.Spectra.power_spectrum_mi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_mm.html">onepower.pk.Spectra.power_spectrum_mm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.r_s_cen.html">onepower.pk.Spectra.r_s_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.r_s_sat.html">onepower.pk.Spectra.r_s_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.response.html">onepower.pk.Spectra.response</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.rho_halo.html">onepower.pk.Spectra.rho_halo</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.rvir_cen.html">onepower.pk.Spectra.rvir_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.rvir_sat.html">onepower.pk.Spectra.rvir_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.satellite_alignment_profile.html">onepower.pk.Spectra.satellite_alignment_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.satellite_galaxy_profile.html">onepower.pk.Spectra.satellite_galaxy_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.scale_factor.html">onepower.pk.Spectra.scale_factor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.sigma8_z.html">onepower.pk.Spectra.sigma8_z</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.sigma_8.html">onepower.pk.Spectra.sigma_8</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.t_eff.html">onepower.pk.Spectra.t_eff</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.tcmb.html">onepower.pk.Spectra.tcmb</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.transfer_model.html">onepower.pk.Spectra.transfer_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.transfer_params.html">onepower.pk.Spectra.transfer_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.two_halo_ktrunc.html">onepower.pk.Spectra.two_halo_ktrunc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.two_halo_ktrunc_ia.html">onepower.pk.Spectra.two_halo_ktrunc_ia</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.two_halo_truncation.html">onepower.pk.Spectra.two_halo_truncation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.two_halo_truncation_ia.html">onepower.pk.Spectra.two_halo_truncation_ia</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.u_dm.html">onepower.pk.Spectra.u_dm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.u_sat.html">onepower.pk.Spectra.u_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.w0.html">onepower.pk.Spectra.w0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.wa.html">onepower.pk.Spectra.wa</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.wkm_sat.html">onepower.pk.Spectra.wkm_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Spectra/onepower.pk.Spectra.z_vec.html">onepower.pk.Spectra.z_vec</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.ia.html">onepower.ia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.bnl.html">onepower.bnl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.hod.html">onepower.hod</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.hmi.html">onepower.hmi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.add.html">onepower.add</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developing.html">Developing OnePower</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">onepower</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../api.html">API Summary</a></li>
+          <li class="breadcrumb-item"><a href="../onepower.pk.html">onepower.pk</a></li>
+      <li class="breadcrumb-item active">onepower.pk.Spectra</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_autosummary/pk/onepower.pk.Spectra.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="onepower-pk-spectra">
+<h1>onepower.pk.Spectra<a class="headerlink" href="#onepower-pk-spectra" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="onepower.pk.Spectra">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">onepower.pk.</span></span><span class="sig-name descname"><span class="pre">Spectra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/onepower/pk.html#Spectra"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#onepower.pk.Spectra" title="Link to this definition"></a></dt>
+<dd><p>Class to compute matter power spectra using the halo model approach.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.I_NL.html#onepower.pk.Spectra.I_NL" title="onepower.pk.Spectra.I_NL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">I_NL</span></code></a>(W_1, W_2, b_1, b_2, dndlnm_1, dndlnm_2, ...)</p></td>
+<td><p>Calculate the integral over beta_nl using equations A.7 to A.10 from Mead and Verde 2021.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.Tk_EH_nowiggle.html#onepower.pk.Spectra.Tk_EH_nowiggle" title="onepower.pk.Spectra.Tk_EH_nowiggle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tk_EH_nowiggle</span></code></a>(k, h, ombh2, ommh2[, T_CMB])</p></td>
+<td><p>No-wiggle transfer function from Eisenstein &amp; Hu (1998).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.Tk_cold_ratio.html#onepower.pk.Spectra.Tk_cold_ratio" title="onepower.pk.Spectra.Tk_cold_ratio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tk_cold_ratio</span></code></a>(k, g, ommh2, h, f_nu, N_nu[, ...])</p></td>
+<td><p>Ratio of cold to matter transfer function from Eisenstein &amp; Hu (1999).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.__init__.html#onepower.pk.Spectra.__init__" title="onepower.pk.Spectra.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([matter_power_lin, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.clone.html#onepower.pk.Spectra.clone" title="onepower.pk.Spectra.clone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clone</span></code></a>(**kwargs)</p></td>
+<td><p>Create and return an updated clone of the current object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_1h_term.html#onepower.pk.Spectra.compute_1h_term" title="onepower.pk.Spectra.compute_1h_term"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_1h_term</span></code></a>(profile_u, profile_v, mass, ...)</p></td>
+<td><p>Compute the 1-halo term for two fields u and v, e.g. matter, galaxy, intrinsic alignment.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_A_term.html#onepower.pk.Spectra.compute_A_term" title="onepower.pk.Spectra.compute_A_term"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_A_term</span></code></a>(mass, b_dm, dndlnm, mean_density0)</p></td>
+<td><p>Integral over the missing haloes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_Ig_term.html#onepower.pk.Spectra.compute_Ig_term" title="onepower.pk.Spectra.compute_Ig_term"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_Ig_term</span></code></a>(profile, mass, dndlnm, b_m)</p></td>
+<td><p>Compute the integral for the galaxy term in the 2-halo power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_Im_term.html#onepower.pk.Spectra.compute_Im_term" title="onepower.pk.Spectra.compute_Im_term"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_Im_term</span></code></a>(mass, u_dm, b_dm, dndlnm, ...)</p></td>
+<td><p>Compute the integral for the matter term in the 2-halo power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_central_galaxy_alignment_profile.html#onepower.pk.Spectra.compute_central_galaxy_alignment_profile" title="onepower.pk.Spectra.compute_central_galaxy_alignment_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_central_galaxy_alignment_profile</span></code></a>(...)</p></td>
+<td><p>Compute the central galaxy alignment profile.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_matter_profile.html#onepower.pk.Spectra.compute_matter_profile" title="onepower.pk.Spectra.compute_matter_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_matter_profile</span></code></a>(mass, mean_density0, ...)</p></td>
+<td><p>Compute the matter halo profile with a correction for neutrino mass fraction.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_matter_profile_with_feedback.html#onepower.pk.Spectra.compute_matter_profile_with_feedback" title="onepower.pk.Spectra.compute_matter_profile_with_feedback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_matter_profile_with_feedback</span></code></a>(mass, ...)</p></td>
+<td><p>Compute the matter profile including feedback as modelled by hmcode2020 (eq 25 of 2009.01858).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_matter_profile_with_feedback_stellar_fraction_from_obs.html#onepower.pk.Spectra.compute_matter_profile_with_feedback_stellar_fraction_from_obs" title="onepower.pk.Spectra.compute_matter_profile_with_feedback_stellar_fraction_from_obs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_matter_profile_with_feedback_stellar_fraction_from_obs</span></code></a>(...)</p></td>
+<td><p>Compute the matter profile using stellar fraction from observations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_satellite_galaxy_alignment_profile.html#onepower.pk.Spectra.compute_satellite_galaxy_alignment_profile" title="onepower.pk.Spectra.compute_satellite_galaxy_alignment_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_satellite_galaxy_alignment_profile</span></code></a>(...)</p></td>
+<td><p>Compute the satellite galaxy alignment profile.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.dewiggle_plin.html#onepower.pk.Spectra.dewiggle_plin" title="onepower.pk.Spectra.dewiggle_plin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dewiggle_plin</span></code></a>(plin)</p></td>
+<td><p>Dewiggle the linear power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.f_Mead.html#onepower.pk.Spectra.f_Mead" title="onepower.pk.Spectra.f_Mead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">f_Mead</span></code></a>(x, y, p0, p1, p2, p3)</p></td>
+<td><p>Fitting function from Mead et al. 2021 (2009.01858), eq A3, used in <span class="math notranslate nohighlight">\(\delta_c\)</span> and <span class="math notranslate nohighlight">\(\Delta_{\rm v}\)</span> calculations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.fg.html#onepower.pk.Spectra.fg" title="onepower.pk.Spectra.fg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fg</span></code></a>(mass, z_vec, fstar[, beta])</p></td>
+<td><p>Compute the gas fraction, eq 24 of Mead et al. 2021.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.fg_fit.html#onepower.pk.Spectra.fg_fit" title="onepower.pk.Spectra.fg_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fg_fit</span></code></a>(mass, mb, fstar[, beta])</p></td>
+<td><p>Compute the gas fraction for a general baryonic feedback model, eq 24 of Mead et al. 2021.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.fs.html#onepower.pk.Spectra.fs" title="onepower.pk.Spectra.fs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fs</span></code></a>(z_vec)</p></td>
+<td><p>Compute the stellar fraction from table 4 and eq 26 of Mead et al. 2021.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_Pk_wiggle.html#onepower.pk.Spectra.get_Pk_wiggle" title="onepower.pk.Spectra.get_Pk_wiggle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_Pk_wiggle</span></code></a>(k, Pk_lin, h, ombh2, ommh2, ns)</p></td>
+<td><p>Extract the wiggle from the linear power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_all_parameter_defaults.html#onepower.pk.Spectra.get_all_parameter_defaults" title="onepower.pk.Spectra.get_all_parameter_defaults"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_parameter_defaults</span></code></a>([recursive])</p></td>
+<td><p>Dictionary of all parameters and defaults.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_all_parameter_names.html#onepower.pk.Spectra.get_all_parameter_names" title="onepower.pk.Spectra.get_all_parameter_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_parameter_names</span></code></a>()</p></td>
+<td><p>Yield all parameter names in the class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_dependencies.html#onepower.pk.Spectra.get_dependencies" title="onepower.pk.Spectra.get_dependencies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_dependencies</span></code></a>(*q)</p></td>
+<td><p>Determine all parameter dependencies of the quantities in q.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_halo_collapse_redshifts.html#onepower.pk.Spectra.get_halo_collapse_redshifts" title="onepower.pk.Spectra.get_halo_collapse_redshifts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_halo_collapse_redshifts</span></code></a>(M, z, dc, g, ...)</p></td>
+<td><p>Calculate halo collapse redshifts according to the Bullock et al. (2001) prescription.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_profile_with_feedback_stellar_fraction_from_obs.html#onepower.pk.Spectra.matter_profile_with_feedback_stellar_fraction_from_obs" title="onepower.pk.Spectra.matter_profile_with_feedback_stellar_fraction_from_obs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matter_profile_with_feedback_stellar_fraction_from_obs</span></code></a>(fstar)</p></td>
+<td><p>Compute the matter profile grid using stellar fraction from observations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.one_halo_truncation_mead.html#onepower.pk.Spectra.one_halo_truncation_mead" title="onepower.pk.Spectra.one_halo_truncation_mead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">one_halo_truncation_mead</span></code></a>(sigma8_in)</p></td>
+<td><p>1-halo term truncation in Mead et al. 2021, eq 17 and table 2.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.parameter_info.html#onepower.pk.Spectra.parameter_info" title="onepower.pk.Spectra.parameter_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameter_info</span></code></a>([names])</p></td>
+<td><p>Prints information about each parameter in the class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.prepare_I12_integrand.html#onepower.pk.Spectra.prepare_I12_integrand" title="onepower.pk.Spectra.prepare_I12_integrand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare_I12_integrand</span></code></a>(b_1, b_2, dndlnm_1, ...)</p></td>
+<td><p>Prepare the integrand for the I12 term.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.prepare_I21_integrand.html#onepower.pk.Spectra.prepare_I21_integrand" title="onepower.pk.Spectra.prepare_I21_integrand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare_I21_integrand</span></code></a>(b_1, b_2, dndlnm_1, ...)</p></td>
+<td><p>Prepare the integrand for the I21 term.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.prepare_I22_integrand.html#onepower.pk.Spectra.prepare_I22_integrand" title="onepower.pk.Spectra.prepare_I22_integrand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare_I22_integrand</span></code></a>(b_1, b_2, dndlnm_1, ...)</p></td>
+<td><p>Prepare the integrand for the I22 term.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.quantities_available.html#onepower.pk.Spectra.quantities_available" title="onepower.pk.Spectra.quantities_available"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantities_available</span></code></a>()</p></td>
+<td><p>Obtain a list of all available output quantities.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.sigmaR_cc.html#onepower.pk.Spectra.sigmaR_cc" title="onepower.pk.Spectra.sigmaR_cc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sigmaR_cc</span></code></a>(power, k, r)</p></td>
+<td><p>Calculate the variance of the cold matter density field smoothed on scale R.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.sigmaV.html#onepower.pk.Spectra.sigmaV" title="onepower.pk.Spectra.sigmaV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sigmaV</span></code></a>(k, power)</p></td>
+<td><p>Calculate the dispersion from the power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.transition_smoothing.html#onepower.pk.Spectra.transition_smoothing" title="onepower.pk.Spectra.transition_smoothing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transition_smoothing</span></code></a>(neff, p_1h, p_2h)</p></td>
+<td><p>Smooth the transition between 1 and 2 halo terms, eq 23 and table 2 of Mead et al. 2021.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.two_halo_truncation_mead.html#onepower.pk.Spectra.two_halo_truncation_mead" title="onepower.pk.Spectra.two_halo_truncation_mead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">two_halo_truncation_mead</span></code></a>(sigma8_in)</p></td>
+<td><p>2-halo term truncation in Mead et al. 2021, eq 16.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.update.html#onepower.pk.Spectra.update" title="onepower.pk.Spectra.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(**kwargs)</p></td>
+<td><p>Update parameters of the framework with kwargs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.validate.html#onepower.pk.Spectra.validate" title="onepower.pk.Spectra.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>()</p></td>
+<td><p>Perform validation of the input parameters as they relate to each other.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.A_term.html#onepower.pk.Spectra.A_term" title="onepower.pk.Spectra.A_term"><code class="xref py py-obj docutils literal notranslate"><span class="pre">A_term</span></code></a></p></td>
+<td><p>Return the integral over the missing mass.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.C1.html#onepower.pk.Spectra.C1" title="onepower.pk.Spectra.C1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">C1</span></code></a></p></td>
+<td><p>Linear alignment coefficient C1 multiplited with the 2h amplitude.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.Dv_Mead.html#onepower.pk.Spectra.Dv_Mead" title="onepower.pk.Spectra.Dv_Mead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Dv_Mead</span></code></a></p></td>
+<td><p>Overdensity <span class="math notranslate nohighlight">\(\Delta_{\rm v}\)</span> fitting function from Mead et al. 2021 (2009.01858), eq A.2.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.I12.html#onepower.pk.Spectra.I12" title="onepower.pk.Spectra.I12"><code class="xref py py-obj docutils literal notranslate"><span class="pre">I12</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.I21.html#onepower.pk.Spectra.I21" title="onepower.pk.Spectra.I21"><code class="xref py py-obj docutils literal notranslate"><span class="pre">I21</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.I22.html#onepower.pk.Spectra.I22" title="onepower.pk.Spectra.I22"><code class="xref py py-obj docutils literal notranslate"><span class="pre">I22</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.Ic_align_term.html#onepower.pk.Spectra.Ic_align_term" title="onepower.pk.Spectra.Ic_align_term"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Ic_align_term</span></code></a></p></td>
+<td><p>Compute the integral for the central galaxy alignment term in the 2-halo power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.Ic_term.html#onepower.pk.Spectra.Ic_term" title="onepower.pk.Spectra.Ic_term"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Ic_term</span></code></a></p></td>
+<td><p>Compute the integral for the central galaxy term in the 2-halo power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.Im_term.html#onepower.pk.Spectra.Im_term" title="onepower.pk.Spectra.Im_term"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Im_term</span></code></a></p></td>
+<td><p>Compute the integral for the matter term in the 2-halo power spectrum, eq 35 of Asgari, Mead, Heymans 2023.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.Is_align_term.html#onepower.pk.Spectra.Is_align_term" title="onepower.pk.Spectra.Is_align_term"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Is_align_term</span></code></a></p></td>
+<td><p>Compute the integral for the satellite galaxy alignment term in the 2-halo power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.Is_term.html#onepower.pk.Spectra.Is_term" title="onepower.pk.Spectra.Is_term"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Is_term</span></code></a></p></td>
+<td><p>Compute the integral for the satellite galaxy term in the 2-halo power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.K.html#onepower.pk.Spectra.K" title="onepower.pk.Spectra.K"><code class="xref py py-obj docutils literal notranslate"><span class="pre">K</span></code></a></p></td>
+<td><p>Sets the c(M) normalisations to the one used in HMCode.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.Mmax.html#onepower.pk.Spectra.Mmax" title="onepower.pk.Spectra.Mmax"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mmax</span></code></a></p></td>
+<td><p>Maximum halo mass (for hmf).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.Mmin.html#onepower.pk.Spectra.Mmin" title="onepower.pk.Spectra.Mmin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mmin</span></code></a></p></td>
+<td><p>Minimum halo mass (for hmf).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.align_params.html#onepower.pk.Spectra.align_params" title="onepower.pk.Spectra.align_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">align_params</span></code></a></p></td>
+<td><p>Parameters for the alignment model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.alignment_amplitude_2h.html#onepower.pk.Spectra.alignment_amplitude_2h" title="onepower.pk.Spectra.alignment_amplitude_2h"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alignment_amplitude_2h</span></code></a></p></td>
+<td><p>The alignment amplitude for GI.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.alignment_amplitude_2h_II.html#onepower.pk.Spectra.alignment_amplitude_2h_II" title="onepower.pk.Spectra.alignment_amplitude_2h_II"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alignment_amplitude_2h_II</span></code></a></p></td>
+<td><p>The alignment amplitude for II.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.alignment_class.html#onepower.pk.Spectra.alignment_class" title="onepower.pk.Spectra.alignment_class"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alignment_class</span></code></a></p></td>
+<td><p>Set up the aligment amplitudes and radial dependence.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.alignment_gi.html#onepower.pk.Spectra.alignment_gi" title="onepower.pk.Spectra.alignment_gi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alignment_gi</span></code></a></p></td>
+<td><p>2h alignment amplitude.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.beta_cen.html#onepower.pk.Spectra.beta_cen" title="onepower.pk.Spectra.beta_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">beta_cen</span></code></a></p></td>
+<td><p>Beta parameter for central galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.beta_nl.html#onepower.pk.Spectra.beta_nl" title="onepower.pk.Spectra.beta_nl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">beta_nl</span></code></a></p></td>
+<td><p>Non-linear bias parameter <span class="math notranslate nohighlight">\(\beta_{\rm nl}\)</span>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.beta_sat.html#onepower.pk.Spectra.beta_sat" title="onepower.pk.Spectra.beta_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">beta_sat</span></code></a></p></td>
+<td><p>Beta parameter for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.bias_model.html#onepower.pk.Spectra.bias_model" title="onepower.pk.Spectra.bias_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bias_model</span></code></a></p></td>
+<td><p>Halo bias model (for halomod).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.bnl.html#onepower.pk.Spectra.bnl" title="onepower.pk.Spectra.bnl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bnl</span></code></a></p></td>
+<td><p>Whether to include non-linear bias.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.calc_bnl.html#onepower.pk.Spectra.calc_bnl" title="onepower.pk.Spectra.calc_bnl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_bnl</span></code></a></p></td>
+<td><p>Calculate the non-linear bias using the NonLinearBias class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.central_alignment_profile.html#onepower.pk.Spectra.central_alignment_profile" title="onepower.pk.Spectra.central_alignment_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">central_alignment_profile</span></code></a></p></td>
+<td><p>Prepare the grid in z, k and mass for the central alignment</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.central_galaxy_profile.html#onepower.pk.Spectra.central_galaxy_profile" title="onepower.pk.Spectra.central_galaxy_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">central_galaxy_profile</span></code></a></p></td>
+<td><p>Compute the galaxy profile for a sample of central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.compute_observable.html#onepower.pk.Spectra.compute_observable" title="onepower.pk.Spectra.compute_observable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_observable</span></code></a></p></td>
+<td><p>Whether to compute observable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.conc_cen.html#onepower.pk.Spectra.conc_cen" title="onepower.pk.Spectra.conc_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conc_cen</span></code></a></p></td>
+<td><p>Return the concentration for matter/central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.conc_sat.html#onepower.pk.Spectra.conc_sat" title="onepower.pk.Spectra.conc_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conc_sat</span></code></a></p></td>
+<td><p>Return the concentration for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.cosmo_model.html#onepower.pk.Spectra.cosmo_model" title="onepower.pk.Spectra.cosmo_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cosmo_model</span></code></a></p></td>
+<td><p>Return the astropy cosmology object assuming Flatw0waCDM model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.dc_Mead.html#onepower.pk.Spectra.dc_Mead" title="onepower.pk.Spectra.dc_Mead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dc_Mead</span></code></a></p></td>
+<td><p>The critical overdensity for collapse <span class="math notranslate nohighlight">\(\delta_c\)</span> fitting function from Mead et al. 2021 (2009.01858).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.delta_c.html#onepower.pk.Spectra.delta_c" title="onepower.pk.Spectra.delta_c"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delta_c</span></code></a></p></td>
+<td><p>Critical density threshold for collapse <span class="math notranslate nohighlight">\(\delta_c\)</span>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.dewiggle.html#onepower.pk.Spectra.dewiggle" title="onepower.pk.Spectra.dewiggle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dewiggle</span></code></a></p></td>
+<td><p>Whether to dewiggle the power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.disable_mass_conversion.html#onepower.pk.Spectra.disable_mass_conversion" title="onepower.pk.Spectra.disable_mass_conversion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disable_mass_conversion</span></code></a></p></td>
+<td><p>Dissables the mass conversion for the mass definitions defined in HMCode.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.dlnk.html#onepower.pk.Spectra.dlnk" title="onepower.pk.Spectra.dlnk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dlnk</span></code></a></p></td>
+<td><p>Spacing in natural log of wavenumber (for hmf).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.dlog10m.html#onepower.pk.Spectra.dlog10m" title="onepower.pk.Spectra.dlog10m"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dlog10m</span></code></a></p></td>
+<td><p>Spacing in log10 of halo mass (for hmf).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.dndlnm.html#onepower.pk.Spectra.dndlnm" title="onepower.pk.Spectra.dndlnm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dndlnm</span></code></a></p></td>
+<td><p>Return the differential mass function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.eta_cen.html#onepower.pk.Spectra.eta_cen" title="onepower.pk.Spectra.eta_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eta_cen</span></code></a></p></td>
+<td><p>Bloating parameter for central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.eta_sat.html#onepower.pk.Spectra.eta_sat" title="onepower.pk.Spectra.eta_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eta_sat</span></code></a></p></td>
+<td><p>float Bloating parameter for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.fnu.html#onepower.pk.Spectra.fnu" title="onepower.pk.Spectra.fnu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fnu</span></code></a></p></td>
+<td><p>Return the neutrino density fraction.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.fortuna.html#onepower.pk.Spectra.fortuna" title="onepower.pk.Spectra.fortuna"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fortuna</span></code></a></p></td>
+<td><p>Whether to use the Fortuna model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.fstar.html#onepower.pk.Spectra.fstar" title="onepower.pk.Spectra.fstar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fstar</span></code></a></p></td>
+<td><p>Compute the stellar fraction.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.fstar_mm.html#onepower.pk.Spectra.fstar_mm" title="onepower.pk.Spectra.fstar_mm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fstar_mm</span></code></a></p></td>
+<td><p>Compute the stellar fraction for the matter-matter power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_mead_accumulated_growth.html#onepower.pk.Spectra.get_mead_accumulated_growth" title="onepower.pk.Spectra.get_mead_accumulated_growth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mead_accumulated_growth</span></code></a></p></td>
+<td><p>Calculates the accumulated growth at scale factor 'a'.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_mead_growth.html#onepower.pk.Spectra.get_mead_growth" title="onepower.pk.Spectra.get_mead_growth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mead_growth</span></code></a></p></td>
+<td><p>Return the Mead growth factor at the scale factors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.get_mead_growth_fnc.html#onepower.pk.Spectra.get_mead_growth_fnc" title="onepower.pk.Spectra.get_mead_growth_fnc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mead_growth_fnc</span></code></a></p></td>
+<td><p>Solve the linear growth ODE and returns an interpolating function for the solution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.growth_factor.html#onepower.pk.Spectra.growth_factor" title="onepower.pk.Spectra.growth_factor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">growth_factor</span></code></a></p></td>
+<td><p>Return the growth factor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.growth_model.html#onepower.pk.Spectra.growth_model" title="onepower.pk.Spectra.growth_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">growth_model</span></code></a></p></td>
+<td><p>Growth function model (for hmf).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.growth_params.html#onepower.pk.Spectra.growth_params" title="onepower.pk.Spectra.growth_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">growth_params</span></code></a></p></td>
+<td><p>Parameters for the growth function (for hmf).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.h0.html#onepower.pk.Spectra.h0" title="onepower.pk.Spectra.h0"><code class="xref py py-obj docutils literal notranslate"><span class="pre">h0</span></code></a></p></td>
+<td><p>Hubble parameter (small h).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_bias.html#onepower.pk.Spectra.halo_bias" title="onepower.pk.Spectra.halo_bias"><code class="xref py py-obj docutils literal notranslate"><span class="pre">halo_bias</span></code></a></p></td>
+<td><p>Return the halo bias.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_concentration_model_dm.html#onepower.pk.Spectra.halo_concentration_model_dm" title="onepower.pk.Spectra.halo_concentration_model_dm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">halo_concentration_model_dm</span></code></a></p></td>
+<td><p>Halo concentration model of dark matter / central galaxies (for halomod).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_concentration_model_sat.html#onepower.pk.Spectra.halo_concentration_model_sat" title="onepower.pk.Spectra.halo_concentration_model_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">halo_concentration_model_sat</span></code></a></p></td>
+<td><p>Halo concentration model of satellite galaxies (for halomod).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_overdensity_mean.html#onepower.pk.Spectra.halo_overdensity_mean" title="onepower.pk.Spectra.halo_overdensity_mean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">halo_overdensity_mean</span></code></a></p></td>
+<td><p>Return the mean halo overdensity.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_profile_model_dm.html#onepower.pk.Spectra.halo_profile_model_dm" title="onepower.pk.Spectra.halo_profile_model_dm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">halo_profile_model_dm</span></code></a></p></td>
+<td><p>Halo profile model of dark matter / central galaxies (for halomod).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_profile_model_sat.html#onepower.pk.Spectra.halo_profile_model_sat" title="onepower.pk.Spectra.halo_profile_model_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">halo_profile_model_sat</span></code></a></p></td>
+<td><p>Halo profile model of satellite galaxies (for halomod).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.halo_profile_params.html#onepower.pk.Spectra.halo_profile_params" title="onepower.pk.Spectra.halo_profile_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">halo_profile_params</span></code></a></p></td>
+<td><p>Packs the cosmology to a dictionary to be passed to the hmf.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.hmf_model.html#onepower.pk.Spectra.hmf_model" title="onepower.pk.Spectra.hmf_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hmf_model</span></code></a></p></td>
+<td><p>Halo mass function model (for hmf).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod.html#onepower.pk.Spectra.hod" title="onepower.pk.Spectra.hod"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hod</span></code></a></p></td>
+<td><p>Initialize and return the HOD model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod_mm.html#onepower.pk.Spectra.hod_mm" title="onepower.pk.Spectra.hod_mm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hod_mm</span></code></a></p></td>
+<td><p>Initialize and return the HOD model for matter-matter power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod_model.html#onepower.pk.Spectra.hod_model" title="onepower.pk.Spectra.hod_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hod_model</span></code></a></p></td>
+<td><p>An HOD model to use</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod_params.html#onepower.pk.Spectra.hod_params" title="onepower.pk.Spectra.hod_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hod_params</span></code></a></p></td>
+<td><p>Parameters for the HOD model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod_settings.html#onepower.pk.Spectra.hod_settings" title="onepower.pk.Spectra.hod_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hod_settings</span></code></a></p></td>
+<td><p>Settings for the HOD model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.hod_settings_mm.html#onepower.pk.Spectra.hod_settings_mm" title="onepower.pk.Spectra.hod_settings_mm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hod_settings_mm</span></code></a></p></td>
+<td><p>Settings for the HOD model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.k_vec.html#onepower.pk.Spectra.k_vec" title="onepower.pk.Spectra.k_vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">k_vec</span></code></a></p></td>
+<td><p>Array of wavenumbers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.kh.html#onepower.pk.Spectra.kh" title="onepower.pk.Spectra.kh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kh</span></code></a></p></td>
+<td><p>Return the k vector defined using lnk in hmf.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.lnk_max.html#onepower.pk.Spectra.lnk_max" title="onepower.pk.Spectra.lnk_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lnk_max</span></code></a></p></td>
+<td><p>Maximum natural log of wavenumber (for hmf).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.lnk_min.html#onepower.pk.Spectra.lnk_min" title="onepower.pk.Spectra.lnk_min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lnk_min</span></code></a></p></td>
+<td><p>Minimum natural log of wavenumber (for hmf).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.log10T_AGN.html#onepower.pk.Spectra.log10T_AGN" title="onepower.pk.Spectra.log10T_AGN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log10T_AGN</span></code></a></p></td>
+<td><p>Log10 of AGN temperature.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.m_nu.html#onepower.pk.Spectra.m_nu" title="onepower.pk.Spectra.m_nu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">m_nu</span></code></a></p></td>
+<td><p>Neutrino mass.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.mass.html#onepower.pk.Spectra.mass" title="onepower.pk.Spectra.mass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mass</span></code></a></p></td>
+<td><p>Return the masses.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.mass_avg.html#onepower.pk.Spectra.mass_avg" title="onepower.pk.Spectra.mass_avg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mass_avg</span></code></a></p></td>
+<td><p>Compute the average mass.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_power_lin.html#onepower.pk.Spectra.matter_power_lin" title="onepower.pk.Spectra.matter_power_lin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matter_power_lin</span></code></a></p></td>
+<td><p>Linear matter power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_power_nl.html#onepower.pk.Spectra.matter_power_nl" title="onepower.pk.Spectra.matter_power_nl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matter_power_nl</span></code></a></p></td>
+<td><p>Non-linear matter power spectrum</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_profile.html#onepower.pk.Spectra.matter_profile" title="onepower.pk.Spectra.matter_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matter_profile</span></code></a></p></td>
+<td><p>Compute the matter profile grid in z, k, and M.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_profile_2h.html#onepower.pk.Spectra.matter_profile_2h" title="onepower.pk.Spectra.matter_profile_2h"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matter_profile_2h</span></code></a></p></td>
+<td><p>Compute the matter profile grid in z, k, and M.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.matter_profile_with_feedback.html#onepower.pk.Spectra.matter_profile_with_feedback" title="onepower.pk.Spectra.matter_profile_with_feedback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matter_profile_with_feedback</span></code></a></p></td>
+<td><p>Compute the matter profile grid with feedback.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.mb.html#onepower.pk.Spectra.mb" title="onepower.pk.Spectra.mb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mb</span></code></a></p></td>
+<td><p>Gas distribution mass pivot parameter <span class="math notranslate nohighlight">\(M_{\rm b}\)</span>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.mdef_model.html#onepower.pk.Spectra.mdef_model" title="onepower.pk.Spectra.mdef_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mdef_model</span></code></a></p></td>
+<td><p>Mass definition model (for hmf).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.mdef_params.html#onepower.pk.Spectra.mdef_params" title="onepower.pk.Spectra.mdef_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mdef_params</span></code></a></p></td>
+<td><p>Sets the overdensity parameter to the one used in HMCode or to the one for virial collapse.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.mead_correction.html#onepower.pk.Spectra.mead_correction" title="onepower.pk.Spectra.mead_correction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mead_correction</span></code></a></p></td>
+<td><p>Correction model from Mead et al.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.mean_density0.html#onepower.pk.Spectra.mean_density0" title="onepower.pk.Spectra.mean_density0"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_density0</span></code></a></p></td>
+<td><p>Return the mean density at redshift zero.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.mean_density_z.html#onepower.pk.Spectra.mean_density_z" title="onepower.pk.Spectra.mean_density_z"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_density_z</span></code></a></p></td>
+<td><p>Return the mean density at the given redshifts.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.missing_mass_integral.html#onepower.pk.Spectra.missing_mass_integral" title="onepower.pk.Spectra.missing_mass_integral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">missing_mass_integral</span></code></a></p></td>
+<td><p>Compute the integral over the missing mass.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.mpivot_cen.html#onepower.pk.Spectra.mpivot_cen" title="onepower.pk.Spectra.mpivot_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mpivot_cen</span></code></a></p></td>
+<td><p>Pivot mass for central galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.mpivot_sat.html#onepower.pk.Spectra.mpivot_sat" title="onepower.pk.Spectra.mpivot_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mpivot_sat</span></code></a></p></td>
+<td><p>Pivot mass for satellite galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.n_s.html#onepower.pk.Spectra.n_s" title="onepower.pk.Spectra.n_s"><code class="xref py py-obj docutils literal notranslate"><span class="pre">n_s</span></code></a></p></td>
+<td><p>Spectral index.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.neff.html#onepower.pk.Spectra.neff" title="onepower.pk.Spectra.neff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">neff</span></code></a></p></td>
+<td><p>Return the effective spectral index.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.nfw_cen.html#onepower.pk.Spectra.nfw_cen" title="onepower.pk.Spectra.nfw_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nfw_cen</span></code></a></p></td>
+<td><p>Return the density profile for matter/central galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.nfw_sat.html#onepower.pk.Spectra.nfw_sat" title="onepower.pk.Spectra.nfw_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nfw_sat</span></code></a></p></td>
+<td><p>Return the density profile for satellite galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.nonlinear_power.html#onepower.pk.Spectra.nonlinear_power" title="onepower.pk.Spectra.nonlinear_power"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nonlinear_power</span></code></a></p></td>
+<td><p>Return the non-linear power spectrum at z (if options passed).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.norm_cen.html#onepower.pk.Spectra.norm_cen" title="onepower.pk.Spectra.norm_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">norm_cen</span></code></a></p></td>
+<td><p>Normalization of c(M) relation for central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.norm_sat.html#onepower.pk.Spectra.norm_sat" title="onepower.pk.Spectra.norm_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">norm_sat</span></code></a></p></td>
+<td><p>Normalization of c(M) relation for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.nu.html#onepower.pk.Spectra.nu" title="onepower.pk.Spectra.nu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nu</span></code></a></p></td>
+<td><p>Return the peak height parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs.html#onepower.pk.Spectra.obs" title="onepower.pk.Spectra.obs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs</span></code></a></p></td>
+<td><p>Initialize and return the observable function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_func.html#onepower.pk.Spectra.obs_func" title="onepower.pk.Spectra.obs_func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs_func</span></code></a></p></td>
+<td><p>Return the observable function in correct units.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_func_cen.html#onepower.pk.Spectra.obs_func_cen" title="onepower.pk.Spectra.obs_func_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs_func_cen</span></code></a></p></td>
+<td><p>Return the observable function for central galaxies in correct units.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_func_obs.html#onepower.pk.Spectra.obs_func_obs" title="onepower.pk.Spectra.obs_func_obs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs_func_obs</span></code></a></p></td>
+<td><p>Return the observable function x-axis.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_func_sat.html#onepower.pk.Spectra.obs_func_sat" title="onepower.pk.Spectra.obs_func_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs_func_sat</span></code></a></p></td>
+<td><p>Return the observable function for satellite galaxies in correct units.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_func_z.html#onepower.pk.Spectra.obs_func_z" title="onepower.pk.Spectra.obs_func_z"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs_func_z</span></code></a></p></td>
+<td><p>Return the redshift for the observable function.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.obs_settings.html#onepower.pk.Spectra.obs_settings" title="onepower.pk.Spectra.obs_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs_settings</span></code></a></p></td>
+<td><p>Settings for the observable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.omega_b.html#onepower.pk.Spectra.omega_b" title="onepower.pk.Spectra.omega_b"><code class="xref py py-obj docutils literal notranslate"><span class="pre">omega_b</span></code></a></p></td>
+<td><p>Baryon density parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.omega_c.html#onepower.pk.Spectra.omega_c" title="onepower.pk.Spectra.omega_c"><code class="xref py py-obj docutils literal notranslate"><span class="pre">omega_c</span></code></a></p></td>
+<td><p>Cold dark matter density parameter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.omega_m.html#onepower.pk.Spectra.omega_m" title="onepower.pk.Spectra.omega_m"><code class="xref py py-obj docutils literal notranslate"><span class="pre">omega_m</span></code></a></p></td>
+<td><p>Matter density parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.one_halo_ktrunc.html#onepower.pk.Spectra.one_halo_ktrunc" title="onepower.pk.Spectra.one_halo_ktrunc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">one_halo_ktrunc</span></code></a></p></td>
+<td><p>Truncation wavenumber for the 1-halo term.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.one_halo_ktrunc_ia.html#onepower.pk.Spectra.one_halo_ktrunc_ia" title="onepower.pk.Spectra.one_halo_ktrunc_ia"><code class="xref py py-obj docutils literal notranslate"><span class="pre">one_halo_ktrunc_ia</span></code></a></p></td>
+<td><p>Truncation wavenumber for the 1-halo IA term.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.one_halo_truncation.html#onepower.pk.Spectra.one_halo_truncation" title="onepower.pk.Spectra.one_halo_truncation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">one_halo_truncation</span></code></a></p></td>
+<td><p>1-halo term truncation at large scales (small k)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.one_halo_truncation_ia.html#onepower.pk.Spectra.one_halo_truncation_ia" title="onepower.pk.Spectra.one_halo_truncation_ia"><code class="xref py py-obj docutils literal notranslate"><span class="pre">one_halo_truncation_ia</span></code></a></p></td>
+<td><p>1-halo term truncation for IA.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.overdensity.html#onepower.pk.Spectra.overdensity" title="onepower.pk.Spectra.overdensity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overdensity</span></code></a></p></td>
+<td><p>Overdensity parameter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.parameter_values.html#onepower.pk.Spectra.parameter_values" title="onepower.pk.Spectra.parameter_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameter_values</span></code></a></p></td>
+<td><p>Dictionary of all parameters and their current values</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.peff.html#onepower.pk.Spectra.peff" title="onepower.pk.Spectra.peff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">peff</span></code></a></p></td>
+<td><p>Return the mixture of linear and non-linear power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.pointmass.html#onepower.pk.Spectra.pointmass" title="onepower.pk.Spectra.pointmass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pointmass</span></code></a></p></td>
+<td><p>Whether to use point mass approximation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.poisson_func.html#onepower.pk.Spectra.poisson_func" title="onepower.pk.Spectra.poisson_func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">poisson_func</span></code></a></p></td>
+<td><p>Calculates the Poisson parameter for use in Pgg integrals.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.poisson_model.html#onepower.pk.Spectra.poisson_model" title="onepower.pk.Spectra.poisson_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">poisson_model</span></code></a></p></td>
+<td><p>A Poisson parameter model to use</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.poisson_params.html#onepower.pk.Spectra.poisson_params" title="onepower.pk.Spectra.poisson_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">poisson_params</span></code></a></p></td>
+<td><p>Parameters for the Poisson distribution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.power.html#onepower.pk.Spectra.power" title="onepower.pk.Spectra.power"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power</span></code></a></p></td>
+<td><p>Return the linear power spectrum at z.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_gg.html#onepower.pk.Spectra.power_spectrum_gg" title="onepower.pk.Spectra.power_spectrum_gg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power_spectrum_gg</span></code></a></p></td>
+<td><p>Compute the galaxy-galaxy power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_gi.html#onepower.pk.Spectra.power_spectrum_gi" title="onepower.pk.Spectra.power_spectrum_gi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power_spectrum_gi</span></code></a></p></td>
+<td><p>Compute the galaxy-intrinsic alignment power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_gm.html#onepower.pk.Spectra.power_spectrum_gm" title="onepower.pk.Spectra.power_spectrum_gm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power_spectrum_gm</span></code></a></p></td>
+<td><p>Compute the galaxy-matter power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_ii.html#onepower.pk.Spectra.power_spectrum_ii" title="onepower.pk.Spectra.power_spectrum_ii"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power_spectrum_ii</span></code></a></p></td>
+<td><p>Compute the intrinsic-intrinsic alignment power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_lin.html#onepower.pk.Spectra.power_spectrum_lin" title="onepower.pk.Spectra.power_spectrum_lin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power_spectrum_lin</span></code></a></p></td>
+<td><p>Return the linear power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_mi.html#onepower.pk.Spectra.power_spectrum_mi" title="onepower.pk.Spectra.power_spectrum_mi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power_spectrum_mi</span></code></a></p></td>
+<td><p>Compute the matter-intrinsic alignment power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.power_spectrum_mm.html#onepower.pk.Spectra.power_spectrum_mm" title="onepower.pk.Spectra.power_spectrum_mm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power_spectrum_mm</span></code></a></p></td>
+<td><p>Compute the matter-matter power spectrum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.r_s_cen.html#onepower.pk.Spectra.r_s_cen" title="onepower.pk.Spectra.r_s_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">r_s_cen</span></code></a></p></td>
+<td><p>Return the scale radius for matter/central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.r_s_sat.html#onepower.pk.Spectra.r_s_sat" title="onepower.pk.Spectra.r_s_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">r_s_sat</span></code></a></p></td>
+<td><p>Return the scale radius for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.response.html#onepower.pk.Spectra.response" title="onepower.pk.Spectra.response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">response</span></code></a></p></td>
+<td><p>Whether to calculate the resulting power spectra in response formalism.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.rho_halo.html#onepower.pk.Spectra.rho_halo" title="onepower.pk.Spectra.rho_halo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rho_halo</span></code></a></p></td>
+<td><p>Return the halo density.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.rvir_cen.html#onepower.pk.Spectra.rvir_cen" title="onepower.pk.Spectra.rvir_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rvir_cen</span></code></a></p></td>
+<td><p>Return the virial radius for matter/central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.rvir_sat.html#onepower.pk.Spectra.rvir_sat" title="onepower.pk.Spectra.rvir_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rvir_sat</span></code></a></p></td>
+<td><p>Return the virial radius for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.satellite_alignment_profile.html#onepower.pk.Spectra.satellite_alignment_profile" title="onepower.pk.Spectra.satellite_alignment_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">satellite_alignment_profile</span></code></a></p></td>
+<td><p>Prepare the grid in z, k and mass for the satellite alignment</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.satellite_galaxy_profile.html#onepower.pk.Spectra.satellite_galaxy_profile" title="onepower.pk.Spectra.satellite_galaxy_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">satellite_galaxy_profile</span></code></a></p></td>
+<td><p>Compute the galaxy profile for a sample of satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.scale_factor.html#onepower.pk.Spectra.scale_factor" title="onepower.pk.Spectra.scale_factor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scale_factor</span></code></a></p></td>
+<td><p>Return the scale factor.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.sigma8_z.html#onepower.pk.Spectra.sigma8_z" title="onepower.pk.Spectra.sigma8_z"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sigma8_z</span></code></a></p></td>
+<td><p>Return the amplitude of matter fluctuations on 8 Mpc scales at the given redshifts.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.sigma_8.html#onepower.pk.Spectra.sigma_8" title="onepower.pk.Spectra.sigma_8"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sigma_8</span></code></a></p></td>
+<td><p>Amplitude of matter fluctuations on 8 Mpc scales.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.t_eff.html#onepower.pk.Spectra.t_eff" title="onepower.pk.Spectra.t_eff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">t_eff</span></code></a></p></td>
+<td><p>Effective parameter for the Fortuna model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.tcmb.html#onepower.pk.Spectra.tcmb" title="onepower.pk.Spectra.tcmb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tcmb</span></code></a></p></td>
+<td><p>Temperature of the CMB.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.transfer_model.html#onepower.pk.Spectra.transfer_model" title="onepower.pk.Spectra.transfer_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transfer_model</span></code></a></p></td>
+<td><p>Transfer function model (for hmf).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.transfer_params.html#onepower.pk.Spectra.transfer_params" title="onepower.pk.Spectra.transfer_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transfer_params</span></code></a></p></td>
+<td><p>Parameters for the transfer function (for hmf).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.two_halo_ktrunc.html#onepower.pk.Spectra.two_halo_ktrunc" title="onepower.pk.Spectra.two_halo_ktrunc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">two_halo_ktrunc</span></code></a></p></td>
+<td><p>Truncation wavenumber for the 2-halo term.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.two_halo_ktrunc_ia.html#onepower.pk.Spectra.two_halo_ktrunc_ia" title="onepower.pk.Spectra.two_halo_ktrunc_ia"><code class="xref py py-obj docutils literal notranslate"><span class="pre">two_halo_ktrunc_ia</span></code></a></p></td>
+<td><p>Truncation wavenumber for the 2-halo IA term.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.two_halo_truncation.html#onepower.pk.Spectra.two_halo_truncation" title="onepower.pk.Spectra.two_halo_truncation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">two_halo_truncation</span></code></a></p></td>
+<td><p>2-halo term truncation at larger k-values (large k).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.two_halo_truncation_ia.html#onepower.pk.Spectra.two_halo_truncation_ia" title="onepower.pk.Spectra.two_halo_truncation_ia"><code class="xref py py-obj docutils literal notranslate"><span class="pre">two_halo_truncation_ia</span></code></a></p></td>
+<td><p>2-halo term truncation for IA.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.u_dm.html#onepower.pk.Spectra.u_dm" title="onepower.pk.Spectra.u_dm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">u_dm</span></code></a></p></td>
+<td><p>Return the normalized density profile for dark matter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.u_sat.html#onepower.pk.Spectra.u_sat" title="onepower.pk.Spectra.u_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">u_sat</span></code></a></p></td>
+<td><p>Return the normalized density profile for satellite galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.w0.html#onepower.pk.Spectra.w0" title="onepower.pk.Spectra.w0"><code class="xref py py-obj docutils literal notranslate"><span class="pre">w0</span></code></a></p></td>
+<td><p>Dark energy equation of state parameter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.wa.html#onepower.pk.Spectra.wa" title="onepower.pk.Spectra.wa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wa</span></code></a></p></td>
+<td><p>Dark energy equation of state parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.wkm_sat.html#onepower.pk.Spectra.wkm_sat" title="onepower.pk.Spectra.wkm_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wkm_sat</span></code></a></p></td>
+<td><p>Compute the radial alignment profile of satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Spectra/onepower.pk.Spectra.z_vec.html#onepower.pk.Spectra.z_vec" title="onepower.pk.Spectra.z_vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_vec</span></code></a></p></td>
+<td><p>Array of redshifts.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="PowerSpectrumResult/onepower.pk.PowerSpectrumResult.__init__.html" class="btn btn-neutral float-left" title="onepower.pk.PowerSpectrumResult.__init__" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Spectra/onepower.pk.Spectra.I_NL.html" class="btn btn-neutral float-right" title="onepower.pk.Spectra.I_NL" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Andrej Dvornik.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

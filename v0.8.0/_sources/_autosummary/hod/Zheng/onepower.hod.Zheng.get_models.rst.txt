@@ -1,0 +1,6 @@
+onepower.hod.Zheng.get\_models
+==============================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: Zheng.get_models

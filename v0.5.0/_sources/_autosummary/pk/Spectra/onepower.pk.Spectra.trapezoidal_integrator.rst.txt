@@ -1,0 +1,6 @@
+onepower.pk.Spectra.trapezoidal\_integrator
+===========================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.trapezoidal_integrator

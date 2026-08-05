@@ -1,0 +1,6 @@
+onepower.hod.Zhai.number\_density
+=================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.number_density

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.Dv\_Mead
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.Dv_Mead

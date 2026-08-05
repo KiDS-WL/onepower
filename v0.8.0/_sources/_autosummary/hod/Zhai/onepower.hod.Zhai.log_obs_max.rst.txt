@@ -1,0 +1,6 @@
+onepower.hod.Zhai.log\_obs\_max
+===============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.log_obs_max

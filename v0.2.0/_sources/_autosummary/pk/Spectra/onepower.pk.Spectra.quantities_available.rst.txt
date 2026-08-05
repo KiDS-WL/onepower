@@ -1,0 +1,6 @@
+onepower.pk.Spectra.quantities\_available
+=========================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.quantities_available

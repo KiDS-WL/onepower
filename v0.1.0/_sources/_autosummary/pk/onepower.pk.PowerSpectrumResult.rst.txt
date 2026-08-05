@@ -1,0 +1,22 @@
+onepower.pk.PowerSpectrumResult
+===============================
+
+.. currentmodule:: onepower.pk
+
+.. autoclass:: PowerSpectrumResult
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: PowerSpectrumResult
+   
+      ~PowerSpectrumResult.__init__
+   
+   
+
+   
+   
+   

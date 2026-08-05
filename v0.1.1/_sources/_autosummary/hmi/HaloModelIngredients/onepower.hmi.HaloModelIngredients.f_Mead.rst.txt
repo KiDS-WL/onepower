@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.f\_Mead
+=========================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: HaloModelIngredients.f_Mead
