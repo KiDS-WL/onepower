@@ -7,13 +7,12 @@ related to the intrinsic alignment of central and satellite galaxies within dark
 import numpy as np
 from astropy.io import fits
 from hankel import HankelTransform
+from hmf._internals._cache import cached_quantity, parameter
+from hmf._internals._framework import Framework
 from scipy.fft import fht, fhtoffset
 from scipy.integrate import simpson
 from scipy.interpolate import RegularGridInterpolator, interp1d
 from scipy.special import binom, gamma
-
-from hmf._internals._cache import cached_quantity, parameter
-from hmf._internals._framework import Framework
 
 
 class AlignmentAmplitudes(Framework):

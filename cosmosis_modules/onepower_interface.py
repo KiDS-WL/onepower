@@ -1,14 +1,16 @@
 import numbers
+
 import numpy as np
 from cosmosis.datablock import names, option_section
-from scipy.interpolate import interp1d
-
 from onepower.add import UpsampledSpectra
 from onepower.bnl import HAVE_DARKEMU
+from scipy.interpolate import interp1d
+
 
 if HAVE_DARKEMU:
     from onepower.bnl import NonLinearBias
 from onepower.pk import Spectra
+
 
 cosmo_params = names.cosmological_parameters
 

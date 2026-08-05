@@ -1,9 +1,10 @@
-import pytest
 import numpy as np
-from scipy.integrate import quad
-from scipy.interpolate import interp1d
+import pytest
 from onepower import CosmologyBase, HaloModelIngredients
 from onepower.hmi import SOVirial_Mead
+from scipy.integrate import quad
+from scipy.interpolate import interp1d
+
 
 # Helper tolerance for float comparisons
 TOL = 1e-5
