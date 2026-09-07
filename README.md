@@ -45,6 +45,7 @@ As OnePower has defaults for all of its parameters, a reasonable resulting power
 
 ```python
 from onepower import Spectra
+
 ps = Spectra()
 pk_mm = ps.power_spectrum_mm.pk_tot
 pk_mm_1h = ps.power_spectrum_mm.pk_1h
