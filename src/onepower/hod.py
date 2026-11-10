@@ -360,8 +360,7 @@ class HaloOccupationDistribution(Component):
     def _nsat(self):
         r"""
         Total number density of satellite galaxies with the given HOD.
-        This is an integral over the HOD and the halo mass function to remove the halo mass dependence.
-
+        This is an integral over the HOD and the halo mass function to remove the halo mass dependence
         :math:`N_{\rm x} = \int ⟨N_{rm x}|M⟩ n(M) {\rm d}M`
         """
         return self._mass_integral(self._compute_hod_sat)

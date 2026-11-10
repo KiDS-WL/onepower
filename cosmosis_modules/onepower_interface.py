@@ -952,7 +952,7 @@ def execute(block, config):
                 'ell_max': 6,
                 'gamma_1h_slope': block[
                     f'intrinsic_alignment_parameters{pop_name_ia_1}',
-                    'gamma_1h_radial_slope',
+                    'gamma_1h_slope',
                 ],
                 'gamma_1h_amplitude': block[
                     f'intrinsic_alignment_parameters{pop_name_ia_1}',
@@ -1016,7 +1016,7 @@ def execute(block, config):
                 {
                     'gamma_1h_slope': block[
                         f'intrinsic_alignment_parameters{pop_name_ia_2}',
-                        'gamma_1h_radial_slope',
+                        'gamma_1h_slope',
                     ],
                     'gamma_1h_amplitude': block[
                         f'intrinsic_alignment_parameters{pop_name_ia_2}',
