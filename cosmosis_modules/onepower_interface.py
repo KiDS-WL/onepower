@@ -201,6 +201,7 @@ def setup_pipeline_parameters(options):
     # If True, calculate the response of the halo model for the requested power spectra compared to matter power
     # multiplies this to input non-linear matter power spectra.
     response = options.get_bool(option_section, 'response', default=False)
+
     split_ia = options.get_bool(option_section, 'split_ia', default=False)
 
     matter = p_mm
@@ -915,7 +916,7 @@ def execute(block, config):
                         f'intrinsic_alignment_parameters{pop_name_ia_1}', 'beta_sat'
                     ],
                     'mpivot_sat': block[
-                        f'intrinsic_alignment_parameters{pop_name_ia_1}', 'M_pivot'
+                        f'intrinsic_alignment_parameters{pop_name_ia_1}', 'mpivot_sat'
                     ],
                 }
             )
@@ -930,10 +931,10 @@ def execute(block, config):
             align_params.update(
                 {
                     'beta_cen': block[
-                        f'intrinsic_alignment_parameters{pop_name_ia_1}', 'beta'
+                        f'intrinsic_alignment_parameters{pop_name_ia_1}', 'beta_cen'
                     ],
                     'mpivot_cen': block[
-                        f'intrinsic_alignment_parameters{pop_name_ia_1}', 'M_pivot'
+                        f'intrinsic_alignment_parameters{pop_name_ia_1}', 'mpivot_cen'
                     ],
                 }
             )
@@ -983,7 +984,7 @@ def execute(block, config):
                             f'intrinsic_alignment_parameters{pop_name_ia_2}', 'beta_sat'
                         ],
                         'mpivot_sat': block[
-                            f'intrinsic_alignment_parameters{pop_name_ia_2}', 'M_pivot'
+                            f'intrinsic_alignment_parameters{pop_name_ia_2}', 'mpivot_sat'
                         ],
                     }
                 )
@@ -998,10 +999,10 @@ def execute(block, config):
                 align_params_2.update(
                     {
                         'beta_cen': block[
-                            f'intrinsic_alignment_parameters{pop_name_ia_2}', 'beta'
+                            f'intrinsic_alignment_parameters{pop_name_ia_2}', 'beta_cen'
                         ],
                         'mpivot_cen': block[
-                            f'intrinsic_alignment_parameters{pop_name_ia_2}', 'M_pivot'
+                            f'intrinsic_alignment_parameters{pop_name_ia_2}', 'mpivot_cen'
                         ],
                     }
                 )
