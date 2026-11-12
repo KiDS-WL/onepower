@@ -1130,7 +1130,7 @@ def execute(block, config):
 
     if alignment:
         power.update(hod_settings=hod_settings_ia_1)
-        hod_bins = save_hod_results(
+        hod_bins_ia = save_hod_results(
             block, power, z_vec, hod_section_name_ia_1, hod_settings_ia_1
         )
 
@@ -1154,8 +1154,8 @@ def execute(block, config):
             pk_II_1h = results.power_spectrum_ii.pk_1h
             pk_II_2h = results.power_spectrum_ii.pk_2h
             pk_II = results.power_spectrum_ii.pk_tot
-            for nb in range(hod_bins):
-                suffix = f'_{nb + 1}' if hod_bins != 1 else ''
+            for nb in range(hod_bins_ia):
+                suffix = f'_{nb + 1}' if hod_bins_ia != 1 else ''
                 save_pk_to_grid(
                     block,
                     z_out,
@@ -1190,8 +1190,8 @@ def execute(block, config):
             pk_mI_1h = results.power_spectrum_mi.pk_1h
             pk_mI_2h = results.power_spectrum_mi.pk_2h
             pk_mI = results.power_spectrum_mi.pk_tot
-            for nb in range(hod_bins):
-                suffix = f'_{nb + 1}' if hod_bins != 1 else ''
+            for nb in range(hod_bins_ia):
+                suffix = f'_{nb + 1}' if hod_bins_ia != 1 else ''
                 save_pk_to_grid(
                     block,
                     z_out,
