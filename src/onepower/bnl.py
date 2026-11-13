@@ -475,7 +475,7 @@ if HAVE_DARKEMU:
             b01 = np.empty(n1)
             for i, M in enumerate(M1):
                 phh = self.emulator.get_phh_mass(klin, M, M, z)
-                b01[i] = np.sqrt(phh / Pk_klin)
+                b01[i] = np.sqrt(phh[0] / Pk_klin[0])
 
             # High-k region for shot noise
             hk_mask = (k > 100.0) & (k < 200.0)

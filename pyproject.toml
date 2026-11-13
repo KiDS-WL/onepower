@@ -33,10 +33,10 @@ classifiers = [
 	"Topic :: Scientific/Engineering :: Astronomy",
 ]
 dependencies = [
-    "hmf>=3.6.0",
+    "hmf>=3.7.2",
     "halomod>=2.2.3",
     "numpy>=2.0",
-    "astropy>=6.0.0",
+    "astropy>=8.0.0",
     "scipy>=1.13.1",
     "camb>=1.4.0",
     "numexpr>=2.8.7",
@@ -194,6 +194,8 @@ ignore = [
     "E731",   # Do not assign a lambda expression, use a def
     "B008",   # Do not perform function calls in argument defaults
     "B023",   # Function definition does not bind loop variable
+    "RUF059", # Unused variable
+    "RUF012", # Mutable default variable
 ]
 
 # Import organization (Ruff's import sorting is enabled by default)

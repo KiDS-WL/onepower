@@ -772,7 +772,11 @@ def execute(block, config):
         'halo_profile_model_sat': config_hmf['profile_sat'],
         'halo_concentration_model_sat': config_hmf['cm_model_sat'],
         'transfer_model': 'FromArray',
-        'transfer_params': {'k': transfer_k, 'T': transfer_func},
+        'transfer_params': {
+            'k': transfer_k,
+            'T': transfer_func,
+            'matter_species': 'tot',
+        },
         'growth_model': 'FromArray',
         'growth_params': {'z': growth_z, 'd': growth_func},
         'norm_cen': block.get_double(
@@ -852,7 +856,7 @@ def execute(block, config):
         poisson_params = {}
         for param in poisson_parameters[poisson_type]:
             if not block.has_value('pk_parameters', param):
-                raise Exception(
+                raise ValueError(
                     f'Error: parameter {param} is needed for the requested poisson model: {poisson_type}'
                 )
             poisson_params[param] = get_string_or_none(
@@ -875,7 +879,7 @@ def execute(block, config):
             if hod_model == 'Cacciato':
                 param_bin = param
                 if not block.has_value(hod_values_name, param_bin):
-                    raise Exception(
+                    raise ValueError(
                         f'Error: parameter {param} is needed for the requested hod model: {hod_model}'
                     )
                 hod_params[param] = block[hod_values_name, param_bin]
@@ -885,7 +889,7 @@ def execute(block, config):
                     suffix = f'_{nb + 1}' if nbins != 1 else ''
                     param_bin = f'{param}{suffix}'
                     if not block.has_value(hod_values_name, param_bin):
-                        raise Exception(
+                        raise ValueError(
                             f'Error: parameter {param} is needed for the requested hod model: {hod_model}'
                         )
                     param_list.append(block[hod_values_name, param_bin])
@@ -984,7 +988,8 @@ def execute(block, config):
                             f'intrinsic_alignment_parameters{pop_name_ia_2}', 'beta_sat'
                         ],
                         'mpivot_sat': block[
-                            f'intrinsic_alignment_parameters{pop_name_ia_2}', 'mpivot_sat'
+                            f'intrinsic_alignment_parameters{pop_name_ia_2}',
+                            'mpivot_sat',
                         ],
                     }
                 )
@@ -1002,7 +1007,8 @@ def execute(block, config):
                             f'intrinsic_alignment_parameters{pop_name_ia_2}', 'beta_cen'
                         ],
                         'mpivot_cen': block[
-                            f'intrinsic_alignment_parameters{pop_name_ia_2}', 'mpivot_cen'
+                            f'intrinsic_alignment_parameters{pop_name_ia_2}',
+                            'mpivot_cen',
                         ],
                     }
                 )

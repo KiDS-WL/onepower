@@ -10,11 +10,12 @@ from functools import cached_property
 import halomod.concentration as concentration_classes
 import numpy as np
 from astropy import units as u
-from astropy.cosmology import Flatw0waCDM, Planck15
+from astropy.cosmology import Flatw0waCDM
 from halomod.concentration import interp_concentration, make_colossus_cm
 from halomod.halo_model import DMHaloModel
 from hmf._internals._cache import cached_quantity, parameter
 from hmf._internals._framework import Framework
+from hmf.cosmology.cosmo import DEFAULT_COSMOLOGY
 from hmf.halos.mass_definitions import SphericalOverdensity
 from scipy.integrate import quad, simpson, solve_ivp
 from scipy.interpolate import interp1d
@@ -45,7 +46,7 @@ class SOVirial_Mead(SphericalOverdensity):
 
     _defaults = {'overdensity': 200}
 
-    def halo_density(self, z=0, cosmo=Planck15):
+    def halo_density(self, z=0, cosmo=DEFAULT_COSMOLOGY):
         """The density of haloes under this definition."""
         # return self.params["overdensity"].reshape(z.shape) * self.mean_density(z, cosmo)
         return self.params['overdensity'] * self.mean_density(z, cosmo)
@@ -1299,7 +1300,7 @@ class HaloModelIngredients(CosmologyBase):
         ndarray
             peak heights
         """
-        return np.array([x.nu**0.5 for x in self._hmf_cen])
+        return np.array([x.peak_height for x in self._hmf_cen])
 
     @cached_quantity
     def dndlnm(self):
