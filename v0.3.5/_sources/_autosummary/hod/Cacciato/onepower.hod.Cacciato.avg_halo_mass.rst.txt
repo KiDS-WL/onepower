@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.avg\_halo\_mass
+=====================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.avg_halo_mass

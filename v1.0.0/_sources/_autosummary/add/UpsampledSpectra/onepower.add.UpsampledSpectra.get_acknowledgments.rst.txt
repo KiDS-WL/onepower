@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.get\_acknowledgments
+==================================================
+
+.. currentmodule:: onepower.add
+
+.. automethod:: UpsampledSpectra.get_acknowledgments

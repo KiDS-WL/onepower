@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.log10T\_AGN
+======================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: CosmologyBase.log10T_AGN

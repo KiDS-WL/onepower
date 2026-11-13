@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.compute\_luminosity\_pdf
+========================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: AlignmentAmplitudes.compute_luminosity_pdf

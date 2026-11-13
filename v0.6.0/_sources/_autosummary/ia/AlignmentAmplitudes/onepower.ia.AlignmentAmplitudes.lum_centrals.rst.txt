@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.lum\_centrals
+=============================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.lum_centrals

@@ -1,0 +1,6 @@
+onepower.hmi.SOVirial\_Mead.change\_definition
+==============================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: SOVirial_Mead.change_definition

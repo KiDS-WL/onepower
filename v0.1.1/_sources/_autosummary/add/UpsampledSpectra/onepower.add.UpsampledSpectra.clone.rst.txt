@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.clone
+===================================
+
+.. currentmodule:: onepower.add
+
+.. automethod:: UpsampledSpectra.clone

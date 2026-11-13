@@ -1,0 +1,6 @@
+onepower.pk.Spectra.satellite\_galaxy\_profile
+==============================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.satellite_galaxy_profile

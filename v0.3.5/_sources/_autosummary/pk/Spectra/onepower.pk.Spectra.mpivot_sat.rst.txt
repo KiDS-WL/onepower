@@ -1,0 +1,6 @@
+onepower.pk.Spectra.mpivot\_sat
+===============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.mpivot_sat

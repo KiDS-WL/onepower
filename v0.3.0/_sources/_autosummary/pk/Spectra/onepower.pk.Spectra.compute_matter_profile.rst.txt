@@ -1,0 +1,6 @@
+onepower.pk.Spectra.compute\_matter\_profile
+============================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.compute_matter_profile

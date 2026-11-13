@@ -1,0 +1,6 @@
+onepower.pk.Spectra.h0
+======================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.h0

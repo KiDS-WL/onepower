@@ -1,0 +1,6 @@
+onepower.pk.Spectra.satellite\_alignment\_profile
+=================================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.satellite_alignment_profile

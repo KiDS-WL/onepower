@@ -1,0 +1,84 @@
+onepower.ia.SatelliteAlignment
+==============================
+
+.. currentmodule:: onepower.ia
+
+.. autoclass:: SatelliteAlignment
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: SatelliteAlignment
+   
+      ~SatelliteAlignment.I_x
+      ~SatelliteAlignment.__init__
+      ~SatelliteAlignment.broken_powerlaw
+      ~SatelliteAlignment.calculate_f_ell
+      ~SatelliteAlignment.clone
+      ~SatelliteAlignment.compute_luminosity_pdf
+      ~SatelliteAlignment.gamma_r_nfw_profile
+      ~SatelliteAlignment.get_all_parameter_defaults
+      ~SatelliteAlignment.get_all_parameter_names
+      ~SatelliteAlignment.get_dependencies
+      ~SatelliteAlignment.mean_l_l0_to_beta
+      ~SatelliteAlignment.parameter_info
+      ~SatelliteAlignment.quantities_available
+      ~SatelliteAlignment.update
+      ~SatelliteAlignment.upsampled_wkm
+      ~SatelliteAlignment.validate
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: SatelliteAlignment
+   
+      ~SatelliteAlignment.alignment_gi
+      ~SatelliteAlignment.beta_cen
+      ~SatelliteAlignment.beta_sat
+      ~SatelliteAlignment.c
+      ~SatelliteAlignment.c_in
+      ~SatelliteAlignment.central_ia_depends_on
+      ~SatelliteAlignment.compute_uell_gamma_r_hankel
+      ~SatelliteAlignment.ell_max
+      ~SatelliteAlignment.ell_values
+      ~SatelliteAlignment.gamma_1h_amp
+      ~SatelliteAlignment.gamma_1h_amplitude
+      ~SatelliteAlignment.gamma_1h_slope
+      ~SatelliteAlignment.gamma_2h_amplitude
+      ~SatelliteAlignment.hankel
+      ~SatelliteAlignment.k_vec
+      ~SatelliteAlignment.lpivot_cen
+      ~SatelliteAlignment.lpivot_sat
+      ~SatelliteAlignment.lum_centrals
+      ~SatelliteAlignment.lum_pdf_z_centrals
+      ~SatelliteAlignment.lum_pdf_z_satellites
+      ~SatelliteAlignment.lum_satellites
+      ~SatelliteAlignment.mass
+      ~SatelliteAlignment.mass_in
+      ~SatelliteAlignment.method
+      ~SatelliteAlignment.mpivot_cen
+      ~SatelliteAlignment.mpivot_sat
+      ~SatelliteAlignment.n_hankel
+      ~SatelliteAlignment.nk
+      ~SatelliteAlignment.nmass
+      ~SatelliteAlignment.parameter_values
+      ~SatelliteAlignment.r_s
+      ~SatelliteAlignment.r_s_in
+      ~SatelliteAlignment.rvir
+      ~SatelliteAlignment.rvir_in
+      ~SatelliteAlignment.satellite_ia_depends_on
+      ~SatelliteAlignment.truncate
+      ~SatelliteAlignment.wkm
+      ~SatelliteAlignment.wkm_f_ell
+      ~SatelliteAlignment.z_loglum_file_centrals
+      ~SatelliteAlignment.z_loglum_file_satellites
+      ~SatelliteAlignment.z_vec
+   
+   

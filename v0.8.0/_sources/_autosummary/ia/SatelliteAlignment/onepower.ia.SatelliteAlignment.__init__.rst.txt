@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.\_\_init\_\_
+===========================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.__init__

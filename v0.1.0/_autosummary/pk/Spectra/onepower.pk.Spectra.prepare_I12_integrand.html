@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>onepower.pk.Spectra.prepare_I12_integrand &mdash; onepower 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="onepower.pk.Spectra.prepare_I21_integrand" href="onepower.pk.Spectra.prepare_I21_integrand.html" />
+    <link rel="prev" title="onepower.pk.Spectra.parameter_info" href="onepower.pk.Spectra.parameter_info.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            onepower
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Usage and Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">API Summary</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../onepower.pk.html">onepower.pk</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../onepower.pk.PowerSpectrumResult.html">onepower.pk.PowerSpectrumResult</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../onepower.pk.Spectra.html">onepower.pk.Spectra</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../onepower.pk.Spectra.html#onepower.pk.Spectra"><code class="docutils literal notranslate"><span class="pre">Spectra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.I_NL.html">onepower.pk.Spectra.I_NL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.Tk_EH_nowiggle.html">onepower.pk.Spectra.Tk_EH_nowiggle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.Tk_cold_ratio.html">onepower.pk.Spectra.Tk_cold_ratio</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.__init__.html">onepower.pk.Spectra.__init__</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.clone.html">onepower.pk.Spectra.clone</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.compute_1h_term.html">onepower.pk.Spectra.compute_1h_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.compute_A_term.html">onepower.pk.Spectra.compute_A_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.compute_Ig_term.html">onepower.pk.Spectra.compute_Ig_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.compute_Im_term.html">onepower.pk.Spectra.compute_Im_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.compute_central_galaxy_alignment_profile.html">onepower.pk.Spectra.compute_central_galaxy_alignment_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.compute_matter_profile.html">onepower.pk.Spectra.compute_matter_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.compute_matter_profile_with_feedback.html">onepower.pk.Spectra.compute_matter_profile_with_feedback</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.compute_matter_profile_with_feedback_stellar_fraction_from_obs.html">onepower.pk.Spectra.compute_matter_profile_with_feedback_stellar_fraction_from_obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.compute_satellite_galaxy_alignment_profile.html">onepower.pk.Spectra.compute_satellite_galaxy_alignment_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.dewiggle_plin.html">onepower.pk.Spectra.dewiggle_plin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.f_Mead.html">onepower.pk.Spectra.f_Mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.fg.html">onepower.pk.Spectra.fg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.fg_fit.html">onepower.pk.Spectra.fg_fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.fs.html">onepower.pk.Spectra.fs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.get_Pk_wiggle.html">onepower.pk.Spectra.get_Pk_wiggle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.get_all_parameter_defaults.html">onepower.pk.Spectra.get_all_parameter_defaults</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.get_all_parameter_names.html">onepower.pk.Spectra.get_all_parameter_names</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.get_dependencies.html">onepower.pk.Spectra.get_dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.get_halo_collapse_redshifts.html">onepower.pk.Spectra.get_halo_collapse_redshifts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.matter_profile_with_feedback_stellar_fraction_from_obs.html">onepower.pk.Spectra.matter_profile_with_feedback_stellar_fraction_from_obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.one_halo_truncation_mead.html">onepower.pk.Spectra.one_halo_truncation_mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.parameter_info.html">onepower.pk.Spectra.parameter_info</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">onepower.pk.Spectra.prepare_I12_integrand</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.prepare_I21_integrand.html">onepower.pk.Spectra.prepare_I21_integrand</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.prepare_I22_integrand.html">onepower.pk.Spectra.prepare_I22_integrand</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.quantities_available.html">onepower.pk.Spectra.quantities_available</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.sigmaR_cc.html">onepower.pk.Spectra.sigmaR_cc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.sigmaV.html">onepower.pk.Spectra.sigmaV</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.transition_smoothing.html">onepower.pk.Spectra.transition_smoothing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.two_halo_truncation_mead.html">onepower.pk.Spectra.two_halo_truncation_mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.update.html">onepower.pk.Spectra.update</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.validate.html">onepower.pk.Spectra.validate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.A_term.html">onepower.pk.Spectra.A_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.C1.html">onepower.pk.Spectra.C1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.Dv_Mead.html">onepower.pk.Spectra.Dv_Mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.I12.html">onepower.pk.Spectra.I12</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.I21.html">onepower.pk.Spectra.I21</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.I22.html">onepower.pk.Spectra.I22</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.Ic_align_term.html">onepower.pk.Spectra.Ic_align_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.Ic_term.html">onepower.pk.Spectra.Ic_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.Im_term.html">onepower.pk.Spectra.Im_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.Is_align_term.html">onepower.pk.Spectra.Is_align_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.Is_term.html">onepower.pk.Spectra.Is_term</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.K.html">onepower.pk.Spectra.K</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.Mmax.html">onepower.pk.Spectra.Mmax</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.Mmin.html">onepower.pk.Spectra.Mmin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.align_params.html">onepower.pk.Spectra.align_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.alignment_amplitude_2h.html">onepower.pk.Spectra.alignment_amplitude_2h</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.alignment_amplitude_2h_II.html">onepower.pk.Spectra.alignment_amplitude_2h_II</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.alignment_class.html">onepower.pk.Spectra.alignment_class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.alignment_gi.html">onepower.pk.Spectra.alignment_gi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.beta_cen.html">onepower.pk.Spectra.beta_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.beta_nl.html">onepower.pk.Spectra.beta_nl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.beta_sat.html">onepower.pk.Spectra.beta_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.bias_model.html">onepower.pk.Spectra.bias_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.bnl.html">onepower.pk.Spectra.bnl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.calc_bnl.html">onepower.pk.Spectra.calc_bnl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.central_alignment_profile.html">onepower.pk.Spectra.central_alignment_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.central_galaxy_profile.html">onepower.pk.Spectra.central_galaxy_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.compute_observable.html">onepower.pk.Spectra.compute_observable</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.conc_cen.html">onepower.pk.Spectra.conc_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.conc_sat.html">onepower.pk.Spectra.conc_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.cosmo_model.html">onepower.pk.Spectra.cosmo_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.dc_Mead.html">onepower.pk.Spectra.dc_Mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.delta_c.html">onepower.pk.Spectra.delta_c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.dewiggle.html">onepower.pk.Spectra.dewiggle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.disable_mass_conversion.html">onepower.pk.Spectra.disable_mass_conversion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.dlnk.html">onepower.pk.Spectra.dlnk</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.dlog10m.html">onepower.pk.Spectra.dlog10m</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.dndlnm.html">onepower.pk.Spectra.dndlnm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.eta_cen.html">onepower.pk.Spectra.eta_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.eta_sat.html">onepower.pk.Spectra.eta_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.fnu.html">onepower.pk.Spectra.fnu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.fortuna.html">onepower.pk.Spectra.fortuna</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.fstar.html">onepower.pk.Spectra.fstar</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.fstar_mm.html">onepower.pk.Spectra.fstar_mm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.get_mead_accumulated_growth.html">onepower.pk.Spectra.get_mead_accumulated_growth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.get_mead_growth.html">onepower.pk.Spectra.get_mead_growth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.get_mead_growth_fnc.html">onepower.pk.Spectra.get_mead_growth_fnc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.growth_factor.html">onepower.pk.Spectra.growth_factor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.growth_model.html">onepower.pk.Spectra.growth_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.growth_params.html">onepower.pk.Spectra.growth_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.h0.html">onepower.pk.Spectra.h0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.halo_bias.html">onepower.pk.Spectra.halo_bias</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.halo_concentration_model_dm.html">onepower.pk.Spectra.halo_concentration_model_dm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.halo_concentration_model_sat.html">onepower.pk.Spectra.halo_concentration_model_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.halo_overdensity_mean.html">onepower.pk.Spectra.halo_overdensity_mean</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.halo_profile_model_dm.html">onepower.pk.Spectra.halo_profile_model_dm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.halo_profile_model_sat.html">onepower.pk.Spectra.halo_profile_model_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.halo_profile_params.html">onepower.pk.Spectra.halo_profile_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.hmf_model.html">onepower.pk.Spectra.hmf_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.hod.html">onepower.pk.Spectra.hod</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.hod_mm.html">onepower.pk.Spectra.hod_mm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.hod_model.html">onepower.pk.Spectra.hod_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.hod_params.html">onepower.pk.Spectra.hod_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.hod_settings.html">onepower.pk.Spectra.hod_settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.hod_settings_mm.html">onepower.pk.Spectra.hod_settings_mm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.k_vec.html">onepower.pk.Spectra.k_vec</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.kh.html">onepower.pk.Spectra.kh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.lnk_max.html">onepower.pk.Spectra.lnk_max</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.lnk_min.html">onepower.pk.Spectra.lnk_min</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.log10T_AGN.html">onepower.pk.Spectra.log10T_AGN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.m_nu.html">onepower.pk.Spectra.m_nu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.mass.html">onepower.pk.Spectra.mass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.mass_avg.html">onepower.pk.Spectra.mass_avg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.matter_power_lin.html">onepower.pk.Spectra.matter_power_lin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.matter_power_nl.html">onepower.pk.Spectra.matter_power_nl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.matter_profile.html">onepower.pk.Spectra.matter_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.matter_profile_2h.html">onepower.pk.Spectra.matter_profile_2h</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.matter_profile_with_feedback.html">onepower.pk.Spectra.matter_profile_with_feedback</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.mb.html">onepower.pk.Spectra.mb</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.mdef_model.html">onepower.pk.Spectra.mdef_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.mdef_params.html">onepower.pk.Spectra.mdef_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.mead_correction.html">onepower.pk.Spectra.mead_correction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.mean_density0.html">onepower.pk.Spectra.mean_density0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.mean_density_z.html">onepower.pk.Spectra.mean_density_z</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.missing_mass_integral.html">onepower.pk.Spectra.missing_mass_integral</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.mpivot_cen.html">onepower.pk.Spectra.mpivot_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.mpivot_sat.html">onepower.pk.Spectra.mpivot_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.n_s.html">onepower.pk.Spectra.n_s</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.neff.html">onepower.pk.Spectra.neff</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.nfw_cen.html">onepower.pk.Spectra.nfw_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.nfw_sat.html">onepower.pk.Spectra.nfw_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.nonlinear_power.html">onepower.pk.Spectra.nonlinear_power</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.norm_cen.html">onepower.pk.Spectra.norm_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.norm_sat.html">onepower.pk.Spectra.norm_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.nu.html">onepower.pk.Spectra.nu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.obs.html">onepower.pk.Spectra.obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.obs_func.html">onepower.pk.Spectra.obs_func</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.obs_func_cen.html">onepower.pk.Spectra.obs_func_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.obs_func_obs.html">onepower.pk.Spectra.obs_func_obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.obs_func_sat.html">onepower.pk.Spectra.obs_func_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.obs_func_z.html">onepower.pk.Spectra.obs_func_z</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.obs_settings.html">onepower.pk.Spectra.obs_settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.omega_b.html">onepower.pk.Spectra.omega_b</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.omega_c.html">onepower.pk.Spectra.omega_c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.omega_m.html">onepower.pk.Spectra.omega_m</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.one_halo_ktrunc.html">onepower.pk.Spectra.one_halo_ktrunc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.one_halo_ktrunc_ia.html">onepower.pk.Spectra.one_halo_ktrunc_ia</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.one_halo_truncation.html">onepower.pk.Spectra.one_halo_truncation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.one_halo_truncation_ia.html">onepower.pk.Spectra.one_halo_truncation_ia</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.overdensity.html">onepower.pk.Spectra.overdensity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.parameter_values.html">onepower.pk.Spectra.parameter_values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.peff.html">onepower.pk.Spectra.peff</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.pointmass.html">onepower.pk.Spectra.pointmass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.poisson_func.html">onepower.pk.Spectra.poisson_func</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.poisson_model.html">onepower.pk.Spectra.poisson_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.poisson_params.html">onepower.pk.Spectra.poisson_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.power.html">onepower.pk.Spectra.power</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_gg.html">onepower.pk.Spectra.power_spectrum_gg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_gi.html">onepower.pk.Spectra.power_spectrum_gi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_gm.html">onepower.pk.Spectra.power_spectrum_gm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_ii.html">onepower.pk.Spectra.power_spectrum_ii</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_lin.html">onepower.pk.Spectra.power_spectrum_lin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_mi.html">onepower.pk.Spectra.power_spectrum_mi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.power_spectrum_mm.html">onepower.pk.Spectra.power_spectrum_mm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.r_s_cen.html">onepower.pk.Spectra.r_s_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.r_s_sat.html">onepower.pk.Spectra.r_s_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.response.html">onepower.pk.Spectra.response</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.rho_halo.html">onepower.pk.Spectra.rho_halo</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.rvir_cen.html">onepower.pk.Spectra.rvir_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.rvir_sat.html">onepower.pk.Spectra.rvir_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.satellite_alignment_profile.html">onepower.pk.Spectra.satellite_alignment_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.satellite_galaxy_profile.html">onepower.pk.Spectra.satellite_galaxy_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.scale_factor.html">onepower.pk.Spectra.scale_factor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.sigma8_z.html">onepower.pk.Spectra.sigma8_z</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.sigma_8.html">onepower.pk.Spectra.sigma_8</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.t_eff.html">onepower.pk.Spectra.t_eff</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.tcmb.html">onepower.pk.Spectra.tcmb</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.transfer_model.html">onepower.pk.Spectra.transfer_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.transfer_params.html">onepower.pk.Spectra.transfer_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.two_halo_ktrunc.html">onepower.pk.Spectra.two_halo_ktrunc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.two_halo_ktrunc_ia.html">onepower.pk.Spectra.two_halo_ktrunc_ia</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.two_halo_truncation.html">onepower.pk.Spectra.two_halo_truncation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.two_halo_truncation_ia.html">onepower.pk.Spectra.two_halo_truncation_ia</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.u_dm.html">onepower.pk.Spectra.u_dm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.u_sat.html">onepower.pk.Spectra.u_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.w0.html">onepower.pk.Spectra.w0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.wa.html">onepower.pk.Spectra.wa</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.wkm_sat.html">onepower.pk.Spectra.wkm_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.pk.Spectra.z_vec.html">onepower.pk.Spectra.z_vec</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../onepower.ia.html">onepower.ia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../onepower.bnl.html">onepower.bnl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../onepower.hod.html">onepower.hod</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../onepower.hmi.html">onepower.hmi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../onepower.add.html">onepower.add</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developing.html">Developing OnePower</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">onepower</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../api.html">API Summary</a></li>
+          <li class="breadcrumb-item"><a href="../../onepower.pk.html">onepower.pk</a></li>
+          <li class="breadcrumb-item"><a href="../onepower.pk.Spectra.html">onepower.pk.Spectra</a></li>
+      <li class="breadcrumb-item active">onepower.pk.Spectra.prepare_I12_integrand</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/_autosummary/pk/Spectra/onepower.pk.Spectra.prepare_I12_integrand.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="onepower-pk-spectra-prepare-i12-integrand">
+<h1>onepower.pk.Spectra.prepare_I12_integrand<a class="headerlink" href="#onepower-pk-spectra-prepare-i12-integrand" title="Link to this heading"></a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="onepower.pk.Spectra.prepare_I12_integrand">
+<span class="sig-prename descclassname"><span class="pre">Spectra.</span></span><span class="sig-name descname"><span class="pre">prepare_I12_integrand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dndlnm_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dndlnm_2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B_NL_k_z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/onepower/pk.html#Spectra.prepare_I12_integrand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#onepower.pk.Spectra.prepare_I12_integrand" title="Link to this definition"></a></dt>
+<dd><p>Prepare the integrand for the I12 term.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="onepower.pk.Spectra.parameter_info.html" class="btn btn-neutral float-left" title="onepower.pk.Spectra.parameter_info" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="onepower.pk.Spectra.prepare_I21_integrand.html" class="btn btn-neutral float-right" title="onepower.pk.Spectra.prepare_I21_integrand" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Andrej Dvornik.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

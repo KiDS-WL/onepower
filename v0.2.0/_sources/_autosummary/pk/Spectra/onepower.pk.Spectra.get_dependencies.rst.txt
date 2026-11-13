@@ -1,0 +1,6 @@
+onepower.pk.Spectra.get\_dependencies
+=====================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.get_dependencies

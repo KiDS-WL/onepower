@@ -1,0 +1,6 @@
+onepower.hod.Zhai.references
+============================
+
+.. currentmodule:: onepower.hod
+
+.. autoattribute:: Zhai.references

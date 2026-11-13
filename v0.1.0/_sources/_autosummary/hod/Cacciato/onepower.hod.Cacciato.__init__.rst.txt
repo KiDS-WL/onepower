@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.\_\_init\_\_
+==================================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: Cacciato.__init__

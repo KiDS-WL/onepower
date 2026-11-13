@@ -1,0 +1,6 @@
+onepower.hod.Simple.\_\_init\_\_
+================================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: Simple.__init__

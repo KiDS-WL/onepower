@@ -1,0 +1,6 @@
+onepower.pk.Spectra.dlnk
+========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.dlnk

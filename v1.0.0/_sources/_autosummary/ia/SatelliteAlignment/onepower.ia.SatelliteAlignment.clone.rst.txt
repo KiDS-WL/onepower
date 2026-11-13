@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.clone
+====================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.clone

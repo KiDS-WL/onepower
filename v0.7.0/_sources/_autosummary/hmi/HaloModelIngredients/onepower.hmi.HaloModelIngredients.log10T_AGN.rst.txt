@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.log10T\_AGN
+=============================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.log10T_AGN

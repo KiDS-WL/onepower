@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.nfw\_cen
+==========================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.nfw_cen

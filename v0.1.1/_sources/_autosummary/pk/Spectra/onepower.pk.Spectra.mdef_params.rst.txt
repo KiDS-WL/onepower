@@ -1,0 +1,6 @@
+onepower.pk.Spectra.mdef\_params
+================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.mdef_params

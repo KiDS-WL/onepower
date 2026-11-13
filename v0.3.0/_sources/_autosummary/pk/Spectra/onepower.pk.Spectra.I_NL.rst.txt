@@ -1,0 +1,6 @@
+onepower.pk.Spectra.I\_NL
+=========================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.I_NL

@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.get\_models
+===================================================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: HaloOccupationDistribution.get_models

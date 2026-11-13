@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.get\_all\_parameter\_defaults
+========================================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: CosmologyBase.get_all_parameter_defaults

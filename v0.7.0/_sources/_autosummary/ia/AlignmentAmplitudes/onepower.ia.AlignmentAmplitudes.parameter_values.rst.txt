@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.parameter\_values
+=================================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.parameter_values

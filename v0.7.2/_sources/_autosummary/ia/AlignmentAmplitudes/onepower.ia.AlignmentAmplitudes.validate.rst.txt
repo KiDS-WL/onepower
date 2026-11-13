@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.validate
+========================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: AlignmentAmplitudes.validate

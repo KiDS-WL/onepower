@@ -1,0 +1,6 @@
+onepower.pk.Spectra.nfw\_sat
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.nfw_sat

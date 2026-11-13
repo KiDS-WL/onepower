@@ -1,0 +1,6 @@
+onepower.pk.Spectra.beta\_sat
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.beta_sat

@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.references
+================================
+
+.. currentmodule:: onepower.hod
+
+.. autoattribute:: Cacciato.references

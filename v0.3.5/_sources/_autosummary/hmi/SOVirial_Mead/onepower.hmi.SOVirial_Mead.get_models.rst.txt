@@ -1,0 +1,6 @@
+onepower.hmi.SOVirial\_Mead.get\_models
+=======================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: SOVirial_Mead.get_models

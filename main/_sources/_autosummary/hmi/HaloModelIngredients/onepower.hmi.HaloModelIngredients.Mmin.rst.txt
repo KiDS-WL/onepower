@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.Mmin
+======================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.Mmin

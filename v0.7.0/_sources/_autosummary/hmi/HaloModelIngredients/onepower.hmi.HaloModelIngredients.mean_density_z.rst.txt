@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.mean\_density\_z
+==================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.mean_density_z

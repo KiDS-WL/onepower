@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.Mmax
+======================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.Mmax

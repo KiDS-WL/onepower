@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.halo\_bias\_int
+=======================================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HaloOccupationDistribution.halo_bias_int

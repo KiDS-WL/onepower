@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>onepower.hod.Cacciato &mdash; onepower 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="onepower.hod.Cacciato.__init__" href="Cacciato/onepower.hod.Cacciato.__init__.html" />
+    <link rel="prev" title="onepower.hod.load_data" href="onepower.hod.load_data.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            onepower
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Usage and Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../api.html">API Summary</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../onepower.pk.html">onepower.pk</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.ia.html">onepower.ia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.bnl.html">onepower.bnl</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../onepower.hod.html">onepower.hod</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="onepower.hod.load_data.html">onepower.hod.load_data</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">onepower.hod.Cacciato</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#onepower.hod.Cacciato"><code class="docutils literal notranslate"><span class="pre">Cacciato</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.__init__.html">onepower.hod.Cacciato.__init__</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.get_models.html">onepower.hod.Cacciato.get_models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.COF.html">onepower.hod.Cacciato.COF</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.COF_cen.html">onepower.hod.Cacciato.COF_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.COF_sat.html">onepower.hod.Cacciato.COF_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.M_char.html">onepower.hod.Cacciato.M_char</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.Obs_norm_c.html">onepower.hod.Cacciato.Obs_norm_c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.avg_halo_mass.html">onepower.hod.Cacciato.avg_halo_mass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.avg_halo_mass_cen.html">onepower.hod.Cacciato.avg_halo_mass_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.avg_halo_mass_sat.html">onepower.hod.Cacciato.avg_halo_mass_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.cal_mean_obs_c.html">onepower.hod.Cacciato.cal_mean_obs_c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.data.html">onepower.hod.Cacciato.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.dndlnm_int.html">onepower.hod.Cacciato.dndlnm_int</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.f_c.html">onepower.hod.Cacciato.f_c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.f_s.html">onepower.hod.Cacciato.f_s</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.galaxy_linear_bias.html">onepower.hod.Cacciato.galaxy_linear_bias</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.galaxy_linear_bias_cen.html">onepower.hod.Cacciato.galaxy_linear_bias_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.galaxy_linear_bias_sat.html">onepower.hod.Cacciato.galaxy_linear_bias_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.halo_bias_int.html">onepower.hod.Cacciato.halo_bias_int</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.hod.html">onepower.hod.Cacciato.hod</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.hod_cen.html">onepower.hod.Cacciato.hod_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.hod_sat.html">onepower.hod.Cacciato.hod_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.log_obs_max.html">onepower.hod.Cacciato.log_obs_max</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.log_obs_min.html">onepower.hod.Cacciato.log_obs_min</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.nbins.html">onepower.hod.Cacciato.nbins</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.nobs.html">onepower.hod.Cacciato.nobs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.number_density.html">onepower.hod.Cacciato.number_density</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.number_density_cen.html">onepower.hod.Cacciato.number_density_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.number_density_sat.html">onepower.hod.Cacciato.number_density_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.nz.html">onepower.hod.Cacciato.nz</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.obs.html">onepower.hod.Cacciato.obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.obs_func.html">onepower.hod.Cacciato.obs_func</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.obs_func_cen.html">onepower.hod.Cacciato.obs_func_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.obs_func_sat.html">onepower.hod.Cacciato.obs_func_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.phi_star_s.html">onepower.hod.Cacciato.phi_star_s</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.stellar_fraction.html">onepower.hod.Cacciato.stellar_fraction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.stellar_fraction_cen.html">onepower.hod.Cacciato.stellar_fraction_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.stellar_fraction_sat.html">onepower.hod.Cacciato.stellar_fraction_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.z.html">onepower.hod.Cacciato.z</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.hod.HOD.html">onepower.hod.HOD</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.hod.Simple.html">onepower.hod.Simple</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.hod.Zehavi.html">onepower.hod.Zehavi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.hod.Zhai.html">onepower.hod.Zhai</a></li>
+<li class="toctree-l3"><a class="reference internal" href="onepower.hod.Zheng.html">onepower.hod.Zheng</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.hmi.html">onepower.hmi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.add.html">onepower.add</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developing.html">Developing OnePower</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">onepower</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../api.html">API Summary</a></li>
+          <li class="breadcrumb-item"><a href="../onepower.hod.html">onepower.hod</a></li>
+      <li class="breadcrumb-item active">onepower.hod.Cacciato</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_autosummary/hod/onepower.hod.Cacciato.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="onepower-hod-cacciato">
+<h1>onepower.hod.Cacciato<a class="headerlink" href="#onepower-hod-cacciato" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="onepower.hod.Cacciato">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">onepower.hod.</span></span><span class="sig-name descname"><span class="pre">Cacciato</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cosmo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dndlnm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">halo_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_vec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hod_settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">model_parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/onepower/hod.html#Cacciato"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#onepower.hod.Cacciato" title="Link to this definition"></a></dt>
+<dd><p>CSMF/CLF model from Cacciato et al. (2013) <a href="#id2"><span class="problematic" id="id1">[1]_</span></a>.</p>
+<p>The conditional observable functions (COFs) tell us how many galaxies with the observed property O,
+exist in haloes of mass M: <span class="math notranslate nohighlight">\(\Phi(O|M)\)</span>.</p>
+<p>Integrating over the observable will give us the total number of galaxies in haloes of a given mass,
+the so-called Halo Occupation Distribution (HOD).</p>
+<p>The observable can be galaxy stellar mass or galaxy luminosity or possibly other properties of galaxies.
+Note that the general mathematical form of the COFs might not hold for other observables.</p>
+<p>COF is different for central and satellite galaxies. The total COF can be written as the sum of the two:</p>
+<p><span class="math notranslate nohighlight">\(\Phi(O|M) = \Phi_{\rm c}(O|M) + \Phi_{\rm s}(O|M)\)</span></p>
+<p>The halo mass dependence comes in through pivot observable values denoted by <span class="math notranslate nohighlight">\(\star\)</span>, e.g. <span class="math notranslate nohighlight">\(O_{\star, {\rm c}}\)</span>, <span class="math notranslate nohighlight">\(O_{\star, {\rm s}}\)</span></p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.__init__.html#onepower.hod.Cacciato.__init__" title="onepower.hod.Cacciato.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([cosmo, mass, dndlnm, halo_bias, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.get_models.html#onepower.hod.Cacciato.get_models" title="onepower.hod.Cacciato.get_models"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_models</span></code></a>()</p></td>
+<td><p>Get a dictionary of all implemented models for this component.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.COF.html#onepower.hod.Cacciato.COF" title="onepower.hod.Cacciato.COF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COF</span></code></a></p></td>
+<td><p>Total COF, sum of central and satellite COFs.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.COF_cen.html#onepower.hod.Cacciato.COF_cen" title="onepower.hod.Cacciato.COF_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COF_cen</span></code></a></p></td>
+<td><p>2210.03110):</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.COF_sat.html#onepower.hod.Cacciato.COF_sat" title="onepower.hod.Cacciato.COF_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COF_sat</span></code></a></p></td>
+<td><p>2210.03110):</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.M_char.html#onepower.hod.Cacciato.M_char" title="onepower.hod.Cacciato.M_char"><code class="xref py py-obj docutils literal notranslate"><span class="pre">M_char</span></code></a></p></td>
+<td><p>Return the 10.**log10_m_ch</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.Obs_norm_c.html#onepower.hod.Cacciato.Obs_norm_c" title="onepower.hod.Cacciato.Obs_norm_c"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Obs_norm_c</span></code></a></p></td>
+<td><p>Return the 10.**log10_obs_norm_c</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.avg_halo_mass.html#onepower.hod.Cacciato.avg_halo_mass" title="onepower.hod.Cacciato.avg_halo_mass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">avg_halo_mass</span></code></a></p></td>
+<td><p>Compute the average halo mass for galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.avg_halo_mass_cen.html#onepower.hod.Cacciato.avg_halo_mass_cen" title="onepower.hod.Cacciato.avg_halo_mass_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">avg_halo_mass_cen</span></code></a></p></td>
+<td><p>Compute the average halo mass for central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.avg_halo_mass_sat.html#onepower.hod.Cacciato.avg_halo_mass_sat" title="onepower.hod.Cacciato.avg_halo_mass_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">avg_halo_mass_sat</span></code></a></p></td>
+<td><p>Compute the average halo mass for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.cal_mean_obs_c.html#onepower.hod.Cacciato.cal_mean_obs_c" title="onepower.hod.Cacciato.cal_mean_obs_c"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cal_mean_obs_c</span></code></a></p></td>
+<td><p>Stellar to halo mass relation (observable to halo mass relation).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.data.html#onepower.hod.Cacciato.data" title="onepower.hod.Cacciato.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a></p></td>
+<td><p>Returns the z_bins, obs_min and obs_max quantities from tabulated observables file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.dndlnm_int.html#onepower.hod.Cacciato.dndlnm_int" title="onepower.hod.Cacciato.dndlnm_int"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dndlnm_int</span></code></a></p></td>
+<td><p>Returns the interpolated halo mass function at HOD specific redshifts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.f_c.html#onepower.hod.Cacciato.f_c" title="onepower.hod.Cacciato.f_c"><code class="xref py py-obj docutils literal notranslate"><span class="pre">f_c</span></code></a></p></td>
+<td><p>Fraction of central galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.f_s.html#onepower.hod.Cacciato.f_s" title="onepower.hod.Cacciato.f_s"><code class="xref py py-obj docutils literal notranslate"><span class="pre">f_s</span></code></a></p></td>
+<td><p>Fraction of satellite galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.galaxy_linear_bias.html#onepower.hod.Cacciato.galaxy_linear_bias" title="onepower.hod.Cacciato.galaxy_linear_bias"><code class="xref py py-obj docutils literal notranslate"><span class="pre">galaxy_linear_bias</span></code></a></p></td>
+<td><p>Compute the galaxy linear bias for galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.galaxy_linear_bias_cen.html#onepower.hod.Cacciato.galaxy_linear_bias_cen" title="onepower.hod.Cacciato.galaxy_linear_bias_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">galaxy_linear_bias_cen</span></code></a></p></td>
+<td><p>Compute the galaxy linear bias for central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.galaxy_linear_bias_sat.html#onepower.hod.Cacciato.galaxy_linear_bias_sat" title="onepower.hod.Cacciato.galaxy_linear_bias_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">galaxy_linear_bias_sat</span></code></a></p></td>
+<td><p>Compute the galaxy linear bias for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.halo_bias_int.html#onepower.hod.Cacciato.halo_bias_int" title="onepower.hod.Cacciato.halo_bias_int"><code class="xref py py-obj docutils literal notranslate"><span class="pre">halo_bias_int</span></code></a></p></td>
+<td><p>Returns the interpolated halo bias function at HOD specific redshifts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.hod.html#onepower.hod.Cacciato.hod" title="onepower.hod.Cacciato.hod"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hod</span></code></a></p></td>
+<td><p>Compute the HOD for galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.hod_cen.html#onepower.hod.Cacciato.hod_cen" title="onepower.hod.Cacciato.hod_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hod_cen</span></code></a></p></td>
+<td><p>Compute the HOD for central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.hod_sat.html#onepower.hod.Cacciato.hod_sat" title="onepower.hod.Cacciato.hod_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hod_sat</span></code></a></p></td>
+<td><p>Compute the HOD for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.log_obs_max.html#onepower.hod.Cacciato.log_obs_max" title="onepower.hod.Cacciato.log_obs_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_obs_max</span></code></a></p></td>
+<td><p>Sets the max observable limits.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.log_obs_min.html#onepower.hod.Cacciato.log_obs_min" title="onepower.hod.Cacciato.log_obs_min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_obs_min</span></code></a></p></td>
+<td><p>Sets the min observable limits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.nbins.html#onepower.hod.Cacciato.nbins" title="onepower.hod.Cacciato.nbins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nbins</span></code></a></p></td>
+<td><p>Returns the number of HOD bins.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.nobs.html#onepower.hod.Cacciato.nobs" title="onepower.hod.Cacciato.nobs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nobs</span></code></a></p></td>
+<td><p>Sets the number of observables in the observable array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.number_density.html#onepower.hod.Cacciato.number_density" title="onepower.hod.Cacciato.number_density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">number_density</span></code></a></p></td>
+<td><p>Compute the number density of galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.number_density_cen.html#onepower.hod.Cacciato.number_density_cen" title="onepower.hod.Cacciato.number_density_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">number_density_cen</span></code></a></p></td>
+<td><p>Compute the number density of central galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.number_density_sat.html#onepower.hod.Cacciato.number_density_sat" title="onepower.hod.Cacciato.number_density_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">number_density_sat</span></code></a></p></td>
+<td><p>Compute the number density of satellite galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.nz.html#onepower.hod.Cacciato.nz" title="onepower.hod.Cacciato.nz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nz</span></code></a></p></td>
+<td><p>Sets the number of redshift bins.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.obs.html#onepower.hod.Cacciato.obs" title="onepower.hod.Cacciato.obs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs</span></code></a></p></td>
+<td><p>Returns the array of observables at which to calculate the CSMF/CLF and integrate over to get the HOD</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.obs_func.html#onepower.hod.Cacciato.obs_func" title="onepower.hod.Cacciato.obs_func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs_func</span></code></a></p></td>
+<td><p>The observable function (SMF/LF).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.obs_func_cen.html#onepower.hod.Cacciato.obs_func_cen" title="onepower.hod.Cacciato.obs_func_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs_func_cen</span></code></a></p></td>
+<td><p>The observable function (SMF/LF) for central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.obs_func_sat.html#onepower.hod.Cacciato.obs_func_sat" title="onepower.hod.Cacciato.obs_func_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obs_func_sat</span></code></a></p></td>
+<td><p>The observable function (SMF/LF) for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.phi_star_s.html#onepower.hod.Cacciato.phi_star_s" title="onepower.hod.Cacciato.phi_star_s"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phi_star_s</span></code></a></p></td>
+<td><p>Normalisation of satellite COF function.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.stellar_fraction.html#onepower.hod.Cacciato.stellar_fraction" title="onepower.hod.Cacciato.stellar_fraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stellar_fraction</span></code></a></p></td>
+<td><p>Compute the stellar fraction for galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.stellar_fraction_cen.html#onepower.hod.Cacciato.stellar_fraction_cen" title="onepower.hod.Cacciato.stellar_fraction_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stellar_fraction_cen</span></code></a></p></td>
+<td><p>Compute the stellar fraction for central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.stellar_fraction_sat.html#onepower.hod.Cacciato.stellar_fraction_sat" title="onepower.hod.Cacciato.stellar_fraction_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stellar_fraction_sat</span></code></a></p></td>
+<td><p>Compute the stellar fraction for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Cacciato/onepower.hod.Cacciato.z.html#onepower.hod.Cacciato.z" title="onepower.hod.Cacciato.z"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z</span></code></a></p></td>
+<td><p>Sets the HOD specific redshift array.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="onepower.hod.load_data.html" class="btn btn-neutral float-left" title="onepower.hod.load_data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Cacciato/onepower.hod.Cacciato.__init__.html" class="btn btn-neutral float-right" title="onepower.hod.Cacciato.__init__" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Andrej Dvornik.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

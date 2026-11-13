@@ -1,0 +1,6 @@
+onepower.pk.Spectra.halo\_profile\_params
+=========================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.halo_profile_params

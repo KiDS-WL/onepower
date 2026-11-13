@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.overdensity
+=============================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.overdensity

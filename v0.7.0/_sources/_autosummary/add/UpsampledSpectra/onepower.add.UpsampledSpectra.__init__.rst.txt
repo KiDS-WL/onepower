@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.\_\_init\_\_
+==========================================
+
+.. currentmodule:: onepower.add
+
+.. automethod:: UpsampledSpectra.__init__

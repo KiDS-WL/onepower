@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.log10\_Mmin
+===============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.log10_Mmin

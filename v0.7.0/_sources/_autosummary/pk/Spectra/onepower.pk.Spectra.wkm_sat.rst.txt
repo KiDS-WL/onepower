@@ -1,0 +1,6 @@
+onepower.pk.Spectra.wkm\_sat
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.wkm_sat

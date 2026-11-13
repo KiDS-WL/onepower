@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.halo\_bias
+============================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.halo_bias

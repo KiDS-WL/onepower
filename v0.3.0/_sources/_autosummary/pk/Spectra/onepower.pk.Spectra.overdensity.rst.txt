@@ -1,0 +1,6 @@
+onepower.pk.Spectra.overdensity
+===============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.overdensity

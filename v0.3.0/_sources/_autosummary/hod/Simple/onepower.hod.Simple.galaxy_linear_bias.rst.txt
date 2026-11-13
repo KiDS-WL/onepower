@@ -1,0 +1,6 @@
+onepower.hod.Simple.galaxy\_linear\_bias
+========================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.galaxy_linear_bias

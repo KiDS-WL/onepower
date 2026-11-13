@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.nobs
+========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.nobs

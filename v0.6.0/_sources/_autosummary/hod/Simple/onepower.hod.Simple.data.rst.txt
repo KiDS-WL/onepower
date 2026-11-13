@@ -1,0 +1,6 @@
+onepower.hod.Simple.data
+========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.data

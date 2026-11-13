@@ -1,0 +1,6 @@
+onepower.hod.Zhai.get\_models
+=============================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: Zhai.get_models

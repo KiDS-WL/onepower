@@ -1,0 +1,6 @@
+onepower.hod.HOD.nobs
+=====================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HOD.nobs

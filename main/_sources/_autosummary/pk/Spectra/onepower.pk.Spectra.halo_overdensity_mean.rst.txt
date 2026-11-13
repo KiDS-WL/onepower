@@ -1,0 +1,6 @@
+onepower.pk.Spectra.halo\_overdensity\_mean
+===========================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.halo_overdensity_mean

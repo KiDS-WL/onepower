@@ -1,0 +1,6 @@
+onepower.hod.Zheng.obs
+======================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zheng.obs

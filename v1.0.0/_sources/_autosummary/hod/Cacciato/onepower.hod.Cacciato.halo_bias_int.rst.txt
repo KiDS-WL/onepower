@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.halo\_bias\_int
+=====================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.halo_bias_int

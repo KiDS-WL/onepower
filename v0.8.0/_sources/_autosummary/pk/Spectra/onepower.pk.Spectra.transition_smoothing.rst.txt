@@ -1,0 +1,6 @@
+onepower.pk.Spectra.transition\_smoothing
+=========================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.transition_smoothing

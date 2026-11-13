@@ -1,0 +1,6 @@
+onepower.hmi.SOVirial\_Mead.references
+======================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoattribute:: SOVirial_Mead.references

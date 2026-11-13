@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.references
+============================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoattribute:: HaloModelIngredients.references

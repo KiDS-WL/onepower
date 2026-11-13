@@ -1,0 +1,6 @@
+onepower.hod.Zhai.nobs
+======================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.nobs

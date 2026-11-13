@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.references
+==========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoattribute:: AlignmentAmplitudes.references

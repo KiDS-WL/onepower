@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.validate
+===================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.validate

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.Tk\_EH\_nowiggle\_lnt
+=========================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.Tk_EH_nowiggle_lnt

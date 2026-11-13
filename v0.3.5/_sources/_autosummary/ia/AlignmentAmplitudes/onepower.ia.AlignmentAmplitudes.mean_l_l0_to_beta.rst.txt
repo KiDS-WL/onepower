@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.mean\_l\_l0\_to\_beta
+=====================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: AlignmentAmplitudes.mean_l_l0_to_beta

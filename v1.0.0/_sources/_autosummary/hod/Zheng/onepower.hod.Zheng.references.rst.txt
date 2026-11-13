@@ -1,0 +1,6 @@
+onepower.hod.Zheng.references
+=============================
+
+.. currentmodule:: onepower.hod
+
+.. autoattribute:: Zheng.references

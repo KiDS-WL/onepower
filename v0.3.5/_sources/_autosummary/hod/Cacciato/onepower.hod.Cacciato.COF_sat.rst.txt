@@ -1,0 +1,6 @@
+onepower.hod.Cacciato.COF\_sat
+==============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Cacciato.COF_sat

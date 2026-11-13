@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.extrapolate\_spectra
+==================================================
+
+.. currentmodule:: onepower.add
+
+.. automethod:: UpsampledSpectra.extrapolate_spectra

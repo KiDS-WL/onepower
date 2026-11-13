@@ -1,0 +1,6 @@
+onepower.pk.Spectra.dewiggle\_plin
+==================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.dewiggle_plin

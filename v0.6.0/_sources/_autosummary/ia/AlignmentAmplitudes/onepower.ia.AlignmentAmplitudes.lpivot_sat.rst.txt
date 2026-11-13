@@ -1,0 +1,6 @@
+onepower.ia.AlignmentAmplitudes.lpivot\_sat
+===========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: AlignmentAmplitudes.lpivot_sat

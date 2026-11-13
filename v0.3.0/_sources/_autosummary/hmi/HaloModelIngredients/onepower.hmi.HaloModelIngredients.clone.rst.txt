@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.clone
+=======================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: HaloModelIngredients.clone

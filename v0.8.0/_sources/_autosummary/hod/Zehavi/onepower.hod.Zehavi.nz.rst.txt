@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.nz
+======================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.nz

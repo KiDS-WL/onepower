@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.references
+=========================================
+
+.. currentmodule:: onepower.ia
+
+.. autoattribute:: SatelliteAlignment.references
