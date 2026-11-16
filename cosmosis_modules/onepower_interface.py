@@ -301,7 +301,9 @@ def setup_hod(options, galaxy, alignment, split_ia):
                 fraction_file = options.get_string(option_section, 'fraction_file')
             else:
                 fraction_file = None
-            fraction_model = options.get_int(option_section, 'fraction_model', default=1)
+            fraction_model = options.get_int(
+                option_section, 'fraction_model', default=1
+            )
         else:
             hod_section_name_ia_1 = options.get_string(
                 option_section, 'hod_section_name_ia'
@@ -657,12 +659,14 @@ def setup(options):
 
     if fraction_file:
         if fraction_model not in (1, 2):
-            raise ValueError("fraction_model must be 1 or 2")
-        fraction_z, fraction = np.loadtxt(fraction_file, usecols=(0, 1), unpack=True, dtype=float)
+            raise ValueError('fraction_model must be 1 or 2')
+        fraction_z, fraction = np.loadtxt(
+            fraction_file, usecols=(0, 1), unpack=True, dtype=float
+        )
         if fraction_model == 2:
             fraction = 1.0 - fraction
     else:
-        fraction_z =  None
+        fraction_z = None
         fraction = None
 
     return (
