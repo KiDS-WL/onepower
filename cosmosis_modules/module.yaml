@@ -400,8 +400,11 @@ inputs:
         beta_sat:
           meaning: "Intrinsic alignment slope parameter for satellite galaxies"
           type: real
-        M_pivot:
-          meaning: "Pivot mass or luminosity for intrinsic alignment"
+        mpivot_cen:
+          meaning: "Pivot mass or luminosity for intrinsic alignment for central galaxies"
+          type: real
+        mpivot_sat:
+          meaning: "Pivot mass or luminosity for intrinsic alignment for satellite galaxies"
           type: real
         gamma_1h_slope:
           meaning: "Intrinsic alignment slope parameter for 1-halo term"
