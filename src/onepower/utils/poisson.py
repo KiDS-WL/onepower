@@ -12,7 +12,7 @@ class Poisson(Component, metaclass=ABCMeta):
     """
     Class to calculate the Poisson parameter for use in Pgg integrals.
 
-    Can be either a scalar (P = poisson), a power law (P = poisson x (M/M_0)^slope), 
+    Can be either a scalar (P = poisson), a power law (P = poisson x (M/M_0)^slope),
     or a logistic function (P = poisson x L / (1 + exp(-k * (log10(M) - log10(M_0))))),
     by using the appropriate child class. Parent class is just an instance of an abstract class
     Further models can be added if necessary.
@@ -78,7 +78,6 @@ class logistic_function(Poisson):
                 "L, k, and log10_M0 must be provided for 'logistic_function' poisson type."
             )
         return poisson * L / (1 + np.exp(-k * (np.log10(self.mass) - log10_M0)))
-
 
 
 # Add more if needed!
