@@ -61,4 +61,23 @@ class power_law(Poisson):
         return poisson * (self.mass / (10.0**M_0)) ** slope
 
 
+class logistic_function(Poisson):
+    """Logistic function mass dependent Poisson parameter."""
+
+    _defaults = {'poisson': 1.0, 'L': None, 'k': None, 'log10_M0': None}
+
+    @property
+    def poisson_func(self):
+        poisson = self.params['poisson']
+        L = self.params['L']
+        k = self.params['k']
+        log10_M0 = self.params['log10_M0']
+        if L is None or k is None or log10_M0 is None:
+            raise ValueError(
+                "L, k, and log10_M0 must be provided for 'logistic_function' poisson type."
+            )
+        return poisson * L / (1 + np.exp(-k * (np.log10(self.mass) - log10_M0)))
+
+
+
 # Add more if needed!
