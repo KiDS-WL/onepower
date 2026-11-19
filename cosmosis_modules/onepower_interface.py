@@ -297,6 +297,13 @@ def setup_hod(options, galaxy, alignment, split_ia):
                 option_section, 'output_suffix_ia_2', default=''
             ).lower()
             pop_name_ia_2 = f'_{population_name_ia_2}' if population_name_ia_2 else ''
+            if options.has_value(option_section, 'fraction_file'):
+                fraction_file = options.get_string(option_section, 'fraction_file')
+            else:
+                fraction_file = None
+            fraction_model = options.get_int(
+                option_section, 'fraction_model', default=1
+            )
         else:
             hod_section_name_ia_1 = options.get_string(
                 option_section, 'hod_section_name_ia'
@@ -307,6 +314,8 @@ def setup_hod(options, galaxy, alignment, split_ia):
             pop_name_ia_1 = f'_{population_name_ia_1}' if population_name_ia_1 else ''
             hod_section_name_ia_2 = None
             pop_name_ia_2 = None
+            fraction_file = None
+            fraction_model = None
     else:
         hod_section_name_ia_1 = None
         pop_name_ia_1 = ''
@@ -314,6 +323,8 @@ def setup_hod(options, galaxy, alignment, split_ia):
         pop_name_ia_2 = ''
         central_IA = None
         satellite_IA = None
+        fraction_file = None
+        fraction_model = None
 
     hod_model = options.get_string(option_section, 'hod_model', default='Cacciato')
     if galaxy:
@@ -364,6 +375,8 @@ def setup_hod(options, galaxy, alignment, split_ia):
         pop_name_ia_2,
         central_IA,
         satellite_IA,
+        fraction_file,
+        fraction_model,
     )
 
 
@@ -623,6 +636,8 @@ def setup(options):
         pop_name_ia_2,
         central_IA,
         satellite_IA,
+        fraction_file,
+        fraction_model,
     ) = setup_hod(options, galaxy, alignment, split_ia)
 
     # hmf config
@@ -641,6 +656,18 @@ def setup(options):
         cached_bnl = None
 
     config_hmf['power'] = Spectra()
+
+    if fraction_file:
+        if fraction_model not in (1, 2):
+            raise ValueError('fraction_model must be 1 or 2')
+        fraction_z, fraction = np.loadtxt(
+            fraction_file, usecols=(0, 1), unpack=True, dtype=float
+        )
+        if fraction_model == 2:
+            fraction = 1.0 - fraction
+    else:
+        fraction_z = None
+        fraction = None
 
     return (
         p_mm,
@@ -681,6 +708,8 @@ def setup(options):
         hod_section_name_ia_2,
         pop_name_ia_1,
         pop_name_ia_2,
+        fraction_z,
+        fraction,
     )
 
 
@@ -725,6 +754,8 @@ def execute(block, config):
         hod_section_name_ia_2,
         pop_name_ia_1,
         pop_name_ia_2,
+        fraction_z,
+        fraction,
     ) = config
 
     hod_params = {}
@@ -1148,8 +1179,8 @@ def execute(block, config):
             results = UpsampledSpectra(
                 z=z_vec_original,
                 k=k_vec_original,
-                fraction_z=z_vec_original,
-                fraction=np.ones_like(z_vec_original),
+                fraction_z=fraction_z,
+                fraction=fraction,
                 model=power,
                 model_1_params=power_kwargs,
                 model_2_params=model_2_params,

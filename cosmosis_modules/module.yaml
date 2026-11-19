@@ -285,6 +285,14 @@ params:
           meaning: Critical density threshold for collapse.
           type: float
           default: 1.686
+      fraction_file:
+          meaning:  (optional) two-column text file with redshift in the first column and the fraction of galaxies in IA sample 1 or 2 (see fraction_model) in the second columns. Only used if split_ia = True. If not given, the fraction of the first model is assumed to be 1.
+          type: str
+          default: None
+      fraction_model:
+          meaning: (optional) Which IA sample the fraction in fraction_file refers to. 1 for the sample defined by hod_section_name_ia_1, 2 for the sample defined by hod_section_name_ia_2. Only used if fraction_file is given.
+          type: int
+          default: 1
 
 inputs:
     profile_value_name:
@@ -392,8 +400,11 @@ inputs:
         beta_sat:
           meaning: "Intrinsic alignment slope parameter for satellite galaxies"
           type: real
-        M_pivot:
-          meaning: "Pivot mass or luminosity for intrinsic alignment"
+        mpivot_cen:
+          meaning: "Pivot mass or luminosity for intrinsic alignment for central galaxies"
+          type: real
+        mpivot_sat:
+          meaning: "Pivot mass or luminosity for intrinsic alignment for satellite galaxies"
           type: real
         gamma_1h_slope:
           meaning: "Intrinsic alignment slope parameter for 1-halo term"
