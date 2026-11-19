@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.gamma\_2h\_amplitude
+===================================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.gamma_2h_amplitude

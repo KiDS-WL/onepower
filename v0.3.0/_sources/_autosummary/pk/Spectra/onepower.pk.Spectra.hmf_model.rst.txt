@@ -1,0 +1,6 @@
+onepower.pk.Spectra.hmf\_model
+==============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.hmf_model

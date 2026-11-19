@@ -1,0 +1,6 @@
+onepower.pk.Spectra.log10T\_AGN
+===============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.log10T_AGN

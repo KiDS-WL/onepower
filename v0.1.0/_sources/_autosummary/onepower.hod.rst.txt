@@ -1,0 +1,42 @@
+onepower.hod
+============
+
+.. automodule:: onepower.hod
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree: hod
+   
+      load_data
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree: hod
+      :template: class.rst
+   
+      
+       Cacciato
+      
+       HOD
+      
+       Simple
+      
+       Zehavi
+      
+       Zhai
+      
+       Zheng
+   
+   
+
+   
+   
+   

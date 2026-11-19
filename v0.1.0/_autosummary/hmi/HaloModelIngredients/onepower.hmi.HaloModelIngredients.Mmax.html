@@ -1,0 +1,235 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>onepower.hmi.HaloModelIngredients.Mmax &mdash; onepower 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="onepower.hmi.HaloModelIngredients.Mmin" href="onepower.hmi.HaloModelIngredients.Mmin.html" />
+    <link rel="prev" title="onepower.hmi.HaloModelIngredients.K" href="onepower.hmi.HaloModelIngredients.K.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            onepower
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Usage and Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">API Summary</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../onepower.pk.html">onepower.pk</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../onepower.ia.html">onepower.ia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../onepower.bnl.html">onepower.bnl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../onepower.hod.html">onepower.hod</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../onepower.hmi.html">onepower.hmi</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../onepower.hmi.CosmologyBase.html">onepower.hmi.CosmologyBase</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../onepower.hmi.HaloModelIngredients.html">onepower.hmi.HaloModelIngredients</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../onepower.hmi.HaloModelIngredients.html#onepower.hmi.HaloModelIngredients"><code class="docutils literal notranslate"><span class="pre">HaloModelIngredients</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.Tk_cold_ratio.html">onepower.hmi.HaloModelIngredients.Tk_cold_ratio</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.__init__.html">onepower.hmi.HaloModelIngredients.__init__</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.clone.html">onepower.hmi.HaloModelIngredients.clone</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.f_Mead.html">onepower.hmi.HaloModelIngredients.f_Mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.get_all_parameter_defaults.html">onepower.hmi.HaloModelIngredients.get_all_parameter_defaults</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.get_all_parameter_names.html">onepower.hmi.HaloModelIngredients.get_all_parameter_names</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.get_dependencies.html">onepower.hmi.HaloModelIngredients.get_dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.get_halo_collapse_redshifts.html">onepower.hmi.HaloModelIngredients.get_halo_collapse_redshifts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.parameter_info.html">onepower.hmi.HaloModelIngredients.parameter_info</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.quantities_available.html">onepower.hmi.HaloModelIngredients.quantities_available</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.sigmaR_cc.html">onepower.hmi.HaloModelIngredients.sigmaR_cc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.update.html">onepower.hmi.HaloModelIngredients.update</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.validate.html">onepower.hmi.HaloModelIngredients.validate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.Dv_Mead.html">onepower.hmi.HaloModelIngredients.Dv_Mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.K.html">onepower.hmi.HaloModelIngredients.K</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">onepower.hmi.HaloModelIngredients.Mmax</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.Mmin.html">onepower.hmi.HaloModelIngredients.Mmin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.bias_model.html">onepower.hmi.HaloModelIngredients.bias_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.conc_cen.html">onepower.hmi.HaloModelIngredients.conc_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.conc_sat.html">onepower.hmi.HaloModelIngredients.conc_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.cosmo_model.html">onepower.hmi.HaloModelIngredients.cosmo_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.dc_Mead.html">onepower.hmi.HaloModelIngredients.dc_Mead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.delta_c.html">onepower.hmi.HaloModelIngredients.delta_c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.disable_mass_conversion.html">onepower.hmi.HaloModelIngredients.disable_mass_conversion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.dlnk.html">onepower.hmi.HaloModelIngredients.dlnk</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.dlog10m.html">onepower.hmi.HaloModelIngredients.dlog10m</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.dndlnm.html">onepower.hmi.HaloModelIngredients.dndlnm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.eta_cen.html">onepower.hmi.HaloModelIngredients.eta_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.eta_sat.html">onepower.hmi.HaloModelIngredients.eta_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.fnu.html">onepower.hmi.HaloModelIngredients.fnu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.get_mead_accumulated_growth.html">onepower.hmi.HaloModelIngredients.get_mead_accumulated_growth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.get_mead_growth.html">onepower.hmi.HaloModelIngredients.get_mead_growth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.get_mead_growth_fnc.html">onepower.hmi.HaloModelIngredients.get_mead_growth_fnc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.growth_factor.html">onepower.hmi.HaloModelIngredients.growth_factor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.growth_model.html">onepower.hmi.HaloModelIngredients.growth_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.growth_params.html">onepower.hmi.HaloModelIngredients.growth_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.h0.html">onepower.hmi.HaloModelIngredients.h0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.halo_bias.html">onepower.hmi.HaloModelIngredients.halo_bias</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.halo_concentration_model_dm.html">onepower.hmi.HaloModelIngredients.halo_concentration_model_dm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.halo_concentration_model_sat.html">onepower.hmi.HaloModelIngredients.halo_concentration_model_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.halo_overdensity_mean.html">onepower.hmi.HaloModelIngredients.halo_overdensity_mean</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.halo_profile_model_dm.html">onepower.hmi.HaloModelIngredients.halo_profile_model_dm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.halo_profile_model_sat.html">onepower.hmi.HaloModelIngredients.halo_profile_model_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.halo_profile_params.html">onepower.hmi.HaloModelIngredients.halo_profile_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.hmf_model.html">onepower.hmi.HaloModelIngredients.hmf_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.k_vec.html">onepower.hmi.HaloModelIngredients.k_vec</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.kh.html">onepower.hmi.HaloModelIngredients.kh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.lnk_max.html">onepower.hmi.HaloModelIngredients.lnk_max</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.lnk_min.html">onepower.hmi.HaloModelIngredients.lnk_min</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.log10T_AGN.html">onepower.hmi.HaloModelIngredients.log10T_AGN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.m_nu.html">onepower.hmi.HaloModelIngredients.m_nu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.mass.html">onepower.hmi.HaloModelIngredients.mass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.mdef_model.html">onepower.hmi.HaloModelIngredients.mdef_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.mdef_params.html">onepower.hmi.HaloModelIngredients.mdef_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.mead_correction.html">onepower.hmi.HaloModelIngredients.mead_correction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.mean_density0.html">onepower.hmi.HaloModelIngredients.mean_density0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.mean_density_z.html">onepower.hmi.HaloModelIngredients.mean_density_z</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.n_s.html">onepower.hmi.HaloModelIngredients.n_s</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.neff.html">onepower.hmi.HaloModelIngredients.neff</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.nfw_cen.html">onepower.hmi.HaloModelIngredients.nfw_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.nfw_sat.html">onepower.hmi.HaloModelIngredients.nfw_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.nonlinear_power.html">onepower.hmi.HaloModelIngredients.nonlinear_power</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.norm_cen.html">onepower.hmi.HaloModelIngredients.norm_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.norm_sat.html">onepower.hmi.HaloModelIngredients.norm_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.nu.html">onepower.hmi.HaloModelIngredients.nu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.omega_b.html">onepower.hmi.HaloModelIngredients.omega_b</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.omega_c.html">onepower.hmi.HaloModelIngredients.omega_c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.omega_m.html">onepower.hmi.HaloModelIngredients.omega_m</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.overdensity.html">onepower.hmi.HaloModelIngredients.overdensity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.parameter_values.html">onepower.hmi.HaloModelIngredients.parameter_values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.power.html">onepower.hmi.HaloModelIngredients.power</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.r_s_cen.html">onepower.hmi.HaloModelIngredients.r_s_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.r_s_sat.html">onepower.hmi.HaloModelIngredients.r_s_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.rho_halo.html">onepower.hmi.HaloModelIngredients.rho_halo</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.rvir_cen.html">onepower.hmi.HaloModelIngredients.rvir_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.rvir_sat.html">onepower.hmi.HaloModelIngredients.rvir_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.scale_factor.html">onepower.hmi.HaloModelIngredients.scale_factor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.sigma8_z.html">onepower.hmi.HaloModelIngredients.sigma8_z</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.sigma_8.html">onepower.hmi.HaloModelIngredients.sigma_8</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.tcmb.html">onepower.hmi.HaloModelIngredients.tcmb</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.transfer_model.html">onepower.hmi.HaloModelIngredients.transfer_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.transfer_params.html">onepower.hmi.HaloModelIngredients.transfer_params</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.u_dm.html">onepower.hmi.HaloModelIngredients.u_dm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.u_sat.html">onepower.hmi.HaloModelIngredients.u_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.w0.html">onepower.hmi.HaloModelIngredients.w0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.wa.html">onepower.hmi.HaloModelIngredients.wa</a></li>
+<li class="toctree-l4"><a class="reference internal" href="onepower.hmi.HaloModelIngredients.z_vec.html">onepower.hmi.HaloModelIngredients.z_vec</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../onepower.hmi.SOVirial_Mead.html">onepower.hmi.SOVirial_Mead</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../onepower.add.html">onepower.add</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developing.html">Developing OnePower</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">onepower</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../api.html">API Summary</a></li>
+          <li class="breadcrumb-item"><a href="../../onepower.hmi.html">onepower.hmi</a></li>
+          <li class="breadcrumb-item"><a href="../onepower.hmi.HaloModelIngredients.html">onepower.hmi.HaloModelIngredients</a></li>
+      <li class="breadcrumb-item active">onepower.hmi.HaloModelIngredients.Mmax</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/_autosummary/hmi/HaloModelIngredients/onepower.hmi.HaloModelIngredients.Mmax.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="onepower-hmi-halomodelingredients-mmax">
+<h1>onepower.hmi.HaloModelIngredients.Mmax<a class="headerlink" href="#onepower-hmi-halomodelingredients-mmax" title="Link to this heading"></a></h1>
+<dl class="py property">
+<dt class="sig sig-object py" id="onepower.hmi.HaloModelIngredients.Mmax">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HaloModelIngredients.</span></span><span class="sig-name descname"><span class="pre">Mmax</span></span><a class="headerlink" href="#onepower.hmi.HaloModelIngredients.Mmax" title="Link to this definition"></a></dt>
+<dd><p>Maximum halo mass (for hmf).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Parameter</strong></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="onepower.hmi.HaloModelIngredients.K.html" class="btn btn-neutral float-left" title="onepower.hmi.HaloModelIngredients.K" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="onepower.hmi.HaloModelIngredients.Mmin.html" class="btn btn-neutral float-right" title="onepower.hmi.HaloModelIngredients.Mmin" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Andrej Dvornik.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

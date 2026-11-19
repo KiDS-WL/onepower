@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.wkm
+==================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.wkm

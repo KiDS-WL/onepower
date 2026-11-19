@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.omch2
+================================
+
+.. currentmodule:: onepower.bnl
+
+.. autoproperty:: NonLinearBias.omch2

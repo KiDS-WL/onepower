@@ -1,0 +1,6 @@
+onepower.pk.Spectra.I21
+=======================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.I21

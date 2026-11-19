@@ -1,0 +1,6 @@
+onepower.pk.Spectra.eta\_cen
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.eta_cen

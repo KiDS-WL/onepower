@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.k\_vec
+=====================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.k_vec

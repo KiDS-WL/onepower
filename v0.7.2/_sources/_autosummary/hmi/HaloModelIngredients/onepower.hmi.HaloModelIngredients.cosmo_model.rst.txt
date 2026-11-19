@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.cosmo\_model
+==============================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.cosmo_model

@@ -1,0 +1,6 @@
+onepower.hod.Zheng.dndlnm\_int
+==============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zheng.dndlnm_int

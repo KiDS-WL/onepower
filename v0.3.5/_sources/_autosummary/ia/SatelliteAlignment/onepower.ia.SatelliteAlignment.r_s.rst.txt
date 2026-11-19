@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.r\_s
+===================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.r_s

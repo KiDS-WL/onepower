@@ -1,0 +1,6 @@
+onepower.hod.Zheng.f\_c
+=======================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zheng.f_c

@@ -1,0 +1,6 @@
+onepower.hod.Zheng.\_\_init\_\_
+===============================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: Zheng.__init__

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.alignment\_class
+====================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.alignment_class

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.get\_Pk\_wiggle
+===================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.get_Pk_wiggle

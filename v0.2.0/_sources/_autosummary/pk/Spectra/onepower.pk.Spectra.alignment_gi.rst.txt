@@ -1,0 +1,6 @@
+onepower.pk.Spectra.alignment\_gi
+=================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.alignment_gi

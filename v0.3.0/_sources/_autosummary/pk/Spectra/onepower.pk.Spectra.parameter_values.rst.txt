@@ -1,0 +1,6 @@
+onepower.pk.Spectra.parameter\_values
+=====================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.parameter_values

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.references
+==============================
+
+.. currentmodule:: onepower.pk
+
+.. autoattribute:: Spectra.references

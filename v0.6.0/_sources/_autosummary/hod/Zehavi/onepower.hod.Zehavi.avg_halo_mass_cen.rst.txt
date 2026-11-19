@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.avg\_halo\_mass\_cen
+========================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.avg_halo_mass_cen

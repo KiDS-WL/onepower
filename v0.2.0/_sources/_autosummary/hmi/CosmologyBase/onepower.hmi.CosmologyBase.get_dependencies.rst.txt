@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.get\_dependencies
+============================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: CosmologyBase.get_dependencies

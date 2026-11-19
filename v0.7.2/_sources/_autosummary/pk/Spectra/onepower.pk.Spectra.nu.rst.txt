@@ -1,0 +1,6 @@
+onepower.pk.Spectra.nu
+======================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.nu

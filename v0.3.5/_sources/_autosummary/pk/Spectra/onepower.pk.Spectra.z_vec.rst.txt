@@ -1,0 +1,6 @@
+onepower.pk.Spectra.z\_vec
+==========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.z_vec

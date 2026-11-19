@@ -1,0 +1,227 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OnePower &mdash; onepower 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            onepower
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Usage and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Summary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developing.html">Developing OnePower</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">onepower</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">OnePower</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="onepower">
+<h1>OnePower<a class="headerlink" href="#onepower" title="Link to this heading"></a></h1>
+  <div align="center">
+    <picture>
+    <img
+      src="https://andrej.dvrnk.si/page/wp-content/uploads/2025/07/logosmall_black.png"
+      alt="Logo"
+    />
+  </picture>
+<p align="center">
+ <i>"The One Tool to Predict All Power Spectra."</i>
+</p>
+</div><p>OnePower is a Python package for computing power spectra and one-point statistics using the halo model framework. It is designed for studying the galaxy-matter connection, cosmological structure formation, and intrinsic alignments, especially in the non-linear regime.</p>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Non-linear <strong>matter-matter</strong>, <strong>galaxy-galaxy</strong>, and <strong>galaxy-matter</strong> power spectra</p></li>
+<li><p>Predictions of <strong>stellar mass functions</strong> and / or <strong>luminosity functions</strong></p></li>
+<li><p>Modeling of <strong>intrinsic alignments</strong> using the halo model approach</p></li>
+<li><p>Built on a flexible, extensible halo model architecture</p></li>
+<li><p>Includes a interface module for interfacing the code with the <a class="reference external" href="https://github.com/joezuntz/cosmosis">CosmoSIS</a></p></li>
+</ul>
+<p>OnePower is ideal for:</p>
+<ul class="simple">
+<li><p>Modeling of galaxy surveys</p></li>
+<li><p>Cosmological parameter inference</p></li>
+<li><p>Understanding the galaxy-halo connection in nonlinear regimes</p></li>
+</ul>
+<p>📦 <a class="reference external" href="https://github.com/KiDS-WL/onepower">View on GitHub</a></p>
+<p>📄 <a class="reference external" href="https://kids-wl.github.io/onepower/index.html">Documentation</a></p>
+<p>💾 Install via PyPI (link to be added)</p>
+</section>
+<section id="example-usage">
+<h2>Example usage<a class="headerlink" href="#example-usage" title="Link to this heading"></a></h2>
+<p>As OnePower has defaults for all of its parameters, a reasonable resulting power spectra can be calculated by passing no parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">onepower</span> <span class="kn">import</span> <span class="n">Spectra</span>
+<span class="n">ps</span> <span class="o">=</span> <span class="n">Spectra</span><span class="p">()</span>
+<span class="n">pk_mm</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">power_spectrum_mm</span><span class="o">.</span><span class="n">pk_tot</span>
+<span class="n">pk_mm_1h</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">power_spectrum_mm</span><span class="o">.</span><span class="n">pk_1h</span>
+<span class="n">pk_mm_2h</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">power_spectrum_mm</span><span class="o">.</span><span class="n">pk_2h</span>
+</pre></div>
+</div>
+<p>One can also use the accompanying CosmoSIS interface and use the OnePower to predict the power spectra in the CosmoSIS framework. That opens up many more options, specifically on the observables and statistics to predict.
+See the .yaml file for the use of that specific interface module in CosmoSIS Standard Library or in cosmosis_modules folder</p>
+<p>If you want to calculate the covariance matrix for the power spectra calculated using OnePower, you can use the sister package <a class="reference external" href="https://github.com/rreischke/OneCovariance">OneCovariance</a>!</p>
+</section>
+<section id="attribution">
+<h2>Attribution<a class="headerlink" href="#attribution" title="Link to this heading"></a></h2>
+<p>This code originated from the IA halo model repository of Maria-Cristina Fortuna and used in <a class="reference external" href="https://doi.org/10.1093/mnras/staa3802">Fortuna et al. 2021</a>, and the halo model code used in <a class="reference external" href="https://doi.org/10.1051/0004-6361/202245158">Dvornik et al. 2023</a> and earlier papers. It is designed so that it can natively interact with <a class="reference external" href="https://github.com/joezuntz/cosmosis-standard-library">CosmoSIS standard library</a>.
+Please cite the above papers if you find this code useful in your research:</p>
+<div class="highlight-bibtex notranslate"><div class="highlight"><pre><span></span><span class="nc">@ARTICLE</span><span class="p">{</span><span class="nl">Fortuna2021</span><span class="p">,</span>
+<span class="w">  </span><span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{{Fortuna}, Maria Cristina and {Hoekstra}, Henk and {Joachimi}, Benjamin and {Johnston}, Harry and {Chisari}, Nora Elisa and {Georgiou}, Christos and {Mahony}, Constance}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;{The halo model as a versatile tool to predict intrinsic alignments}&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="na">journal</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{\mnras}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">keywords</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{gravitational lensing: weak, galaxies: haloes, galaxies: statistics, cosmology: theory, Astrophysics - Cosmology and Nongalactic Astrophysics, Astrophysics - Astrophysics of Galaxies}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">year</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="m">2021</span><span class="p">,</span>
+<span class="w">  </span><span class="na">month</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nv">feb</span><span class="p">,</span>
+<span class="w">  </span><span class="na">volume</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{501}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">number</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{2}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">pages</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{2983-3002}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">doi</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{10.1093/mnras/staa3802}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">archivePrefix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{arXiv}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">eprint</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{2003.02700}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">primaryClass</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{astro-ph.CO}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">adsurl</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{https://ui.adsabs.harvard.edu/abs/2021MNRAS.501.2983F}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">adsnote</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Provided by the SAO/NASA Astrophysics Data System}</span>
+<span class="p">}</span>
+
+<span class="nc">@ARTICLE</span><span class="p">{</span><span class="nl">Dvornik2023</span><span class="p">,</span>
+<span class="w">  </span><span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{{Dvornik}, Andrej and {Heymans}, Catherine and {Asgari}, Marika and {Mahony}, Constance and {Joachimi}, Benjamin and {Bilicki}, Maciej and {Chisari}, Elisa and {Hildebrandt}, Hendrik and {Hoekstra}, Henk and {Johnston}, Harry and {Kuijken}, Konrad and {Mead}, Alexander and {Miyatake}, Hironao and {Nishimichi}, Takahiro and {Reischke}, Robert and {Unruh}, Sandra and {Wright}, Angus H.}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;{KiDS-1000: Combined halo-model cosmology constraints from galaxy abundance, galaxy clustering, and galaxy-galaxy lensing}&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="na">journal</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{\aap}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">keywords</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{gravitational lensing: weak, methods: statistical, cosmological parameters, galaxies: halos, dark matter, large-scale structure of Universe, Astrophysics - Cosmology and Nongalactic Astrophysics}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">year</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="m">2023</span><span class="p">,</span>
+<span class="w">  </span><span class="na">month</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nv">jul</span><span class="p">,</span>
+<span class="w">  </span><span class="na">volume</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{675}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">eid</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{A189}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">pages</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{A189}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">doi</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{10.1051/0004-6361/202245158}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">archivePrefix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{arXiv}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">eprint</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{2210.03110}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">primaryClass</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{astro-ph.CO}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">adsurl</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{https://ui.adsabs.harvard.edu/abs/2023A&amp;A...675A.189D}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">adsnote</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Provided by the SAO/NASA Astrophysics Data System}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Usage and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Summary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developing.html">Developing OnePower</a></li>
+</ul>
+</div>
+</section>
+<section id="disclaimer">
+<h2>Disclaimer<a class="headerlink" href="#disclaimer" title="Link to this heading"></a></h2>
+<p>This software is not affiliated with Tolkien Enterprises or any related franchise. The name “OnePower” is used solely as a thematic reference.</p>
+</section>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Andrej Dvornik.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.f\_Mead
+===========================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.f_Mead

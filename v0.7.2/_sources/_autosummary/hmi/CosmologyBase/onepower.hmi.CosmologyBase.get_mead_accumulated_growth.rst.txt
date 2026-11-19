@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.get\_mead\_accumulated\_growth
+=========================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: CosmologyBase.get_mead_accumulated_growth

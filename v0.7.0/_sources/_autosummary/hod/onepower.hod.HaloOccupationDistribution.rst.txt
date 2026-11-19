@@ -1,0 +1,56 @@
+onepower.hod.HaloOccupationDistribution
+=======================================
+
+.. currentmodule:: onepower.hod
+
+.. autoclass:: HaloOccupationDistribution
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: HaloOccupationDistribution
+   
+      ~HaloOccupationDistribution.__init__
+      ~HaloOccupationDistribution.get_models
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: HaloOccupationDistribution
+   
+      ~HaloOccupationDistribution.avg_halo_mass
+      ~HaloOccupationDistribution.avg_halo_mass_cen
+      ~HaloOccupationDistribution.avg_halo_mass_sat
+      ~HaloOccupationDistribution.data
+      ~HaloOccupationDistribution.dndlnm_int
+      ~HaloOccupationDistribution.f_c
+      ~HaloOccupationDistribution.f_s
+      ~HaloOccupationDistribution.galaxy_linear_bias
+      ~HaloOccupationDistribution.galaxy_linear_bias_cen
+      ~HaloOccupationDistribution.galaxy_linear_bias_sat
+      ~HaloOccupationDistribution.halo_bias_int
+      ~HaloOccupationDistribution.hod
+      ~HaloOccupationDistribution.hod_cen
+      ~HaloOccupationDistribution.hod_sat
+      ~HaloOccupationDistribution.log_obs_max
+      ~HaloOccupationDistribution.log_obs_min
+      ~HaloOccupationDistribution.nbins
+      ~HaloOccupationDistribution.nobs
+      ~HaloOccupationDistribution.number_density
+      ~HaloOccupationDistribution.number_density_cen
+      ~HaloOccupationDistribution.number_density_sat
+      ~HaloOccupationDistribution.nz
+      ~HaloOccupationDistribution.obs
+      ~HaloOccupationDistribution.stellar_fraction
+      ~HaloOccupationDistribution.stellar_fraction_cen
+      ~HaloOccupationDistribution.stellar_fraction_sat
+      ~HaloOccupationDistribution.z
+   
+   

@@ -1,0 +1,6 @@
+onepower.hod.Zhai.stellar\_fraction\_cen
+========================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.stellar_fraction_cen

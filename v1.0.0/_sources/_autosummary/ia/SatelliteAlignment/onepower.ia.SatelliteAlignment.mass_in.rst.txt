@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.mass\_in
+=======================================
+
+.. currentmodule:: onepower.ia
+
+.. autoproperty:: SatelliteAlignment.mass_in

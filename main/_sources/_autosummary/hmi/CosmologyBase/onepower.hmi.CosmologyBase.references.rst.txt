@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.references
+=====================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoattribute:: CosmologyBase.references

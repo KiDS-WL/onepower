@@ -1,0 +1,6 @@
+onepower.pk.Spectra.nfw\_cen
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.nfw_cen

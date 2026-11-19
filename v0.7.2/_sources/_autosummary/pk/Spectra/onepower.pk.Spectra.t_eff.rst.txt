@@ -1,0 +1,6 @@
+onepower.pk.Spectra.t\_eff
+==========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.t_eff

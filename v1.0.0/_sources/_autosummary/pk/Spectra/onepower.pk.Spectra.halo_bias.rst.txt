@@ -1,0 +1,6 @@
+onepower.pk.Spectra.halo\_bias
+==============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.halo_bias

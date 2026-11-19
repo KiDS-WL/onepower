@@ -1,0 +1,61 @@
+onepower.hod.Zehavi
+===================
+
+.. currentmodule:: onepower.hod
+
+.. autoclass:: Zehavi
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: Zehavi
+   
+      ~Zehavi.__init__
+      ~Zehavi.get_models
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: Zehavi
+   
+      ~Zehavi.Mmin
+      ~Zehavi.Msat
+      ~Zehavi.alpha
+      ~Zehavi.avg_halo_mass
+      ~Zehavi.avg_halo_mass_cen
+      ~Zehavi.avg_halo_mass_sat
+      ~Zehavi.data
+      ~Zehavi.dndlnm_int
+      ~Zehavi.f_c
+      ~Zehavi.f_s
+      ~Zehavi.galaxy_linear_bias
+      ~Zehavi.galaxy_linear_bias_cen
+      ~Zehavi.galaxy_linear_bias_sat
+      ~Zehavi.halo_bias_int
+      ~Zehavi.hod
+      ~Zehavi.hod_cen
+      ~Zehavi.hod_sat
+      ~Zehavi.log10_Mmin
+      ~Zehavi.log10_Msat
+      ~Zehavi.log_obs_max
+      ~Zehavi.log_obs_min
+      ~Zehavi.nbins
+      ~Zehavi.nobs
+      ~Zehavi.number_density
+      ~Zehavi.number_density_cen
+      ~Zehavi.number_density_sat
+      ~Zehavi.nz
+      ~Zehavi.obs
+      ~Zehavi.stellar_fraction
+      ~Zehavi.stellar_fraction_cen
+      ~Zehavi.stellar_fraction_sat
+      ~Zehavi.z
+   
+   

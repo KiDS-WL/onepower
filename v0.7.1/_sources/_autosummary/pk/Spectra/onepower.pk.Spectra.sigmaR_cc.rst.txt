@@ -1,0 +1,6 @@
+onepower.pk.Spectra.sigmaR\_cc
+==============================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.sigmaR_cc

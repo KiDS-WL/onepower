@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.get\_acknowledgments
+===============================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: CosmologyBase.get_acknowledgments

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.peff
+========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.peff

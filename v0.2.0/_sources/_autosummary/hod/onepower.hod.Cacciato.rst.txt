@@ -1,0 +1,66 @@
+onepower.hod.Cacciato
+=====================
+
+.. currentmodule:: onepower.hod
+
+.. autoclass:: Cacciato
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: Cacciato
+   
+      ~Cacciato.__init__
+      ~Cacciato.get_models
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: Cacciato
+   
+      ~Cacciato.COF
+      ~Cacciato.COF_cen
+      ~Cacciato.COF_sat
+      ~Cacciato.M_char
+      ~Cacciato.Obs_norm_c
+      ~Cacciato.avg_halo_mass
+      ~Cacciato.avg_halo_mass_cen
+      ~Cacciato.avg_halo_mass_sat
+      ~Cacciato.cal_mean_obs_c
+      ~Cacciato.data
+      ~Cacciato.dndlnm_int
+      ~Cacciato.f_c
+      ~Cacciato.f_s
+      ~Cacciato.galaxy_linear_bias
+      ~Cacciato.galaxy_linear_bias_cen
+      ~Cacciato.galaxy_linear_bias_sat
+      ~Cacciato.halo_bias_int
+      ~Cacciato.hod
+      ~Cacciato.hod_cen
+      ~Cacciato.hod_sat
+      ~Cacciato.log_obs_max
+      ~Cacciato.log_obs_min
+      ~Cacciato.nbins
+      ~Cacciato.nobs
+      ~Cacciato.number_density
+      ~Cacciato.number_density_cen
+      ~Cacciato.number_density_sat
+      ~Cacciato.nz
+      ~Cacciato.obs
+      ~Cacciato.obs_func
+      ~Cacciato.obs_func_cen
+      ~Cacciato.obs_func_sat
+      ~Cacciato.phi_star_s
+      ~Cacciato.stellar_fraction
+      ~Cacciato.stellar_fraction_cen
+      ~Cacciato.stellar_fraction_sat
+      ~Cacciato.z
+   
+   

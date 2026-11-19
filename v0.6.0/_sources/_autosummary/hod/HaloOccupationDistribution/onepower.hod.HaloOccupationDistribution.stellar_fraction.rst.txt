@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.stellar\_fraction
+=========================================================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: HaloOccupationDistribution.stellar_fraction

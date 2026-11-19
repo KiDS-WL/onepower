@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.quantities\_available
+================================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.quantities_available

@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.get\_mead\_growth\_fnc
+========================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.get_mead_growth_fnc

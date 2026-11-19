@@ -1,0 +1,6 @@
+onepower.hod.Simple.obs
+=======================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.obs

@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.update
+=================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: CosmologyBase.update

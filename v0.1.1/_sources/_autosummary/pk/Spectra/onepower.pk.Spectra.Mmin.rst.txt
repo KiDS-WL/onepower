@@ -1,0 +1,6 @@
+onepower.pk.Spectra.Mmin
+========================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.Mmin

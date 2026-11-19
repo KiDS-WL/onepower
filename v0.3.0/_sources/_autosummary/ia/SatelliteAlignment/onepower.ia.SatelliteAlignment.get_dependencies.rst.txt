@@ -1,0 +1,6 @@
+onepower.ia.SatelliteAlignment.get\_dependencies
+================================================
+
+.. currentmodule:: onepower.ia
+
+.. automethod:: SatelliteAlignment.get_dependencies

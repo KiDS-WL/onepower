@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.get\_halo\_collapse\_redshifts
+================================================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: HaloModelIngredients.get_halo_collapse_redshifts

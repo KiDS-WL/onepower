@@ -1,0 +1,6 @@
+onepower.hod.Zehavi.alpha
+=========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zehavi.alpha

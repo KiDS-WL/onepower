@@ -1,0 +1,6 @@
+onepower.hod.Zhai.Mcut
+======================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zhai.Mcut

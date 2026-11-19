@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.references
+==================================================
+
+.. currentmodule:: onepower.hod
+
+.. autoattribute:: HaloOccupationDistribution.references

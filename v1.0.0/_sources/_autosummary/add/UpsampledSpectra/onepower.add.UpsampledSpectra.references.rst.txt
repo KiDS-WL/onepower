@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.references
+========================================
+
+.. currentmodule:: onepower.add
+
+.. autoattribute:: UpsampledSpectra.references

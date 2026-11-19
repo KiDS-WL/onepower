@@ -1,0 +1,6 @@
+onepower.hod.Simple.dndlnm\_int
+===============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.dndlnm_int

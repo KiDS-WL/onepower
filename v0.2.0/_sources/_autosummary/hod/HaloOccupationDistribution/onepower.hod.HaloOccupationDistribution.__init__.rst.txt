@@ -1,0 +1,6 @@
+onepower.hod.HaloOccupationDistribution.\_\_init\_\_
+====================================================
+
+.. currentmodule:: onepower.hod
+
+.. automethod:: HaloOccupationDistribution.__init__

@@ -1,0 +1,6 @@
+onepower.hod.Simple.alpha
+=========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.alpha

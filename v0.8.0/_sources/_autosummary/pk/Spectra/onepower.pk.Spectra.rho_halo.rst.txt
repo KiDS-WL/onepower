@@ -1,0 +1,6 @@
+onepower.pk.Spectra.rho\_halo
+=============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.rho_halo

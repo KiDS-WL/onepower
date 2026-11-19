@@ -1,0 +1,6 @@
+onepower.pk.Spectra.compute\_Im\_term
+=====================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.compute_Im_term

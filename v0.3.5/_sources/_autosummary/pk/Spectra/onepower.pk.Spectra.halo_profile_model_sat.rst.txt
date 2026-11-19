@@ -1,0 +1,6 @@
+onepower.pk.Spectra.halo\_profile\_model\_sat
+=============================================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.halo_profile_model_sat

@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.get\_acknowledgments
+======================================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: HaloModelIngredients.get_acknowledgments

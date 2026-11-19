@@ -1,0 +1,6 @@
+onepower.pk.Spectra.prepare\_I21\_integrand
+===========================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.prepare_I21_integrand

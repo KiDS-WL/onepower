@@ -1,0 +1,351 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dvornik et al. 2023 example &mdash; onepower 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Broad Overview of onepower" href="showcase.html" />
+    <link rel="prev" title="Usage and Tutorials" href="../tutorials.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            onepower
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Usage and Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Dvornik et al. 2023 example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="showcase.html">Broad Overview of <code class="docutils literal notranslate"><span class="pre">onepower</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="showcase.html#Updating-parameters">Updating parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cosmosis_interface.html">Interfacing <code class="docutils literal notranslate"><span class="pre">onepower</span></code> with <code class="docutils literal notranslate"><span class="pre">CosmosSIS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Summary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developing.html">Developing OnePower</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">onepower</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorials.html">Usage and Tutorials</a></li>
+      <li class="breadcrumb-item active">Dvornik et al. 2023 example</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/dvornik23.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Dvornik-et-al.-2023-example">
+<h1>Dvornik et al. 2023 example<a class="headerlink" href="#Dvornik-et-al.-2023-example" title="Link to this heading"></a></h1>
+<p>This tutorial will briefly show the minimal setup that allows one to get the power spectra and the stellar mass function as defined in Dvornik et al. 2023 (the KiDS 2x2pt+SMF paper). We will use the best fit parameters as reported in the paper, together with the fixed parameters that are necessary.</p>
+<p>First, we need to import the relevant libraries:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">onepower</span> <span class="kn">import</span> <span class="n">Spectra</span>     <span class="c1"># The main onepower class</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>  <span class="c1"># The necessary plotting library</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>               <span class="c1"># Numerical array library</span>
+
+<span class="c1"># This just serves to render plots inline in the notebook. Do not use in a script.</span>
+<span class="o">%</span><span class="k">matplotlib</span> inline
+</pre></div>
+</div>
+</div>
+<p>Next step is already for us to define the required parameters. While the <code class="docutils literal notranslate"><span class="pre">onepower</span></code> comes with all required parameters having a default values, here we will list all of them and set them to values as used in Dvornik et al. 2023. As all the classes in <code class="docutils literal notranslate"><span class="pre">onepower</span></code> take keyword arguments (there are no positional arguments to be passed) we can simply construct a big dictionary.</p>
+<p>First we will set up the HOD parameters, coming from the best fit values of Dvornik et al. 2023:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hod_params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;log10_obs_norm_c&#39;</span><span class="p">:</span> <span class="mf">10.521</span><span class="p">,</span>
+    <span class="s1">&#39;log10_m_ch&#39;</span><span class="p">:</span> <span class="mf">11.145</span><span class="p">,</span>
+    <span class="s1">&#39;g1&#39;</span><span class="p">:</span> <span class="mf">7.385</span><span class="p">,</span>
+    <span class="s1">&#39;g2&#39;</span><span class="p">:</span> <span class="mf">0.201</span><span class="p">,</span>
+    <span class="s1">&#39;sigma_log10_O_c&#39;</span><span class="p">:</span> <span class="mf">0.159</span><span class="p">,</span>
+    <span class="s1">&#39;norm_s&#39;</span><span class="p">:</span> <span class="mf">0.562</span><span class="p">,</span>
+    <span class="s1">&#39;pivot&#39;</span><span class="p">:</span> <span class="mf">13.0</span><span class="p">,</span>
+    <span class="s1">&#39;alpha_s&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.847</span><span class="p">,</span>
+    <span class="s1">&#39;beta_s&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s1">&#39;b0&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.120</span><span class="p">,</span>
+    <span class="s1">&#39;b1&#39;</span><span class="p">:</span> <span class="mf">1.177</span><span class="p">,</span>
+    <span class="s1">&#39;b2&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>      <span class="c1"># Set to 0, not used in fit</span>
+    <span class="s1">&#39;A_cen&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># No assembly bias assumed</span>
+    <span class="s1">&#39;A_sat&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># No assembly bias assumed</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>Next we can setup the dictionary with HOD settings, setting up our redshift and stellar mass bins:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hod_settings</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;observables_file&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;obs_min&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">9.1</span><span class="p">,</span> <span class="mf">9.6</span><span class="p">,</span> <span class="mf">9.95</span><span class="p">,</span> <span class="mf">10.25</span><span class="p">,</span> <span class="mf">10.5</span><span class="p">,</span> <span class="mf">10.7</span><span class="p">]),</span>
+    <span class="s1">&#39;obs_max&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">9.6</span><span class="p">,</span> <span class="mf">9.95</span><span class="p">,</span> <span class="mf">10.25</span><span class="p">,</span> <span class="mf">10.5</span><span class="p">,</span> <span class="mf">10.7</span><span class="p">,</span> <span class="mf">11.3</span><span class="p">]),</span>
+    <span class="s1">&#39;zmin&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+    <span class="s1">&#39;zmax&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]),</span>
+    <span class="s1">&#39;nz&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+    <span class="s1">&#39;nobs&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="s1">&#39;observable_h_unit&#39;</span><span class="p">:</span> <span class="s1">&#39;1/h^2&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>We do the similar also for the settigs for the observable function in our case the stellar mass function</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obs_settings</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;observables_file&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;obs_min&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">9.1</span><span class="p">]),</span>
+    <span class="s1">&#39;obs_max&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">11.3</span><span class="p">]),</span>
+    <span class="s1">&#39;zmin&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.25</span><span class="p">]),</span>
+    <span class="s1">&#39;zmax&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.25</span><span class="p">]),</span>
+    <span class="s1">&#39;nz&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;nobs&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="s1">&#39;observable_h_unit&#39;</span><span class="p">:</span> <span class="s1">&#39;1/h^2&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>The last small dictionary we need to define is for the Poisson parametrisation of satellite galaxies:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># constant Poisson model only takes one parameter</span>
+<span class="n">poisson_params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;poisson&#39;</span><span class="p">:</span> <span class="mf">0.417</span><span class="p">,</span>
+    <span class="c1">#&#39;pivot&#39;: None,</span>
+    <span class="c1">#&#39;slope&#39;: None</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>Now that we have these smaller dictionaries that set specific settings for HOD, observable function and poisson parameter we can define all other parameters:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;k_vec&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+        <span class="s1">&#39;z_vec&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.12</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.18</span><span class="p">,</span> <span class="mf">0.22</span><span class="p">,</span> <span class="mf">0.27</span><span class="p">,</span> <span class="mf">0.32</span><span class="p">]),</span>
+        <span class="s1">&#39;lnk_min&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">4.0</span><span class="p">)),</span>
+        <span class="s1">&#39;lnk_max&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="mf">4.0</span><span class="p">)),</span>
+        <span class="s1">&#39;dlnk&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="mf">4.0</span><span class="p">))</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">4.0</span><span class="p">)))</span> <span class="o">/</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="s1">&#39;Mmin&#39;</span><span class="p">:</span> <span class="mf">9.0</span><span class="p">,</span>
+        <span class="s1">&#39;Mmax&#39;</span><span class="p">:</span> <span class="mf">16.0</span><span class="p">,</span>
+        <span class="s1">&#39;dlog10m&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+        <span class="s1">&#39;mdef_model&#39;</span><span class="p">:</span> <span class="s1">&#39;SOMean&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hmf_model&#39;</span><span class="p">:</span> <span class="s1">&#39;Tinker10&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;bias_model&#39;</span><span class="p">:</span> <span class="s1">&#39;Tinker10&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;halo_profile_model_dm&#39;</span><span class="p">:</span> <span class="s1">&#39;NFW&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;halo_concentration_model_dm&#39;</span><span class="p">:</span> <span class="s1">&#39;Duffy08&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;halo_profile_model_sat&#39;</span><span class="p">:</span> <span class="s1">&#39;NFW&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;halo_concentration_model_sat&#39;</span><span class="p">:</span> <span class="s1">&#39;Duffy08&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;transfer_model&#39;</span><span class="p">:</span> <span class="s1">&#39;CAMB&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;growth_model&#39;</span><span class="p">:</span> <span class="s1">&#39;CambGrowth&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;norm_cen&#39;</span><span class="p">:</span> <span class="mf">0.939</span><span class="p">,</span>  <span class="c1"># normalisation of c(M) relation for matter/centrals</span>
+        <span class="s1">&#39;norm_sat&#39;</span><span class="p">:</span> <span class="mf">0.84</span><span class="p">,</span>   <span class="c1"># normalisation of c(M) relation for satellites</span>
+        <span class="s1">&#39;overdensity&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="s1">&#39;delta_c&#39;</span><span class="p">:</span> <span class="mf">1.686</span><span class="p">,</span>
+        <span class="s1">&#39;one_halo_ktrunc&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="s1">&#39;two_halo_ktrunc&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="s1">&#39;bnl&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+
+        <span class="s1">&#39;omega_c&#39;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+        <span class="s1">&#39;omega_m&#39;</span><span class="p">:</span> <span class="mf">0.297</span><span class="p">,</span>
+        <span class="s1">&#39;omega_b&#39;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span>
+        <span class="s1">&#39;h0&#39;</span><span class="p">:</span> <span class="mf">0.711</span><span class="p">,</span>
+        <span class="s1">&#39;n_s&#39;</span><span class="p">:</span> <span class="mf">0.978</span><span class="p">,</span>
+        <span class="s1">&#39;sigma_8&#39;</span><span class="p">:</span> <span class="mf">0.801</span><span class="p">,</span>
+
+        <span class="s1">&#39;poisson_model&#39;</span><span class="p">:</span> <span class="s1">&#39;constant&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;poisson_params&#39;</span><span class="p">:</span> <span class="n">poisson_params</span><span class="p">,</span>
+        <span class="s1">&#39;pointmass&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+
+        <span class="s1">&#39;hod_model&#39;</span><span class="p">:</span> <span class="s1">&#39;Cacciato&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hod_params&#39;</span><span class="p">:</span> <span class="n">hod_params</span><span class="p">,</span>
+        <span class="s1">&#39;hod_settings&#39;</span><span class="p">:</span> <span class="n">hod_settings</span><span class="p">,</span>
+        <span class="s1">&#39;obs_settings&#39;</span><span class="p">:</span> <span class="n">obs_settings</span><span class="p">,</span>
+        <span class="s1">&#39;compute_observable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>Now that all the parameters are set, we can initialise the <code class="docutils literal notranslate"><span class="pre">Spectra()</span></code> class and get the relevant power spectra and the stellar mass function</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">Spectra</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>For the Dvornik et al. 2023 paper, we need to ask for galaxy-galaxy power spectrum, galaxy-matter power spectrum and stellar mass function</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">power_gg</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">power_spectrum_gg</span><span class="o">.</span><span class="n">pk_tot</span>
+<span class="n">power_gm</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">power_spectrum_gm</span><span class="o">.</span><span class="n">pk_tot</span>
+
+<span class="n">smf</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">obs_func</span>
+</pre></div>
+</div>
+</div>
+<p>We can now plot the resulting power spectra and the stellar mass function</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">power</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">power_gg</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">k_vec</span><span class="p">,</span> <span class="n">power</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;k [$h$ / Mpc]&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$P_{\rm gg}(k)$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_dvornik23_17_0.png" src="../_images/examples_dvornik23_17_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">power</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">power_gm</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">k_vec</span><span class="p">,</span> <span class="n">power</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;k [$h$ / Mpc]&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$P_{\rm gm}(k)$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_dvornik23_18_0.png" src="../_images/examples_dvornik23_18_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">obs_func_obs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">smf</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$M_{\star}\ [h^{-2}M_{\odot}]$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\Phi$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_dvornik23_19_0.png" src="../_images/examples_dvornik23_19_0.png" />
+</div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../tutorials.html" class="btn btn-neutral float-left" title="Usage and Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="showcase.html" class="btn btn-neutral float-right" title="Broad Overview of onepower" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Andrej Dvornik.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.high\_k\_truncation
+==============================================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.high_k_truncation

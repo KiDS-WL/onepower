@@ -1,0 +1,6 @@
+onepower.hmi.CosmologyBase.clone
+================================
+
+.. currentmodule:: onepower.hmi
+
+.. automethod:: CosmologyBase.clone

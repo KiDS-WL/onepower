@@ -1,0 +1,6 @@
+onepower.hod.Simple.hod\_sat
+============================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.hod_sat

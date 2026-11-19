@@ -1,0 +1,6 @@
+onepower.bnl.NonLinearBias.rvir
+===============================
+
+.. currentmodule:: onepower.bnl
+
+.. automethod:: NonLinearBias.rvir

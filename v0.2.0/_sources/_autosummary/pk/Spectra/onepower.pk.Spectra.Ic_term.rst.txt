@@ -1,0 +1,6 @@
+onepower.pk.Spectra.Ic\_term
+============================
+
+.. currentmodule:: onepower.pk
+
+.. autoproperty:: Spectra.Ic_term

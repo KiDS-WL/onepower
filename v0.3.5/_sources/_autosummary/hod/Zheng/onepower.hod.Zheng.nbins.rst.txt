@@ -1,0 +1,6 @@
+onepower.hod.Zheng.nbins
+========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Zheng.nbins

@@ -1,0 +1,6 @@
+onepower.hmi.HaloModelIngredients.mead\_correction
+==================================================
+
+.. currentmodule:: onepower.hmi
+
+.. autoproperty:: HaloModelIngredients.mead_correction

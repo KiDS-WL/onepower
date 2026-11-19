@@ -1,0 +1,6 @@
+onepower.add.UpsampledSpectra.get\_dependencies
+===============================================
+
+.. currentmodule:: onepower.add
+
+.. automethod:: UpsampledSpectra.get_dependencies

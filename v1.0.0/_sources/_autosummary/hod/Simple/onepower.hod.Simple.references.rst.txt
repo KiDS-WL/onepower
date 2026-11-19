@@ -1,0 +1,6 @@
+onepower.hod.Simple.references
+==============================
+
+.. currentmodule:: onepower.hod
+
+.. autoattribute:: Simple.references

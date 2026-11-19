@@ -1,0 +1,6 @@
+onepower.hod.Simple.Mmin
+========================
+
+.. currentmodule:: onepower.hod
+
+.. autoproperty:: Simple.Mmin

@@ -1,0 +1,6 @@
+onepower.pk.Spectra.get\_all\_parameter\_names
+==============================================
+
+.. currentmodule:: onepower.pk
+
+.. automethod:: Spectra.get_all_parameter_names

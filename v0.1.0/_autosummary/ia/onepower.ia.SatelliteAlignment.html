@@ -1,0 +1,377 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>onepower.ia.SatelliteAlignment &mdash; onepower 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="onepower.ia.SatelliteAlignment.I_x" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.I_x.html" />
+    <link rel="prev" title="onepower.ia.AlignmentAmplitudes.z_vec" href="AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.z_vec.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            onepower
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Usage and Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../api.html">API Summary</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../onepower.pk.html">onepower.pk</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../onepower.ia.html">onepower.ia</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="onepower.ia.AlignmentAmplitudes.html">onepower.ia.AlignmentAmplitudes</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">onepower.ia.SatelliteAlignment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#onepower.ia.SatelliteAlignment"><code class="docutils literal notranslate"><span class="pre">SatelliteAlignment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.I_x.html">onepower.ia.SatelliteAlignment.I_x</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.__init__.html">onepower.ia.SatelliteAlignment.__init__</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.broken_powerlaw.html">onepower.ia.SatelliteAlignment.broken_powerlaw</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.calculate_f_ell.html">onepower.ia.SatelliteAlignment.calculate_f_ell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.clone.html">onepower.ia.SatelliteAlignment.clone</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.compute_luminosity_pdf.html">onepower.ia.SatelliteAlignment.compute_luminosity_pdf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_r_nfw_profile.html">onepower.ia.SatelliteAlignment.gamma_r_nfw_profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.get_all_parameter_defaults.html">onepower.ia.SatelliteAlignment.get_all_parameter_defaults</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.get_all_parameter_names.html">onepower.ia.SatelliteAlignment.get_all_parameter_names</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.get_dependencies.html">onepower.ia.SatelliteAlignment.get_dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.mean_l_l0_to_beta.html">onepower.ia.SatelliteAlignment.mean_l_l0_to_beta</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.parameter_info.html">onepower.ia.SatelliteAlignment.parameter_info</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.quantities_available.html">onepower.ia.SatelliteAlignment.quantities_available</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.update.html">onepower.ia.SatelliteAlignment.update</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.upsampled_wkm.html">onepower.ia.SatelliteAlignment.upsampled_wkm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.validate.html">onepower.ia.SatelliteAlignment.validate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.alignment_gi.html">onepower.ia.SatelliteAlignment.alignment_gi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.beta_cen.html">onepower.ia.SatelliteAlignment.beta_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.beta_sat.html">onepower.ia.SatelliteAlignment.beta_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.c.html">onepower.ia.SatelliteAlignment.c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.c_in.html">onepower.ia.SatelliteAlignment.c_in</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.central_ia_depends_on.html">onepower.ia.SatelliteAlignment.central_ia_depends_on</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.compute_uell_gamma_r_hankel.html">onepower.ia.SatelliteAlignment.compute_uell_gamma_r_hankel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.ell_max.html">onepower.ia.SatelliteAlignment.ell_max</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.ell_values.html">onepower.ia.SatelliteAlignment.ell_values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_1h_amp.html">onepower.ia.SatelliteAlignment.gamma_1h_amp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_1h_amplitude.html">onepower.ia.SatelliteAlignment.gamma_1h_amplitude</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_1h_slope.html">onepower.ia.SatelliteAlignment.gamma_1h_slope</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_2h_amplitude.html">onepower.ia.SatelliteAlignment.gamma_2h_amplitude</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.hankel.html">onepower.ia.SatelliteAlignment.hankel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.k_vec.html">onepower.ia.SatelliteAlignment.k_vec</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lpivot_cen.html">onepower.ia.SatelliteAlignment.lpivot_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lpivot_sat.html">onepower.ia.SatelliteAlignment.lpivot_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_centrals.html">onepower.ia.SatelliteAlignment.lum_centrals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_pdf_z_centrals.html">onepower.ia.SatelliteAlignment.lum_pdf_z_centrals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_pdf_z_satellites.html">onepower.ia.SatelliteAlignment.lum_pdf_z_satellites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_satellites.html">onepower.ia.SatelliteAlignment.lum_satellites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.mass.html">onepower.ia.SatelliteAlignment.mass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.mass_in.html">onepower.ia.SatelliteAlignment.mass_in</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.method.html">onepower.ia.SatelliteAlignment.method</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.mpivot_cen.html">onepower.ia.SatelliteAlignment.mpivot_cen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.mpivot_sat.html">onepower.ia.SatelliteAlignment.mpivot_sat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.n_hankel.html">onepower.ia.SatelliteAlignment.n_hankel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.nk.html">onepower.ia.SatelliteAlignment.nk</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.nmass.html">onepower.ia.SatelliteAlignment.nmass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.parameter_values.html">onepower.ia.SatelliteAlignment.parameter_values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.r_s.html">onepower.ia.SatelliteAlignment.r_s</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.r_s_in.html">onepower.ia.SatelliteAlignment.r_s_in</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.rvir.html">onepower.ia.SatelliteAlignment.rvir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.rvir_in.html">onepower.ia.SatelliteAlignment.rvir_in</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.satellite_ia_depends_on.html">onepower.ia.SatelliteAlignment.satellite_ia_depends_on</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.truncate.html">onepower.ia.SatelliteAlignment.truncate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.wkm.html">onepower.ia.SatelliteAlignment.wkm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.wkm_f_ell.html">onepower.ia.SatelliteAlignment.wkm_f_ell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.z_loglum_file_centrals.html">onepower.ia.SatelliteAlignment.z_loglum_file_centrals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.z_loglum_file_satellites.html">onepower.ia.SatelliteAlignment.z_loglum_file_satellites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.z_vec.html">onepower.ia.SatelliteAlignment.z_vec</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.bnl.html">onepower.bnl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.hod.html">onepower.hod</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.hmi.html">onepower.hmi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../onepower.add.html">onepower.add</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developing.html">Developing OnePower</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">onepower</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../api.html">API Summary</a></li>
+          <li class="breadcrumb-item"><a href="../onepower.ia.html">onepower.ia</a></li>
+      <li class="breadcrumb-item active">onepower.ia.SatelliteAlignment</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_autosummary/ia/onepower.ia.SatelliteAlignment.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="onepower-ia-satellitealignment">
+<h1>onepower.ia.SatelliteAlignment<a class="headerlink" href="#onepower-ia-satellitealignment" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="onepower.ia.SatelliteAlignment">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">onepower.ia.</span></span><span class="sig-name descname"><span class="pre">SatelliteAlignment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/onepower/ia.html#SatelliteAlignment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#onepower.ia.SatelliteAlignment" title="Link to this definition"></a></dt>
+<dd><p>A class to compute the alignment properties of satellite galaxies within dark matter halos.
+This includes calculating the Hankel transform, radial profiles, and other related quantities.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.I_x.html#onepower.ia.SatelliteAlignment.I_x" title="onepower.ia.SatelliteAlignment.I_x"><code class="xref py py-obj docutils literal notranslate"><span class="pre">I_x</span></code></a>(a, b)</p></td>
+<td><p>Compute the integral of (1 - x^2)^(a/2) * x^b from -1 to 1.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.__init__.html#onepower.ia.SatelliteAlignment.__init__" title="onepower.ia.SatelliteAlignment.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([mass_in, c_in, r_s_in, rvir_in, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.broken_powerlaw.html#onepower.ia.SatelliteAlignment.broken_powerlaw" title="onepower.ia.SatelliteAlignment.broken_powerlaw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">broken_powerlaw</span></code></a>(xlum, pdf, gamma_2h_lum, l0, ...)</p></td>
+<td><p>Compute the broken power law.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.calculate_f_ell.html#onepower.ia.SatelliteAlignment.calculate_f_ell" title="onepower.ia.SatelliteAlignment.calculate_f_ell"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_f_ell</span></code></a>(ell, gamma_b)</p></td>
+<td><p>Computes the angular part of the satellite intrinsic shear field.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.clone.html#onepower.ia.SatelliteAlignment.clone" title="onepower.ia.SatelliteAlignment.clone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clone</span></code></a>(**kwargs)</p></td>
+<td><p>Create and return an updated clone of the current object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.compute_luminosity_pdf.html#onepower.ia.SatelliteAlignment.compute_luminosity_pdf" title="onepower.ia.SatelliteAlignment.compute_luminosity_pdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_luminosity_pdf</span></code></a>(z_loglum_file, nlbins)</p></td>
+<td><p>Compute the luminosity PDF.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_r_nfw_profile.html#onepower.ia.SatelliteAlignment.gamma_r_nfw_profile" title="onepower.ia.SatelliteAlignment.gamma_r_nfw_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gamma_r_nfw_profile</span></code></a>(r, rs, rvir, a, b[, ...])</p></td>
+<td><p>Compute the radial profile of the NFW (Navarro-Frenk-White) profile with a power-law correction.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.get_all_parameter_defaults.html#onepower.ia.SatelliteAlignment.get_all_parameter_defaults" title="onepower.ia.SatelliteAlignment.get_all_parameter_defaults"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_parameter_defaults</span></code></a>([recursive])</p></td>
+<td><p>Dictionary of all parameters and defaults.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.get_all_parameter_names.html#onepower.ia.SatelliteAlignment.get_all_parameter_names" title="onepower.ia.SatelliteAlignment.get_all_parameter_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_parameter_names</span></code></a>()</p></td>
+<td><p>Yield all parameter names in the class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.get_dependencies.html#onepower.ia.SatelliteAlignment.get_dependencies" title="onepower.ia.SatelliteAlignment.get_dependencies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_dependencies</span></code></a>(*q)</p></td>
+<td><p>Determine all parameter dependencies of the quantities in q.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.mean_l_l0_to_beta.html#onepower.ia.SatelliteAlignment.mean_l_l0_to_beta" title="onepower.ia.SatelliteAlignment.mean_l_l0_to_beta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_l_l0_to_beta</span></code></a>(xlum, pdf, l0, beta)</p></td>
+<td><p>Compute the mean luminosity scaling.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.parameter_info.html#onepower.ia.SatelliteAlignment.parameter_info" title="onepower.ia.SatelliteAlignment.parameter_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameter_info</span></code></a>([names])</p></td>
+<td><p>Prints information about each parameter in the class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.quantities_available.html#onepower.ia.SatelliteAlignment.quantities_available" title="onepower.ia.SatelliteAlignment.quantities_available"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantities_available</span></code></a>()</p></td>
+<td><p>Obtain a list of all available output quantities.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.update.html#onepower.ia.SatelliteAlignment.update" title="onepower.ia.SatelliteAlignment.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(**kwargs)</p></td>
+<td><p>Update parameters of the framework with kwargs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.upsampled_wkm.html#onepower.ia.SatelliteAlignment.upsampled_wkm" title="onepower.ia.SatelliteAlignment.upsampled_wkm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsampled_wkm</span></code></a>(k_vec_out, mass_out)</p></td>
+<td><p>Interpolates the wkm profiles and upsamples back to the original grid.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.validate.html#onepower.ia.SatelliteAlignment.validate" title="onepower.ia.SatelliteAlignment.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>()</p></td>
+<td><p>Perform validation of the input parameters as they relate to each other.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.alignment_gi.html#onepower.ia.SatelliteAlignment.alignment_gi" title="onepower.ia.SatelliteAlignment.alignment_gi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alignment_gi</span></code></a></p></td>
+<td><p>Compute the alignment_gi based on the central galaxies' properties.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.beta_cen.html#onepower.ia.SatelliteAlignment.beta_cen" title="onepower.ia.SatelliteAlignment.beta_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">beta_cen</span></code></a></p></td>
+<td><p>Beta parameter for central galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.beta_sat.html#onepower.ia.SatelliteAlignment.beta_sat" title="onepower.ia.SatelliteAlignment.beta_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">beta_sat</span></code></a></p></td>
+<td><p>float Beta parameter for satellite galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.c.html#onepower.ia.SatelliteAlignment.c" title="onepower.ia.SatelliteAlignment.c"><code class="xref py py-obj docutils literal notranslate"><span class="pre">c</span></code></a></p></td>
+<td><p>Downsampled c_in if method == hankel, c_in otherwise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.c_in.html#onepower.ia.SatelliteAlignment.c_in" title="onepower.ia.SatelliteAlignment.c_in"><code class="xref py py-obj docutils literal notranslate"><span class="pre">c_in</span></code></a></p></td>
+<td><p>Concentration parameter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.central_ia_depends_on.html#onepower.ia.SatelliteAlignment.central_ia_depends_on" title="onepower.ia.SatelliteAlignment.central_ia_depends_on"><code class="xref py py-obj docutils literal notranslate"><span class="pre">central_ia_depends_on</span></code></a></p></td>
+<td><p>Validate the central intrinsic alignment dependencies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.compute_uell_gamma_r_hankel.html#onepower.ia.SatelliteAlignment.compute_uell_gamma_r_hankel" title="onepower.ia.SatelliteAlignment.compute_uell_gamma_r_hankel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_uell_gamma_r_hankel</span></code></a></p></td>
+<td><p>Computes a 4D array containing u_ell as a function of l, z, m, and k.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.ell_max.html#onepower.ia.SatelliteAlignment.ell_max" title="onepower.ia.SatelliteAlignment.ell_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ell_max</span></code></a></p></td>
+<td><p>Maximum multipole moment.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.ell_values.html#onepower.ia.SatelliteAlignment.ell_values" title="onepower.ia.SatelliteAlignment.ell_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ell_values</span></code></a></p></td>
+<td><p>Sets the ell values array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_1h_amp.html#onepower.ia.SatelliteAlignment.gamma_1h_amp" title="onepower.ia.SatelliteAlignment.gamma_1h_amp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gamma_1h_amp</span></code></a></p></td>
+<td><p>Compute the gamma_1h_amplitude based on the satellite galaxies' properties.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_1h_amplitude.html#onepower.ia.SatelliteAlignment.gamma_1h_amplitude" title="onepower.ia.SatelliteAlignment.gamma_1h_amplitude"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gamma_1h_amplitude</span></code></a></p></td>
+<td><p>Amplitude for 1-halo term.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_1h_slope.html#onepower.ia.SatelliteAlignment.gamma_1h_slope" title="onepower.ia.SatelliteAlignment.gamma_1h_slope"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gamma_1h_slope</span></code></a></p></td>
+<td><p>Slope for 1-halo term.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.gamma_2h_amplitude.html#onepower.ia.SatelliteAlignment.gamma_2h_amplitude" title="onepower.ia.SatelliteAlignment.gamma_2h_amplitude"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gamma_2h_amplitude</span></code></a></p></td>
+<td><p>Amplitude for 2-halo term.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.hankel.html#onepower.ia.SatelliteAlignment.hankel" title="onepower.ia.SatelliteAlignment.hankel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hankel</span></code></a></p></td>
+<td><p>Initialize Hankel transform.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.k_vec.html#onepower.ia.SatelliteAlignment.k_vec" title="onepower.ia.SatelliteAlignment.k_vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">k_vec</span></code></a></p></td>
+<td><p>Sets the k vector array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lpivot_cen.html#onepower.ia.SatelliteAlignment.lpivot_cen" title="onepower.ia.SatelliteAlignment.lpivot_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lpivot_cen</span></code></a></p></td>
+<td><p>Pivot luminosity for central galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lpivot_sat.html#onepower.ia.SatelliteAlignment.lpivot_sat" title="onepower.ia.SatelliteAlignment.lpivot_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lpivot_sat</span></code></a></p></td>
+<td><p>Pivot luminosity for satellite galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_centrals.html#onepower.ia.SatelliteAlignment.lum_centrals" title="onepower.ia.SatelliteAlignment.lum_centrals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lum_centrals</span></code></a></p></td>
+<td><p>Returns the luminosity array for centrals.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_pdf_z_centrals.html#onepower.ia.SatelliteAlignment.lum_pdf_z_centrals" title="onepower.ia.SatelliteAlignment.lum_pdf_z_centrals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lum_pdf_z_centrals</span></code></a></p></td>
+<td><p>Returns the luminosity array for satellites.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_pdf_z_satellites.html#onepower.ia.SatelliteAlignment.lum_pdf_z_satellites" title="onepower.ia.SatelliteAlignment.lum_pdf_z_satellites"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lum_pdf_z_satellites</span></code></a></p></td>
+<td><p>Returns the luminosity PDF array for satellites.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.lum_satellites.html#onepower.ia.SatelliteAlignment.lum_satellites" title="onepower.ia.SatelliteAlignment.lum_satellites"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lum_satellites</span></code></a></p></td>
+<td><p>Returns the luminosity PDF array for centrals.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.mass.html#onepower.ia.SatelliteAlignment.mass" title="onepower.ia.SatelliteAlignment.mass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mass</span></code></a></p></td>
+<td><p>Downsampled mass_in if method == hankel, mass_in otherwise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.mass_in.html#onepower.ia.SatelliteAlignment.mass_in" title="onepower.ia.SatelliteAlignment.mass_in"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mass_in</span></code></a></p></td>
+<td><p>Array of halo masses.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.method.html#onepower.ia.SatelliteAlignment.method" title="onepower.ia.SatelliteAlignment.method"><code class="xref py py-obj docutils literal notranslate"><span class="pre">method</span></code></a></p></td>
+<td><p>Which method to perform Fourier/Hankel transform to use</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.mpivot_cen.html#onepower.ia.SatelliteAlignment.mpivot_cen" title="onepower.ia.SatelliteAlignment.mpivot_cen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mpivot_cen</span></code></a></p></td>
+<td><p>Pivot mass for central galaxies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.mpivot_sat.html#onepower.ia.SatelliteAlignment.mpivot_sat" title="onepower.ia.SatelliteAlignment.mpivot_sat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mpivot_sat</span></code></a></p></td>
+<td><p>Pivot mass for satellite galaxies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.n_hankel.html#onepower.ia.SatelliteAlignment.n_hankel" title="onepower.ia.SatelliteAlignment.n_hankel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">n_hankel</span></code></a></p></td>
+<td><p>Number of steps in the Hankel transform integration.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.nk.html#onepower.ia.SatelliteAlignment.nk" title="onepower.ia.SatelliteAlignment.nk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nk</span></code></a></p></td>
+<td><p>Number of k bins.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.nmass.html#onepower.ia.SatelliteAlignment.nmass" title="onepower.ia.SatelliteAlignment.nmass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nmass</span></code></a></p></td>
+<td><p>Number of mass bins.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.parameter_values.html#onepower.ia.SatelliteAlignment.parameter_values" title="onepower.ia.SatelliteAlignment.parameter_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameter_values</span></code></a></p></td>
+<td><p>Dictionary of all parameters and their current values</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.r_s.html#onepower.ia.SatelliteAlignment.r_s" title="onepower.ia.SatelliteAlignment.r_s"><code class="xref py py-obj docutils literal notranslate"><span class="pre">r_s</span></code></a></p></td>
+<td><p>Downsampled r_s_in if method == hankel, r_s_in otherwise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.r_s_in.html#onepower.ia.SatelliteAlignment.r_s_in" title="onepower.ia.SatelliteAlignment.r_s_in"><code class="xref py py-obj docutils literal notranslate"><span class="pre">r_s_in</span></code></a></p></td>
+<td><p>Scale radius.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.rvir.html#onepower.ia.SatelliteAlignment.rvir" title="onepower.ia.SatelliteAlignment.rvir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rvir</span></code></a></p></td>
+<td><p>Downsampled rvir_in if method == hankel, rvir_in otherwise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.rvir_in.html#onepower.ia.SatelliteAlignment.rvir_in" title="onepower.ia.SatelliteAlignment.rvir_in"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rvir_in</span></code></a></p></td>
+<td><p>Virial radius.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.satellite_ia_depends_on.html#onepower.ia.SatelliteAlignment.satellite_ia_depends_on" title="onepower.ia.SatelliteAlignment.satellite_ia_depends_on"><code class="xref py py-obj docutils literal notranslate"><span class="pre">satellite_ia_depends_on</span></code></a></p></td>
+<td><p>Validate the satellite intrinsic alignment dependencies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.truncate.html#onepower.ia.SatelliteAlignment.truncate" title="onepower.ia.SatelliteAlignment.truncate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">truncate</span></code></a></p></td>
+<td><p>Whether to truncate the NFW profile at the virial radius.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.wkm.html#onepower.ia.SatelliteAlignment.wkm" title="onepower.ia.SatelliteAlignment.wkm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wkm</span></code></a></p></td>
+<td><p>Return the computed wkm_f_ell values along with the redshift, mass, and k vectors.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.wkm_f_ell.html#onepower.ia.SatelliteAlignment.wkm_f_ell" title="onepower.ia.SatelliteAlignment.wkm_f_ell"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wkm_f_ell</span></code></a></p></td>
+<td><p>Integral of the angular part in eq B8 (SB10) using the Legendre polynomials assuming theta_e=theta, phi_e=phi (perfect radial alignment).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.z_loglum_file_centrals.html#onepower.ia.SatelliteAlignment.z_loglum_file_centrals" title="onepower.ia.SatelliteAlignment.z_loglum_file_centrals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_loglum_file_centrals</span></code></a></p></td>
+<td><p>File path for central galaxy luminosity data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.z_loglum_file_satellites.html#onepower.ia.SatelliteAlignment.z_loglum_file_satellites" title="onepower.ia.SatelliteAlignment.z_loglum_file_satellites"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_loglum_file_satellites</span></code></a></p></td>
+<td><p>File path for satellite galaxy luminosity data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SatelliteAlignment/onepower.ia.SatelliteAlignment.z_vec.html#onepower.ia.SatelliteAlignment.z_vec" title="onepower.ia.SatelliteAlignment.z_vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_vec</span></code></a></p></td>
+<td><p>Redshift vector.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="AlignmentAmplitudes/onepower.ia.AlignmentAmplitudes.z_vec.html" class="btn btn-neutral float-left" title="onepower.ia.AlignmentAmplitudes.z_vec" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="SatelliteAlignment/onepower.ia.SatelliteAlignment.I_x.html" class="btn btn-neutral float-right" title="onepower.ia.SatelliteAlignment.I_x" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Andrej Dvornik.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

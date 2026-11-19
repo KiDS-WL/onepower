@@ -1,0 +1,56 @@
+onepower.hod.HOD
+================
+
+.. currentmodule:: onepower.hod
+
+.. autoclass:: HOD
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: HOD
+   
+      ~HOD.__init__
+      ~HOD.get_models
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree: HOD
+   
+      ~HOD.avg_halo_mass
+      ~HOD.avg_halo_mass_cen
+      ~HOD.avg_halo_mass_sat
+      ~HOD.data
+      ~HOD.dndlnm_int
+      ~HOD.f_c
+      ~HOD.f_s
+      ~HOD.galaxy_linear_bias
+      ~HOD.galaxy_linear_bias_cen
+      ~HOD.galaxy_linear_bias_sat
+      ~HOD.halo_bias_int
+      ~HOD.hod
+      ~HOD.hod_cen
+      ~HOD.hod_sat
+      ~HOD.log_obs_max
+      ~HOD.log_obs_min
+      ~HOD.nbins
+      ~HOD.nobs
+      ~HOD.number_density
+      ~HOD.number_density_cen
+      ~HOD.number_density_sat
+      ~HOD.nz
+      ~HOD.obs
+      ~HOD.stellar_fraction
+      ~HOD.stellar_fraction_cen
+      ~HOD.stellar_fraction_sat
+      ~HOD.z
+   
+   
